@@ -1,0 +1,18 @@
+{
+  "MASK_RCNN": {
+    "DIR": "/var/www/Mask_RCNN/"
+  },
+  "NOMEROFF_NET": {
+    "ROOT": "/var/www/nomeroff-net/",
+    "LOG_DIR": "logs/",
+    "MODEL_PATH": "models/np/mask_rcnn_numberplate_0700.h5",
+    "CLASS_NAMES": ["BG", "NUMBERPLATE"]
+  },
+  "NN_MASK_RCNN": {
+    "NAME": "numberplate",
+    "GPU_COUNT": 1,
+    "IMAGES_PER_GPU": 1,
+    "NUM_CLASSES": 2,
+    "DETECTION_MIN_CONFIDENCE": 0.5
+  }
+}
