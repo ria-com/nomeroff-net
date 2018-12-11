@@ -1,0 +1,4 @@
+.idea
+.idea/*
+models/*.h5
+samples/logs/*
