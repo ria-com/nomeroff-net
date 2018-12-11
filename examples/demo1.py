@@ -1,8 +1,7 @@
 import sys
 import os
-from configparser import ConfigParser
-
 import json
+
 with open('../config/default.json') as data_file:
     config = json.load(data_file)
 

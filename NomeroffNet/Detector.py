@@ -21,7 +21,7 @@ class Detector:
 
     def loadModel(self):
         import mrcnn.model as modellib
-        from .NN_Mask_RCNN import InferenceConfig
+        from .mrcnn import InferenceConfig
 
         config = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
         self.MODEL = modellib.MaskRCNN(mode="inference", model_dir=self.LOG_DIR, config=config)
