@@ -17,7 +17,7 @@ def color_splash(image, nns):
     for nn in nns:
         if nn["masks"].shape[-1] > 0:
             mask = (np.sum(nn["masks"], -1, keepdims=True) >= 1)
-            fulled = np.full(image.shape, (127, 127, 0))
+            fulled = np.full(image.shape, (127, 0, 127))
             splash = np.where(mask, fulled, gray).astype(np.uint8)
         else:
             splash = gray.astype(np.uint8)
