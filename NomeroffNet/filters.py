@@ -2,9 +2,11 @@ import skimage.io
 import numpy as np
 
 def mask(nns):
-    masks = []
+    res = []
     for nn in nns:
-        mask = np.array([[w[0] for w in h] for h in nn["masks"]])
-        gray = skimage.color.gray2rgb(mask) * 255
-        masks.append(gray)
-    return masks
+        masks = np.array(nn["masks"])
+        for i in np.arange(masks.shape[2]):
+            mask = np.array([[w[i] for w in h] for h in nn["masks"]])
+            gray = skimage.color.gray2rgb(mask) * 255
+            res.append(gray)
+    return res
