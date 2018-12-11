@@ -2,11 +2,11 @@ import sys
 import os
 from configparser import ConfigParser
 
-sys.path.append("../")
-
 import json
 with open('../config/default.json') as data_file:
     config = json.load(data_file)
+
+sys.path.append(os.path.abspath(config["NOMEROFF_NET"]["ROOT"]))
 
 from NomeroffNet import Detector, filters
 
