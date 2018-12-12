@@ -19,7 +19,7 @@ class Detector:
         sys.path.append(self.MASK_RCNN_DIR)
         sys.path.append(self.ROOT)
 
-    def loadModel(self):
+    def loadModel(self, verbose = 0):
         import mrcnn.model as modellib
         from .mrcnn import InferenceConfig
 
@@ -27,6 +27,9 @@ class Detector:
         self.MODEL = modellib.MaskRCNN(mode="inference", model_dir=self.LOG_DIR, config=config)
         self.MODEL.load_weights(self.MODEL_PATH, by_name=True)
 
-    def detect(self, image_paths, verbose = 0):
+    def detectFromFile(self, image_paths, verbose = 0):
         images = [skimage.io.imread(image_path) for image_path in image_paths]
+        return self.detect(images, verbose=verbose)
+
+    def detect(self, images, verbose = 0):
         return self.MODEL.detect(images, verbose=verbose)
