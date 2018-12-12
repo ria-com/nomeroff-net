@@ -1,0 +1,142 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--link rel="icon" href="../../../../favicon.ico"-->
+
+    <title>Nomeroff Net. Automatic numberplate recognition system from RIA.com</title>
+
+    <!-- BootstrapCDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <style>
+        body {
+            padding-bottom: 20px;
+        }
+
+        .navbar {
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+
+<body>
+
+
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+        <a class="navbar-brand" href="#">Nomeroff Net</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample09" aria-controls="navbarsExample09" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample09">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#onlineDemo">Online Demo</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown09" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Examples</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown09">
+                        <a class="dropdown-item" href="#">Mask Detection Demo</a>
+                        <a class="dropdown-item" href="#">Numberplate Zone Detection Demo</a>
+                        <a class="dropdown-item" href="#">Numberplate Detection Demo</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#links">Links</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main">
+        <div class="jumbotron">
+            <div class="col-sm-10 mx-auto">
+                <div class="logo">
+                    <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg?1" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo">
+                </div>
+                <p>Automatic numberplate recognition system.</p>
+
+
+                <h1>Introduction</h1>
+                <p>Nomeroff Net это opensource фреймворк для распознавания номерных знаков на python, в основе которого лежит приминение сверточной нейронной сети на архитектуре <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a>, а также системой распознавания текстов <a href="https://github.com/tesseract-ocr/tesseract">tesseract</a></p>
+
+
+                <h1>Installation</h1>
+
+                <p>To install tesseract 4, please follow instruction from <a href="https://github.com/tesseract-ocr/tesseract/wiki">tesseract wiki</a></p>
+                <p>Checkout Mask_RCNN & nomeroff-net from github:</p>
+<pre>
+$ git clone https://github.com/matterport/Mask_RCNN.git
+$ git clone https://github.com/ria-com/nomeroff-net.git
+</pre>
+                <p>Загрузите последнюю версию модели, которая необходима для работы Вашей нейронной сети и поместите ее в парку models пароекта nomeroff-net</p>
+
+                <h1>Quick recognition example</h1>
+                <p>Тут будет простой пример использования библиотеки</p>
+
+                <h1>Online Demo</h1>
+                <p>Для того чтоб оценить качество работы Nomeroff Net при этом не потратив время на настройку и установку мы сделали онлайн форму, в которую вы можете загрузить Ваше фото и получить результат распознавания в режиме online</p>
+                <p>
+                    <a href="/onlineDemo">Online Demo &raquo;</a>
+                    <!-- a class="btn btn-primary" href="/onlineDemo" role="button">Online Demo &raquo;</a-->
+                </p>
+
+                <h1>RIA Numberplate Dataset</h1>
+                <p>Все данные, на основе которых производилось обучение предоставлены команий RIA.com. В ланейшем мы будем эти данные называть riaNet dataset.</p>
+                <p>Мы будем признательны Вам за помощь в формировании и разметке датасета с изображением номерных знаков Вашей страны. Для разметки можете мы рекомендуем использовать <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
+
+                <h1>Road map</h1>
+                <p>Вот уже несколько месяцев мы уделаем часть своего времени на разработку нових фич для проекта Nomeroff Net. В ближайшее время мы планирем:</p>
+                <ul>
+                    <li>Выложить подробную инструкцию по тренировки модели для номерных знаков Вашей страны.</li>
+                    <li>Переработать алгоритм, который по маске находит область для дальнейшего распознавания найденной области модклем tesseract</li>
+                    <li>Добавить классификатор стран номерных знаков, по которым определять страну, в которой этот номерной знак зарегистрирован</li>
+                    <li>Увеличить обучающую выборку до 5000 размечених фото для более качественного нахождения номеров з разных стран</li>
+                </ul>
+
+
+                <h1>Contributing</h1>
+
+                <p>Contributions to this repository are welcome. Examples of things you can contribute:</p>
+                <ul>
+                    <li>Training on other datasets.</li>
+                    <li>Accuracy Improvements.</li>
+                </ul>
+
+
+                <h1>Links</h1>
+                Community links to discover third-party middleware for Koa, full runnable examples, thorough guides and more!
+                <ul>
+                    <li><a href="https://github.com/ria-com/nomeroff-net">GitHub repository</a></li>
+                    <li><a href="https://habr.com/post/432444/">Numberplate recognition. Practical guide. Part 1 (in Russian)</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+</div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<link href="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.css" rel="stylesheet">
+
+</body>
+</html>
