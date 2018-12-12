@@ -5,8 +5,6 @@ from skimage import img_as_ubyte
 from skimage.morphology import convex_hull_image
 
 def draw_box(image, boxs, color=(255,0,0), thickness=2):
-  image = image.copy()
-
   # округление координат
   boxs = np.int0(boxs)
 
