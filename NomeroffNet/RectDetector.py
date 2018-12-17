@@ -96,9 +96,73 @@ class RectDetector(object):
         if (a < 0 ):
             a180 = 180 + a
         return [k, b, a, a180, r]
-    
+
     def distance(self, p0, p1):
         return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
+
+    def rotate_points(self,rect):
+        rect[0], rect[1], rect[2], rect[3] = rect[1], rect[2], rect[3], rect[0]
+        return rect
+
+    def findWidth(self, rect):
+        line1 = self.distance(rect[0], rect[1])
+        line3 = self.distance(rect[2], rect[3])
+        h = np.mean([line1, line3])
+        return h
+
+    def findHieght(self, rect):
+        line2 = self.distance(rect[1], rect[2])
+        line4 = self.distance(rect[3], rect[0])
+        w = np.mean([line2, line4])
+        return w
+
+    def to_pretty_point(self, points):
+        sortedOnX = sorted([point for point in points], key=lambda x: x[0] )
+        res = [[0, 0], [0, 0], [0, 0], [0, 0]]
+        if sortedOnX[0][1] < sortedOnX[1][1]:
+            res[0], res[3] = sortedOnX[0], sortedOnX[1]
+        else:
+            res[0], res[3] = sortedOnX[1], sortedOnX[0]
+
+        if sortedOnX[2][1] < sortedOnX[3][1]:
+            res[1], res[2] = sortedOnX[2], sortedOnX[3]
+        else:
+            res[1], res[2] = sortedOnX[3], sortedOnX[2]
+        return res
+
+
+    def rotate_to_pretty(self, points):
+        new_arr = []
+        points = self.to_pretty_point(points)
+        new_arr.append(points)
+        w = self.findWidth(points)
+        h = self.findHieght(points)
+
+        if h > w:
+            h, w = w, h
+            points = self.reshapePoints(points, 1)
+        return points, w, h
+
+    def detetct_pretty_w_h_to_zone(self, w, h, coef=4.6):
+        return int(h*coef), int(h)
+
+    def get_cv_zones(self, img, rects, gw = 0, gh = 0, coef=4.6):
+        res = []
+        for rect in rects:
+            rect, w, h = self.rotate_to_pretty(rect)
+            if (gw == 0 or gh == 0):
+                w, h = self.detetct_pretty_w_h_to_zone(w, h, coef=4.6)
+            else:
+                w, h = gw, gh
+            pts1 = np.float32(rect)
+            pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
+            M = cv2.getPerspectiveTransform(pts1, pts2)
+            dst = cv2.warpPerspective(img,M,(w,h))
+            res.append(dst)
+        return res;
+
+    def makeUglyPoints(self, points):
+        return [[p] for p in points]
 
     def findDistances(self, points):
         ''' Getting an array with line characteristics '''
@@ -176,7 +240,7 @@ class RectDetector(object):
         Xfull = [item["coef"][3] for item in interestedLines]
         Xfull = np.float32(Xfull)
 
-        interestedLinesFiltered = self.filterInterestedLines(interestedLines,7,0.2)
+        interestedLinesFiltered = self.filterInterestedLines(interestedLines,4,0.2)
         X = [item["coef"][3] for item in interestedLinesFiltered]
         X = np.float32(X)
 
@@ -189,9 +253,9 @@ class RectDetector(object):
                 labels = self.gKMeansMajorLines(interestedLines,minElements)
         return labels
 
-    def detectIntersection(self, line1, line2):
-        X = np.array([line1['matrix'][:2], line2['matrix'][:2]])
-        y = np.array([line1['matrix'][2], line2['matrix'][2]])
+    def detectIntersection(self, matrix1,matrix2):
+        X = np.array([matrix1[:2],matrix2[:2]])
+        y = np.array([matrix1[2], matrix2[2]])
         return np.linalg.solve(X, y)
 
     def isHaveCommonPoint(self, dist1, dist2):
@@ -213,7 +277,6 @@ class RectDetector(object):
                     return True
         return False
 
-    
     def makeCommonPointsLinks(self, C):
         for i in range(0, len(C)):
             p0 = C[i]["p0"]
@@ -224,7 +287,7 @@ class RectDetector(object):
                     if self.isHaveCommonPoint(C[i], C[iTarget]):
                         C[i]["links"].append(iTarget)
 
-    
+
     def detectIndexesParalelLines(self, C):
         self.makeCommonPointsLinks(C)
         pointIdx1 = len(C) - 1
@@ -243,11 +306,11 @@ class RectDetector(object):
         return np.array([A[pointsA[0]], B[pointsB[0]], A[pointsA[1]], B[pointsB[1]]])
 
     def makeTargetPoints(self, targetLines):
-        point1 = self.detectIntersection(targetLines[0], targetLines[1])
-        point2 = self.detectIntersection(targetLines[1], targetLines[2])
-        point3 = self.detectIntersection(targetLines[2], targetLines[3])
-        point4 = self.detectIntersection(targetLines[3], targetLines[0])
-        return np.array([point1, point2, point3, point4])
+       point1 = self.detectIntersection(targetLines[0]["matrix"],targetLines[1]["matrix"])
+       point2 = self.detectIntersection(targetLines[1]["matrix"],targetLines[2]["matrix"])
+       point3 = self.detectIntersection(targetLines[2]["matrix"],targetLines[3]["matrix"])
+       point4 = self.detectIntersection(targetLines[3]["matrix"],targetLines[0]["matrix"])
+       return np.array([point1,point2,point3,point4])
 
     def reshapePoints(self, targetPoints, startIdx):
         if [startIdx > 0]:
@@ -313,6 +376,58 @@ class RectDetector(object):
 
         return targetPoints
 
+    # fix rectangle points
+    # http://www.math.by/geometry/eqline.html
+    # https://xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
+    def detectParalelMatrix(self, matrix,point):
+        new_matrix = matrix
+        new_matrix[2] = matrix[0]*point[0]+matrix[1]*point[1]
+        return new_matrix
+
+    def detectIntersectionParalelLine(self, line1,line2,point):
+        line2matrix = self.detectParalelMatrix(line2['matrix'],point)
+        return self.detectIntersection(line1['matrix'],line2matrix)
+
+    def detectUnstableLines(self, distanses,points,d0,d1):
+        angle0 = distanses[0]["coef"][3]-distanses[1]["coef"][3]
+        if d0<d1:
+            angle1 = distanses[0]["coef"][3]-distanses[3]["coef"][3]
+            if abs(angle0)>abs(angle1):
+                if (distanses[2]["d"] < distanses[0]["d"]):
+                    points[3] = self.detectIntersectionParalelLine(distanses[2],distanses[1],points[distanses[0]["p0"]])
+                else:
+                    points[0] = self.detectIntersectionParalelLine(distanses[0],distanses[1],points[distanses[2]["p1"]])
+            else:
+                if (distanses[2]["d"] <distanses[0]["d"]):
+                    points[2] = self.detectIntersectionParalelLine(distanses[2],distanses[3],points[distanses[0]["p1"]])
+                else:
+                    points[1] = self.detectIntersectionParalelLine(distanses[0],distanses[3],points[distanses[2]["p0"]])
+        else:
+            angle1 = distanses[1]["coef"][3]-distanses[2]["coef"][3]
+            if abs(angle0)>abs(angle1):
+                if (distanses[3]["d"] <distanses[1]["d"]):
+                    points[3] = self.detectIntersectionParalelLine(distanses[3],distanses[0],points[distanses[1]["p1"]])
+                else:
+                    points[2] = self.detectIntersectionParalelLine( distanses[1],distanses[0],points[distanses[3]["p0"]])
+            else:
+                if (distanses[3]["d"] <distanses[1]["d"]):
+                    points[0] = self.detectIntersectionParalelLine(distanses[3],distanses[2],points[distanses[1]["p0"]])
+                else:
+                    points[1] = self.detectIntersectionParalelLine(distanses[1],distanses[2],points[distanses[3]["p1"]])
+        return points
+
+    def fixRectangle(self, points, fixRectangleAngle=3):
+        distanses = self.findDistances(self.makeUglyPoints(points))
+        d0 = self.gDiff(distanses[0]["coef"][3],distanses[2]["coef"][3])
+        d1 = self.gDiff(distanses[1]["coef"][3],distanses[3]["coef"][3])
+        if (d0>fixRectangleAngle) or (d1>fixRectangleAngle):
+            points = self.detectUnstableLines(distanses,points,d0,d1)
+        if (d0>fixRectangleAngle) or (d1>fixRectangleAngle):
+            points = self.fixRectangle(points, fixRectangleAngle)
+        return points
+
+
+
     def detect(self, image, outboundOffset=0):
         ''' Main method '''
 
@@ -333,12 +448,15 @@ class RectDetector(object):
                 else:
                     B.append(interestedLines[i])
             targetLines = self.makeTargetLines(A,B)
-            targetPoints = self.makeTargetPoints(targetLines)
+            targetPoints = np.float32(self.makeTargetPoints(targetLines))
             minXIdx = self.findMinXIdx(targetPoints)
 
             targetPoints=self.reshapePoints(targetPoints,minXIdx)
 
             targetPoints=self.fixClockwise(targetPoints)
+
+
+            targetPoints = self.fixRectangle(targetPoints)
 
             if outboundOffset:
                 targetPoints=self.addOffset(targetPoints,outboundOffset)

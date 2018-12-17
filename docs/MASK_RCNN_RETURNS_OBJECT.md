@@ -1,4 +1,11 @@
-# MASK_RCNN RETURNS OBJECT
+# MASK_RCNN RETURN
+Mask_RCNN returns an array of dictionaries which consists of 
+* **rois** - 
+* **class_ids** - 
+* **scores** - 
+* **masks** -
+
+Return object example:
 ```python
 [  
    {  
