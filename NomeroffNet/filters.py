@@ -1,5 +1,5 @@
-import skimage.io
 import cv2
+import skimage.io
 import numpy as np
 from skimage import img_as_ubyte
 from skimage.morphology import convex_hull_image
@@ -10,6 +10,14 @@ def draw_box(image, boxs, color=(255,0,0), thickness=2):
 
   cv2.drawContours(image,boxs,0,color,thickness)
   return image
+
+def gamma_lut(img, gamma = 0.5):
+    lookUpTable = np.empty((1,256), np.uint8)
+    for i in range(256):
+        lookUpTable[0,i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+    res = cv2.LUT(img, lookUpTable)
+
+
 
 def cv_img_mask(nns):
     res = []
@@ -34,3 +42,25 @@ def color_splash(image, nns, color=(0, 255, 0), white_balance=200):
             splash = gray.astype(np.uint8)
         res.append(splash)
     return res
+
+
+def calc_normalize(hist, reverse=0, min_n = 5):
+    level = 0
+    iterable = hist
+    if reverse:
+        iterable = reversed(hist)
+    for h in iterable:
+        if min_n < h:
+            break
+        level += 1
+    if reverse:
+        level = len(hist)-level
+    return level
+
+
+def normalize(img, max_p):
+    cv_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    hist,bins = np.histogram(cv_img.ravel(),256,[0,255])
+    alpha = calc_normalize(hist)
+    beta = calc_normalize(hist, reverse=1)
+    res = cv2.normalize(cv_img, None, alpha=alpha, beta=beta, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)

@@ -19,5 +19,14 @@
     "COEF_APPROX": 0.00001,
     "MAX_COUNT_STEP_APPROX": 300,
     "TARGET_POINTS": 12
+  },
+  "TEXT_DETECTOR": {
+    "DEFAULT_OPTIONS": {
+      "COLOR": "gray",
+      "PREPROCESS": [],
+      "LANG": "eng",
+      "PSM": 6,
+      "OEM": 2
+    }
   }
 }
