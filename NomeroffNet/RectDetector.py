@@ -428,7 +428,7 @@ class RectDetector(object):
 
 
 
-    def detect(self, image, outboundOffset=0):
+    def detect(self, image, outboundOffset=0, fixRectangleAngle=3):
         ''' Main method '''
 
         res = []
@@ -456,7 +456,7 @@ class RectDetector(object):
             targetPoints=self.fixClockwise(targetPoints)
 
 
-            targetPoints = self.fixRectangle(targetPoints)
+            targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle=3)
 
             if outboundOffset:
                 targetPoints=self.addOffset(targetPoints,outboundOffset)
