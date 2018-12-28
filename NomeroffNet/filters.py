@@ -24,8 +24,8 @@ def cv_img_mask(nns):
     for nn in nns:
         masks = np.array(nn["masks"])
         for i in np.arange(masks.shape[2]):
-            mask = np.array([[w[i] for w in h] for h in nn["masks"]])
-            chull = convex_hull_image(mask)
+            mask = np.array([[w[i] for w in h] for h in nn["masks"]], dtype=np.uint8)
+            chull = np.array(convex_hull_image(mask), dtype=np.uint8)
             gray = skimage.color.gray2rgb(chull) * 255
             res.append(img_as_ubyte(gray))
     return res

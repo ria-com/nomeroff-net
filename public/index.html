@@ -12,21 +12,15 @@
 
     <!-- BootstrapCDN -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
 
     <!-- Custom styles for this template -->
     <style>
-        body {
-            padding-bottom: 20px;
-        }
-
-        .navbar {
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            margin-top: 40px;
-            margin-bottom: 60px;
-        }
+        body { padding-bottom: 20px; }
+        .navbar { margin-bottom: 20px; }
+        .logo { margin-top: 40px; margin-bottom: 60px; }
+        .operative { font-weight: bold; border: 1px solid yellow; }
+        #quine { border: 4px solid #88c; }
     </style>
 </head>
 
@@ -51,9 +45,10 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown09" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Examples</a>
                     <div class="dropdown-menu" aria-labelledby="dropdown09">
-                        <a class="dropdown-item" href="#">Mask Detection Demo</a>
-                        <a class="dropdown-item" href="#">Numberplate Zone Detection Demo</a>
-                        <a class="dropdown-item" href="#">Numberplate Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo0.ipynb">Quick Numberplate Recognition Example</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo1.ipynb">Mask Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo2.ipynb">Numberplate Zone Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Numberplate Detection Demo</a>
                     </div>
                 </li>
                 <li class="nav-item">
@@ -67,7 +62,7 @@
         <div class="jumbotron">
             <div class="col-sm-10 mx-auto">
                 <div class="logo">
-                    <img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo">
+                    <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
                 <p>Automatic numberplate recognition system.</p>
 
@@ -80,14 +75,67 @@
 
                 <p>To install tesseract 4, please follow instruction from <a href="https://github.com/tesseract-ocr/tesseract/wiki">tesseract wiki</a></p>
                 <p>Checkout Mask_RCNN & nomeroff-net from github:</p>
-<pre>
+<pre class="prettyprint lang-bsh">
 $ git clone https://github.com/matterport/Mask_RCNN.git
 $ git clone https://github.com/ria-com/nomeroff-net.git
 </pre>
-                <p>Загрузите последнюю версию модели, которая необходима для работы Вашей нейронной сети и поместите ее в парку models пароекта nomeroff-net</p>
+                <p>Загрузите <a href="models/">последнюю версию модели</a>, которая необходима для работы Вашей нейронной сети и поместите ее в парку <b>./models</b> пароекта nomeroff-net</p>
 
                 <h1>Quick recognition example</h1>
                 <p>Тут будет простой пример использования библиотеки</p>
+
+<pre class="prettyprint" lang="prettyprint lang-py">
+# **NOTE**: Before executing this example please clone "default.json.example" to "default.json" in ./config
+# Import all necessary libraries.
+import os
+import sys
+import json
+import matplotlib.image as mpimg
+# Load default configuration file.
+with open('../config/default.json') as data_file:
+    config = json.load(data_file)
+
+sys.path.append(os.path.abspath(config["NOMEROFF_NET"]["ROOT"]))
+
+
+# Import license plate recognition tools.
+from NomeroffNet import Detector
+
+# Initialize npdetector with default configuration file.
+nnet = Detector(config)
+
+# Load weights in keras format.
+nnet.loadModel()
+
+# Import license plate recognition tools.
+from NomeroffNet import  filters, RectDetector, TextDetector
+
+# Initialize rect detector with default configuration file.
+rectDetector = RectDetector(config["RECT_DETECTOR"])
+
+# Initialize text detector.
+textDetector = TextDetector(config["TEXT_DETECTOR"])
+
+# Detect numberplate
+img_path = '../examples/ok/example1.jpeg'
+img = mpimg.imread(img_path)
+NP = nnet.detect([img])
+
+# Generate image mask.
+cv_img_masks = filters.cv_img_mask(NP)
+for img_mask in cv_img_masks:
+    # Detect points.
+    points = rectDetector.detect(img_mask, outboundOffset=3, fixRectangleAngle=3)
+    # Split on zones
+    zones = rectDetector.get_cv_zones(img, points)
+    for zone in zones:
+        text = textDetector.detect(zone)
+        print('Detected numberplate: %s'%text)
+</pre>
+
+
+
+
 
                 <h1>Online Demo</h1>
                 <p>Для того чтоб оценить качество работы Nomeroff Net при этом не потратив время на настройку и установку мы сделали онлайн форму, в которую вы можете загрузить Ваше фото и получить результат распознавания в режиме online</p>
@@ -97,7 +145,7 @@ $ git clone https://github.com/ria-com/nomeroff-net.git
                 </p>
 
                 <h1>RIA Numberplate Dataset</h1>
-                <p>Все данные, на основе которых производилось обучение предоставлены команий RIA.com. В ланейшем мы будем эти данные называть <a href="riaNumberplateDataset">Ria Numberplate Dataset</a>.</p>
+                <p>Все данные, на основе которых производилось обучение предоставлены команий RIA.com. В ланейшем мы будем эти данные называть <a href="riaNumberplateDataset/">Ria Numberplate Dataset</a>.</p>
                 <p>Мы будем признательны Вам за помощь в формировании и разметке датасета с изображением номерных знаков Вашей страны. Для разметки можете мы рекомендуем использовать <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
 
                 <h1>Road map</h1>

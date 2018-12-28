@@ -2,4 +2,5 @@
 models/*.h5
 samples/logs/*
 perl/*
+cofig/*.json
 test/*

@@ -328,13 +328,6 @@ class RectDetector(object):
                 minXIdx = i
         return minXIdx
 
-    def detectIntersectionNormDD(self, matrix1, matrix2, d1, d2):
-        X = np.array([matrix1[:2], matrix2[:2]])
-        c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
-        c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
-        y = np.array([c0, c1])
-        return np.linalg.solve(X, y)
-
     def detectIntersectionNormD(self, matrix1, matrix2, d):
         X = np.array([matrix1[:2], matrix2[:2]])
         c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
@@ -342,26 +335,34 @@ class RectDetector(object):
         y = np.array([c0, c1])
         return np.linalg.solve(X, y)
 
+    def addOffset(self, targetPoints, offset):
+        minXIdx = self.findMinXIdx(targetPoints)
+        minXIdxPrev = minXIdx - 1
+        if minXIdx == 0:
+            minXIdxPrev = 3
 
-    def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
-       distanses = self.findDistances(self.makeUglyPoints(targetPoints))
-       points=[]
-       cnt = len(distanses)
-       offsetFlag = distanses[0]['d']>distanses[1]['d']
-       for i in range(cnt):
-           iPrev = i
-           iNext = i+1
-           if (iNext == cnt):
-               iNext=0
-           if offsetFlag:
-               offset1 = offsetVertical
-               offset2 = offsetHorisontal
-           else:
-               offset2 = offsetVertical
-               offset1 = offsetHorisontal
-           offsetFlag = not offsetFlag
-           points.append(self.detectIntersectionNormDD(distanses[iPrev]['matrix'],distanses[iNext]['matrix'],offset1,offset2))
-       return np.array(points)
+        minXIdxNext = minXIdx + 1
+
+        if minXIdxNext == 4:
+            minXIdxNext = 0
+
+        maxXIdx = minXIdx + 2
+        if maxXIdx > 3:
+            maxXIdx = maxXIdx - 4
+
+        dy = targetPoints[minXIdxPrev][1] - targetPoints[minXIdx][1]
+        sign = math.copysign(1, dy)
+
+        matrixMin_Prev = self.linearLineMatrix(targetPoints[minXIdxPrev], targetPoints[minXIdx])
+        matrixMin_Next = self.linearLineMatrix(targetPoints[minXIdx], targetPoints[minXIdxNext])
+        matrixMax_Prev = self.linearLineMatrix(targetPoints[minXIdxNext], targetPoints[maxXIdx])
+        matrixMax_Next = self.linearLineMatrix(targetPoints[maxXIdx], targetPoints[minXIdxPrev])
+
+        point1 = self.detectIntersectionNormD(matrixMin_Prev, matrixMin_Next, offset * sign)
+        point2 = self.detectIntersectionNormD(matrixMin_Next, matrixMax_Prev, offset * sign)
+        point3 = self.detectIntersectionNormD(matrixMax_Prev, matrixMax_Next, offset * sign)
+        point4 = self.detectIntersectionNormD(matrixMax_Next, matrixMin_Prev, offset * sign)
+        return np.array([point1, point2, point3, point4])
 
     def fixClockwise(self, targetPoints):
         stat1=self.fline(targetPoints[0],targetPoints[1])
@@ -427,7 +428,7 @@ class RectDetector(object):
 
 
 
-    def detect(self, image, outboundWidthOffset=0, outboundHeightOffset=0, fixRectangleAngle=3):
+    def detect(self, image, outboundOffset=0):
         ''' Main method '''
 
         res = []
@@ -455,10 +456,9 @@ class RectDetector(object):
             targetPoints=self.fixClockwise(targetPoints)
 
 
-            targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle=3)
+            targetPoints = self.fixRectangle(targetPoints)
 
-            if outboundWidthOffset or outboundHeightOffset:
-                targetPoints=self.addOffset(targetPoints,outboundWidthOffset,outboundHeightOffset)
-
+            if outboundOffset:
+                targetPoints=self.addOffset(targetPoints,outboundOffset)
             res.append(targetPoints)
         return res
