@@ -2,14 +2,10 @@ from PIL import Image
 import pytesseract
 import cv2
 import os
-import re
 
 class TextDetector:
     def __init__(self, config):
         self.__dict__ = config
-
-    def filter(self, text):
-        return re.sub(r"\W", "", text)
 
     def detect(self, cv_img, options = None):
         # set default options
@@ -37,4 +33,4 @@ class TextDetector:
 
         # load the cv_img as a PIL/Pillow cv_img, apply OCR, and then delete the temporary file
         text = pytesseract.image_to_string(Image.fromarray(cv_img), lang=options["LANG"], config=" --psm {0} --oem {1}".format(options["PSM"], options["OEM"]))
-        return self.filter(text)
+        return text

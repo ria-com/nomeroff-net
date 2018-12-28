@@ -3,9 +3,10 @@ import numpy as np
 from keras.models import load_model
 
 class StandartDetector():
-    def __init__(self):
+    def __init__(self, config):
         self.MODEL = None
         self.CLASS_LABELS = ["euro", "ukr2015", "ukr2004"]
+        self.__dict__ = config
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model)
@@ -17,7 +18,7 @@ class StandartDetector():
 
     def normalize(self, img):
         img = img / 255.
-        img = cv2.resize(img, (150, 32))
+        img = cv2.resize(img, (295, 64))
         return img
 
     def predict(self, img):
