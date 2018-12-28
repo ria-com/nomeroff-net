@@ -2,4 +2,4 @@ from .Detector import *
 from .filters import *
 from .RectDetector import *
 from .TextDetector import *
-from .StandartDetector import *
+from .NPStandartDetector import *

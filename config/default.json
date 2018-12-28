@@ -20,6 +20,9 @@
     "MAX_COUNT_STEP_APPROX": 300,
     "TARGET_POINTS": 12
   },
+  "NP_STANDART_DETECTOR": {
+    "MODEL_PATH": "models/npstd/npregion_v4_2018-12-27-295x64-2.h5"
+  },
   "TEXT_DETECTOR": {
     "DEFAULT_OPTIONS": {
       "COLOR": "gray",

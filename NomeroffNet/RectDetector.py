@@ -344,7 +344,7 @@ class RectDetector(object):
 
 
     def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
-       distanses = self.findDistances(makeUglyPoints(targetPoints))
+       distanses = self.findDistances(self.makeUglyPoints(targetPoints))
        points=[]
        cnt = len(distanses)
        offsetFlag = distanses[0]['d']>distanses[1]['d']
@@ -458,7 +458,7 @@ class RectDetector(object):
             targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle=3)
 
             if outboundWidthOffset or outboundHeightOffset:
-                targetPoints=self.addOffsetNew(targetPoints,outboundWidthOffset,outboundHeightOffset)
+                targetPoints=self.addOffset(targetPoints,outboundWidthOffset,outboundHeightOffset)
 
             res.append(targetPoints)
         return res
