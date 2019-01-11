@@ -146,20 +146,18 @@ class RectDetector(object):
     def detetct_pretty_w_h_to_zone(self, w, h, coef=4.6):
         return int(h*coef), int(h)
 
-    def get_cv_zones(self, img, rects, gw = 0, gh = 0, coef=4.6):
-        res = []
-        for rect in rects:
-            rect, w, h = self.rotate_to_pretty(rect)
-            if (gw == 0 or gh == 0):
-                w, h = self.detetct_pretty_w_h_to_zone(w, h, coef=4.6)
-            else:
-                w, h = gw, gh
-            pts1 = np.float32(rect)
-            pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
-            M = cv2.getPerspectiveTransform(pts1, pts2)
-            dst = cv2.warpPerspective(img,M,(w,h))
-            res.append(dst)
-        return res;
+    def get_cv_zones(self, img, rect, gw = 0, gh = 0, coef=4.6):
+        rect, w, h = self.rotate_to_pretty(rect)
+        if (gw == 0 or gh == 0):
+            w, h = self.detetct_pretty_w_h_to_zone(w, h, coef=4.6)
+        else:
+            w, h = gw, gh
+        pts1 = np.float32(rect)
+        pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
+        M = cv2.getPerspectiveTransform(pts1, pts2)
+        dst = cv2.warpPerspective(img,M,(w,h))
+
+        return dst;
 
     def makeUglyPoints(self, points):
         return [[p] for p in points]
@@ -183,9 +181,19 @@ class RectDetector(object):
         ''' Sort lines to length '''
         return sorted(distanses, key=lambda x: x["d"])
 
-    def filterInterestedLines(self, interestedLines, max, thresholdPercentage):
+    def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
         threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-        return [x for x in interestedLines if x["d"] >= threshold]
+        while True:
+            interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
+            if len(interestedLinesFilterd) > minElements:
+                break
+            threshold = threshold*.9
+        # interestedLinesForFilter = interestedLines[:len(interestedLines)-8]
+        # interestedLinesFiltered = [x for x in interestedLinesForFilter if x["d"] < threshold]
+        return interestedLinesFilterd
+
+        #threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
+        #return [x for x in interestedLines if x["d"] >= threshold]
 
     def gDiff(self, a, b):
         d1 = abs(a-b)
@@ -294,8 +302,8 @@ class RectDetector(object):
         idx = 2
         pointIdx2 = len(C) - idx
 
-        while self.isHaveCommonPoint(C[pointIdx1], C[pointIdx2]):
-            pointIdx1 = len(C) - idx
+        while self.isHaveCommonPointRecursive(C,pointIdx1,pointIdx2):
+            #pointIdx1 = len(C) - idx
             idx = idx + 1
             pointIdx2 = len(C) - idx
         return [pointIdx1, pointIdx2]
@@ -320,8 +328,8 @@ class RectDetector(object):
         return targetPoints
 
     def findMinXIdx(self, targetPoints):
-        minXIdx = 0
-        for i in range(1,len(targetPoints)):
+        minXIdx = 3
+        for i in range(0,len(targetPoints)):
             if (targetPoints[i][0] < targetPoints[minXIdx][0]):
                 minXIdx = i
             if (targetPoints[i][0] == targetPoints[minXIdx][0]) and (targetPoints[i][1] < targetPoints[minXIdx][1]):
@@ -451,14 +459,11 @@ class RectDetector(object):
             minXIdx = self.findMinXIdx(targetPoints)
 
             targetPoints=self.reshapePoints(targetPoints,minXIdx)
-
             targetPoints=self.fixClockwise(targetPoints)
-
-
-            targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle=3)
+            targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle)
 
             if outboundWidthOffset or outboundHeightOffset:
                 targetPoints=self.addOffset(targetPoints,outboundWidthOffset,outboundHeightOffset)
 
             res.append(targetPoints)
-        return res
+        return res[0]
