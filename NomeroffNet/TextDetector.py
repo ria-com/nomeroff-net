@@ -4,10 +4,10 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 
 
-def TextDetector(textDetectorName):
-    textDetectorName = textDetectorName.lower()
-    if textDetectorName in dir(TextDetectors):
-        textDetector = getattr(getattr(TextDetectors, textDetectorName), textDetectorName)
+def TextDetector(textDetectorEngine = "TESSERACT"):
+    textDetectorEngine = textDetectorEngine.lower()
+    if textDetectorEngine in dir(TextDetectors):
+        textDetector = getattr(getattr(TextDetectors, textDetectorEngine), textDetectorEngine)
         return textDetector()
     else:
-        raise Error(f"Text detector name '{textDetectorName}' not exists")
+        raise Error(f"Text detector name '{textDetectorEngine}' not exists")

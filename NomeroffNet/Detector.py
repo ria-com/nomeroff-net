@@ -8,24 +8,29 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 class Detector:
-    def __init__(self, config):
-        self.MASK_RCNN_DIR = os.path.abspath(config["MASK_RCNN"]["DIR"])
-        self.ROOT = os.path.abspath(config["NOMEROFF_NET"]["ROOT"])
-        self.LOG_DIR = os.path.join(self.ROOT, config["NOMEROFF_NET"]["LOG_DIR"])
-        self.MODEL_PATH = os.path.join(self.ROOT, config["NOMEROFF_NET"]["MODEL_PATH"])
+    def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
+        self.MASK_RCNN_DIR = mask_rcnn_dir
+        self.LOG_DIR = log_dir
 
-        self.CLASS_NAMES = config["NOMEROFF_NET"]["CLASS_NAMES"]
-        self.NN_MASK_RCNN_CONFIG = config["NN_MASK_RCNN"]
+        self.CLASS_NAMES = ["BG", "NUMBERPLATE"]
+
+        DEFAULT_MASK_RCNN_CONFIG = {
+          "NAME": "numberplate",
+          "GPU_COUNT": 1,
+          "IMAGES_PER_GPU": 1,
+          "NUM_CLASSES": 2,
+          "DETECTION_MIN_CONFIDENCE": 0.7
+        }
+        self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
         sys.path.append(self.MASK_RCNN_DIR)
-        sys.path.append(self.ROOT)
 
-    def loadModel(self, verbose = 0):
+    def loadModel(self, model_path, verbose = 0):
         import mrcnn.model as modellib
         from .mrcnn import InferenceConfig
 
         config = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
         self.MODEL = modellib.MaskRCNN(mode="inference", model_dir=self.LOG_DIR, config=config)
-        self.MODEL.load_weights(self.MODEL_PATH, by_name=True)
+        self.MODEL.load_weights(model_path, by_name=True)
 
     def detectFromFile(self, image_paths, verbose = 0):
         images = [skimage.io.imread(image_path) for image_path in image_paths]
