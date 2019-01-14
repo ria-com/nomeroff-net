@@ -350,8 +350,7 @@ class RectDetector(object):
         c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
         c1 = matrix2[2] - d * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
         y = np.array([c0, c1])
-        return np.linalg.solve(X, y)
-
+        return np.linalg.lstsq(X, y)
 
     def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
        distanses = self.findDistances(self.makeUglyPoints(targetPoints))
