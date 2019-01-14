@@ -266,7 +266,7 @@ class RectDetector(object):
     def detectIntersection(self, matrix1,matrix2):
         X = np.array([matrix1[:2],matrix2[:2]])
         y = np.array([matrix1[2], matrix2[2]])
-        return np.linalg.solve(X, y)
+        return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def isHaveCommonPoint(self, dist1, dist2):
         if (dist1["p0"] == dist2["p1"]) or (dist1["p1"] == dist2["p0"]):
@@ -343,14 +343,14 @@ class RectDetector(object):
         c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
         c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
         y = np.array([c0, c1])
-        return np.linalg.solve(X, y)
+        return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def detectIntersectionNormD(self, matrix1, matrix2, d):
         X = np.array([matrix1[:2], matrix2[:2]])
         c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
         c1 = matrix2[2] - d * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
         y = np.array([c0, c1])
-        return np.linalg.solve(X, y)
+        return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
        distanses = self.findDistances(self.makeUglyPoints(targetPoints))

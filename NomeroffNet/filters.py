@@ -4,11 +4,10 @@ import numpy as np
 from skimage import img_as_ubyte
 from skimage.morphology import convex_hull_image
 
-def draw_box(image, boxs, color=(255,0,0), thickness=2):
+def draw_box(image, box, color=(255,0,0), thickness=2):
   # округление координат
-  boxs = np.int0(boxs)
-
-  cv2.drawContours(image,boxs,0,color,thickness)
+  box = np.int0(box)
+  cv2.drawContours(image,[box],0,color,thickness)
   return image
 
 def gamma_lut(img, gamma = 0.5):
