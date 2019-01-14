@@ -94,7 +94,7 @@ class xx_xx():
 
         if len(text) < len(self.STANDART):
             return text
-        
+
         if len(self.STANDART):
             match = self.findFully(text)
             if match :
