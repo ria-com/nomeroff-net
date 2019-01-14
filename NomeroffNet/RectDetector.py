@@ -7,7 +7,7 @@ import math
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
 
-    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 11):
+    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 9):
         self.COEF_APPROX = coef_approx
         self.MAX_COUNT_STEP_APPROX = max_count_step_approx
         self.TARGET_POINTS = target_points
@@ -350,7 +350,7 @@ class RectDetector(object):
         c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
         c1 = matrix2[2] - d * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
         y = np.array([c0, c1])
-        return np.linalg.lstsq(X, y)
+        return np.linalg.solve(X, y)
 
     def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
        distanses = self.findDistances(self.makeUglyPoints(targetPoints))
@@ -434,9 +434,7 @@ class RectDetector(object):
             points = self.fixRectangle(points, fixRectangleAngle)
         return points
 
-
-
-    def detect(self, image, outboundWidthOffset=0, outboundHeightOffset=0, fixRectangleAngle=3):
+    def detect(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
         ''' Main method '''
 
         res = []
