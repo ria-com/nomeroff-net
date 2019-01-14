@@ -94,11 +94,11 @@ class xx_xx():
 
         if len(text) < len(self.STANDART):
             return text
-
-        match = self.findFully(text)
-        if match :
-            return match.group(0)
-
+        
+        if len(self.STANDART):
+            match = self.findFully(text)
+            if match :
+                return match.group(0)
 
         if not strong:
             return self.findSimilary(text)
