@@ -87,7 +87,7 @@ class xx_xx():
                 return self.replace(match.group(0))
         return text
 
-    def find(self, text, strong=False):
+    def find(self, text, strong=True):
         text = self.check_is_str(text)
         text = self.delete_all_black_list_characters(text)
         text = text.upper()
