@@ -66,8 +66,10 @@ class eu_ua_2015(xx_xx):
                 else:
                     v[item] = self.STAT[item]
 
-        regionKey = max(v.items(), key=operator.itemgetter(1))[0]
-        return f"{regionKey}{text[2:]}"
+        if is_empty(any_structure(v.items())):
+            regionKey = max(v.items(), key=operator.itemgetter(1))[0]
+            return f"{regionKey}{text[2:]}"
+        return text
 
     def find(self, text, strong=False):
         text = super().find(text, strong)
