@@ -7,7 +7,7 @@ class eu_ua_2015(xx_xx):
         self.STANDART = "@@####@@"
         self.ALLOWED_LITERS = ["A", "B", "E", "I", "K", "M", "H", "O", "P", "C", "T", "X"]
         self.STAT = {
-             #'II': 29,
+             'II': 29,
              'AI': 314728,
              'AA': 596728,
              'AB': 204175,
@@ -35,19 +35,19 @@ class eu_ua_2015(xx_xx):
              'CB': 129214,
              'CE': 104713,
              'CH': 16935,
-             #'EE': 1,
-             #'PB': 0,
-             #'PK': 0,
-             #'EO': 0,
-             #'TB': 0,
-             #'KA': 410,
-             #'KE': 154,
-             #'KX': 198,
-             #'HE': 0,
-             #'HH': 71,
-             #'TX': 0,
-             #'KI': 4,
-             #'KH': 0
+             'EE': 1,
+             'PB': 0,
+             'PK': 0,
+             'EO': 0,
+             'TB': 0,
+             'KA': 410,
+             'KE': 154,
+             'KX': 198,
+             'HE': 0,
+             'HH': 71,
+             'TX': 0,
+             'KI': 4,
+             'KH': 0
         }
 
     def doStatAnal(self, text):
