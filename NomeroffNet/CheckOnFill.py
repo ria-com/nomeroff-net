@@ -6,5 +6,5 @@ from .Base import ImgClassificator
 class RegionDetector(ImgClassificator):
     def __init__(self):
         self.MODEL = None
-        self.CLASS_LABELS = ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit"]
+        self.CLASS_LABELS = ["not_number", "filled", "not_filled"]
         ImgClassificator.__init__(self)
