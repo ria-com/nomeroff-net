@@ -6,7 +6,7 @@ from .Base import ImgClassificator
 class FillDetector(ImgClassificator):
     def __init__(self):
         self.MODEL = None
-        self.CLASS_LABELS = ["not_number", "filled", "not_filled"]
+        self.CLASS_LABELS = ["filled", "not_filled", "not_number"]
         ImgClassificator.__init__(self)
 
     def normalize(self, img):
