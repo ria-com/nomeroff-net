@@ -10,6 +10,6 @@ class FillDetector(ImgClassificator):
         ImgClassificator.__init__(self)
 
     def normalize(self, img):
-            img = img / 255.
-            img = cv2.resize(img, (295, 64))
-            return img
+        img = img / 255.
+        img = cv2.resize(img, (295, 64))
+        return img
