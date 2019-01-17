@@ -21,8 +21,8 @@ class Detector:
           "IMAGES_PER_GPU": 1,
           "NUM_CLASSES": 2,
           "DETECTION_MIN_CONFIDENCE": 0.7,
-          "IMAGE_MAX_DIM" = 1024, # work ?
-          "IMAGE_RESIZE_MODE" = "square" # work ?
+          "IMAGE_MAX_DIM": 1024, # work ?
+          "IMAGE_RESIZE_MODE": "square" # work ?
         }
         self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
         sys.path.append(self.MASK_RCNN_DIR)
