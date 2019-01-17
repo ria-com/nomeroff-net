@@ -44,7 +44,7 @@ class Detector:
 
     def detectFromFile(self, image_paths, verbose = 0):
         images = [mpimg.imread(image_path) for image_path in image_paths]
-        return self.detect(images), verbose=verbose)
+        return self.detect(images, verbose=verbose)
 
     def detect(self, images, verbose = 0):
         return self.MODEL.detect(self.normalize(images), verbose=verbose)
