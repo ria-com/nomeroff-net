@@ -3,7 +3,7 @@ import sys
 import random
 import math
 import numpy as np
-import skimage.io
+import matplotlib.image as mpimg
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -32,9 +32,16 @@ class Detector:
         self.MODEL = modellib.MaskRCNN(mode="inference", model_dir=self.LOG_DIR, config=config)
         self.MODEL.load_weights(model_path, by_name=True)
 
+    def normalize(self, images):
+        res = []
+        for image in images:
+            # delete chanel 4
+            res.append(image[..., :3])
+        return res;
+
     def detectFromFile(self, image_paths, verbose = 0):
-        images = [skimage.io.imread(image_path) for image_path in image_paths]
-        return self.detect(images, verbose=verbose)
+        images = [mpimg.imread(image_path) for image_path in image_paths]
+        return self.detect(self.normalize(images), verbose=verbose)
 
     def detect(self, images, verbose = 0):
-        return self.MODEL.detect(images, verbose=verbose)
+        return self.MODEL.detect(self.normalize(images), verbose=verbose)
