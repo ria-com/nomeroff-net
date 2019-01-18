@@ -5,9 +5,13 @@ from .Base import ImgClassificator
 
 class FillDetector(ImgClassificator):
     def __init__(self):
-        self.MODEL = None
-        self.CLASS_LABELS = ["filled", "not_filled", "not_number"]
         ImgClassificator.__init__(self)
+        # input
+        self.HEIGHT         = 64
+        self.WEIGHT         = 295
+
+        # outputs
+        self.CLASS_LABELS = ["filled", "not_filled", "not_number"]
 
     def normalize(self, img):
         img = img / 255.
