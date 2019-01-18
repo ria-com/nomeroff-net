@@ -156,6 +156,8 @@ class ImgClassificator():
 
             # load best model
             model.load_weights(os.path.join(results_dir, 'buff_weights.h5'))
+
+            # append to models
             modelsArr.append(model)
 
         # merge ensembles
@@ -176,7 +178,7 @@ class ImgClassificator():
         test_generator = self.compile_test_generator(test_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
 
         # test
-        return model.evaluate_generator(test_generator, steps=self.VALIDATION_STEPS)
+        return self.MODEL.evaluate_generator(test_generator, steps=self.VALIDATION_STEPS)
 
     def save_model(self, dir, model_name="model", verbose=1):
         now = datetime.now()
