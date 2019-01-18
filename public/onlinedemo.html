@@ -193,7 +193,7 @@
 
                         ctx.clearRect(0, 0, c.width, c.height);
                         ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
-
+                        var detectedTime = res.numberplateData.time;
                         for (var car of res.numberplateData.image.cars) {
                             console.log(numberplate);
                             for (var numberplate of car.numberplates) {
@@ -213,7 +213,7 @@
                                 ctx.stroke();
                             }
                         }
-                        document.getElementById('infoBox').innerHTML = 'Detected numberplate: <b>'+detectedNumber+'</b> in region ['+nomeroffNet.regions[detectedRegion]+']';
+                        document.getElementById('infoBox').innerHTML = 'Detected numberplate: <b>'+detectedNumber+'</b> in region [<b>'+nomeroffNet.regions[detectedRegion]+'</b>], processing time: <b>'+Math.round(detectedTime*100)/100+'</b> s';
                     } else {
                         document.getElementById('infoBox').innerHTML = '<span color="red">Processing error: '+res.error_message+'</span>';
                     }
