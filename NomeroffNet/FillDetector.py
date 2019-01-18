@@ -12,8 +12,3 @@ class FillDetector(ImgClassificator):
 
         # outputs
         self.CLASS_LABELS = ["filled", "not_filled", "not_number"]
-
-    def normalize(self, img):
-        img = img / 255.
-        img = cv2.resize(img, (295, 64))
-        return img
