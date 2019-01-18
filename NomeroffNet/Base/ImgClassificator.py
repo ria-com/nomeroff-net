@@ -155,7 +155,7 @@ class ImgClassificator():
             )
 
             # load best model
-            model.load_weights('buff_weights.h5')
+            model.load_weights(os.path.join(results_dir, 'buff_weights.h5'))
             modelsArr.append(model)
 
         # merge ensembles
