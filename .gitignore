@@ -4,3 +4,4 @@ samples/logs/*
 perl/*
 cofig/*.json
 test/*
+public/npdetect.php
