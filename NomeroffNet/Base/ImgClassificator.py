@@ -40,7 +40,7 @@ class ImgClassificator():
         self.DROPOUT_1                     = 0.2
         self.DROPOUT_2                     = 0.5
         self.DENSE_LAYERS                  = 512
-        self.ENSEMBLES                     = 2
+        self.ENSEMBLES                     = 1
         self.BATCH_NORMALIZATION_AXIS      = -1
         self.L2_LAMBDA                     = 0.001
         self.W_REGULARIZER                 = l2(self.L2_LAMBDA)
