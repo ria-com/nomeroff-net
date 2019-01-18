@@ -178,38 +178,45 @@
                 processData: false,
                 data: form_data,
                 type: 'post',
+                error: function (jqXHR, textStatus, errorThrown) {
+                    document.getElementById('infoBox').innerHTML = '<span color="red">Service temorrary error: <b>'+textStatus+'</b> </span>';
+                },
                 success: function(php_script_response) {
-                    console.log('End processing upload click...')
+                    //console.log('End processing upload click...')
                     var res = JSON.parse(php_script_response);
                         console.log(res);
+                    if (res.error_id == 0) {
+                        var scaleWidth  = res.numberplateData.width/740,
+                            scaleHeight = res.numberplateData.height/555,
+                            offset = 10;
+                        scale = (scaleWidth> scaleHeight)?scaleWidth:scaleHeight;
 
-                    var scaleWidth  = res.numberplateData.width/740,
-                        scaleHeight = res.numberplateData.height/555,
-                        offset = 10;
-                    scale = (scaleWidth> scaleHeight)?scaleWidth:scaleHeight;
+                        ctx.clearRect(0, 0, c.width, c.height);
+                        ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
 
-                    ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
+                        for (var car of res.numberplateData.image.cars) {
+                            console.log(numberplate);
+                            for (var numberplate of car.numberplates) {
+                                var detectedNumber = numberplate.numbers[0];
+                                var detectedRegion = numberplate.region;
 
-                    for (var car of res.numberplateData.image.cars) {
-                        console.log(numberplate);
-                        for (var numberplate of car.numberplates) {
-                            var detectedNumber = numberplate.numbers[0];
-                            var detectedRegion = numberplate.region;
-
-                            ctx.beginPath();
-                            //console.log(numberplate.x1 / scale, numberplate.y1 / scale);
-                            ctx.moveTo(numberplate.x1/scale+offset,numberplate.y1/scale+offset);
-                            ctx.lineTo(numberplate.x2/scale+offset,numberplate.y2/scale+offset);
-                            ctx.lineTo(numberplate.x3/scale+offset,numberplate.y3/scale+offset);
-                            ctx.lineTo(numberplate.x4/scale+offset,numberplate.y4/scale+offset);
-                            ctx.lineTo(numberplate.x1/scale+offset,numberplate.y1/scale+offset);
-                            ctx.lineWidth = 3;
-                            // set line color
-                            ctx.strokeStyle = '#00ff00';
-                            ctx.stroke();
+                                ctx.beginPath();
+                                //console.log(numberplate.x1 / scale, numberplate.y1 / scale);
+                                ctx.moveTo(numberplate.x1/scale+offset,numberplate.y1/scale+offset);
+                                ctx.lineTo(numberplate.x2/scale+offset,numberplate.y2/scale+offset);
+                                ctx.lineTo(numberplate.x3/scale+offset,numberplate.y3/scale+offset);
+                                ctx.lineTo(numberplate.x4/scale+offset,numberplate.y4/scale+offset);
+                                ctx.lineTo(numberplate.x1/scale+offset,numberplate.y1/scale+offset);
+                                ctx.lineWidth = 3;
+                                // set line color
+                                ctx.strokeStyle = '#00ff00';
+                                ctx.stroke();
+                            }
                         }
+                        document.getElementById('infoBox').innerHTML = 'Detected numberplate: <b>'+detectedNumber+'</b> in region ['+nomeroffNet.regions[detectedRegion]+']';
+                    } else {
+                        document.getElementById('infoBox').innerHTML = '<span color="red">Processing error: '+res.error_message+'</span>';
                     }
-                    document.getElementById('infoBox').innerHTML = 'Detected numberplate: <b>'+detectedNumber+'</b> in region ['+nomeroffNet.regions[detectedRegion]+']';
                 }
             });
 

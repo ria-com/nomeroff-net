@@ -68,8 +68,8 @@
 
 
                 <h1>Introduction</h1>
-                <p>Nomeroff Net это opensource фреймворк для распознавания номерных знаков на python, в основе которого лежит приминение сверточной нейронной сети на архитектуре <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a>, а также системой распознавания текстов <a href="https://github.com/tesseract-ocr/tesseract">tesseract</a></p>
-                <p>Это не самое быстрое решение в области распознавания :(, для быстрой работы нейронной сети потребуется tensorflow с поддержкой GPU.</p>
+                <p>Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional neural network on the <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> architecture, as well as the <a href="https://github.com/tesseract-ocr/tesseract">tesseract</a> text recognition system</p>
+                <p>The project is now at the initial stage of development, <a href="#credits">write to us</a> if you are interested in helping us in the formation of a dataset for your country.</p>
 
                 <h1>Installation</h1>
 
@@ -79,10 +79,9 @@
 $ git clone https://github.com/matterport/Mask_RCNN.git
 $ git clone https://github.com/ria-com/nomeroff-net.git
 </pre>
-                <p>Загрузите <a href="models/">последние версии моделей</a>, которые необходимы для работы Вашей нейронной сети и поместите их в папку <b>./models</b> проекта nomeroff-net</p>
+                <p>Download the <a href="models/">latest models</a> that are required for your neural network to work and place them in the <b>./models</b> folder of the nomeroff-net project</p>
 
                 <h1 id="quickExample">Quick recognition example</h1>
-                <p>Тут будет простой пример использования библиотеки</p>
 
 <pre class="prettyprint" lang="prettyprint lang-py">
 import os
@@ -145,27 +144,28 @@ for img_mask in cv_img_masks:
 
 
                 <h1>Online Demo</h1>
-                <p>Для того чтоб оценить качество работы Nomeroff Net при этом не потратив время на настройку и установку мы сделали онлайн форму, в которую вы можете загрузить Ваше фото и получить результат распознавания в режиме online</p>
+                <p>In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the recognition result online</p>
                 <p>
                     <a href="onlinedemo.html">Online Demo &raquo;</a>
                     <!-- a class="btn btn-primary" href="/onlineDemo" role="button">Online Demo &raquo;</a-->
                 </p>
 
-                <h1>RIA Numberplate Dataset</h1>
-                <p>Все данные, на основе которых производилось обучение предоставлены команий RIA.com. В данейшем мы будем эти данные называть <a href="datasets/riaNumberplateDataset-2018-11-20.zip">Ria Numberplate Dataset</a>.</p>
-                <p>Мы будем признательны Вам за помощь в формировании и разметке датасета с изображением номерных знаков Вашей страны. Для разметки можете мы рекомендуем использовать <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
+                <h1>AUTO.RIA Numberplate Dataset</h1>
+                <p>All data on the basis of which the training was conducted is provided by RIA.com. In the following, we will call this data the <a href="datasets/autoriaNumberplateDataset-2018-11-20.zip">AUTO.RIA Numberplate Dataset</a>.</p>
+                <p>We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
 
-                <h1>RIA Numberplate Country Dataset</h1>
-                <p>Еще один датасет <a href="datasets/riaNPCountryDataset-2019-01-14.zip">Ria Numberplate Country Dataset</a>, который предназначен для построения модели классификации номеров на этапе постобработки.
-                С его помощью классификатор достаточно точно (95%) определяет страну и тип номерного знака. Обратите внимание, сейчас классификатор настроен, в основном на определение украинских номеров,
-                для других стран нужно будет дообучить классификатор с новыми данными.</p>
+                <h1>AUTO.RIA Numberplate Country Dataset</h1>
+                <p>The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
+                <a href="datasets/autoriaNPCountryDataset-2019-01-14.zip">AUTO.RIA Numberplate Country Dataset</a>.</p>
+                <p>The categorizer accurately (95%) determines the country and the type of license plate. Please note that now the classifier is configured
+                   mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.</p>
 
                 <h1>Road map</h1>
-                <p>Вот уже несколько месяцев мы уделаем часть своего времени на разработку нових фич для проекта Nomeroff Net. В ближайшее время мы планирем:</p>
+                <p>For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:</p>
                 <ul>
-                    <li>Выложить подробную инструкцию по тренировке моделей распознавания и классификатора для номерных знаков Вашей страны.</li>
-                    <li>Расширить классификатор стран номерных знаков, по которым определять страну, в которой этот номерной знак зарегистрирован.</li>
-                    <li>Добавить классификатор определения факта зарисовки номера, для того чтоб не распознавать заведомо поврежденное изображение номерного знака.</li>
+                    <li>Post a detailed instruction on the training of recognition models and classifier for license plates of your country.</li>
+                    <li>To expand the classification of countries of license plates by which to determine the country in which this license plate is registered.</li>
+                    <li>Add a classifier for determining the fact of drawing a number, in order not to recognize a deliberately damaged license plate image.</li>
                 </ul>
 
 
@@ -178,7 +178,7 @@ for img_mask in cv_img_masks:
                 </ul>
 
 
-                <h1><a name="links"></a>Credits</h1>
+                <h1><a name="credits"></a>Credits</h1>
                 <ul>
                     <li>Dmytro Probachay &lt;dmytro.probachay@ria.com&gt;</li>
                     <li>Oleg Cherniy &lt;oleg.cherniy@ria.com&gt;</li>
