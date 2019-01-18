@@ -1,11 +1,12 @@
 import os
+import cv2
 import sys
-import random
 import math
+import random
 import numpy as np
-import matplotlib.image as mpimg
 import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 class Detector:
     def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
@@ -19,7 +20,9 @@ class Detector:
           "GPU_COUNT": 1,
           "IMAGES_PER_GPU": 1,
           "NUM_CLASSES": 2,
-          "DETECTION_MIN_CONFIDENCE": 0.7
+          "DETECTION_MIN_CONFIDENCE": 0.7,
+          "IMAGE_MAX_DIM": 1024, # work ?
+          "IMAGE_RESIZE_MODE": "square" # work ?
         }
         self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
         sys.path.append(self.MASK_RCNN_DIR)
@@ -35,13 +38,13 @@ class Detector:
     def normalize(self, images):
         res = []
         for image in images:
-            # delete chanel 4
+            # delete 4 chanel
             res.append(image[..., :3])
         return res;
 
     def detectFromFile(self, image_paths, verbose = 0):
         images = [mpimg.imread(image_path) for image_path in image_paths]
-        return self.detect(self.normalize(images), verbose=verbose)
+        return self.detect(images, verbose=verbose)
 
     def detect(self, images, verbose = 0):
         return self.MODEL.detect(self.normalize(images), verbose=verbose)
