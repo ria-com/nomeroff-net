@@ -434,6 +434,38 @@ class RectDetector(object):
             points = self.fixRectangle(points, fixRectangleAngle)
         return points
 
+    def findMaxs(self, points):
+        maxX = max(points, key=lambda p: p[0])
+        maxY = max(points, key=lambda p: p[1])
+        minX = min(points, key=lambda p: p[0])
+        minY = min(points, key=lambda p: p[1])
+        return maxX, maxY, minX, minY
+
+    def checkIfIsSquare(self, points, coef = 0.5):
+        points = np.array(points)
+        maxX, maxY, minX, minY = self.findMaxs(points)
+        points[..., :1] = (points[..., :1] - minX[0])
+        points[..., 1:2] = (points[..., 1:2] - minY[1])
+
+        maxX, maxY, minX, minY = self.findMaxs(points)
+        maxV =  max((maxX[0], maxY[1]))
+        points[..., :1] = (points[..., :1]) / maxV
+        points[..., 1:2] = (points[..., 1:2]) / maxV
+
+        maxX, maxY, minX, minY = self.findMaxs(points)
+        d1 = self.distance(points[0], points[1])
+        d2 = self.distance(points[1], points[2])
+        d3 = self.distance(points[2], points[3])
+        d4 = self.distance(points[3], points[0])
+
+        dmin = min(d1, d2, d3, d4)
+        dmax = max(d1, d2, d3, d4)
+
+        if (dmax - dmin) < coef:
+            return True
+        return False
+
+
     def detect(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
         ''' Main method '''
 
