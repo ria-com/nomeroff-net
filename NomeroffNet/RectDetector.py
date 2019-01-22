@@ -441,7 +441,7 @@ class RectDetector(object):
         minY = min(points, key=lambda p: p[1])
         return maxX, maxY, minX, minY
 
-    def checkIfIsSquare(self, points, coef = 0.5):
+    def checkIfIsSquare(self, points, coef = 2.5):
         points = np.array(points)
         maxX, maxY, minX, minY = self.findMaxs(points)
         points[..., :1] = (points[..., :1] - minX[0])
@@ -461,7 +461,7 @@ class RectDetector(object):
         dmin = min(d1, d2, d3, d4)
         dmax = max(d1, d2, d3, d4)
 
-        if (dmax - dmin) < coef:
+        if (dmax/dmin) < coef:
             return True
         return False
 
