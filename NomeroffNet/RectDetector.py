@@ -443,26 +443,14 @@ class RectDetector(object):
 
     def checkIfIsSquare(self, points, coef = 2.):
         points = np.array(points)
-        maxX, maxY, minX, minY = self.findMaxs(points)
-        points[..., :1] = (points[..., :1] - minX[0])
-        points[..., 1:2] = (points[..., 1:2] - minY[1])
 
-        maxX, maxY, minX, minY = self.findMaxs(points)
-        maxV =  max((maxX[0], maxY[1]))
-        points[..., :1] = (points[..., :1]) / maxV
-        points[..., 1:2] = (points[..., 1:2]) / maxV
-
-        maxX, maxY, minX, minY = self.findMaxs(points)
         d1 = self.distance(points[0], points[1])
         d2 = self.distance(points[1], points[2])
-        d3 = self.distance(points[2], points[3])
-        d4 = self.distance(points[3], points[0])
 
-        dmin = min(d1, d2, d3, d4)
-        dmax = max(d1, d2, d3, d4)
-
-        #print(dmax/dmin)
-        if (math.floor(dmax/dmin)) <= coef:
+        if d1 > d2:
+            d1, d2 = d2, d1
+        print(d2/d1)
+        if (d2/d1) <= coef:
             return True
         return False
 

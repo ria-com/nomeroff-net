@@ -3,7 +3,7 @@ import numpy as np
 import string
 
 class xx_xx():
-    def __init__(self, standart = "", allowed_liters = string.ascii_letters, black_list=["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_"]):
+    def __init__(self, standart = "", allowed_liters = string.ascii_letters, black_list=["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]):
         self.STANDART = self.check_pattern_standart(standart)
         self.ALLOWED_LITERS = allowed_liters
         self.BLACK_LIST = black_list
@@ -13,6 +13,7 @@ class xx_xx():
                 "I": "1",
                 "Z": "2",#7
                 "O": "0",
+                "Q": "0",
                 "B": "8",
                 "D": "0",
                 "S": "5",#8
@@ -21,17 +22,14 @@ class xx_xx():
             "@": {
                 "/": "I",
                 "|": "I",
-                "5": "B",
-                "1": "I",
-                "0": "O",
-                "R": "B",
-                "Q": "O"
+                "¥": "X",
+                "€": "C"
             }
         }
 
     def delete_all_black_list_characters(self, text):
         reg = "[{}]".format("".join(self.BLACK_LIST))
-        return re.sub(re.compile(reg), "", text).replace("\\", "/")
+        return re.sub(re.compile(reg), "", text).replace("\\", "/").replace("\[", "|").replace("\]", "|") # replace hard
 
     def check_pattern_standart(self, standart):
         if not re.match(r"^[#@]*$", standart):
