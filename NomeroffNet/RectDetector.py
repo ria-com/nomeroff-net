@@ -447,9 +447,13 @@ class RectDetector(object):
         d1 = self.distance(points[0], points[1])
         d2 = self.distance(points[1], points[2])
 
+        distanses = self.findDistances(self.makeUglyPoints(points))
+        angle = distanses[0]["coef"][3]
+
         if d1 > d2:
             d1, d2 = d2, d1
         print(d2/d1)
+        print(angle)
         if (d2/d1) <= coef:
             return True
         return False
