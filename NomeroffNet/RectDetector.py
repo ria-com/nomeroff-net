@@ -151,7 +151,7 @@ class RectDetector(object):
     def get_cv_zones(self, img, rect, gw = 0, gh = 0, coef=4.6):
         rect, w, h = self.rotate_to_pretty(rect)
         if (gw == 0 or gh == 0):
-            w, h = self.detetct_pretty_w_h_to_zone(w, h, coef=4.6)
+            w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
         else:
             w, h = gw, gh
         pts1 = np.float32(rect)
