@@ -203,7 +203,7 @@ class ImgClassificator():
 
     def normalize(self, img):
         img = img / 255.
-        img = cv2.resize(img, (295, 64))
+        img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
         return img
 
     def predict(self, img):
