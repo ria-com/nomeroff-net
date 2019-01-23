@@ -60,6 +60,15 @@ class ImgClassificator():
         self.VALIDATION_STEPS = 50
         self.EPOCHS           = 150
 
+    def change_dimension(self, w, h):
+        if w != self.WEIGHT and h != self.HEIGHT:
+            self.HEIGHT         = h
+            self.WEIGHT         = w
+            if self.MODEL != None:
+                self.MODEL.layers.pop(0)
+                newInput = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
+                newOutputs = self.MODEL(newInput)
+                self.MODEL = Model(newInput, newOutputs)
 
     def create_model(self, input_model, conv_base, dropout_1, dropout_2, dense_layers, output_labels, \
                      optimizer, loss, metrics, out_dense_init, W_regularizer, out_dense_activation, \
@@ -162,7 +171,7 @@ class ImgClassificator():
 
         # merge ensembles
         if len(modelsArr) > 1:
-            self.MODEL = ensemble(modelsArr, input_model)
+            self.MODEL = self.ensemble(modelsArr, input_model)
         elif len(modelsArr) == 1:
             self.MODEL = modelsArr[0]
 
