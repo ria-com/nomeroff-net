@@ -45,9 +45,11 @@ class RectDetector(object):
         thresh = cv2.threshold(gray, 60, 255, cv2.THRESH_BINARY)[1]
 
         # find contours in the thresholded image and initialize the shape detector
-        cnts = cv2.findContours(thresh.copy(), 1, 2)
-        cnts = cnts[0] if imutils.is_cv2() else cnts[1]
-
+        if cv2.__version__[0] == "4":
+            cnts, hierarchy = cv2.findContours(thresh.copy(), 1, 2)
+        else:
+            cnts = cv2.findContours(thresh.copy(), 1, 2)
+            cnts = cnts[0] if imutils.is_cv2() else cnts[1]
         res = []
         rows, cols = image.shape[:2]
 
