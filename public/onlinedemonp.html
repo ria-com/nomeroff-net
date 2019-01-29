@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Neuro.js</title>
+
+    <!-- BootstrapCDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
+
+    <!-- Custom styles for this template -->
+    <style>
+        body { padding-bottom: 20px; }
+
+        table.info th, table.info td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table.info tr:hover {background-color:#f5f5f5;}
+
+
+        .animation-5
+        {
+            width:  117px;
+            height: 50px;
+        }
+
+        .animation-5 div
+        {
+            height:30px;
+            width:10px;
+            background-color: #005AA2;
+            display:inline-block;
+            margin-right:10px;
+            -webkit-animation: animation5-bar 1s infinite;
+            animation: animation5-bar 1s infinite;
+        }
+
+        .animation-5 .bar1
+        {
+            -webkit-animation-delay: 0.5s;
+            animation-delay: 0.5s;
+        }
+        .animation-5 .bar2
+        {
+            -webkit-animation-delay: 0.6s;
+            animation-delay: 0.6s;
+        }
+        .animation-5 .bar3
+        {
+            -webkit-animation-delay: 0.7s;
+            animation-delay: 0.7s;
+        }
+        .animation-5 .bar4
+        {
+            -webkit-animation-delay: 0.8s;
+            animation-delay: 0.8s;
+        }
+        .animation-5 .bar5
+        {
+            -webkit-animation-delay: 0.9s;
+            animation-delay: 0.9s;
+        }
+
+        @keyframes animation5-bar
+        {
+            30%
+            {
+                transform: scaleY(2);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <main role="main">
+        <div class="jumbotron">
+            <div class="col-sm-11 mx-auto">
+                <h1>Online Demo</h1>
+                <canvas id="numberplateCanvas" width="295" height="64" style="border:1px solid #d3d3d3;"></canvas>
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="numberplatePicture">Select numberplate picture</label>
+                        <input type="file" class="form-control-file" id="numberplatePicture"><button id="upload">Upload</button>
+                    </div>
+                </form>
+                <p>
+                    Datsat is available <a href="https://nomeroff.net.ua/datasets/autoriaNPCountryDataset-2019-01-14.zip">here.</a>
+                </p>
+                <div style="color: silver;" id="infoBox">
+                    Waiting for action...
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+<script>
+    /* TEST
+    var a = tf.tensor2d([[1, 2], [10, 20]]);
+    var b = tf.tensor2d([[3, 4], [30, 40]]);
+    var axis = 1;
+    tf.concat([a, b], axis).print();
+     */
+
+    // load model
+    tf.loadModel('http://localhost:3000/models/model.json').then(function (model) {
+        var MODEL = model;
+
+        // input
+        var imgW = 295;
+        var imgH = 64;
+        var imgC = 3;
+
+        // output
+        var labels = ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu",     "xx-transit"];
+
+        $("#uploadForm").submit(function(){
+            return false;
+        });
+
+        $("#upload").on("click",function() {
+            // loading
+            document.getElementById('infoBox').style = "color: black;";
+            document.getElementById('infoBox').innerHTML = '<div class="animation-5"><div class="bar bar1"></div><div class="bar bar2"></div><div class="bar bar3"></div><div class="bar bar4"></div><div class="bar bar5"></div></div>';
+
+            // create canvas
+            var img = new Image();
+            var canvas = document.getElementById('numberplateCanvas');
+            var ctx = canvas.getContext('2d');
+
+            // read file
+            var file_data = $('#numberplatePicture').prop('files')[0];
+            var form_data = new FormData();
+            form_data.append('file', file_data);
+            var reader = new FileReader(),
+                file = $('#numberplatePicture').prop('files')[0];
+            reader.onload = function (event) {
+                img.src = event.target.result;
+            }.bind(this);
+            reader.readAsDataURL(file);
+
+            //onload
+            img.onload =  function () {
+                canvas.width = imgW;
+                canvas.height = imgH;
+                ctx.clearRect(0, 0, imgW, imgH);
+                ctx.drawImage(img, 0, 0, imgW, imgH);
+
+                // normalization
+                var data = [];
+                var imageData = ctx.getImageData(0, 0, imgW, imgH);
+
+                for (let j = 0; j < imageData.data.length; j++) {
+                    if ((j+1) % 4 != 0) {
+                        data.push(imageData.data[j] / 255.);
+                    }
+                }
+
+                // to tensor
+                var xs = tf.tensor4d(
+                    data,
+                    [data.length / (imgW*imgH*imgC), imgH, imgW, imgC]);
+
+                var prediced = MODEL.predict(xs);
+                var maxValueIndex = Array.from(prediced.argMax(1).dataSync());
+                var label = labels[maxValueIndex];
+                // display result
+                document.getElementById('infoBox').innerHTML = "<b>Predicted region:</b> " + label;
+            };
+        });
+    }).catch(function () {
+        document.getElementById('infoBox').innerHTML = "Failed to load model";
+    });
+</script>
+
+</body>
+</html>
