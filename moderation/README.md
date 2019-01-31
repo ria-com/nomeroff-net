@@ -12,6 +12,10 @@
   ```bash
     node server
   ```
+  * Locate to:
+  ```url
+    http://localhost:5005/OCRM.html
+  ```
   
   
 ## Structure of OCR dataset directory:
