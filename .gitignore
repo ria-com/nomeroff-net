@@ -1,4 +1,6 @@
 .idea
+moderation/node_modules/*
+moderation/package-lock.json
 models/*.h5
 samples/logs/*
 perl/*
