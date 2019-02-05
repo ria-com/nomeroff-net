@@ -10,4 +10,4 @@ def TextDetector(textDetectorEngine = "TESSERACT"):
         textDetector = getattr(getattr(TextDetectors, textDetectorEngine), textDetectorEngine)
         return textDetector()
     else:
-        raise Error(f"Text detector name '{textDetectorEngine}' not exists")
+        raise Exception(f"Text detector name '{textDetectorEngine}' not exists")
