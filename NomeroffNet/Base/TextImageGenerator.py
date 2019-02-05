@@ -95,7 +95,7 @@ class TextImageGenerator:
         imgs = np.zeros((1, self.IMG_W, self.IMG_H, 1))
         imgs[0, :, :, :] = img
 
-        print(imgs)
+        #print(imgs)
         return imgs
 
     def next_sample(self):
