@@ -8,10 +8,9 @@ Nomeroff Net is a opensource python license plate recognition framework based on
 neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) architecture, as well as the 
 [tesseract](https://github.com/tesseract-ocr/tesseract) text recognition system.
 
-On this moment for ukrainian number plate text recognition we use [ocr](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
+For ukrainian number plate text recognition we use [ocr](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
-
 
 ## Installation
 
