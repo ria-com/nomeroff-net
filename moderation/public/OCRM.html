@@ -63,6 +63,7 @@
     </nav>
 
     <main role="main">
+        <div style="color: silver;" id="infoBox"></div>
         <div class="jumbotron">
             <div class="col-sm-10 mx-auto">
                 <table class="table table-striped" id="npsTable"><tbody/></table>
@@ -70,9 +71,6 @@
                     <input type="submit" name="reset" value="Reset" id="reset" class="btn" />
                     <input type="submit" name="loadNext" value="Save & Load Next" id="loadNext" class="btn btn-primary" />
                 </form>
-
-            </div>
-            <div style="color: silver;" id="infoBox">
 
             </div>
         </div>
@@ -128,6 +126,18 @@
                 },
                 success: function (response) {
                     if (response.message == undefined) {
+                        var expectModeration = response.expectModeration;
+
+                        var infoBox = document.getElementById("infoBox");
+                        var info_p = document.createElement("p");
+                        var info_text = document.createTextNode("Expect moderation: " + expectModeration);
+                        info_p.appendChild(info_text);
+                        while (infoBox.firstChild) {
+                            infoBox.removeChild(infoBox.firstChild);
+                        }
+                        infoBox.appendChild(info_p);
+
+                        response = response.data;
                         for (var i in response) {
                             var item = response[i];
                             var tr = document.createElement("tr");
@@ -207,8 +217,8 @@
         document.addEventListener("keypress", function (e) {
             if(e.keyCode == 13) {
                 var target = document.getElementById("target");
-                target.scrollIntoView();
                 if (target != null) {
+                    target.scrollIntoView();
                     var next = target.parentNode.parentNode.parentNode.nextElementSibling;
                     target.blur();
                     if (next != null) {

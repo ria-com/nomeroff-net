@@ -46,7 +46,9 @@ module.exports = function(ctx, next) {
 
     const res = [];
     let count = 0;
+    let iter = 0;
     for (let i in files) {
+        iter++;
         if (count > max_files_count) {
             break;
         }
@@ -69,6 +71,6 @@ module.exports = function(ctx, next) {
         }
     }
 
-    ctx.body = res;
+    ctx.body = {expectModeration: files.length - iter, data:res};
     next();
 };
