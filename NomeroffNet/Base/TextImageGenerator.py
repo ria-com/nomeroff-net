@@ -75,7 +75,8 @@ class TextImageGenerator:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             img = cv2.resize(img, (self.img_w, self.img_h))
             img = img.astype(np.float32)
-            img /= 255
+            img -= np.amin(img)
+            img /= np.amax(img)
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
             self.imgs[i, :, :] = img
@@ -89,7 +90,8 @@ class TextImageGenerator:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = cv2.resize(img, (self.IMG_W, self.IMG_H))
         img = img.astype(np.float32)
-        img /= 256
+        img -= np.amin(img)
+        img /= np.amax(img)
         img = [[[h] for h in w] for w in img.T]
 
         imgs = np.zeros((1, self.IMG_W, self.IMG_H, 1))
