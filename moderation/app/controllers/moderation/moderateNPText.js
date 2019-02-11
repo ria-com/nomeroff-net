@@ -20,6 +20,10 @@ function chencheAnnotation (img, ann, chended_numbers, who) {
                     fs.unlinkSync(path.join(ann, `${number}.json`));
                 } else {
                     const data = JSON.parse(fs.readFileSync(path.join(ann, `${number}.json`)));
+                    const options = config.moderation.regionOCRModeration.options;
+                    for (let key in options) {
+                        data[key] = f[key];
+                    }
                     data.description = newNumber;
                     data.name = number;
                     data.moderation = {isModerated: 1, moderatedBy:who || "unkdownUser"};
@@ -63,14 +67,24 @@ module.exports = function(ctx, next) {
 
         if (data.moderation == undefined || data.moderation.isModerated != 1) {
             count++;
-            res.push({
+            const data_item = {
                 img_path: `img/${number}.png`,
                 name: number,
-                description: data.description
-            })
+                description: data.description,
+            };
+            const options = config.moderation.regionOCRModeration.options;
+            for (let key in options) {
+                data_item[key] = data[key];
+            }
+            res.push(data_item)
         }
     }
 
-    ctx.body = {expectModeration: files.length - iter, data:res};
+    ctx.body = {
+        expectModeration: files.length - iter,
+        data:res,
+        options: config.moderation.regionOCRModeration.options,
+        user: config.user.name
+    };
     next();
 };
