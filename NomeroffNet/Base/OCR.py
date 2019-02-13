@@ -22,12 +22,21 @@ from keras.layers import Input, Dense, Activation
 from keras.layers import Reshape, Lambda
 from keras.layers.merge import add, concatenate
 from keras.models import Model, load_model
-from keras.layers.recurrent import GRU
 from keras.optimizers import SGD
 from keras.utils.data_utils import get_file
 from keras.preprocessing import image
 import keras.callbacks
 from collections import Counter
+from tensorflow.python.client import device_lib
+
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+
+if len(get_available_gpus()):
+    from keras.layers import CuDNNGRU as GRU
+else:
+    from keras.layers.recurrent import GRU
 
 from .TextImageGenerator import TextImageGenerator
 
