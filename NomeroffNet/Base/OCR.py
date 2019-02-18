@@ -240,13 +240,8 @@ class OCR(TextImageGenerator):
         print(f"acc: {len(succ_arr)/(len(err_arr)+len(succ_arr))}")
 
     def predict(self, img):
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
-
-        X = self.normalize(img)
-
-        model = Model(input=net_inp, output=net_out)
-        net_out_value = model.predict(X)
+        Xs = self.normalize(img)
+        net_out_value = self.MODEL.predict(Xs)
         pred_texts = self.decode_batch(net_out_value)
         return pred_texts[0]
 
@@ -255,6 +250,10 @@ class OCR(TextImageGenerator):
 
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
         #model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+
+        net_inp = self.MODEL.get_layer(name='the_input').input
+        net_out = self.MODEL.get_layer(name='softmax').output
+        self.MODEL = Model(input=net_inp, output=net_out)
         if verbose:
             self.MODEL.summary()
         return self.MODEL
