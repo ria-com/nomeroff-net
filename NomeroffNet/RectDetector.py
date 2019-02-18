@@ -102,7 +102,7 @@ class RectDetector(object):
         return [k, b, a, a180, r]
 
     def distance(self, p0, p1):
-        return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
+        return math.sqrt((p0[0] - p1[0])*(p0[0] - p1[0]) + (p0[1] - p1[1])*(p0[1] - p1[1]))
 
     def rotate_points(self,rect):
         rect[0], rect[1], rect[2], rect[3] = rect[1], rect[2], rect[3], rect[0]
@@ -150,7 +150,7 @@ class RectDetector(object):
     def detetct_pretty_w_h_to_zone(self, w, h, coef=4.6):
         return int(h*coef), int(h)
 
-    def get_cv_zones(self, img, rect, gw = 0, gh = 0, coef=4.6):
+    def get_cv_zonesRGB(self, img, rect, gw = 0, gh = 0, coef=4.6):
         rect, w, h = self.rotate_to_pretty(rect)
         if (gw == 0 or gh == 0):
             w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
@@ -162,6 +162,12 @@ class RectDetector(object):
         dst = cv2.warpPerspective(img,M,(w,h))
 
         return dst;
+
+    def get_cv_zonesBGR(self, img, rect, gw = 0, gh = 0, coef=4.6):
+        dst = self.get_cv_zonesRGB(img, rect, gw, gh, coef)
+        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+
+        return dst
 
     def makeUglyPoints(self, points):
         return [[p] for p in points]
@@ -342,15 +348,15 @@ class RectDetector(object):
 
     def detectIntersectionNormDD(self, matrix1, matrix2, d1, d2):
         X = np.array([matrix1[:2], matrix2[:2]])
-        c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
-        c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
+        c0 = matrix1[2] - d1 * (matrix1[0]*matrix1[0] + matrix1[1]*matrix1[1]) ** 0.5
+        c1 = matrix2[2] - d2 * (matrix2[0]*matrix2[0] + matrix2[1]*matrix2[1]) ** 0.5
         y = np.array([c0, c1])
         return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def detectIntersectionNormD(self, matrix1, matrix2, d):
         X = np.array([matrix1[:2], matrix2[:2]])
-        c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
-        c1 = matrix2[2] - d * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
+        c0 = matrix1[2] - d * (matrix1[0]*matrix1[0] + matrix1[1]*matrix1[1]) ** 0.5
+        c1 = matrix2[2] - d * (matrix2[0]*matrix2[0] + matrix2[1]*matrix2[1]) ** 0.5
         y = np.array([c0, c1])
         return np.linalg.lstsq(X, y, rcond=None)[0]
 

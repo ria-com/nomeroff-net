@@ -20,7 +20,7 @@ module.exports = {
     },
     moderation: {
         regionOCRModeration: {
-            base_dir: "/var/www/nomeroff-net/moderation/public/ocr/data/",
+            base_dir: "/var/www/nomeroff-net/moderation/public/ocr/test/",
             options: {
                 region_id: ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit"],
                 state_id: ["garbage", "filled", "not filled"]

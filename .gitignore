@@ -6,6 +6,6 @@ models/*.h5
 samples/logs/*
 perl/*
 cofig/*.json
-test/*
+source/*
 public/npdetect.php
-Mask_RCNN
+Mask_RCNN/*

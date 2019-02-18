@@ -58,7 +58,7 @@ class OCR(TextImageGenerator):
         self.TIME_DENSE_SIZE = 32
         self.RNN_SIZE = 512
         self.ACTIVATION = 'relu'
-        self.DOWNSAMPLE_FACROT = self.POOL_SIZE ** 2
+        self.DOWNSAMPLE_FACROT = self.POOL_SIZE * self.POOL_SIZE
 
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
@@ -103,7 +103,7 @@ class OCR(TextImageGenerator):
         return self.letters, self.max_text_len
 
     def explainTextGenerator(self, train_dir, letters, max_plate_length, verbose=1):
-        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE ** 2, letters, max_plate_length)
+        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length)
         tiger.build_data()
 
         for inp, out in tiger.next_batch():
@@ -151,7 +151,7 @@ class OCR(TextImageGenerator):
                        name='conv2')(inner)
         inner = MaxPooling2D(pool_size=(self.POOL_SIZE , self.POOL_SIZE ), name='max2')(inner)
 
-        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE  ** 2), (self.IMG_H // (self.POOL_SIZE ** 2)) * self.CONV_FILTERS)
+        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE  * self.POOL_SIZE), (self.IMG_H // (self.POOL_SIZE * self.POOL_SIZE)) * self.CONV_FILTERS)
         inner = Reshape(target_shape=conv_to_rnn_dims, name='reshape')(inner)
 
         # cuts down input size going into RNN:
