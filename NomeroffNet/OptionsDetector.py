@@ -34,7 +34,7 @@ class OptionsDetector():
         # input
         self.DEPTH          = 1
         self.HEIGHT         = 64
-        self.WEIGHT         = 128
+        self.WEIGHT         = 295
         self.COLOR_CHANNELS = 3
 
         # outputs
