@@ -217,12 +217,9 @@ class OCR(TextImageGenerator):
         for inp_value, _ in tiger_test.next_batch():
             bs = inp_value['the_input'].shape[0]
             X_data = inp_value['the_input']
-            print(X_data.shape)
-            print(X_data)
             net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
             pred_texts = tiger_test.decode_batch(net_out_value)
             labels = inp_value['the_labels']
-            print(labels)
             texts = []
             for label in labels:
                 text = ''.join(list(map(lambda x: letters[int(x)], label)))

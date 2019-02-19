@@ -80,7 +80,7 @@ class TextImageGenerator:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
             self.imgs[i, :, :] = img
-            print(self.imgs)
+            #print(self.imgs)
             self.texts.append(text)
 
     def get_output_size(self):

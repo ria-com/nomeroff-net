@@ -7,5 +7,7 @@ samples/logs/*
 perl/*
 cofig/*.json
 source/*
+datasets/ocr/*
+datasets/region/*
 public/npdetect.php
 Mask_RCNN/*
