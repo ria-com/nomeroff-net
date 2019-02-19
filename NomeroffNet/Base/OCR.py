@@ -239,11 +239,14 @@ class OCR(TextImageGenerator):
         print(f"loss: {len(err_arr)/(len(err_arr)+len(succ_arr))}")
         print(f"acc: {len(succ_arr)/(len(err_arr)+len(succ_arr))}")
 
-    def predict(self, img):
-        Xs = self.normalize(img)
-        net_out_value = self.MODEL.predict(Xs)
+    def predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            x = self.normalize(img)
+            Xs.append(x)
+        net_out_value = self.MODEL.predict(np.array(Xs))
         pred_texts = self.decode_batch(net_out_value)
-        return pred_texts[0]
+        return pred_texts
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)

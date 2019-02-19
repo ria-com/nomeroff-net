@@ -38,7 +38,7 @@ class OptionsDetector():
         self.COLOR_CHANNELS = 3
 
         # outputs
-        self.CLASS_REGION = ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit"]
+        self.CLASS_REGION = ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit"]
 
         # outputs
         self.CLASS_STATE = ["BACKGROUND", "FILLED", "NOT_FILLED"]
@@ -249,10 +249,27 @@ class OptionsDetector():
         img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
         return img
 
-    def predict(self, img):
-        img = self.normalize(img)
-        predicted = self.MODEL.predict(np.array([img]))
-        return int(np.argmax(predicted[0])), int(np.argmax(predicted[1]))
+    def predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            Xs.append(self.normalize(img))
+
+        predicted = [[], []]
+        if bool(Xs):
+            predicted = self.MODEL.predict(np.array(Xs))
+
+        regionIds = []
+        for region in predicted[0]:
+            regionIds.append(int(np.argmax(region)))
+
+        stateIds = []
+        for state in predicted[1]:
+            stateIds.append(int(np.argmax(state)))
+
+        return regionIds, stateIds
+
+    def getRegionLabels(self, indexes):
+        return [self.CLASS_REGION[index] for index in indexes]
 
     def compile_train_generator(self, train_dir, target_size, batch_size=32):
         # with data augumentation

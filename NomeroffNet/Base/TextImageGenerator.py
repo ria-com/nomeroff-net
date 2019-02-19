@@ -94,11 +94,9 @@ class TextImageGenerator:
         img /= np.amax(img)
         img = [[[h] for h in w] for w in img.T]
 
-        imgs = np.zeros((1, self.IMG_W, self.IMG_H, 1))
-        imgs[0, :, :, :] = img
-
-        #print(imgs)
-        return imgs
+        x = np.zeros((self.IMG_W, self.IMG_H, 1))
+        x[:, :, :] = img
+        return x
 
     def next_sample(self):
         self.cur_index += 1
