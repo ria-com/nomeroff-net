@@ -35,7 +35,6 @@ from tensorflow.python.client import device_lib
 
 from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
-GRU = GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
 
@@ -58,6 +57,8 @@ class OCR(TextImageGenerator):
         self.RNN_SIZE = 512
         self.ACTIVATION = 'relu'
         self.DOWNSAMPLE_FACROT = self.POOL_SIZE * self.POOL_SIZE
+
+        self.GRU = GRUcpu
 
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
@@ -158,11 +159,11 @@ class OCR(TextImageGenerator):
 
         # Two layers of bidirecitonal GRUs
         # GRU seems to work as well, if not better than LSTM:
-        gru_1 = GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru1')(inner)
-        gru_1b = GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru1_b')(inner)
+        gru_1 = self.GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru1')(inner)
+        gru_1b = self.GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru1_b')(inner)
         gru1_merged = add([gru_1, gru_1b])
-        gru_2 = GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru2')(gru1_merged)
-        gru_2b = GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru2_b')(gru1_merged)
+        gru_2 = self.GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru2')(gru1_merged)
+        gru_2b = self.GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru2_b')(gru1_merged)
 
         # transforms RNN output to character activations:
         inner = Dense(tiger_train.get_output_size(), kernel_initializer='he_normal',
@@ -262,10 +263,10 @@ class OCR(TextImageGenerator):
         K.set_session(self.SESS)
 
         if mode == "gpu":
-            GRU = GRUgpu
+            self.GRU = GRUgpu
             print(GRU)
         if mode == "cpu":
-            GRU = GRUcpu
+            self.GRU = GRUcpu
             print(GRU)
 
         train_path = os.path.join(path_to_dataset, "train")
