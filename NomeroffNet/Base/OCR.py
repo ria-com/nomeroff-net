@@ -29,14 +29,13 @@ import keras.callbacks
 from collections import Counter
 from tensorflow.python.client import device_lib
 
-def get_available_gpus():
-    local_device_protos = device_lib.list_local_devices()
-    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+#def get_available_gpus():
+#    local_device_protos = device_lib.list_local_devices()
+#    return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
-if len(get_available_gpus()):
-    from keras.layers import CuDNNGRU as GRU
-else:
-    from keras.layers.recurrent import GRU
+from keras.layers import CuDNNGRU as GRUgpu
+from keras.layers.recurrent import GRU as GRUcpu
+GRU = GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
 
@@ -258,9 +257,14 @@ class OCR(TextImageGenerator):
             self.MODEL.summary()
         return self.MODEL
 
-    def train(self, path_to_dataset, model_path="./model.h5", load=False, verbose=1):
+    def train(self, path_to_dataset, mode="cpu", model_path="./model.h5", load=False, verbose=1):
         self.SESS = tf.Session()
         K.set_session(self.SESS)
+
+        if mode == "gpu":
+            GRU = GRUgpu
+        if mode == "cpu":
+            GRU = GRUgpu
 
         train_path = os.path.join(path_to_dataset, "train")
         test_path  = os.path.join(path_to_dataset, "test")
