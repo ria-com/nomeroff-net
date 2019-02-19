@@ -263,8 +263,10 @@ class OCR(TextImageGenerator):
 
         if mode == "gpu":
             GRU = GRUgpu
+            print(GRU)
         if mode == "cpu":
-            GRU = GRUgpu
+            GRU = GRUcpu
+            print(GRU)
 
         train_path = os.path.join(path_to_dataset, "train")
         test_path  = os.path.join(path_to_dataset, "test")
