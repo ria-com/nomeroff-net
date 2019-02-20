@@ -3,7 +3,7 @@
 
 ## Quick start
   * Make copy of ./config/default.js.example to ./config/default.js
-  * In cofig change value of moderation.regionOCRModeration.base_dir
+  * In config change value of moderation.regionOCRModeration.base_dir
   * Install requirements:
   ```bash
     npm install

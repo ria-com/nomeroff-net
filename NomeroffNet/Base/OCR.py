@@ -29,14 +29,12 @@ import keras.callbacks
 from collections import Counter
 from tensorflow.python.client import device_lib
 
-def get_available_gpus():
-    local_device_protos = device_lib.list_local_devices()
-    return [x.name for x in local_device_protos if x.device_type == 'GPU']
+#def get_available_gpus():
+#    local_device_protos = device_lib.list_local_devices()
+#    return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
-if len(get_available_gpus()):
-    from keras.layers import CuDNNGRU as GRU
-else:
-    from keras.layers.recurrent import GRU
+from keras.layers import CuDNNGRU as GRUgpu
+from keras.layers.recurrent import GRU as GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
 
@@ -48,7 +46,7 @@ class OCR(TextImageGenerator):
         self.IMG_C = 1
 
         # Train parameters
-        self.BATCH_SIZE = 8
+        self.BATCH_SIZE = 32
         self.EPOCHS = 1
 
         # Network parameters
@@ -58,7 +56,9 @@ class OCR(TextImageGenerator):
         self.TIME_DENSE_SIZE = 32
         self.RNN_SIZE = 512
         self.ACTIVATION = 'relu'
-        self.DOWNSAMPLE_FACROT = self.POOL_SIZE ** 2
+        self.DOWNSAMPLE_FACROT = self.POOL_SIZE * self.POOL_SIZE
+
+        self.GRU = GRUcpu
 
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
@@ -103,7 +103,7 @@ class OCR(TextImageGenerator):
         return self.letters, self.max_text_len
 
     def explainTextGenerator(self, train_dir, letters, max_plate_length, verbose=1):
-        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE ** 2, letters, max_plate_length)
+        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length)
         tiger.build_data()
 
         for inp, out in tiger.next_batch():
@@ -130,16 +130,102 @@ class OCR(TextImageGenerator):
         y_pred = y_pred[:, 2:, :]
         return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
-    def _train(self, train_path, test_path, val_path, letters, max_plate_length,  model_path="./", load=False, verbose=1):
+    def save(self, path, verbose=1):
+        if self.MODEL:
+            self.MODEL.save(path)
+            if verbose:
+                print("SAVED TO {}".format(path))
+
+    def test(self, verbose=1):
+        if verbose:
+            print("\nRUN TEST")
+        net_inp = self.MODEL.get_layer(name='the_input').input
+        net_out = self.MODEL.get_layer(name='softmax').output
+
+        err_c = 0
+        succ_c = 0
+        for inp_value, _ in self.tiger_test.next_batch():
+            bs = inp_value['the_input'].shape[0]
+            X_data = inp_value['the_input']
+            net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
+            pred_texts = self.tiger_test.decode_batch(net_out_value)
+            labels = inp_value['the_labels']
+            texts = []
+            for label in labels:
+                text = ''.join(list(map(lambda x: self.letters[int(x)], label)))
+                texts.append(text)
+
+            for i in range(bs):
+                if (pred_texts[i] != texts[i]):
+                    if verbose:
+                        print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
+                    err_c += 1
+                else:
+                    succ_c += 1
+            break
+        print(f"acc: {succ_c/(err_c+succ_c)}")
+
+    def predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            x = self.normalize(img)
+            Xs.append(x)
+        net_out_value = self.MODEL.predict(np.array(Xs))
+        pred_texts = self.decode_batch(net_out_value)
+        return pred_texts
+
+    def load(self, path_to_model, verbose = 0):
+        self.MODEL = load_model(path_to_model, compile=False)
+        net_inp = self.MODEL.get_layer(name='the_input').input
+        net_out = self.MODEL.get_layer(name='softmax').output
+        self.MODEL = Model(input=net_inp, output=net_out)
+        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
+        #model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+
+        if verbose:
+            self.MODEL.summary()
+        return self.MODEL
+
+    def prepare(self, path_to_dataset, verbose=1):
+        self.SESS = tf.Session()
+        K.set_session(self.SESS)
+
+        train_path = os.path.join(path_to_dataset, "train")
+        test_path  = os.path.join(path_to_dataset, "test")
+        val_path   = os.path.join(path_to_dataset, "val")
+
+        if verbose:
+            print("GET ALPHABET")
+        self.letters, max_plate_length = self.get_alphabet(train_path, test_path, val_path, verbose=verbose)
+
+        if verbose:
+            print("\nEXPLAIN DATA TRANSFORMATIONS")
+            self.explainTextGenerator(train_path, self.letters, max_plate_length)
+
+        if verbose:
+            print("START BUILD DATA")
+        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_train.build_data()
+        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_val.build_data()
+
+        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_test.build_data()
+        if verbose:
+            print("DATA PREPARED")
+
+    def train(self, mode="cpu", model_path="./model.h5", load=False, verbose=1):
+        if mode == "gpu":
+            self.GRU = GRUgpu
+        if mode == "cpu":
+            self.GRU = GRUcpu
+
+        if verbose:
+            print("\nSTART TRAINING")
         if K.image_data_format() == 'channels_first':
             input_shape = (1, self.IMG_W, self.IMG_H)
         else:
             input_shape = (self.IMG_W, self.IMG_H, 1)
-
-        tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, letters, max_plate_length)
-        tiger_train.build_data()
-        tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, letters, max_plate_length)
-        tiger_val.build_data()
 
         input_data = Input(name='the_input', shape=input_shape, dtype='float32')
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
@@ -151,7 +237,7 @@ class OCR(TextImageGenerator):
                        name='conv2')(inner)
         inner = MaxPooling2D(pool_size=(self.POOL_SIZE , self.POOL_SIZE ), name='max2')(inner)
 
-        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE  ** 2), (self.IMG_H // (self.POOL_SIZE ** 2)) * self.CONV_FILTERS)
+        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE  * self.POOL_SIZE), (self.IMG_H // (self.POOL_SIZE * self.POOL_SIZE)) * self.CONV_FILTERS)
         inner = Reshape(target_shape=conv_to_rnn_dims, name='reshape')(inner)
 
         # cuts down input size going into RNN:
@@ -159,19 +245,19 @@ class OCR(TextImageGenerator):
 
         # Two layers of bidirecitonal GRUs
         # GRU seems to work as well, if not better than LSTM:
-        gru_1 = GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru1')(inner)
-        gru_1b = GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru1_b')(inner)
+        gru_1 = self.GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru1')(inner)
+        gru_1b = self.GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru1_b')(inner)
         gru1_merged = add([gru_1, gru_1b])
-        gru_2 = GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru2')(gru1_merged)
-        gru_2b = GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru2_b')(gru1_merged)
+        gru_2 = self.GRU(self.RNN_SIZE, return_sequences=True, kernel_initializer='he_normal', name='gru2')(gru1_merged)
+        gru_2b = self.GRU(self.RNN_SIZE, return_sequences=True, go_backwards=True, kernel_initializer='he_normal', name='gru2_b')(gru1_merged)
 
         # transforms RNN output to character activations:
-        inner = Dense(tiger_train.get_output_size(), kernel_initializer='he_normal',
+        inner = Dense(self.tiger_train.get_output_size(), kernel_initializer='he_normal',
                       name='dense2')(concatenate([gru_2, gru_2b]))
         y_pred = Activation('softmax', name='softmax')(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
-        labels = Input(name='the_labels', shape=[tiger_train.max_text_len], dtype='float32')
+        labels = Input(name='the_labels', shape=[self.tiger_train.max_text_len], dtype='float32')
         input_length = Input(name='input_length', shape=[1], dtype='int64')
         label_length = Input(name='label_length', shape=[1], dtype='int64')
         # Keras doesn't currently support loss funcs with extra parameters
@@ -193,95 +279,13 @@ class OCR(TextImageGenerator):
             # captures output of softmax so we can decode the output during visualization
             test_func = K.function([input_data], [y_pred])
 
-            model.fit_generator(generator=tiger_train.next_batch(),
-                                steps_per_epoch=tiger_train.n,
+            model.fit_generator(generator=self.tiger_train.next_batch(),
+                                steps_per_epoch=self.tiger_train.n,
                                 epochs=self.EPOCHS,
-                                validation_data=tiger_val.next_batch(),
-                                validation_steps=tiger_val.n)
+                                validation_data=self.tiger_val.next_batch(),
+                                validation_steps=self.tiger_val.n)
 
-        return model
-
-    def save(self, path):
-        if self.MODEL:
-            self.MODEL.save(path)
-
-    def test(self, test_path, letters, max_plate_length, verbose=1):
-        tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, 1, self.DOWNSAMPLE_FACROT, letters, max_plate_length)
-        tiger_test.build_data()
-
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
-
-        err_arr = []
-        succ_arr = []
-        for inp_value, _ in tiger_test.next_batch():
-            bs = inp_value['the_input'].shape[0]
-            X_data = inp_value['the_input']
-            print(X_data.shape)
-            print(X_data)
-            net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
-            pred_texts = tiger_test.decode_batch(net_out_value)
-            labels = inp_value['the_labels']
-            print(labels)
-            texts = []
-            for label in labels:
-                text = ''.join(list(map(lambda x: letters[int(x)], label)))
-                texts.append(text)
-
-            for i in range(bs):
-                if (pred_texts[i] != texts[i]):
-                    if verbose:
-                        print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
-                    err_arr.append({'pred':pred_texts[i],'true':texts[i]})
-                else:
-                    succ_arr.append({'pred':pred_texts[i],'false':texts[i]})
-            break
-        print(f"loss: {len(err_arr)/(len(err_arr)+len(succ_arr))}")
-        print(f"acc: {len(succ_arr)/(len(err_arr)+len(succ_arr))}")
-
-    def predict(self, img):
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
-
-        X = self.normalize(img)
-
-        model = Model(input=net_inp, output=net_out)
-        net_out_value = model.predict(X)
-        pred_texts = self.decode_batch(net_out_value)
-        return pred_texts[0]
-
-    def load(self, path_to_model, verbose = 0):
-        self.MODEL = load_model(path_to_model, compile=False)
-
-        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
-        #model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
-        if verbose:
-            self.MODEL.summary()
-        return self.MODEL
-
-    def train(self, path_to_dataset, model_path="./model.h5", load=False, verbose=1):
-        self.SESS = tf.Session()
-        K.set_session(self.SESS)
-
-        train_path = os.path.join(path_to_dataset, "train")
-        test_path  = os.path.join(path_to_dataset, "test")
-        val_path   = os.path.join(path_to_dataset, "val")
-
-        if verbose:
-            print("GET ALPHABET")
-        letters, max_plate_length = self.get_alphabet(train_path, test_path, val_path, verbose=verbose)
-
-        if verbose:
-            print("\nEXPLAIN DATA TRANSFORMATIONS")
-            self.explainTextGenerator(train_path, letters, max_plate_length)
-
-        if verbose:
-            print("\nSTART TRAINING")
-        self.MODEL = self._train(train_path, test_path, val_path, letters, max_plate_length, model_path=model_path, load=load, verbose=verbose)
-        self.MODEL.save(model_path)
-
-        if verbose:
-            print("\nRUN TEST")
-        self.test(test_path, letters, max_plate_length, verbose=verbose)
-
+        net_inp = model.get_layer(name='the_input').input
+        net_out = model.get_layer(name='softmax').output
+        self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL

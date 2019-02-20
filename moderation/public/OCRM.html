@@ -33,6 +33,9 @@
         td h1 {
             height: 48px;
         }
+        p.warnings {
+            color: #f44;
+        }
         input.NewNumber {
             letter-spacing: 5px;
             background: white;
@@ -45,6 +48,9 @@
         }
         select.seledited {
             color:green;
+        }
+        p.predicted {
+            font-size: 15pt;
         }
     </style>
 </head>
@@ -195,6 +201,19 @@
 
                             npH1Redraw(div, item.description || "_");
                             td.appendChild(div);
+                            if ((item.predicted || "").length) {
+                                var p = document.createElement("p");
+                                p.className = "predicted";
+                                var pText = document.createTextNode("predicted: ");
+                                p.appendChild(pText);
+
+                                var b = document.createElement("b");
+                                var bText = document.createTextNode(item.predicted);
+                                b.appendChild(bText);
+                                p.appendChild(b);
+
+                                td.appendChild(p);
+                            }
 
                             var img = document.createElement("img");
                             img.src = item.img_path;
@@ -261,7 +280,15 @@
                         });
 
                     } else {
-                        console.log(response.message);
+                        var infoBox = document.getElementById("infoBox");
+                        var info_p = document.createElement("p");
+                        info_p.className = "warnings";
+                        var info_text = document.createTextNode("Warning: " + response.message);
+                        info_p.appendChild(info_text);
+                        while (infoBox.firstChild) {
+                            infoBox.removeChild(infoBox.firstChild);
+                        }
+                        infoBox.appendChild(info_p);
                     }
                 }
             });

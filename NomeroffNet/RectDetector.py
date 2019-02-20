@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import imutils
 import math
+import asyncio
 
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
@@ -102,7 +103,7 @@ class RectDetector(object):
         return [k, b, a, a180, r]
 
     def distance(self, p0, p1):
-        return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
+        return math.sqrt((p0[0] - p1[0])*(p0[0] - p1[0]) + (p0[1] - p1[1])*(p0[1] - p1[1]))
 
     def rotate_points(self,rect):
         rect[0], rect[1], rect[2], rect[3] = rect[1], rect[2], rect[3], rect[0]
@@ -150,7 +151,7 @@ class RectDetector(object):
     def detetct_pretty_w_h_to_zone(self, w, h, coef=4.6):
         return int(h*coef), int(h)
 
-    def get_cv_zones(self, img, rect, gw = 0, gh = 0, coef=4.6):
+    async def get_cv_zoneRGB_async(self, img, rect, gw = 0, gh = 0, coef=4.6):
         rect, w, h = self.rotate_to_pretty(rect)
         if (gw == 0 or gh == 0):
             w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
@@ -160,8 +161,44 @@ class RectDetector(object):
         pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
         M = cv2.getPerspectiveTransform(pts1, pts2)
         dst = cv2.warpPerspective(img,M,(w,h))
-
         return dst;
+
+    async def get_cv_zonesRGB_async(self, img, rects, gw = 0, gh = 0, coef=4.6):
+        loop = asyncio.get_event_loop()
+        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef)) for rect in rects]
+        if bool(promises):
+            await asyncio.wait(promises)
+        return [promise.result() for promise in promises]
+
+    async def get_cv_zonesBGR_async(self, img, rects, gw = 0, gh = 0, coef=4.6):
+        loop = asyncio.get_event_loop()
+        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef)) for rect in rects]
+        if bool(promises):
+            await asyncio.wait(promises)
+        return [cv2.cvtColor(promise.result(), cv2.COLOR_RGB2BGR) for promise in promises]
+
+    def get_cv_zonesRGB(self, img, rects, gw = 0, gh = 0, coef=4.6):
+        dsts = []
+        for rect in rects:
+            rect, w, h = self.rotate_to_pretty(rect)
+            if (gw == 0 or gh == 0):
+                w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
+            else:
+                w, h = gw, gh
+            pts1 = np.float32(rect)
+            pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
+            M = cv2.getPerspectiveTransform(pts1, pts2)
+            dst = cv2.warpPerspective(img,M,(w,h))
+            dsts.append(dst)
+        return dsts;
+
+    def get_cv_zonesBGR(self, img, rects, gw = 0, gh = 0, coef=4.6):
+        dsts = self.get_cv_zonesRGB(img, rects, gw, gh, coef)
+        bgrDsts = []
+        for dst in dsts:
+            dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+            bgrDsts.append(dst)
+        return bgrDsts
 
     def makeUglyPoints(self, points):
         return [[p] for p in points]
@@ -342,15 +379,15 @@ class RectDetector(object):
 
     def detectIntersectionNormDD(self, matrix1, matrix2, d1, d2):
         X = np.array([matrix1[:2], matrix2[:2]])
-        c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
-        c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
+        c0 = matrix1[2] - d1 * (matrix1[0]*matrix1[0] + matrix1[1]*matrix1[1]) ** 0.5
+        c1 = matrix2[2] - d2 * (matrix2[0]*matrix2[0] + matrix2[1]*matrix2[1]) ** 0.5
         y = np.array([c0, c1])
         return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def detectIntersectionNormD(self, matrix1, matrix2, d):
         X = np.array([matrix1[:2], matrix2[:2]])
-        c0 = matrix1[2] - d * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
-        c1 = matrix2[2] - d * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
+        c0 = matrix1[2] - d * (matrix1[0]*matrix1[0] + matrix1[1]*matrix1[1]) ** 0.5
+        c1 = matrix2[2] - d * (matrix2[0]*matrix2[0] + matrix2[1]*matrix2[1]) ** 0.5
         y = np.array([c0, c1])
         return np.linalg.lstsq(X, y, rcond=None)[0]
 
@@ -460,11 +497,12 @@ class RectDetector(object):
             return True
         return False
 
+    def sortBySize(self, mainArr):
+        if len(mainArr) < 2:
+            return mainArr
+        return sorted(mainArr, key=lambda x: cv2.contourArea(np.array(x).astype(int)), reverse=True)
 
-    def detect(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
-        ''' Main method '''
-
-        res = []
+    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
         arrPoints = self.detectRect(image)
 
         for points in arrPoints:
@@ -491,5 +529,49 @@ class RectDetector(object):
             if outboundWidthOffset or outboundHeightOffset:
                 targetPoints=self.addOffset(targetPoints,outboundWidthOffset,outboundHeightOffset)
 
-            res.append(targetPoints)
-        return res[0]
+            return targetPoints
+
+    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
+         ''' Main method '''
+         loop = asyncio.get_event_loop()
+         promises = [loop.create_task(self.detectOneAsync(image, outboundWidthOffset=outboundWidthOffset, outboundHeightOffset=outboundHeightOffset, fixRectangleAngle=fixRectangleAngle)) for image in images]
+         if bool(promises):
+            await asyncio.wait(promises)
+         return np.array([promise.result() for promise in promises])
+
+    def detect(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
+        ''' Main method '''
+        resPoints = []
+        for image in images:
+            res = []
+            arrPoints = self.detectRect(image)
+
+            for points in arrPoints:
+                distanses = self.findDistances(points)
+                interestedLines = self.clacRectLines(distanses)
+
+                # Get 4 lines that are part of a rectangle describing the license plate area.
+                labels = self.gKMeansMajorLines(interestedLines)
+                A = []
+                B = []
+                for i in range(len(interestedLines)):
+                    if (labels[i] == 0):
+                        A.append(interestedLines[i])
+                    else:
+                        B.append(interestedLines[i])
+                targetLines = self.makeTargetLines(A,B)
+                targetPoints = np.float32(self.makeTargetPoints(targetLines))
+                minXIdx = self.findMinXIdx(targetPoints)
+
+                targetPoints=self.reshapePoints(targetPoints,minXIdx)
+                targetPoints=self.fixClockwise(targetPoints)
+                targetPoints = self.fixRectangle(targetPoints, fixRectangleAngle)
+
+                if outboundWidthOffset or outboundHeightOffset:
+                    targetPoints=self.addOffset(targetPoints,outboundWidthOffset,outboundHeightOffset)
+
+                res.append(targetPoints)
+
+            resPoints.append(res[0])
+
+        return np.array(resPoints)

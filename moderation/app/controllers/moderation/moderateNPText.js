@@ -13,7 +13,7 @@ function chencheAnnotation (img, ann, chended_numbers, who) {
             const number = f.number;
             const newNumber = f.newNumber;
 
-            if (fs.existsSync(path.join(img, `${number}.png`)) && fs.existsSync(path.join(ann, `${number}.json`))) {
+                if (fs.existsSync(path.join(img, `${number}.png`))) {
                 if (Boolean(Number(f.deleted))) {
                     console.log(f.deleted);
                     fs.unlinkSync(path.join(img, `${number}.png`));
@@ -40,51 +40,69 @@ module.exports = function(ctx, next) {
     const max_files_count = ctx.request.body.max_count || 100;
     const chended_numbers = ctx.request.body.chended_numbers;
     const who_changed = ctx.request.body.who_changed;
-
     const img = path.join(base_dir, "/img/");
     const ann = path.join(base_dir, "/ann/");
 
-    chencheAnnotation(img, ann, chended_numbers, who_changed);
+    if (!fs.existsSync(base_dir)) {
+        ctx.body = {
+            message: `Path to ${base_dir} not exists`
+        };
+    } else if (!fs.existsSync(img)) {
+        fs.mkdirSync(img);
+    } else if (!fs.existsSync(ann)) {
+        fs.mkdirSync(ann);
+    } else {
+        chencheAnnotation(img, ann, chended_numbers, who_changed);
 
-    const files = fs.readdirSync(ann);
+        const files = fs.readdirSync(img);
 
-    const res = [];
-    let count = 0;
-    let iter = 0;
-    for (let i in files) {
-        iter++;
-        if (count > max_files_count) {
-            break;
-        }
-
-        const f = files[i];
-        const number = f.substring(0, f.length - 5);
-
-        const jsonPath = path.join(ann, `${number}.json`);
-        const imgPath = path.join(img, `${number}.png`);
-
-        const data = JSON.parse(fs.readFileSync(jsonPath));
-
-        if (data.moderation == undefined || data.moderation.isModerated != 1) {
-            count++;
-            const data_item = {
-                img_path: `img/${number}.png`,
-                name: number,
-                description: data.description,
-            };
-            const options = config.moderation.regionOCRModeration.options;
-            for (let key in options) {
-                data_item[key] = data[key];
+        const res = [];
+        let count = 0;
+        let iter = 0;
+        for (let i in files) {
+            iter++;
+            if (count > max_files_count) {
+                break;
             }
-            res.push(data_item)
+
+            const f = files[i];
+            const number = f.substring(0, f.length - 4);
+
+            const jsonPath = path.join(ann, `${number}.json`);
+            const imgPath = path.join(img, `${number}.png`);
+
+            let data = {};
+            if (!fs.existsSync(jsonPath)) {
+                data = {
+                    description: ""
+                }
+            } else {
+                data = JSON.parse(fs.readFileSync(jsonPath));
+            }
+
+            if (data.moderation == undefined || data.moderation.isModerated != 1) {
+                count++;
+                const data_item = {
+                    img_path: `img/${f}`,
+                    name: number,
+                    predicted: data.moderation == undefined ? "" : data.moderation.predicted || "",
+                    description: data.description,
+                };
+                const options = config.moderation.regionOCRModeration.options;
+                for (let key in options) {
+                    data_item[key] = data[key];
+                }
+                res.push(data_item)
+            }
         }
+
+        ctx.body = {
+            expectModeration: files.length - iter,
+            data:res,
+            options: config.moderation.regionOCRModeration.options,
+            user: config.user.name
+        };
     }
 
-    ctx.body = {
-        expectModeration: files.length - iter,
-        data:res,
-        options: config.moderation.regionOCRModeration.options,
-        user: config.user.name
-    };
     next();
 };
