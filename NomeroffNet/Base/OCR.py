@@ -140,9 +140,8 @@ class OCR(TextImageGenerator):
         net_inp = self.MODEL.get_layer(name='the_input').input
         net_out = self.MODEL.get_layer(name='softmax').output
 
-        err_arr = []
-        succ_arr = []
-        i = 0
+        err_c = 0
+        succ_c = 0
         for inp_value, _ in self.tiger_test.next_batch():
             bs = inp_value['the_input'].shape[0]
             X_data = inp_value['the_input']
@@ -158,14 +157,11 @@ class OCR(TextImageGenerator):
                 if (pred_texts[i] != texts[i]):
                     if verbose:
                         print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
-                    err_arr.append({'pred':pred_texts[i],'true':texts[i]})
+                    err_c += 1
                 else:
-                    succ_arr.append({'pred':pred_texts[i],'false':texts[i]})
-            i += 1
-            if i == self.tiger_test.n:
-                break
-        print(f"loss: {len(err_arr)/(len(err_arr)+len(succ_arr))}")
-        print(f"acc: {len(succ_arr)/(len(err_arr)+len(succ_arr))}")
+                    succ_c += 1
+            break
+        print(f"acc: {succ_c/(err_c+succ_c)}")
 
     def predict(self, imgs):
         Xs = []
@@ -210,7 +206,8 @@ class OCR(TextImageGenerator):
         self.tiger_train.build_data()
         self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
         self.tiger_val.build_data()
-        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, 1, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+
+        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
         self.tiger_test.build_data()
         if verbose:
             print("DATA PREPARED")
