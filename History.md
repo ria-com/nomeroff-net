@@ -2,19 +2,22 @@
  ==================
  
   **features**
-  * OCR: Вместо tesseract используются [GRU-сеть](https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md) 
-  натреннированная на датасетах украинских и европейский номерных знаков).
-  * Реализована пакетная обработка нескольких изображений.
-  * Доработана модель классификации номерных знаков. Теперь стало возможной однопроходная классификация по разным 
-  критериям классификации: по типу номерного знака и по характеристике закрашен\не закрашен.
+  * OCR: [GRU-network](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md) 
+  trained on Ukrainian and European license plates are used instead of tesseract).
+  * Implemented batch processing of multiple images.
+  * The license plate classification model has been improved. 
+  Now, a single pass classification has become possible according to different criteria: 
+  by type of the license plate and by characteristic are painted / not painted.
   
   **optimizations**
-  * Реализованны асинхронные версии множества методов, что дает прирост производительности до 10%.
-  * Проведена оптимизация кода для использования на GPU Nvidia.
+  * Implemented asynchronous versions of the set of methods, which gives a performance increase of up to 10%.
+  * Optimized code for use on Nvidia GPUs.
   
   **training**
-  * Мы создали небольшую админку на nodejs, с помощью которого можна подготовить свой датасет для задач классификации 
-  номерных знаков а также для обучения модели OCR. 
+  * A small [nodejs admin panel](https://github.com/ria-com/nomeroff-net/blob/master/moderation/README.md) was created, with which you can prepare your dataset 
+  for license plate classification or OCR text detection tasks.
+  * Prepare example script for [OCR train](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOcrTextDetectorExample.ipynb).
+  * Prepare example script for [Options Classification](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOptionDetectorExample.ipynb).
 
 0.1.1 / 2019-01-17
 ==================
