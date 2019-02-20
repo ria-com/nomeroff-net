@@ -134,15 +134,22 @@ class OptionsDetector():
 
         return model
 
-    def train(self, base_dir, results_dir, model_name="model", verbose=1):
-        # init count outputs
-        self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
-        self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
-
+    def prepare(self, base_dir, verbose=1):
         # you mast split your data on 3 directory
         train_dir = os.path.join(base_dir, 'train')
         validation_dir = os.path.join(base_dir, 'val')
-        test_dir = os.path.join(base_dir, 'test')
+        self.test_dir = os.path.join(base_dir, 'test')
+
+        # compile generators
+        self.train_generator = self.compile_train_generator(train_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
+        self.validation_generator = self.compile_test_generator(validation_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
+        if verbose:
+            print("DATA PREPARED")
+
+    def train(self, verbose=1):
+        # init count outputs
+        self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
+        self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
         # trainable cnn model
         conv_base = VGG16(weights='imagenet',
@@ -152,10 +159,6 @@ class OptionsDetector():
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
-
-        # compile generators
-        train_generator = self.compile_train_generator(train_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
-        validation_generator = self.compile_test_generator(validation_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
 
         # traine callbacks
         self.CALLBACKS_LIST = [
@@ -184,11 +187,11 @@ class OptionsDetector():
 
             # train
             history = model.fit_generator(
-                train_generator,
+                self.train_generator,
                 steps_per_epoch=self.STEPS_PER_EPOCH,
                 epochs=self.EPOCHS,
                 callbacks=self.CALLBACKS_LIST,
-                validation_data=validation_generator,
+                validation_data=self.validation_generator,
                 validation_steps=self.VALIDATION_STEPS,
                 verbose=verbose
             )
@@ -205,24 +208,22 @@ class OptionsDetector():
         elif len(modelsArr) == 1:
             self.MODEL = modelsArr[0]
 
-        # test
-        test_loss, test_acc, test_loss2, test_acc2, = self.test(test_dir)
-        print(f"test acc: {test_acc} test loss: {test_loss}")
+        return  self.MODEL
 
-        # save model
-        self.save_model(results_dir, model_name, verbose)
-        return model
-
-    def test(self, test_dir):
+    def test(self, test_dir=None):
         # compile generator
+        if test_dir == None:
+            test_dir = self.test_dir
         test_generator = self.compile_test_generator(test_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
 
         # test
-        return self.MODEL.evaluate_generator(test_generator, steps=self.VALIDATION_STEPS)
+        test_loss, test_acc, test_loss2, test_acc2 = self.MODEL.evaluate_generator(test_generator, steps=self.VALIDATION_STEPS)
+        print(f"test acc: {test_acc} test loss: {test_loss}")
+        print(f"test acc2: {test_acc2} test loss2: {test_loss2}")
+        return test_loss, test_acc, test_loss2, test_acc2
 
-    def save_model(self, dir, model_name="model", verbose=1):
+    def save_model(self, path, verbose=1):
         now = datetime.now()
-        path = os.path.join(dir, f"{model_name}_{now.year}_{now.month}_{now.day}.h5")
         if self.MODEL != None:
             if bool(verbose):
                 print(f"model save to {path}")
