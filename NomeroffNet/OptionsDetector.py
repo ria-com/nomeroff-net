@@ -135,18 +135,22 @@ class OptionsDetector():
         return model
 
     def prepare(self, base_dir, verbose=1):
+        if verbose:
+            print("START PREPARING")
         # you mast split your data on 3 directory
         train_dir = os.path.join(base_dir, 'train')
         validation_dir = os.path.join(base_dir, 'val')
-        self.test_dir = os.path.join(base_dir, 'test')
+        test_dir = os.path.join(base_dir, 'test')
 
         # compile generators
         self.train_generator = self.compile_train_generator(train_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
         self.validation_generator = self.compile_test_generator(validation_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
+
+        self.test_generator = self.compile_test_generator(test_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, verbose=1):
+    def train(self, log_dir="./", verbose=1):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
@@ -163,7 +167,7 @@ class OptionsDetector():
         # traine callbacks
         self.CALLBACKS_LIST = [
             callbacks.ModelCheckpoint(
-                filepath=os.path.join(results_dir, 'buff_weights.h5'),
+                filepath=os.path.join(log_dir, 'buff_weights.h5'),
                 monitor='val_loss',
                 save_best_only=True,
             ),
@@ -197,7 +201,7 @@ class OptionsDetector():
             )
 
             # load best model
-            model.load_weights(os.path.join(results_dir, 'buff_weights.h5'))
+            model.load_weights(os.path.join(log_dir, 'buff_weights.h5'))
 
             # append to models
             modelsArr.append(model)
@@ -210,19 +214,15 @@ class OptionsDetector():
 
         return  self.MODEL
 
-    def test(self, test_dir=None):
-        # compile generator
-        if test_dir == None:
-            test_dir = self.test_dir
-        test_generator = self.compile_test_generator(test_dir, (self.HEIGHT, self.WEIGHT), self.BATCH_SIZE)
-
+    def test(self):
         # test
-        test_loss, test_acc, test_loss2, test_acc2 = self.MODEL.evaluate_generator(test_generator, steps=self.VALIDATION_STEPS)
-        print(f"test acc: {test_acc} test loss: {test_loss}")
-        print(f"test acc2: {test_acc2} test loss2: {test_loss2}")
-        return test_loss, test_acc, test_loss2, test_acc2
+        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
+        print(f"test loss: {test_loss}")
+        print(f"test loss: {test_loss1}    test loss: {test_loss2}")
+        print(f"test acc: {test_acc1}    test acc {test_acc2}")
+        return test_loss, test_loss1, test_loss2, test_acc1, test_acc2
 
-    def save_model(self, path, verbose=1):
+    def save(self, path, verbose=1):
         now = datetime.now()
         if self.MODEL != None:
             if bool(verbose):
