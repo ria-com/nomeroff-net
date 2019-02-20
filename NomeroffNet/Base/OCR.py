@@ -130,9 +130,11 @@ class OCR(TextImageGenerator):
         y_pred = y_pred[:, 2:, :]
         return K.ctc_batch_cost(labels, y_pred, input_length, label_length)
 
-    def save(self, path):
+    def save(self, path, verbose=1):
         if self.MODEL:
             self.MODEL.save(path)
+            if verbose:
+                print("SAVED TO {}".format(path))
 
     def test(self, verbose=1):
         if verbose:
@@ -211,7 +213,6 @@ class OCR(TextImageGenerator):
         self.tiger_test.build_data()
         if verbose:
             print("DATA PREPARED")
-
 
     def train(self, mode="cpu", model_path="./model.h5", load=False, verbose=1):
         if mode == "gpu":
