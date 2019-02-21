@@ -18,6 +18,7 @@
   for license plate classification or OCR text detection tasks.
   * Prepare example script for [OCR train](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOcrTextDetectorExample.ipynb).
   * Prepare example script for [Options Classification](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOptionDetectorExample.ipynb).
+  * Add numberplate [MaskRCNN](https://github.com/ria-com/nomeroff-net/blob/master/train/mrcnnTrainExample.ipynb) example script.
 
 0.1.1 / 2019-01-17
 ==================
