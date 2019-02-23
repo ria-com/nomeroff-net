@@ -19,5 +19,5 @@ scikit_learn==0.20.2
 pandas==0.23.4
 jupyter==1.0.0
 mrcnn==0.2
-cairocffi=0.9.0
-editdistance=0.5.2
+cairocffi==0.9.0
+editdistance==0.5.2
