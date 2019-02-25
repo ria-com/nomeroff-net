@@ -106,7 +106,7 @@ class Detector:
             print("image_metas", image_metas)
             print("anchors", anchors)
 
-        print("Run detection")
+        #print("Run detection")
         # Run object detection
         detections, _, _, mrcnn_mask, _, _, _ = self.sess.run([self.mrcnn_detection, self.mrcnn_class, self.mrcnn_bbox, self.mrcnn_mask, self.ROI, self.rpn_class, self.rpn_bbox], feed_dict={
                     self.input_image:      molded_images,
