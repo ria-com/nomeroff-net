@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import random
 from keras.utils import to_categorical
+from .aug import aug
 
 class ImgGenerator:
 
@@ -13,8 +14,8 @@ class ImgGenerator:
                  batch_size,
                  labels_counts):
 
-        self.img_h = img_h
-        self.img_w = img_w
+        self.HEIGHT = img_h
+        self.WEIGHT = img_w
         self.batch_size = batch_size
 
         self.labels_counts = labels_counts
@@ -34,22 +35,14 @@ class ImgGenerator:
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.cur_index = 0
+        self.count_ep = 0
+        self.count_ep_need_to_aug = 1
 
     def build_data(self):
-        self.imgs = np.zeros((self.n, self.img_h, self.img_w, 3))
+        self.paths = []
         self.discs = []
         for i, (img_filepath, disc) in enumerate(self.samples):
-            img = cv2.imread(img_filepath)
-            img = cv2.resize(img, (self.img_w, self.img_h))
-            img = img.astype(np.float32)
-
-            # advanced normalisation
-            #img /= 255
-            img_min = np.amin(img)
-            img -= img_min
-            img_max = np.amax(img)
-            img /= img_max
-            self.imgs[i, :, :] = img
+            self.paths.append(img_filepath)
             self.discs.append(
                 [
                     to_categorical(disc[0], self.labels_counts[0]),
@@ -57,12 +50,25 @@ class ImgGenerator:
                 ]
             )
 
+    def normalize(self, img, with_aug=False):
+        img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
+        img = img.astype(np.float32)
+
+        # advanced normalisation
+        #img /= 255
+        img_min = np.amin(img)
+        img -= img_min
+        img_max = np.amax(img)
+        img /= img_max
+        return img
+
     def next_sample(self):
         self.cur_index += 1
         if self.cur_index >= self.n:
+            self.count_ep += 1
             self.cur_index = 0
             random.shuffle(self.indexes)
-        return self.imgs[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
+        return self.paths[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
 
     def generator(self):
         while True:
@@ -70,8 +76,12 @@ class ImgGenerator:
             Xs = []
             for i in np.arange(self.batch_size):
                 x, y = self.next_sample()
+                img = cv2.imread(x)
+                if self.count_ep >= self.count_ep_need_to_aug:
+                    x = self.normalize(img, with_aug=1)
+                else:
+                    x = self.normalize(img)
                 Xs.append(x)
                 Ys[1].append(y[0])
                 Ys[0].append(y[1])
-            #print("Send batch")
             yield np.array(Xs), Ys

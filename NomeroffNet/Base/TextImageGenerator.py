@@ -6,6 +6,7 @@ import numpy as np
 from keras import backend as K
 import random
 import itertools
+from .aug import aug
 
 class TextImageGenerator:
     def __init__(self,
@@ -39,6 +40,7 @@ class TextImageGenerator:
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.cur_index = 0
+        self.count_ep = 0
 
     def labels_to_text(self, labels):
         return ''.join(list(map(lambda x: self.letters[int(x)], labels)))
@@ -67,7 +69,7 @@ class TextImageGenerator:
             ret.append(outstr)
         return ret
 
-    def build_data(self):
+    def build_data(self, aug_count=0):
         self.imgs = np.zeros((self.n, self.img_h, self.img_w))
         self.texts = []
         for i, (img_filepath, text) in enumerate(self.samples):
@@ -80,8 +82,24 @@ class TextImageGenerator:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
             self.imgs[i, :, :] = img
-            #print(self.imgs)
             self.texts.append(text)
+        while aug_count:
+            for i, (img_filepath, text) in enumerate(self.samples):
+                img = cv2.imread(img_filepath)
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                imgs = aug([img])
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                img = imgs[0]
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+                img = cv2.resize(img, (self.img_w, self.img_h))
+                img = img.astype(np.float32)
+                img -= np.amin(img)
+                img /= np.amax(img)
+                # width and height are backwards from typical Keras convention
+                # because width is the time dimension when it gets fed into the RNN
+                self.imgs[i, :, :] = img
+                self.texts.append(text)
+            aug_count -= 1
 
     def get_output_size(self):
         return len(self.letters) + 1
@@ -101,6 +119,7 @@ class TextImageGenerator:
     def next_sample(self):
         self.cur_index += 1
         if self.cur_index >= self.n:
+            self.count_ep += 1
             self.cur_index = 0
             random.shuffle(self.indexes)
         return self.imgs[self.indexes[self.cur_index]], self.texts[self.indexes[self.cur_index]]

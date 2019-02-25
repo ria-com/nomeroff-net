@@ -24,12 +24,19 @@ from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications import VGG16
 from keras import callbacks
 from keras.models import load_model
+import tensorflow as tf
+from tensorflow.python.framework import graph_io
+from tensorflow.python.tools import freeze_graph
+from tensorflow.core.protobuf import saver_pb2
+from tensorflow.python.training import saver as saver_lib
+from tensorflow.python.framework.graph_util import convert_variables_to_constants
 
 ia.seed(1)
 
 from .Base.ImgGenerator import ImgGenerator
 
-class OptionsDetector():
+
+class OptionsDetector(ImgGenerator):
     def __init__(self):
         # input
         self.DEPTH          = 1
@@ -64,8 +71,8 @@ class OptionsDetector():
 
         # train hyperparameters
         self.BATCH_SIZE       = 32
-        self.STEPS_PER_EPOCH  = 100
-        self.VALIDATION_STEPS = 50
+        self.STEPS_PER_EPOCH  = 0 # defain auto
+        self.VALIDATION_STEPS = 0 # defain auto
         self.EPOCHS           = 150
 
         # compile model hyperparameters
@@ -76,6 +83,10 @@ class OptionsDetector():
         self.LOSS_WEIGHTS = {"REGION": 1.0, "STATE": 1.0}
         self.OPT = "adamax"
         self.METRICS = ["accuracy"]
+
+        # for frozen graph
+        self.INPUT_NODE = "input_2:0"
+        self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0")
 
     def change_dimension(self, w, h):
         if w != self.WEIGHT and h != self.HEIGHT:
@@ -150,16 +161,17 @@ class OptionsDetector():
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, log_dir="./", verbose=1):
+    def train(self, log_dir="./", verbose=1, conv_base=None):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
-        # trainable cnn model
-        conv_base = VGG16(weights='imagenet',
-            include_top=False)
-        # block trainable cnn parameters
-        conv_base.trainable = False
+        if conv_base == None:
+            # trainable cnn model
+            conv_base = VGG16(weights='imagenet',
+                include_top=False)
+            # block trainable cnn parameters
+            conv_base.trainable = False
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
@@ -235,20 +247,19 @@ class OptionsDetector():
         return True
 
     def load(self, path_to_model, verbose = 0):
-        self.MODEL = load_model(path_to_model)
-        if verbose:
-            self.MODEL.summary()
+        if path_to_model.split(".")[-1] != "pb":
+            self.MODEL = load_model(path_to_model)
+            if verbose:
+                self.MODEL.summary()
+        else:
+            self.load_frozen(path_to_model)
+            self.predict = self.frozen_predict
 
     def getRegionLabel(self, index):
         return self.CLASS_REGION[index]
 
     def getStateLabel(self, index):
         return self.CLASS_STATE[index]
-
-    def normalize(self, img):
-        img = img / 255.
-        img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
-        return img
 
     def predict(self, imgs):
         Xs = []
@@ -277,6 +288,7 @@ class OptionsDetector():
         imageGenerator = ImgGenerator(train_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION)])
         print("start train build")
         imageGenerator.build_data()
+        self.STEPS_PER_EPOCH = self.STEPS_PER_EPOCH or imageGenerator.n / imageGenerator.batch_size or imageGenerator.n / imageGenerator.batch_size + 1
         print("end train build")
         return  imageGenerator.generator()
 
@@ -284,5 +296,42 @@ class OptionsDetector():
         imageGenerator = ImgGenerator(test_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION)])
         print("start test build")
         imageGenerator.build_data()
+        self.VALIDATION_STEPS = self.VALIDATION_STEPS or imageGenerator.n / imageGenerator.batch_size or imageGenerator.n / imageGenerator.batch_size + 1
         print("end test build")
         return  imageGenerator.generator()
+
+    def load_frozen(self, FROZEN_MODEL_PATH):
+        graph_def = tf.GraphDef()
+        with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
+            graph_def.ParseFromString(f.read())
+
+        graph = tf.Graph()
+        with graph.as_default():
+            self.net_inp, self.net_out1, self.net_out2 = tf.import_graph_def(
+                graph_def, return_elements = [self.INPUT_NODE, self.OUTPUT_NODES[0], self.OUTPUT_NODES[1]]
+            )
+            #print([x.name for x in graph_def.node])
+
+        sess_config = tf.ConfigProto()
+        sess_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(graph=graph, config=sess_config)
+
+    def frozen_predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            img = self.normalize(img)
+            Xs.append(img)
+
+        predicted = [[], []]
+        if bool(Xs):
+            predicted = self.sess.run([self.net_out1, self.net_out2], feed_dict={self.net_inp:Xs})
+
+        regionIds = []
+        for region in predicted[0]:
+            regionIds.append(int(np.argmax(region)))
+
+        stateIds = []
+        for state in predicted[1]:
+            stateIds.append(int(np.argmax(state)))
+
+        return regionIds, stateIds

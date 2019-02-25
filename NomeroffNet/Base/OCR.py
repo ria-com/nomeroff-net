@@ -28,6 +28,12 @@ from keras.preprocessing import image
 import keras.callbacks
 from collections import Counter
 from tensorflow.python.client import device_lib
+import tensorflow as tf
+from tensorflow.python.framework import graph_io
+from tensorflow.python.tools import freeze_graph
+from tensorflow.core.protobuf import saver_pb2
+from tensorflow.python.training import saver as saver_lib
+from tensorflow.python.framework.graph_util import convert_variables_to_constants
 
 #def get_available_gpus():
 #    local_device_protos = device_lib.list_local_devices()
@@ -170,23 +176,28 @@ class OCR(TextImageGenerator):
         for img in imgs:
             x = self.normalize(img)
             Xs.append(x)
-        net_out_value = self.MODEL.predict(np.array(Xs))
-        pred_texts = self.decode_batch(net_out_value)
+        pred_texts = []
+        if bool(Xs):
+            net_out_value = self.MODEL.predict(np.array(Xs))
+            #print(net_out_value)
+            pred_texts = self.decode_batch(net_out_value)
         return pred_texts
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)
         net_inp = self.MODEL.get_layer(name='the_input').input
         net_out = self.MODEL.get_layer(name='softmax').output
-        self.MODEL = Model(input=net_inp, output=net_out)
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
-        #model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+        sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+        self.MODEL.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+
+        self.MODEL = Model(input=net_inp, output=net_out)
 
         if verbose:
             self.MODEL.summary()
         return self.MODEL
 
-    def prepare(self, path_to_dataset, verbose=1):
+    def prepare(self, path_to_dataset, aug_count=0, verbose=1):
         self.SESS = tf.Session()
         K.set_session(self.SESS)
 
@@ -205,7 +216,7 @@ class OCR(TextImageGenerator):
         if verbose:
             print("START BUILD DATA")
         self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
-        self.tiger_train.build_data()
+        self.tiger_train.build_data(aug_count=aug_count)
         self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
         self.tiger_val.build_data()
 
@@ -289,3 +300,31 @@ class OCR(TextImageGenerator):
         net_out = model.get_layer(name='softmax').output
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
+
+    def load_frozen(self, FROZEN_MODEL_PATH):
+        graph_def = tf.GraphDef()
+        with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
+            graph_def.ParseFromString(f.read())
+
+        #print([x.name for x in graph_def.node])
+        graph = tf.Graph()
+        with graph.as_default():
+            self.net_inp, self.net_out = tf.import_graph_def(
+                graph_def, return_elements = [self.INPUT_NODE, self.OUTPUT_NODE]
+            )
+
+        sess_config = tf.ConfigProto()
+        sess_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(graph=graph, config=sess_config)
+
+    def frozen_predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            x = self.normalize(img)
+            Xs.append(x)
+        pred_texts = []
+        if bool(Xs):
+            net_out_value = self.sess.run([self.net_out], feed_dict={self.net_inp: np.array(Xs)})
+            #print(net_out_value)
+            pred_texts = self.decode_batch(net_out_value[0])
+        return pred_texts

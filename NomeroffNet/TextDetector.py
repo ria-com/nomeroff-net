@@ -7,6 +7,7 @@ class TextDetector():
     def __init__(self, prisets):
         self.detectors_map = {}
         self.detectors = []
+        self.detectors_names = []
 
         i = 0
         for prisetName in prisets:
@@ -18,11 +19,16 @@ class TextDetector():
                 raise Exception(f"Text detector {_label} not in Text Detectors")
             TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
             detector = TextPostprocessing()
-            detector.load(priset['model_path'])
+            if priset['model_path'].split(".")[-1] == "pb":
+                detector.load_frozen(priset['model_path'])
+                detector.predict = detector.frozen_predict
+            else:
+                detector.load(priset['model_path'])
             self.detectors.append(detector)
+            self.detectors_names.append(_label)
             i += 1
 
-    def predict(self, zones, labels):
+    def predict(self, zones, labels, frozen=False):
         predicted = {}
 
         orderAll = []
@@ -41,7 +47,12 @@ class TextDetector():
             i += 1
 
         for key in predicted.keys():
-            resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"])
+            if not frozen:
+                resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"])
             orderAll = orderAll + predicted[key]["order"]
 
         return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])]
+
+    def get_module(self, name):
+        ind = self.detectors_names.index(name)
+        return self.detectors[ind]
