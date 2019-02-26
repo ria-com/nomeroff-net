@@ -19,6 +19,9 @@ git clone https://github.com/matterport/Mask_RCNN.git
 pip3 install -r requirements.txt
 ```
 
+Download the [latest models](https://nomeroff.net.ua/models/) that are required for your neural network to work and place 
+them in the **./models** folder of the nomeroff-net project
+
 
 ## Hello Nomeroff Net
 
