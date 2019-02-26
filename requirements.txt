@@ -1,5 +1,5 @@
-Keras>=2.2.4
 Cython
+Keras>=2.2.4
 pycocotools
 imgaug
 matplotlib
