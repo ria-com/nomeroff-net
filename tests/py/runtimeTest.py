@@ -16,11 +16,11 @@ NOMEROFF_NET_DIR = os.path.abspath('../../')
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
-MASK_RCNN_LOG_DIR = "../logs/"
-MASK_RCNN_MODEL_PATH = "../models/mask_rcnn_numberplate_0700.pb"
-OPTIONS_MODEL_PATH =  "../models/numberplate_options_2019_2_15.pb"
-OCR_NP_UKR_TEXT =  "../models/anpr_ocr_ua_1_2_11-cpu.pb"
-OCR_NP_EU_TEXT =  "../models/anpr_ocr_eu_2-cpu.pb"
+MASK_RCNN_LOG_DIR = "../../logs/"
+MASK_RCNN_MODEL_PATH = "../../models/mask_rcnn_numberplate_0700.pb"
+OPTIONS_MODEL_PATH =  "../../models/numberplate_options_2019_2_15.pb"
+OCR_NP_UKR_TEXT =  "../../models/anpr_ocr_ua_1_2_11-cpu.pb"
+OCR_NP_EU_TEXT =  "../../models/anpr_ocr_eu_2-cpu.pb"
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -90,7 +90,7 @@ async def runAll():
     i = 0
     j = 0
     start_time = time.time()
-    rootDir = 'images/'
+    rootDir = '../images/'
     for i in np.arange(N):
         for dirName, subdirList, fileList in os.walk(rootDir):
             for fname in fileList:
@@ -105,4 +105,6 @@ async def runAll():
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-loop.run_until_complete(runAll())
+result = loop.run_until_complete(runAll())
+
+runAll()

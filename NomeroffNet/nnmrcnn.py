@@ -1,8 +1,8 @@
 import os
 import json
 import numpy as np
+import sys
 
-from mrcnn.config import Config
 from mrcnn.config import Config
 from mrcnn import utils
 from mrcnn import model as modellib

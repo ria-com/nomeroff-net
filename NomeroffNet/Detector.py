@@ -21,7 +21,7 @@ class Detector:
             self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
             sys.path.append(self.MASK_RCNN_DIR)
 
-            from .mrcnn import InferenceConfig
+            from .nnmrcnn import InferenceConfig
             self.CONFIG = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
 
             import mrcnn.model as modellib
