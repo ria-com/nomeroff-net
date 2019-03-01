@@ -6,7 +6,6 @@ import sys
 from mrcnn.config import Config
 from mrcnn import utils
 from mrcnn import model as modellib
-from mrcnn import visualize
 from pycocotools import mask as maskUtils
 
 ############################################################
