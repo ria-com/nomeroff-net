@@ -1,12 +1,6 @@
-import cv2
 import keras
-import os, shutil
-import random
-import json
-import imgaug as ia
-from imgaug import augmenters as iaa
+import os
 import numpy as np
-import matplotlib.pyplot as plt
 from datetime import datetime
 from keras.layers import merge
 from keras.optimizers import Adam
@@ -19,19 +13,11 @@ from keras.models import Model, Input
 from sklearn.model_selection import GridSearchCV
 from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing import image
-from PIL import ImageFile
 from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications import VGG16
 from keras import callbacks
 from keras.models import load_model
 import tensorflow as tf
-from tensorflow.python.framework import graph_io
-from tensorflow.python.tools import freeze_graph
-from tensorflow.core.protobuf import saver_pb2
-from tensorflow.python.training import saver as saver_lib
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
-
-ia.seed(1)
 
 from .Base.ImgGenerator import ImgGenerator
 
@@ -304,13 +290,12 @@ class OptionsDetector(ImgGenerator):
         graph_def = tf.GraphDef()
         with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
             graph_def.ParseFromString(f.read())
-
+        print([x.name for x in graph_def.node])
         graph = tf.Graph()
         with graph.as_default():
             self.net_inp, self.net_out1, self.net_out2 = tf.import_graph_def(
                 graph_def, return_elements = [self.INPUT_NODE, self.OUTPUT_NODES[0], self.OUTPUT_NODES[1]]
             )
-            #print([x.name for x in graph_def.node])
 
         sess_config = tf.ConfigProto()
         sess_config.gpu_options.allow_growth = True

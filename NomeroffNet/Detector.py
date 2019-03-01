@@ -1,18 +1,9 @@
 import os
-import cv2
 import sys
-import math
-import random
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import tensorflow as tf
-from tensorflow.python.framework import graph_io
-from tensorflow.python.tools import freeze_graph
-from tensorflow.core.protobuf import saver_pb2
-from tensorflow.python.training import saver as saver_lib
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
 
 class Detector:
     def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
