@@ -16,14 +16,10 @@ class TextDetector():
                 self.detectors_map[region] = i
             _label = prisetName
             if _label not in dir(TextDetectors):
-                raise Exception(f"Text detector {_label} not in Text Detectors")
+                raise Exception("Text detector {} not in Text Detectors".fprmat(_label))
             TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
             detector = TextPostprocessing()
-            if priset['model_path'].split(".")[-1] == "pb":
-                detector.load_frozen(priset['model_path'])
-                detector.predict = detector.frozen_predict
-            else:
-                detector.load(priset['model_path'])
+            detector.load(priset['model_path'])
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
