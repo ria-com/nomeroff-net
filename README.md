@@ -10,7 +10,7 @@ The project is now at the initial stage of development, write to us if you are i
 
 ## Installation
 Nomeroff Net requires last version of [Mask_RCNN](https://github.com/matterport/Mask_RCNN),  
-Python 3.6, or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
+Python 3.5, 3.6 or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
 
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
