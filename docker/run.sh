@@ -2,5 +2,5 @@
 
 docker run --rm -it \
 			-p 8888:8888 \
-			-v `pwd`/..:/var/www/nomeroff \
-			nomeroff-net-lite
+			-v `pwd`/..:/var/www/nomeroff-net \
+			nomeroff-net

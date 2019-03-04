@@ -4,7 +4,6 @@ import skimage
 import numpy as np
 
 from mrcnn.config import Config
-from mrcnn.config import Config
 from mrcnn import utils
 
 ############################################################

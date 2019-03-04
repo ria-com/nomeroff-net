@@ -1,6 +1,7 @@
 import sys
 import matplotlib.image as mpimg
 import tensorflow as tf
+import numpy as np
 from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph
 from tensorflow.core.protobuf import saver_pb2
@@ -23,9 +24,10 @@ class Detector:
               "IMAGE_RESIZE_MODE": "square" # work ?
             }
             self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
-            sys.path.append(self.MASK_RCNN_DIR)
+            print(mask_rcnn_dir)
+            sys.path.append(mask_rcnn_dir)
 
-            from .mrcnn import InferenceConfig
+            from .nnmrcnn import InferenceConfig
             self.CONFIG = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
 
             # for frozen graph

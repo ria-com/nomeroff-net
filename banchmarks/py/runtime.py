@@ -1,10 +1,13 @@
 import os
 import sys
 import json
-import asyncio
 import matplotlib.image as mpimg
 from termcolor import colored
+import cv2
+import time
+import numpy as np
 import warnings
+import asyncio
 warnings.filterwarnings('ignore')
 
 # change this property
@@ -24,7 +27,7 @@ sys.path.append(NOMEROFF_NET_DIR)
 from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessingAsync
 
 nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-nnet.load(MASK_RCNN_MODEL_PATH)
+nnet.loadModel(MASK_RCNN_MODEL_PATH)
 
 rectDetector = RectDetector()
 
@@ -43,19 +46,8 @@ textDetector = TextDetector({
     }
 })
 
-import cv2
-import numpy as np
-
-async def test(dirName, fname, y, verbose=0, max_img_w = 1280):
+async def test(dirName, fname, max_img_w=1280):
     img_path = os.path.join(dirName, fname)
-    if verbose==1:
-        print(colored("__________ \t\t {} \t\t __________".format(img_path), "blue"))
-    img = mpimg.imread(img_path)
-    nGood = 0
-    nBad = 0
-    img_path = os.path.join(dirName, fname)
-    if verbose:
-        print(img_path)
     img = mpimg.imread(img_path)
 
     # corect size for better speed
@@ -76,81 +68,43 @@ async def test(dirName, fname, y, verbose=0, max_img_w = 1280):
     cv_img_masks = await filters.cv_img_mask_async(NP)
 
     # Detect points.
-    arrPoints = await rectDetector.detectAsync(cv_img_masks, outboundHeightOffset=3-img_w_r)
+    arrPoints = await rectDetector.detectAsync(cv_img_masks,  outboundHeightOffset=3-img_w_r)
     arrPoints[..., 1:2] = arrPoints[..., 1:2]*img_h_r
     arrPoints[..., 0:1] = arrPoints[..., 0:1]*img_w_r
 
     # cut zones
     zones = await rectDetector.get_cv_zonesBGR_async(img, arrPoints)
-    toShowZones = rectDetector.get_cv_zonesRGB(img, arrPoints)
 
     # find standart
     regionIds, stateIds = optionsDetector.predict(zones)
     regionNames = optionsDetector.getRegionLabels(regionIds)
-    if verbose:
-        print(regionNames)
 
     # find text with postprocessing by standart
     textArr = textDetector.predict(zones, regionNames)
     textArr = await textPostprocessingAsync(textArr, regionNames)
-    if verbose:
-        print(textArr)
+    return textArr
 
-    for yText in y:
-        if yText in textArr:
-            print(colored("OK: TEXT:{} \t\t\t RESULTS:{} \n\t\t\t\t\t in PATH:{}".format(yText, textArr, img_path), 'green'))
-            nGood += 1
-        else:
-            print(colored("NOT OK: TEXT:{} \t\t\t RESULTS:{} \n\t\t\t\t\t in PATH:{} ".format(yText, textArr, img_path), 'red'))
-            nBad += 1
-    return nGood, nBad
-
-
-async def run():
-    dirName = "../images/"
-    testData = {
-        "0.jpeg": ["AI5255EI"],
-        "1.jpeg": ["HH7777CC"],
-        "2.jpeg": ["AT1515CK"],
-        "3.jpeg": ["BX0578CE"],
-        "4.jpeg": ["AC4249CB"],
-        "5.jpeg": ["BC3496HC"],
-        "6.jpeg": ["BC3496HC"],
-        "7.jpeg": ["AO1306CH"],
-        "8.jpeg": ["AE1077CO"],
-        "9.jpeg": ["AB3391AK"],
-        "10.jpeg": ["BE7425CB"],
-        "11.jpeg": ["BE7425CB"],
-        "12.jpeg": ["AB0680EA"],
-        "13.jpeg": ["AB0680EA"],
-        "14.jpeg": ["BM1930BM"],
-        "15.jpeg": ["AI1382HB"],
-        "16.jpeg": ["AB7333BH"],
-        "17.jpeg": ["AB7642CT"],
-        "18.jpeg": ["AC4921CB"],
-        "19.jpeg": ["BC9911BK"],
-        "20.jpeg": ["BC7007AK"],
-        "21.jpeg": ["AB5649CI"],
-        "22.jpeg": ["AX2756EK"],
-        "23.jpeg": ["AA7564MX"],
-        "24.jpeg": ["AM5696CK"],
-        "25.jpeg": ["AM5696CK"],
-    }
-
-    gGood = 0
-    gBad = 0
+async def runAll():
+    print("START")
+    N = 10
     i = 0
-    for fileName in testData.keys():
-        nGood, nBad = await test(dirName, fileName, testData[fileName], verbose=0)
-        gGood += nGood
-        gBad += nBad
+    j = 0
+    start_time = time.time()
+    rootDir = '../images/'
+    for i in np.arange(N):
+        for dirName, subdirList, fileList in os.walk(rootDir):
+            for fname in fileList:
+                await test(dirName, fname)
+                j += 1
         i += 1
-    total = gGood + gBad
-    print("TOTAL GOOD: {}".format(gGood/total))
-    print("TOTAL BED: {}".format(gBad/total))
+        print(i/N)
+    end_time = time.time() - start_time
+    print("Processed {} photos".format(j))
+    print("Time {}".format(end_time))
+    print("One photo process {} seconds".format(end_time/j))
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
-result = loop.run_until_complete(run())
+result = loop.run_until_complete(runAll())
 
-run()
+runAll()
