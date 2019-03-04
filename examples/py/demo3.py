@@ -19,7 +19,7 @@ MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberpl
 OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_2_15.pb")
 
 # If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
-mode = "cpu"
+mode =  "cpu" if  "NN_MODE" not in os.environ else os.environ["NN_MODE"] if os.environ["NN_MODE"]=="gpu" else "cpu"
 OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_1_2_11-{}.pb".format(mode))
 OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.pb".format(mode))
 
