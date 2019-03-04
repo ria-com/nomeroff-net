@@ -95,7 +95,7 @@ class eu_ua_2004(xx_xx):
 
         if bool(v):
             regionKey = max(v.items(), key=operator.itemgetter(1))[0]
-            return f"{regionKey}{text[2:]}"
+            return "{}{}".format(regionKey, text[2:])
         return text
 
     def find(self, text, strong=False):

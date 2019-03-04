@@ -59,10 +59,10 @@ class xx_xx():
             elif self.STANDART[i] == "@":
                 l_dict = self.ALLOWED_LITERS
             if text[i] in l_dict:
-                res = f"{res}{text[i]}"
+                res = "{}{}".format(res, text[i])
             else:
                 replace_l = self.REPLACEMENT[self.STANDART[i]][text[i]]
-                res = f"{res}{replace_l}"
+                res = "{}{}".format(res, replace_l)
         return res
 
     def findSimilary(self, text):
@@ -76,8 +76,6 @@ class xx_xx():
                 dop = list(self.REPLACEMENT["#"].keys())
                 main = self.ALLOWED_NUMBERS
             buf_reg = "".join(main + dop)
-            #buf_reg = buf_reg.replace(chr(92), f"{chr(92)}{chr(92)}")
-
             reg = "{}[{}]".format(reg, buf_reg)
         reg_sim = re.compile(reg)
         for i in np.arange(vcount):

@@ -1,11 +1,4 @@
-import os
-import cv2
 import sys
-import math
-import random
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import tensorflow as tf
 from tensorflow.python.framework import graph_io

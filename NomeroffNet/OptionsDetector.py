@@ -1,13 +1,7 @@
 import cv2
 import keras
-import os, shutil
-import random
-import json
-import imgaug as ia
-from imgaug import augmenters as iaa
+import os
 import numpy as np
-import matplotlib.pyplot as plt
-from datetime import datetime
 from keras.layers import merge
 from keras.optimizers import Adam
 from keras.regularizers import l2
@@ -16,11 +10,7 @@ from keras import models
 from keras import layers
 from keras import backend as K
 from keras.models import Model, Input
-from sklearn.model_selection import GridSearchCV
-from keras.preprocessing.image import ImageDataGenerator
 from keras.preprocessing import image
-from PIL import ImageFile
-from keras.wrappers.scikit_learn import KerasClassifier
 from keras.applications import VGG16
 from keras import callbacks
 from keras.models import load_model
@@ -30,8 +20,6 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
-
-ia.seed(1)
 
 from .Base.ImgGenerator import ImgGenerator
 
@@ -161,17 +149,20 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, log_dir="./", verbose=1, conv_base=None):
+    def create_conv():
+         # trainable cnn model
+        conv_base = VGG16(weights='imagenet',
+            include_top=False)
+        # block trainable cnn parameters
+        conv_base.trainable = False
+        return conv_base
+
+    def train(self, log_dir="./", verbose=1):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
-        if conv_base == None:
-            # trainable cnn model
-            conv_base = VGG16(weights='imagenet',
-                include_top=False)
-            # block trainable cnn parameters
-            conv_base.trainable = False
+        conv_base = self.create_conv()
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
@@ -227,18 +218,16 @@ class OptionsDetector(ImgGenerator):
         return  self.MODEL
 
     def test(self):
-        # test
         test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
-        print(f"test loss: {test_loss}")
-        print(f"test loss: {test_loss1}    test loss: {test_loss2}")
-        print(f"test acc: {test_acc1}    test acc {test_acc2}")
+        print("test loss: {}".format(test_loss))
+        print("test loss: {test_loss1}    test loss: {}".format(test_loss2))
+        print("test acc: {test_acc1}    test acc {}".format(test_acc2))
         return test_loss, test_loss1, test_loss2, test_acc1, test_acc2
 
     def save(self, path, verbose=1):
-        now = datetime.now()
         if self.MODEL != None:
             if bool(verbose):
-                print(f"model save to {path}")
+                print("model save to {}".format(path))
             self.MODEL.save(path)
 
     def isLoaded(self):

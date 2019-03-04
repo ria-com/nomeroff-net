@@ -6,16 +6,8 @@ import os
 from os.path import join
 import json
 import random
-import itertools
-import re
-import datetime
-import cairocffi as cairo
-import editdistance
 import numpy as np
-from scipy import ndimage
-import pylab
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+
 from keras import backend as K
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
@@ -27,17 +19,6 @@ from keras.utils.data_utils import get_file
 from keras.preprocessing import image
 import keras.callbacks
 from collections import Counter
-from tensorflow.python.client import device_lib
-import tensorflow as tf
-from tensorflow.python.framework import graph_io
-from tensorflow.python.tools import freeze_graph
-from tensorflow.core.protobuf import saver_pb2
-from tensorflow.python.training import saver as saver_lib
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
-
-#def get_available_gpus():
-#    local_device_protos = device_lib.list_local_devices()
-#    return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
@@ -120,8 +101,9 @@ class OCR(TextImageGenerator):
             else:
                 img = inp['the_input'][0, :, :, 0]
 
-            plt.imshow(img.T, cmap='gray')
-            plt.show()
+            #import matplotlib.pyplot as plt
+            #plt.imshow(img.T, cmap='gray')
+            #plt.show()
             print('2) the_labels (plate number): %s is encoded as %s' %
                   (tiger.labels_to_text(inp['the_labels'][0]), list(map(int, inp['the_labels'][0]))))
             print('3) input_length (width of image that is fed to the loss function): %d == %d / 4 - 2' %
@@ -169,7 +151,7 @@ class OCR(TextImageGenerator):
                 else:
                     succ_c += 1
             break
-        print(f"acc: {succ_c/(err_c+succ_c)}")
+        print("acc: {}".format(succ_c/(err_c+succ_c)))
 
     def predict(self, imgs):
         Xs = []
