@@ -11,13 +11,13 @@ NOMEROFF_NET_DIR = os.path.abspath('../../')
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
-MASK_RCNN_LOG_DIR = "../../logs/"
-MASK_RCNN_MODEL_PATH = "../../models/mask_rcnn_numberplate_0700.h5"
-OPTIONS_MODEL_PATH =  "../../models/numberplate_options_2019_2_15.h5"
+MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.pb")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_2_15.pb")
 
-# If you use gpu version tensorflow please change model to gpu version named like *-gpu.h5
-OCR_NP_UKR_TEXT =  "../../models/anpr_ocr_ua_1_2_11-cpu.h5"
-OCR_NP_EU_TEXT =  "../../models/anpr_ocr_eu_2-cpu.h5"
+# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
+OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_1_2_11-cpu.pb")
+OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-cpu.pb")
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -51,7 +51,7 @@ optionsDetector = OptionsDetector()
 optionsDetector.load(OPTIONS_MODEL_PATH)
 
 # Detect numberplate
-img_path = '../images/example2.jpg'
+img_path = '../images/example2.jpeg'
 img = mpimg.imread(img_path)
 NP = nnet.detect([img])
 

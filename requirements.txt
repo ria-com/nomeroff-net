@@ -9,3 +9,4 @@ opencv_python>=3.4
 imutils>=0.5.1
 scikit_image
 jupyter
+asyncio

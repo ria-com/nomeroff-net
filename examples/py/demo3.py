@@ -5,23 +5,22 @@ import numpy as np
 import sys
 import json
 import matplotlib.image as mpimg
-from matplotlib import pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
 # change this property
-NOMEROFF_NET_DIR = os.path.abspath('../')
+NOMEROFF_NET_DIR = os.path.abspath('../../')
 
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
-MASK_RCNN_LOG_DIR = "../logs/"
-MASK_RCNN_MODEL_PATH = "../models/mask_rcnn_numberplate_0700.h5"
-OPTIONS_MODEL_PATH =  "../models/numberplate_options_2019_2_15.h5"
+MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.pb")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_2_15.pb")
 
-# If you use gpu version tensorflow please change model to gpu version named like *-gpu.h5
-OCR_NP_UKR_TEXT =  "../models/anpr_ocr_ua_1_2_11-cpu.h5"
-OCR_NP_EU_TEXT =  "../models/anpr_ocr_eu_2-cpu.h5"
+# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
+OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_1_2_11-cpu.pb")
+OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-cpu.pb")
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -49,8 +48,9 @@ textDetector = TextDetector({
     }
 })
 
+
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-rootDir = 'images/'
+rootDir = '../images/'
 
 max_img_w = 1280
 for dirName, subdirList, fileList in os.walk(rootDir):
@@ -74,17 +74,16 @@ for dirName, subdirList, fileList in os.walk(rootDir):
         NP = nnet.detect([resized_img])
 
         # Generate image mask.
-        cv_img_masks = await filters.cv_img_mask(NP)
+        cv_img_masks = filters.cv_img_mask(NP)
 
         # Detect points.
-        arrPoints = await rectDetector.detect(cv_img_masks, outboundHeightOffset=3-img_w_r)
+        arrPoints = rectDetector.detect(cv_img_masks, outboundHeightOffset=3-img_w_r)
         print(arrPoints)
         arrPoints[..., 1:2] = arrPoints[..., 1:2]*img_h_r
         arrPoints[..., 0:1] = arrPoints[..., 0:1]*img_w_r
 
         # cut zones
-        zones = await rectDetector.get_cv_zonesBGR(img, arrPoints)
-        toShowZones = await rectDetector.get_cv_zonesRGB(img, arrPoints)
+        zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
 
         # find standart
         regionIds, stateIds = optionsDetector.predict(zones)
@@ -93,7 +92,7 @@ for dirName, subdirList, fileList in os.walk(rootDir):
 
         # find text with postprocessing by standart
         textArr = textDetector.predict(zones, regionNames)
-        textArr = await textPostprocessing(textArr, regionNames)
+        textArr = textPostprocessing(textArr, regionNames)
         print(textArr)
 
 

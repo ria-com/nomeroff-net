@@ -6,12 +6,12 @@ import matplotlib.image as mpimg
 import warnings
 warnings.filterwarnings('ignore')
 
-# change this property
-NOMEROFF_NET_DIR = "/var/www/nomeroff-net/"
-MASK_RCNN_DIR = "/var/www/Mask_RCNN/"
+# Load default configuration file.
+NOMEROFF_NET_DIR = "../../"
+MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
 
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.pb")
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -25,7 +25,7 @@ nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
 nnet.loadModel(MASK_RCNN_MODEL_PATH)
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-rootDir = 'images/'
+rootDir = '../images/'
 
 i = 0
 for dirName, subdirList, fileList in os.walk(rootDir):
@@ -39,4 +39,4 @@ for dirName, subdirList, fileList in os.walk(rootDir):
         splashs = filters.color_splash(img, np)
         for splash in splashs:
             mpimg.imsave(os.path.join(dirName, "{}.png".format(i)), splash)
-            i++
+            i += 1

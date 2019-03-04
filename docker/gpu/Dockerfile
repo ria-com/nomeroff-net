@@ -24,5 +24,6 @@ RUN pip3 install numpy
 RUN pip3 install keras
 RUN pip3 install jupyter
 RUN pip3 install imgaug
+RUN pip3 install asyncio
 
 WORKDIR /var/www/nomeroff-net
