@@ -17,7 +17,9 @@ function chencheAnnotation (img, ann, chended_numbers, who) {
                 if (Boolean(Number(f.deleted))) {
                     console.log(f.deleted);
                     fs.unlinkSync(path.join(img, `${number}.png`));
-                    fs.unlinkSync(path.join(ann, `${number}.json`));
+                    if (fs.existsSync(path.join(ann, `${number}.json`))) {
+                        fs.unlinkSync(path.join(ann, `${number}.json`));
+                    }
                 } else {
                     const data = JSON.parse(fs.readFileSync(path.join(ann, `${number}.json`)));
                     const options = config.moderation.regionOCRModeration.options;
