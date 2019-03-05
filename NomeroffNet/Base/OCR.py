@@ -169,14 +169,16 @@ class OCR(TextImageGenerator):
         self.MODEL = load_model(path_to_model, compile=False)
         net_inp = self.MODEL.get_layer(name='the_input').input
         net_out = self.MODEL.get_layer(name='softmax').output
-        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
-        sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
-        self.MODEL.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
 
         self.MODEL = Model(input=net_inp, output=net_out)
 
         if verbose:
             self.MODEL.summary()
+
+        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
+        #sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+        #self.MODEL.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+
         return self.MODEL
 
     def prepare(self, path_to_dataset, aug_count=0, verbose=1):
