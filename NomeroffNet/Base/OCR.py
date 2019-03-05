@@ -140,7 +140,7 @@ class OCR(TextImageGenerator):
             labels = inp_value['the_labels']
             texts = []
             for label in labels:
-                text = self.labels_to_text(label)
+                text = self.tiger_test.labels_to_text(label)
                 texts.append(text)
 
             for i in range(bs):
