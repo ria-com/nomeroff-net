@@ -149,7 +149,7 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def create_conv():
+    def create_conv(self):
          # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
