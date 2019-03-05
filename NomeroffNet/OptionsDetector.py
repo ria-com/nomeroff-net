@@ -220,8 +220,8 @@ class OptionsDetector(ImgGenerator):
     def test(self):
         test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
         print("test loss: {}".format(test_loss))
-        print("test loss: {test_loss1}    test loss: {}".format(test_loss2))
-        print("test acc: {test_acc1}    test acc {}".format(test_acc2))
+        print("test loss: {}    test loss: {}".format(test_loss1, test_loss2))
+        print("test acc: {}    test acc {}".format(test_acc1, test_acc2))
         return test_loss, test_loss1, test_loss2, test_acc1, test_acc2
 
     def save(self, path, verbose=1):
