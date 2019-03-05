@@ -71,13 +71,13 @@ class OCR(TextImageGenerator):
         letters_val = set(c_val.keys())
         letters_test = set(c_test.keys())
 
-        if max_plate_length_val == max_plate_length_train and max_plate_length_train == max_plate_length_test:
+        if max_plate_length_val == max_plate_length_train:
             if verbose:
                 print('Max plate length in train, test and val do match')
         else:
             raise Exception('Max plate length in train, test and val do not match')
 
-        if letters_train == letters_val and letters_test == letters_val:
+        if letters_train == letters_val:
             if verbose:
                 print('Letters in train, val and test do match')
         else:

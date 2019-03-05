@@ -23,7 +23,6 @@ class TextImageGenerator:
         self.max_text_len = max_text_len
         self.downsample_factor = downsample_factor
         self.letters = letters
-        self.max_text_len = max_text_len
 
         img_dirpath = join(dirpath, 'img')
         ann_dirpath = join(dirpath, 'ann')
@@ -47,9 +46,9 @@ class TextImageGenerator:
         data = ''.join(list(map(lambda x: "" if x==letters_max else letters[int(x)], labels)))
         return data
 
-    def text_to_labels(text, max_text_size = 9):
+    def text_to_labels(text):
         data = list(map(lambda x: letters.index(x), text))
-        while len(data) < max_text_size:
+        while len(data) < self.max_text_len:
             data.append(letters_max)
         return data
 
@@ -105,6 +104,7 @@ class TextImageGenerator:
                 self.imgs[i, :, :] = img
                 self.texts.append(text)
             aug_count -= 1
+
 
     def get_output_size(self):
         return len(self.letters) + 1
