@@ -40,16 +40,16 @@ class TextImageGenerator:
         self.indexes = list(range(self.n))
         self.cur_index = 0
         self.count_ep = 0
-        letters_max = len(letters)+1
+        self.letters_max = len(letters)+1
 
     def labels_to_text(self, labels):
-        data = ''.join(list(map(lambda x: "" if x==letters_max else letters[int(x)], labels)))
+        data = ''.join(list(map(lambda x: "" if x==self.letters_max else self.letters[int(x)], labels)))
         return data
 
     def text_to_labels(self, text):
-        data = list(map(lambda x: letters.index(x), text))
+        data = list(map(lambda x: self.letters.index(x), text))
         while len(data) < self.max_text_len:
-            data.append(letters_max)
+            data.append(self.letters_max)
         return data
 
     def is_valid_str(self, s):
