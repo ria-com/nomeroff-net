@@ -47,6 +47,9 @@ class OCR(TextImageGenerator):
 
         self.GRU = GRUcpu
 
+        self.INPUT_NODE = "the_input_{}:0".format(type(self).__name__)
+        self.OUTPUT_NODE = "softmax_1/truediv_{}:0".format(type(self).__name__)
+
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
         ann_dirpath = join(dirpath, 'ann')
@@ -167,8 +170,8 @@ class OCR(TextImageGenerator):
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
+        net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
         self.MODEL = Model(input=net_inp, output=net_out)
 
@@ -222,7 +225,7 @@ class OCR(TextImageGenerator):
         else:
             input_shape = (self.IMG_W, self.IMG_H, 1)
 
-        input_data = Input(name='the_input', shape=input_shape, dtype='float32')
+        input_data = Input(name='the_input_{}'.format(type(self).__name__), shape=input_shape, dtype='float32')
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
                        activation=self.ACTIVATION, kernel_initializer='he_normal',
                        name='conv1')(input_data)
@@ -249,7 +252,7 @@ class OCR(TextImageGenerator):
         # transforms RNN output to character activations:
         inner = Dense(self.tiger_train.get_output_size(), kernel_initializer='he_normal',
                       name='dense2')(concatenate([gru_2, gru_2b]))
-        y_pred = Activation('softmax', name='softmax')(inner)
+        y_pred = Activation('softmax', name='softmax_{}'.format(type(self).__name__))(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
         labels = Input(name='the_labels', shape=[self.tiger_train.max_text_len], dtype='float32')
