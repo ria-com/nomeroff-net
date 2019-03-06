@@ -24,7 +24,6 @@ class Detector:
               "IMAGE_RESIZE_MODE": "square" # work ?
             }
             self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
-            print(mask_rcnn_dir)
             sys.path.append(mask_rcnn_dir)
 
             from .nnmrcnn import InferenceConfig
