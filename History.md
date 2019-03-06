@@ -1,7 +1,8 @@
- 0.2.0 / 2019-01-17
+ 0.2.0 / 2019-02-25
  ==================
  
   **features**
+  * Add CPU and GPU docker files
   * OCR: [GRU-network](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md) 
   trained on Ukrainian and European license plates are used instead of tesseract).
   * Implemented batch processing of multiple images.

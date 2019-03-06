@@ -209,7 +209,7 @@ class OCR(TextImageGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, mode="cpu", model_path="./model.h5", load=False, verbose=1):
+    def train(self, mode="cpu", is_random=1, model_path="./model.h5", load=False, verbose=1):
         if mode == "gpu":
             self.GRU = GRUgpu
         if mode == "cpu":
@@ -274,10 +274,10 @@ class OCR(TextImageGenerator):
             # captures output of softmax so we can decode the output during visualization
             test_func = K.function([input_data], [y_pred])
 
-            model.fit_generator(generator=self.tiger_train.next_batch(),
+            model.fit_generator(generator=self.tiger_train.next_batch(is_random),
                                 steps_per_epoch=self.tiger_train.n,
                                 epochs=self.EPOCHS,
-                                validation_data=self.tiger_val.next_batch(),
+                                validation_data=self.tiger_val.next_batch(is_random),
                                 validation_steps=self.tiger_val.n)
 
         net_inp = model.get_layer(name='the_input').input

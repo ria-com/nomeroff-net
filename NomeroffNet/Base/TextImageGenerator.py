@@ -121,15 +121,16 @@ class TextImageGenerator:
         x[:, :, :] = img
         return x
 
-    def next_sample(self):
+    def next_sample(self, is_random=1):
         self.cur_index += 1
         if self.cur_index >= self.n:
             self.count_ep += 1
             self.cur_index = 0
-            random.shuffle(self.indexes)
+            if is_random:
+                random.shuffle(self.indexes)
         return self.imgs[self.indexes[self.cur_index]], self.texts[self.indexes[self.cur_index]]
 
-    def next_batch(self):
+    def next_batch(self, is_random=1):
         while True:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
@@ -144,7 +145,7 @@ class TextImageGenerator:
             source_str = []
 
             for i in range(self.batch_size):
-                img, text = self.next_sample()
+                img, text = self.next_sample(is_random)
                 img = img.T
                 if K.image_data_format() == 'channels_first':
                     img = np.expand_dims(img, 0)
