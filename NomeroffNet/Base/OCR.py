@@ -48,7 +48,7 @@ class OCR(TextImageGenerator):
         self.GRU = GRUcpu
 
         self.INPUT_NODE = "the_input_{}:0".format(type(self).__name__)
-        self.OUTPUT_NODE = "softmax_1/truediv_{}:0".format(type(self).__name__)
+        self.OUTPUT_NODE = "softmax_{}/truediv:0".format(type(self).__name__)
 
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
