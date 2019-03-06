@@ -33,7 +33,7 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs
-        self.CLASS_REGION = ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit"]
+        self.CLASS_REGION = ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru"]
 
         # outputs
         self.CLASS_STATE = ["BACKGROUND", "FILLED", "NOT_FILLED"]
