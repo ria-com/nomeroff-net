@@ -130,8 +130,8 @@ class OCR(TextImageGenerator):
     def test(self, verbose=1):
         if verbose:
             print("\nRUN TEST")
-         net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
-         net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
+        net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
         err_c = 0
         succ_c = 0
