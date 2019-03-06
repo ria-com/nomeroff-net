@@ -1,8 +1,18 @@
- 0.2.0 / 2019-02-25
- ==================
+0.2.1 / 2019-02-25
+==================
+  **features**
+  * Add CPU and GPU docker files.
+  * Add prediction Russian number plate.
+  * Add ocr russian number plate detector.
+  
+  **training**
+  * Update augmentation(use module imgaug).
+  * Add frozen graph convertation and .pb models usage in prediction.
+ 
+0.2.0 / 2019-02-25
+==================
  
   **features**
-  * Add CPU and GPU docker files
   * OCR: [GRU-network](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md) 
   trained on Ukrainian and European license plates are used instead of tesseract).
   * Implemented batch processing of multiple images.

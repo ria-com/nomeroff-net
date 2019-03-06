@@ -15,13 +15,14 @@ NOMEROFF_NET_DIR = os.path.abspath('../../')
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.pb")
-OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_2_15.pb")
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
 
 # If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
 mode =  "cpu" if  "NN_MODE" not in os.environ else os.environ["NN_MODE"] if os.environ["NN_MODE"]=="gpu" else "cpu"
-OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_1_2_11-{}.pb".format(mode))
-OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.pb".format(mode))
+OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_12-{}.h5".format(mode))
+OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.h5".format(mode))
+OCR_NP_RU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ru_3-{}.h5".format(mode))
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -39,16 +40,19 @@ optionsDetector.load(OPTIONS_MODEL_PATH)
 
 # Initialize text detector.
 textDetector = TextDetector({
-    "eu_ua_2014_2015": {
+    "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": OCR_NP_UKR_TEXT
     },
     "eu": {
         "for_regions": ["eu", "eu_ua_1995"],
         "model_path": OCR_NP_EU_TEXT
+    },
+    "ru": {
+        "for_regions": ["ru"],
+        "model_path": OCR_NP_RU_TEXT
     }
 })
-
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
 rootDir = '../images/'

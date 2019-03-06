@@ -11,7 +11,7 @@ NOMEROFF_NET_DIR = "../../"
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
 
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.pb")
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
 
 sys.path.append(NOMEROFF_NET_DIR)
 
