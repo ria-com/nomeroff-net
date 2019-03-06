@@ -127,7 +127,7 @@ class Detector:
     #  Training
     ############################################################
     def train(self, augmentation=None, verbose=1):
-        from .mrcnn import Dataset
+        from .nnmrcnn import Dataset
         import mrcnn.model as modellib
         from mrcnn import utils
         from imgaug import augmenters as iaa
