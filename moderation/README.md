@@ -32,4 +32,10 @@
       "size": {"width": 156, "height": 34}
     }
 ```
+
+## Hot key
+To start, focus on one of the license plates by clicking on it.
+   * Numpad8 - Take the license plate and move down.
+   * Numpad2 - Take the license plate and move up.
+   * NumpadDecimal - Delete license plate and move down.
       

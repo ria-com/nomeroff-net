@@ -295,7 +295,8 @@
         }
 
         document.addEventListener("keypress", function (e) {
-            if(e.keyCode == 13) {
+            if(e.code == "Enter" || e.code == "Numpad2") {
+                event.preventDefault();
                 var target = document.getElementById("target");
                 if (target != null) {
                     target.scrollIntoView();
@@ -305,6 +306,36 @@
                         //console.log(next);
                         next = next.firstChild.firstChild;
                         next.click();
+                    }
+                    return false;
+                }
+            }
+            if(e.code == "NumpadDecimal") {
+                event.preventDefault();
+                var target = document.getElementById("target");
+                if (target != null) {
+                    target.parentNode.parentNode.nextElementSibling.nextElementSibling.firstChild.click();
+                    target.scrollIntoView();
+                    var next = target.parentNode.parentNode.parentNode.nextElementSibling;
+                    target.blur();
+                    if (next != null) {
+                        //console.log(next);
+                        next = next.firstChild.firstChild;
+                        next.click();
+                    }
+                    return false;
+                }
+            }
+            if(e.code == "Numpad8") {
+                event.preventDefault();
+                var target = document.getElementById("target");
+                if (target != null) {
+                    var prev = target.parentNode.parentNode.parentNode.previousElementSibling;
+                    target.blur();
+                    if (prev != null) {
+                        prev.scrollIntoView();
+                        prev = prev.firstChild.firstChild;
+                        prev.click();
                     }
                     return false;
                 }

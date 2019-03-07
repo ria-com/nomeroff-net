@@ -6,16 +6,8 @@ import os
 from os.path import join
 import json
 import random
-import itertools
-import re
-import datetime
-import cairocffi as cairo
-import editdistance
 import numpy as np
-from scipy import ndimage
-import pylab
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
+
 from keras import backend as K
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
@@ -27,11 +19,6 @@ from keras.utils.data_utils import get_file
 from keras.preprocessing import image
 import keras.callbacks
 from collections import Counter
-from tensorflow.python.client import device_lib
-
-#def get_available_gpus():
-#    local_device_protos = device_lib.list_local_devices()
-#    return [x.name for x in local_device_protos if x.device_type == 'GPU']
 
 from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
@@ -60,6 +47,9 @@ class OCR(TextImageGenerator):
 
         self.GRU = GRUcpu
 
+        self.INPUT_NODE = "the_input_{}:0".format(type(self).__name__)
+        self.OUTPUT_NODE = "softmax_{}/truediv:0".format(type(self).__name__)
+
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
         ann_dirpath = join(dirpath, 'ann')
@@ -84,13 +74,13 @@ class OCR(TextImageGenerator):
         letters_val = set(c_val.keys())
         letters_test = set(c_test.keys())
 
-        if max_plate_length_val == max_plate_length_train and max_plate_length_train == max_plate_length_test:
+        if max_plate_length_val == max_plate_length_train:
             if verbose:
                 print('Max plate length in train, test and val do match')
         else:
             raise Exception('Max plate length in train, test and val do not match')
 
-        if letters_train == letters_val and letters_test == letters_val:
+        if letters_train == letters_val:
             if verbose:
                 print('Letters in train, val and test do match')
         else:
@@ -114,8 +104,9 @@ class OCR(TextImageGenerator):
             else:
                 img = inp['the_input'][0, :, :, 0]
 
-            plt.imshow(img.T, cmap='gray')
-            plt.show()
+            #import matplotlib.pyplot as plt
+            #plt.imshow(img.T, cmap='gray')
+            #plt.show()
             print('2) the_labels (plate number): %s is encoded as %s' %
                   (tiger.labels_to_text(inp['the_labels'][0]), list(map(int, inp['the_labels'][0]))))
             print('3) input_length (width of image that is fed to the loss function): %d == %d / 4 - 2' %
@@ -139,8 +130,8 @@ class OCR(TextImageGenerator):
     def test(self, verbose=1):
         if verbose:
             print("\nRUN TEST")
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
+        net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
         err_c = 0
         succ_c = 0
@@ -152,7 +143,7 @@ class OCR(TextImageGenerator):
             labels = inp_value['the_labels']
             texts = []
             for label in labels:
-                text = ''.join(list(map(lambda x: self.letters[int(x)], label)))
+                text = self.tiger_test.labels_to_text(label)
                 texts.append(text)
 
             for i in range(bs):
@@ -163,30 +154,37 @@ class OCR(TextImageGenerator):
                 else:
                     succ_c += 1
             break
-        print(f"acc: {succ_c/(err_c+succ_c)}")
+        print("acc: {}".format(succ_c/(err_c+succ_c)))
 
     def predict(self, imgs):
         Xs = []
         for img in imgs:
             x = self.normalize(img)
             Xs.append(x)
-        net_out_value = self.MODEL.predict(np.array(Xs))
-        pred_texts = self.decode_batch(net_out_value)
+        pred_texts = []
+        if bool(Xs):
+            net_out_value = self.MODEL.predict(np.array(Xs))
+            #print(net_out_value)
+            pred_texts = self.decode_batch(net_out_value)
         return pred_texts
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)
-        net_inp = self.MODEL.get_layer(name='the_input').input
-        net_out = self.MODEL.get_layer(name='softmax').output
+        net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
+
         self.MODEL = Model(input=net_inp, output=net_out)
-        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
-        #model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
 
         if verbose:
             self.MODEL.summary()
+
+        # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
+        #sgd = SGD(lr=0.02, decay=1e-6, momentum=0.9, nesterov=True, clipnorm=5)
+        #self.MODEL.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
+
         return self.MODEL
 
-    def prepare(self, path_to_dataset, verbose=1):
+    def prepare(self, path_to_dataset, aug_count=0, verbose=1):
         self.SESS = tf.Session()
         K.set_session(self.SESS)
 
@@ -205,7 +203,7 @@ class OCR(TextImageGenerator):
         if verbose:
             print("START BUILD DATA")
         self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
-        self.tiger_train.build_data()
+        self.tiger_train.build_data(aug_count=aug_count)
         self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
         self.tiger_val.build_data()
 
@@ -214,7 +212,7 @@ class OCR(TextImageGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, mode="cpu", model_path="./model.h5", load=False, verbose=1):
+    def train(self, mode="cpu", is_random=1, model_path="./model.h5", load=False, verbose=1):
         if mode == "gpu":
             self.GRU = GRUgpu
         if mode == "cpu":
@@ -227,7 +225,7 @@ class OCR(TextImageGenerator):
         else:
             input_shape = (self.IMG_W, self.IMG_H, 1)
 
-        input_data = Input(name='the_input', shape=input_shape, dtype='float32')
+        input_data = Input(name='the_input_{}'.format(type(self).__name__), shape=input_shape, dtype='float32')
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
                        activation=self.ACTIVATION, kernel_initializer='he_normal',
                        name='conv1')(input_data)
@@ -254,7 +252,7 @@ class OCR(TextImageGenerator):
         # transforms RNN output to character activations:
         inner = Dense(self.tiger_train.get_output_size(), kernel_initializer='he_normal',
                       name='dense2')(concatenate([gru_2, gru_2b]))
-        y_pred = Activation('softmax', name='softmax')(inner)
+        y_pred = Activation('softmax', name='softmax_{}'.format(type(self).__name__))(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
         labels = Input(name='the_labels', shape=[self.tiger_train.max_text_len], dtype='float32')
@@ -279,13 +277,41 @@ class OCR(TextImageGenerator):
             # captures output of softmax so we can decode the output during visualization
             test_func = K.function([input_data], [y_pred])
 
-            model.fit_generator(generator=self.tiger_train.next_batch(),
+            model.fit_generator(generator=self.tiger_train.next_batch(is_random),
                                 steps_per_epoch=self.tiger_train.n,
                                 epochs=self.EPOCHS,
-                                validation_data=self.tiger_val.next_batch(),
+                                validation_data=self.tiger_val.next_batch(is_random),
                                 validation_steps=self.tiger_val.n)
 
         net_inp = model.get_layer(name='the_input').input
         net_out = model.get_layer(name='softmax').output
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
+
+    def load_frozen(self, FROZEN_MODEL_PATH):
+        graph_def = tf.GraphDef()
+        with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
+            graph_def.ParseFromString(f.read())
+
+        #print([x.name for x in graph_def.node])
+        graph = tf.Graph()
+        with graph.as_default():
+            self.net_inp, self.net_out = tf.import_graph_def(
+                graph_def, return_elements = [self.INPUT_NODE, self.OUTPUT_NODE]
+            )
+
+        sess_config = tf.ConfigProto()
+        sess_config.gpu_options.allow_growth = True
+        self.sess = tf.Session(graph=graph, config=sess_config)
+
+    def frozen_predict(self, imgs):
+        Xs = []
+        for img in imgs:
+            x = self.normalize(img)
+            Xs.append(x)
+        pred_texts = []
+        if bool(Xs):
+            net_out_value = self.sess.run([self.net_out], feed_dict={self.net_inp: np.array(Xs)})
+            #print(net_out_value)
+            pred_texts = self.decode_batch(net_out_value[0])
+        return pred_texts
