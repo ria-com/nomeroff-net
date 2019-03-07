@@ -233,21 +233,22 @@
                                     }
                                 }
                                 var infoBoxHTML = '<span>found : <b>'+res.numberplateData.image.cars.length+'</b> numberplate zones</span>';
-                                if (res.numberplateData.image.cars.length > 0) {
-                                    numberplate = res.numberplateData.image.cars[0].numberplates[0];
+                                for (let ci in res.numberplateData.image.cars) {
+                                    numberplate = res.numberplateData.image.cars[ci].numberplates[0];
                                     var detectedNumber = numberplate.numbers[0];
                                     var detectedRegion = numberplate.region;
-                                    var reestrInfo = numberplate.reestrInfo || {};
 
-                                    infoBoxHTML += '<br/>Detected numberplate: <b>'+detectedNumber+'</b> in region [<b>'+nomeroffNet.regions[detectedRegion]+'</b>], processing time: <b>'+Math.round(detectedTime*100)/100+'</b> s'
-                                    if (Object.keys(reestrInfo).length) {
-                                        infoBoxHTML += '<br/><table class="info"><tbody>';
-                                        for (var field in reestrInfo) {
-                                            infoBoxHTML += '<tr><td>'+field+'</td><th scope="row">'+reestrInfo[field]+'</th></tr>'
-                                        }
-                                        infoBoxHTML += '</tbody></table>';
-                                    }
+                                    infoBoxHTML += '<br/>Detected numberplate: <b>'+detectedNumber+'</b> in region [<b>'+nomeroffNet.regions[detectedRegion]+'</b>]';
                                 }
+                                var reestrInfo = numberplate.reestrInfo || {};
+                                if (Object.keys(reestrInfo).length) {
+                                    infoBoxHTML += '<br/><table class="info"><tbody>';
+                                    for (var field in reestrInfo) {
+                                        infoBoxHTML += '<tr><td>'+field+'</td><th scope="row">'+reestrInfo[field]+'</th></tr>'
+                                    }
+                                    infoBoxHTML += '</tbody></table>';
+                                }
+                                infoBoxHTML +='<br/>processing time: <b>'+Math.round(detectedTime*100)/100+'</b> s';
                                 document.getElementById('infoBox').innerHTML = infoBoxHTML;
                             } else {
                                 document.getElementById('infoBox').innerHTML = '<span color="red">Processing error: '+res.error_message+'</span>';
