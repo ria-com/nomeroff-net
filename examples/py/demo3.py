@@ -57,7 +57,7 @@ textDetector = TextDetector({
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
 rootDir = '../images/'
 
-max_img_w = 1280
+max_img_w = 1600
 for dirName, subdirList, fileList in os.walk(rootDir):
     for fname in fileList:
         img_path = os.path.join(dirName, fname)
