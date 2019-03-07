@@ -1,4 +1,4 @@
-0.2.1 / 2019-02-25
+0.2.1 / 2019-03-07
 ==================
   **features**
   * Added CPU and GPU docker files.
@@ -9,7 +9,7 @@
   * Update augmentation(use module imgaug).
   * Added freeze model graph and use .pb models in prediction.
  
-0.2.0 / 2019-02-25
+0.2.0 / 2019-02-21
 ==================
   **features**
   * OCR: [GRU-network](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md) 
