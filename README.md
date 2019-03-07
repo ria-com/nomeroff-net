@@ -118,7 +118,7 @@ We will be grateful for your help in the formation and layout of the dataset wit
 
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
-[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2019-02-20.zip).
+[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2019-03-06.zip).
 
 The categorizer accurately **(98%)** determines the country and the type of license plate. Please note that now the classifier is configured
 mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.
@@ -128,6 +128,7 @@ As OCR, we use a [specialized implementation of a neural network with GRU layers
 for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR UA Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip)
   * [AUTO.RIA Numberplate OCR EU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
+  * [AUTO.RIA Numberplate OCR RU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip)
 
 This gives you the opportunity to get **97% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 
