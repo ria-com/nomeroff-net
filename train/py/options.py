@@ -48,5 +48,3 @@ numberClassificator.test()
 
 numberClassificator.save(RESULT_PATH)
 #model = numberClassificator.load(RESULT_PATH)
-
-convert_keras_to_freeze_pb(numberClassificator.MODEL, FROZEN_MODEL_PATH)

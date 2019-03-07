@@ -40,6 +40,3 @@ nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR, CONFIG)
 
 nnet.train()
 #nnet.loadModel(MASK_RCNN_MODEL_PATH)
-
-model = nnet.getKerasModel()
-convert_keras_to_freeze_pb(model,MASK_RCNN_FROZEN_MODEL_PATH)

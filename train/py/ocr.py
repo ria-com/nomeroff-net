@@ -36,6 +36,3 @@ ocrTextDetector.test(verbose=True)
 
 ocrTextDetector.save(RESULT_MODEL_PATH, verbose=True)
 #model = ocrTextDetector.load(RESULT_MODEL_PATH)
-
-model = ocrTextDetector.MODEL
-convert_keras_to_freeze_pb(model, FROZEN_MODEL_PATH)

@@ -1,17 +1,16 @@
 0.2.1 / 2019-02-25
 ==================
   **features**
-  * Add CPU and GPU docker files.
-  * Add prediction Russian number plate.
-  * Add ocr russian number plate detector.
+  * Added CPU and GPU docker files.
+  * Added ru region detection in license plate classification.
+  * Added ocr russian number plate detector.
   
   **training**
   * Update augmentation(use module imgaug).
-  * Add frozen graph convertation and .pb models usage in prediction.
+  * Added freeze model graph and use .pb models in prediction.
  
 0.2.0 / 2019-02-25
 ==================
- 
   **features**
   * OCR: [GRU-network](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md) 
   trained on Ukrainian and European license plates are used instead of tesseract).
@@ -29,7 +28,7 @@
   for license plate classification or OCR text detection tasks.
   * Prepare example script for [OCR train](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOcrTextDetectorExample.ipynb).
   * Prepare example script for [Options Classification](https://github.com/ria-com/nomeroff-net/blob/master/train/trainOptionDetectorExample.ipynb).
-  * Add numberplate [MaskRCNN](https://github.com/ria-com/nomeroff-net/blob/master/train/mrcnnTrainExample.ipynb) example script.
+  * Added numberplate [MaskRCNN](https://github.com/ria-com/nomeroff-net/blob/master/train/mrcnnTrainExample.ipynb) example script.
 
 0.1.1 / 2019-01-17
 ==================
