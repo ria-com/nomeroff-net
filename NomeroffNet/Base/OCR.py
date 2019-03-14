@@ -100,9 +100,9 @@ class OCR(TextImageGenerator):
             print('Text generator output (data which will be fed into the neutral network):')
             print('1) the_input (image)')
             if K.image_data_format() == 'channels_first':
-                img = inp['the_input'][0, 0, :, :]
+                img = inp['the_input_{}'.format(type(self).__name__][0, 0, :, :]
             else:
-                img = inp['the_input'][0, :, :, 0]
+                img = inp['the_input_{}'.format(type(self).__name__][0, :, :, 0]
 
             #import matplotlib.pyplot as plt
             #plt.imshow(img.T, cmap='gray')
@@ -136,8 +136,8 @@ class OCR(TextImageGenerator):
         err_c = 0
         succ_c = 0
         for inp_value, _ in self.tiger_test.next_batch():
-            bs = inp_value['the_input'].shape[0]
-            X_data = inp_value['the_input']
+            bs = inp_value['the_input_{}'.format(type(self).__name__].shape[0]
+            X_data = inp_value['the_input_{}'.format(type(self).__name__]
             net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
             pred_texts = self.tiger_test.decode_batch(net_out_value)
             labels = inp_value['the_labels']
