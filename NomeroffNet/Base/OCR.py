@@ -224,7 +224,8 @@ class OCR(TextImageGenerator):
             input_shape = (1, self.IMG_W, self.IMG_H)
         else:
             input_shape = (self.IMG_W, self.IMG_H, 1)
-
+        
+        console.log('the_input_{}'.format(type(self).__name__))
         input_data = Input(name='the_input_{}'.format(type(self).__name__), shape=input_shape, dtype='float32')
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
                        activation=self.ACTIVATION, kernel_initializer='he_normal',
