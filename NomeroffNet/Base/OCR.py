@@ -270,6 +270,7 @@ class OCR(TextImageGenerator):
             model = load_model(model_path, compile=False)
         else:
             model = Model(inputs=[input_data, labels, input_length, label_length], outputs=loss_out)
+            model.summary()
 
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
         model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
