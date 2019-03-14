@@ -270,7 +270,6 @@ class OCR(TextImageGenerator):
             model = load_model(model_path, compile=False)
         else:
             model = Model(inputs=[input_data, labels, input_length, label_length], outputs=loss_out)
-            model.summary()
 
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
         model.compile(loss={'ctc': lambda y_true, y_pred: y_pred}, optimizer=sgd)
@@ -285,8 +284,8 @@ class OCR(TextImageGenerator):
                                 validation_data=self.tiger_val.next_batch(is_random),
                                 validation_steps=self.tiger_val.n)
 
-        net_inp = model.get_layer(name='the_input').input
-        net_out = model.get_layer(name='softmax').output
+        net_inp = model.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = model.get_layer(name='softmax_{}'.format(type(self).__name__)).output
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
 
