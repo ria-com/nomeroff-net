@@ -159,8 +159,6 @@ class TextImageGenerator:
                 source_str.append(text)
                 label_length[i] = len(text)
 
-            print(X_data.shape)
-            print(Y_data.shape)
             inputs = {
                 'the_input_{}'.format(self.CNAME): X_data,
                 'the_labels_{}'.format(self.CNAME): Y_data,
