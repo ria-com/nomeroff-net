@@ -140,7 +140,7 @@ class OCR(TextImageGenerator):
             X_data = inp_value['the_input_{}'.format(type(self).__name__)]
             net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
             pred_texts = self.tiger_test.decode_batch(net_out_value)
-            labels = inp_value['the_labels']
+            labels = inp_value['the_labels_{}'.format(type(self).__name__)]
             texts = []
             for label in labels:
                 text = self.tiger_test.labels_to_text(label)
