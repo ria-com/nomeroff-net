@@ -93,7 +93,7 @@ class OCR(TextImageGenerator):
         return self.letters, self.max_text_len
 
     def explainTextGenerator(self, train_dir, letters, max_plate_length, verbose=1):
-        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length)
+        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length, cname=type(self).__name__)
         tiger.build_data()
 
         for inp, out in tiger.next_batch():
