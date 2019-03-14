@@ -108,10 +108,10 @@ class OCR(TextImageGenerator):
             #plt.imshow(img.T, cmap='gray')
             #plt.show()
             print('2) the_labels (plate number): %s is encoded as %s' %
-                  (tiger.labels_to_text(inp['the_labels'][0]), list(map(int, inp['the_labels'][0]))))
+                  (tiger.labels_to_text(inp['the_labels_{}'.format(type(self).__name__)][0]), list(map(int, inp['the_labels_{}'.format(type(self).__name__)][0]))))
             print('3) input_length (width of image that is fed to the loss function): %d == %d / 4 - 2' %
-                  (inp['input_length'][0], tiger.img_w))
-            print('4) label_length (length of plate number): %d' % inp['label_length'][0])
+                  (inp['input_length_{}'.format(type(self).__name__)][0], tiger.img_w))
+            print('4) label_length (length of plate number): %d' % inp['label_length_{}'.format(type(self).__name__)][0])
             break
 
     def ctc_lambda_func(self, args):
