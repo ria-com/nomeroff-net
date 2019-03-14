@@ -202,12 +202,12 @@ class OCR(TextImageGenerator):
 
         if verbose:
             print("START BUILD DATA")
-        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_train.build_data(aug_count=aug_count)
-        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_val.build_data()
 
-        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_test.build_data()
         if verbose:
             print("DATA PREPARED")
@@ -255,9 +255,9 @@ class OCR(TextImageGenerator):
         y_pred = Activation('softmax', name='softmax_{}'.format(type(self).__name__))(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
-        labels = Input(name='the_labels', shape=[self.tiger_train.max_text_len], dtype='float32')
-        input_length = Input(name='input_length', shape=[1], dtype='int64')
-        label_length = Input(name='label_length', shape=[1], dtype='int64')
+        labels = Input(name='the_labels_{}'.format(type(self).__name__), shape=[self.tiger_train.max_text_len], dtype='float32')
+        input_length = Input(name='input_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
+        label_length = Input(name='label_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
         # Keras doesn't currently support loss funcs with extra parameters
         # so CTC loss is implemented in a lambda layer
         loss_out = Lambda(self.ctc_lambda_func, output_shape=(1,), name='ctc')([y_pred, labels, input_length, label_length])
@@ -283,8 +283,8 @@ class OCR(TextImageGenerator):
                                 validation_data=self.tiger_val.next_batch(is_random),
                                 validation_steps=self.tiger_val.n)
 
-        net_inp = model.get_layer(name='the_input').input
-        net_out = model.get_layer(name='softmax').output
+        net_inp = model.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = model.get_layer(name='softmax_{}'.format(type(self).__name__)).output
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
 
