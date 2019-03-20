@@ -51,6 +51,9 @@ class ImgGenerator:
             )
 
     def normalize(self, img, with_aug=False):
+        if with_aug:
+            imgs = aug([img])
+            img = imgs[0]
         img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
         img = img.astype(np.float32)
 
