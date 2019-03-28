@@ -96,7 +96,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Flatten()(x)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
-        x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
+        #x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
         x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
@@ -104,7 +104,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Flatten()(x)
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
-        x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
+        #x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
         x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
