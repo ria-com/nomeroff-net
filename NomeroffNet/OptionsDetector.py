@@ -102,7 +102,7 @@ class OptionsDetector(ImgGenerator):
 
         # classificator 2
         x2 = layers.Flatten()(x)
-         x2 = layers.Dropout(dropout_2)(x2)
+        x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
         x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
