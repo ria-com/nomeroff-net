@@ -1,19 +1,19 @@
 import cv2
-import tensorflow.keras
+import keras
 import os
 import numpy as np
-from tensorflow.keras.layers import concatenate as merge
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.layers import BatchNormalization, Input
-from tensorflow.keras import models
-from tensorflow.keras import layers
-from tensorflow.keras import backend as K
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras import callbacks
-from tensorflow.keras.models import load_model
+from keras.layers import concatenate as merge
+from keras.optimizers import Adam
+from keras.regularizers import l2
+from keras.layers import BatchNormalization, Input
+from keras import models
+from keras import layers
+from keras import backend as K
+from keras.models import Model
+from keras.preprocessing import image
+from keras.applications import VGG16
+from keras import callbacks
+from keras.models import load_model
 import tensorflow as tf
 from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph
@@ -96,7 +96,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Flatten()(x)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
-        #x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
+        x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
         x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
@@ -104,7 +104,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Flatten()(x)
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
-        #x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
+        x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
         x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
