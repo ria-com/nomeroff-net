@@ -206,7 +206,7 @@ class OptionsDetector(ImgGenerator):
             model = self.create_model(input_model = input_model, conv_base = conv_base, \
                                  dropout_1 = self.DROPOUT_1 , dropout_2 = self.DROPOUT_2, dense_layers = self.DENSE_LAYERS, \
                                  output_labels1 = self.OTPUT_LABELS_1, output_labels2 = self.OTPUT_LABELS_2, \
-                                 out_dense_init = self.OUT_DENSE_INIT, kernel_regularizer= self.W_REGULARIZER, \
+                                 out_dense_init = self.OUT_DENSE_INIT, W_regularizer= self.W_REGULARIZER, \
                                  out_dense_activation = self.OUT_DENSE_ACTIVATION , dense_activation = self.DENSE_ACTIVATION, \
                                  BatchNormalization_axis = self.BATCH_NORMALIZATION_AXIS)
 
