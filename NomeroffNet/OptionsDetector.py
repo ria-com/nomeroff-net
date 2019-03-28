@@ -1,19 +1,19 @@
 import cv2
-import keras
+import tensorflow.keras
 import os
 import numpy as np
-from keras.layers import concatenate as merge
-from keras.optimizers import Adam
-from keras.regularizers import l2
-from keras.layers import BatchNormalization, Input
-from keras import models
-from keras import layers
+from tensorflow.keras.layers import concatenate as merge
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import BatchNormalization, Input
+from tensorflow.keras import models
+from tensorflow.keras import layers
 from tensorflow.keras import backend as K
-from keras.models import Model
-from keras.preprocessing import image
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import VGG16
-from keras import callbacks
-from keras.models import load_model
+from tensorflow.keras import callbacks
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph
@@ -213,11 +213,11 @@ class OptionsDetector(ImgGenerator):
             # train
             history = model.fit_generator(
                 self.train_generator,
-                steps_per_epoch=self.STEPS_PER_EPOCH,
+                steps_per_epoch=int(self.STEPS_PER_EPOCH),
                 epochs=self.EPOCHS,
                 callbacks=self.CALLBACKS_LIST,
                 validation_data=self.validation_generator,
-                validation_steps=self.VALIDATION_STEPS,
+                validation_steps=int(self.VALIDATION_STEPS),
                 verbose=verbose
             )
 
@@ -236,7 +236,7 @@ class OptionsDetector(ImgGenerator):
         return  self.MODEL
 
     def test(self):
-        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
+        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=int(self.VALIDATION_STEPS))
         print("test loss: {}".format(test_loss))
         print("test loss: {}    test loss: {}".format(test_loss1, test_loss2))
         print("test acc: {}    test acc {}".format(test_acc1, test_acc2))

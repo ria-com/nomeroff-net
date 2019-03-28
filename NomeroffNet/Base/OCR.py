@@ -1,5 +1,5 @@
 # import labaris
-import keras
+import tensorflow.keras
 import tensorflow as tf
 
 import os
@@ -8,7 +8,7 @@ import json
 import random
 import numpy as np
 
-from tensorflow.keras import backend as K
+from keras import backend as K
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
 from keras.layers import Reshape, Lambda
