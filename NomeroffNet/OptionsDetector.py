@@ -91,20 +91,19 @@ class OptionsDetector(ImgGenerator):
                      out_dense_activation, dense_activation, BatchNormalization_axis):
         # cnn
         x = conv_base(input_model)
-        #x = layers.Dropout(dropout_1)(x)
 
         # classificator 1
         x1 = layers.Flatten()(x)
-        x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
+        x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
         x1 = layers.Dense(output_labels1, init=out_dense_init, W_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
         x2 = layers.Flatten()(x)
-        x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
+        x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
         x2 = layers.Dense(output_labels2, init=out_dense_init, W_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
@@ -150,19 +149,38 @@ class OptionsDetector(ImgGenerator):
             print("DATA PREPARED")
 
     def create_conv(self):
-         # trainable cnn model
+        # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
         # block trainable cnn parameters
         conv_base.trainable = False
         return conv_base
 
-    def train(self, log_dir="./", verbose=1):
+    def create_simple_conv(self):
+        conv_base = models.Sequential()
+        conv_base.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 256, 3)))
+        conv_base.add(layers.MaxPooling2D((2, 2)))
+
+        conv_base.add(layers.Conv2D(64, (3, 3), activation='relu'))
+        conv_base.add(layers.MaxPooling2D((2, 2)))
+
+        conv_base.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        conv_base.add(layers.MaxPooling2D((2, 2)))
+
+        conv_base.add(layers.Conv2D(128, (3, 3), activation='relu'))
+        conv_base.add(layers.MaxPooling2D((2, 2)))
+
+        return conv_base
+
+    def train(self, log_dir="./", cnn="default", verbose=1):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
-        conv_base = self.create_conv()
+        if (cnn == "simple"):
+            conv_base = self.create_conv()
+        else:
+            conv_base = self.create_simple_conv()
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
