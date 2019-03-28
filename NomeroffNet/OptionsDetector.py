@@ -8,7 +8,7 @@ from keras.regularizers import l2
 from keras.layers import BatchNormalization, Input
 from keras import models
 from keras import layers
-from keras import backend as K
+from tensorflow.keras import backend as K
 from keras.models import Model
 from keras.preprocessing import image
 from keras.applications import VGG16

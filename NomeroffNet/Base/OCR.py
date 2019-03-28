@@ -8,7 +8,7 @@ import json
 import random
 import numpy as np
 
-from keras import backend as K
+from tensorflow.keras import backend as K
 from keras.layers.convolutional import Conv2D, MaxPooling2D
 from keras.layers import Input, Dense, Activation
 from keras.layers import Reshape, Lambda
