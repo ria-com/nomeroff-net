@@ -97,7 +97,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
-        x1 = layers.Dense(output_labels1, kernel_initializerout_dense_init, W_regularizer=W_regularizer)(x1)
+        x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, W_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
