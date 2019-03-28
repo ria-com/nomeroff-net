@@ -23,7 +23,6 @@ from tensorflow.python.framework.graph_util import convert_variables_to_constant
 
 from .Base.ImgGenerator import ImgGenerator
 
-
 class OptionsDetector(ImgGenerator):
     def __init__(self):
         # input
