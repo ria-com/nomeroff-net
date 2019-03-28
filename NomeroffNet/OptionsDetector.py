@@ -94,16 +94,16 @@ class OptionsDetector(ImgGenerator):
 
         # classificator 1
         x1 = layers.Flatten()(x)
-        x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.Dropout(dropout_2)(x1)
+        x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
         x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
         x2 = layers.Flatten()(x)
+         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
-        x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
         x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
@@ -178,9 +178,9 @@ class OptionsDetector(ImgGenerator):
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
         if (cnn == "simple"):
-            conv_base = self.create_conv()
-        else:
             conv_base = self.create_simple_conv()
+        else:
+            conv_base = self.create_conv()
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
