@@ -97,7 +97,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
-        x1 = layers.Dense(output_labels1, init=out_dense_init, W_regularizer=W_regularizer)(x1)
+        x1 = layers.Dense(output_labels1, kernel_initializerout_dense_init, W_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
@@ -105,7 +105,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
-        x2 = layers.Dense(output_labels2, init=out_dense_init, W_regularizer=W_regularizer)(x2)
+        x2 = layers.Dense(output_labels2, kernel_initializerout_dense_init, W_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
         #x = keras.layers.concatenate([x1, x2], axis=1)
