@@ -11,7 +11,7 @@ from keras import layers
 from tensorflow.keras import backend as K
 from keras.models import Model
 from keras.preprocessing import image
-from keras.applications import VGG16
+from tensorflow.keras.applications import VGG16
 from keras import callbacks
 from keras.models import load_model
 import tensorflow as tf
