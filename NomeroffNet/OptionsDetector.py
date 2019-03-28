@@ -1,19 +1,19 @@
 import cv2
-import keras
+import tensorflow.keras
 import os
 import numpy as np
-from keras.layers import merge
-from keras.optimizers import Adam
-from keras.regularizers import l2
-from keras.layers.normalization import BatchNormalization
-from keras import models
-from keras import layers
-from keras import backend as K
-from keras.models import Model, Input
-from keras.preprocessing import image
-from keras.applications import VGG16
-from keras import callbacks
-from keras.models import load_model
+from tensorflow.keras.layers import concatenate as merge
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import BatchNormalization, Input
+from tensorflow.keras import models
+from tensorflow.keras import layers
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras import callbacks
+from tensorflow.keras.models import load_model
 import tensorflow as tf
 from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph

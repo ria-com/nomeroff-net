@@ -1,5 +1,5 @@
 # import labaris
-import keras
+import tensorflow.keras
 import tensorflow as tf
 
 import os
