@@ -1,19 +1,19 @@
 import cv2
-import tensorflow.keras
+import keras
 import os
 import numpy as np
-from tensorflow.keras.layers import concatenate as merge
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.regularizers import l2
-from tensorflow.keras.layers import BatchNormalization, Input
-from tensorflow.keras import models
-from tensorflow.keras import layers
-from tensorflow.keras import backend as K
-from tensorflow.keras.models import Model
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras import callbacks
-from tensorflow.keras.models import load_model
+from keras.layers import merge
+from keras.optimizers import Adam
+from keras.regularizers import l2
+from keras.layers.normalization import BatchNormalization
+from keras import models
+from keras import layers
+from keras import backend as K
+from keras.models import Model, Input
+from keras.preprocessing import image
+from keras.applications import VGG16
+from keras import callbacks
+from keras.models import load_model
 import tensorflow as tf
 from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph
@@ -90,13 +90,14 @@ class OptionsDetector(ImgGenerator):
                      out_dense_activation, dense_activation, BatchNormalization_axis):
         # cnn
         x = conv_base(input_model)
+        #x = layers.Dropout(dropout_1)(x)
 
         # classificator 1
         x1 = layers.Flatten()(x)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
-        x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
+        x1 = layers.Dense(output_labels1, init=out_dense_init, W_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
@@ -104,11 +105,11 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
-        x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
+        x2 = layers.Dense(output_labels2, init=out_dense_init, W_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
         #x = keras.layers.concatenate([x1, x2], axis=1)
-        model = Model(inputs=input_model, outputs=[x1, x2])
+        model = Model(input=input_model, outputs=[x1, x2])
 
         # compile model
         model.compile(
@@ -148,7 +149,7 @@ class OptionsDetector(ImgGenerator):
             print("DATA PREPARED")
 
     def create_conv(self):
-        # trainable cnn model
+         # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
         # block trainable cnn parameters
@@ -205,18 +206,18 @@ class OptionsDetector(ImgGenerator):
             model = self.create_model(input_model = input_model, conv_base = conv_base, \
                                  dropout_1 = self.DROPOUT_1 , dropout_2 = self.DROPOUT_2, dense_layers = self.DENSE_LAYERS, \
                                  output_labels1 = self.OTPUT_LABELS_1, output_labels2 = self.OTPUT_LABELS_2, \
-                                 out_dense_init = self.OUT_DENSE_INIT, W_regularizer= self.W_REGULARIZER, \
+                                 out_dense_init = self.OUT_DENSE_INIT, W_regularizer = self.W_REGULARIZER, \
                                  out_dense_activation = self.OUT_DENSE_ACTIVATION , dense_activation = self.DENSE_ACTIVATION, \
                                  BatchNormalization_axis = self.BATCH_NORMALIZATION_AXIS)
 
             # train
             history = model.fit_generator(
                 self.train_generator,
-                steps_per_epoch=int(self.STEPS_PER_EPOCH),
+                steps_per_epoch=self.STEPS_PER_EPOCH,
                 epochs=self.EPOCHS,
                 callbacks=self.CALLBACKS_LIST,
                 validation_data=self.validation_generator,
-                validation_steps=int(self.VALIDATION_STEPS),
+                validation_steps=self.VALIDATION_STEPS,
                 verbose=verbose
             )
 
@@ -235,7 +236,7 @@ class OptionsDetector(ImgGenerator):
         return  self.MODEL
 
     def test(self):
-        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=int(self.VALIDATION_STEPS))
+        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
         print("test loss: {}".format(test_loss))
         print("test loss: {}    test loss: {}".format(test_loss1, test_loss2))
         print("test acc: {}    test acc {}".format(test_acc1, test_acc2))
