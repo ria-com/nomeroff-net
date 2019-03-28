@@ -97,7 +97,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
-        x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, W_regularizer=W_regularizer)(x1)
+        x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
@@ -105,7 +105,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
-        x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, W_regularizer=W_regularizer)(x2)
+        x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
         #x = keras.layers.concatenate([x1, x2], axis=1)
@@ -206,7 +206,7 @@ class OptionsDetector(ImgGenerator):
             model = self.create_model(input_model = input_model, conv_base = conv_base, \
                                  dropout_1 = self.DROPOUT_1 , dropout_2 = self.DROPOUT_2, dense_layers = self.DENSE_LAYERS, \
                                  output_labels1 = self.OTPUT_LABELS_1, output_labels2 = self.OTPUT_LABELS_2, \
-                                 out_dense_init = self.OUT_DENSE_INIT, W_regularizer = self.W_REGULARIZER, \
+                                 out_dense_init = self.OUT_DENSE_INIT, kernel_regularizer= self.W_REGULARIZER, \
                                  out_dense_activation = self.OUT_DENSE_ACTIVATION , dense_activation = self.DENSE_ACTIVATION, \
                                  BatchNormalization_axis = self.BATCH_NORMALIZATION_AXIS)
 
