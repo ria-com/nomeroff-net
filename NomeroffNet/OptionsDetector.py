@@ -109,7 +109,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
         #x = keras.layers.concatenate([x1, x2], axis=1)
-        model = Model(input=input_model, outputs=[x1, x2])
+        model = Model(inputs=input_model, outputs=[x1, x2])
 
         # compile model
         model.compile(
