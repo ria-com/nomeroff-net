@@ -58,11 +58,11 @@ class ImgGenerator:
         img = img.astype(np.float32)
 
         # advanced normalisation
-        #img /= 255
         img_min = np.amin(img)
         img -= img_min
         img_max = np.amax(img)
-        img /= img_max
+        img /= (img_max or 1)
+        img[img == 0] = .0001
         return img
 
     def next_sample(self):

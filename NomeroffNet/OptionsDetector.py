@@ -147,17 +147,16 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def create_conv(self, input_model):
+    def create_conv(self, inp):
          # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
         # block trainable cnn parameters
         conv_base.trainable = False
-        return conv_base(input_model)
+        return conv_base(inp)
 
-    def create_simple_conv(self, input_model):
-        conv_base = input_model
-        conv_base = layers.Conv2D(32, (3, 3), activation='relu')(conv_base)
+    def create_simple_conv(self, inp):
+        conv_base = layers.Conv2D(32, (3, 3), activation='relu')(inp)
         conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
         conv_base = layers.Conv2D(64, (3, 3), activation='relu')(conv_base)
