@@ -157,7 +157,7 @@ class OptionsDetector(ImgGenerator):
 
     def create_simple_conv(self, input_model):
         conv_base = input_model
-        conv_base = layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 256, 3))(conv_base)
+        conv_base = layers.Conv2D(32, (3, 3), activation='relu')(conv_base)
         conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
         conv_base = layers.Conv2D(64, (3, 3), activation='relu')(conv_base)
