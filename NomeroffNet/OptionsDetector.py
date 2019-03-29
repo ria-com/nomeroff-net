@@ -64,11 +64,11 @@ class OptionsDetector(ImgGenerator):
 
         # compile model hyperparameters
         self.LOSSES = {
-            "REGION": "categorical_crossentropy",
-            "STATE": "categorical_crossentropy",
+            "REGION": "categorical_crossentropy", # tf.losses.softmax_cross_entropy
+            "STATE": "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
         }
         self.LOSS_WEIGHTS = {"REGION": 1.0, "STATE": 1.0}
-        self.OPT = "adamax"
+        self.OPT = "adamax" #  tf.keras.optimizers.Adamax
         self.METRICS = ["accuracy"]
 
         # for frozen graph
@@ -89,8 +89,7 @@ class OptionsDetector(ImgGenerator):
                      output_labels2, out_dense_init, W_regularizer, \
                      out_dense_activation, dense_activation, BatchNormalization_axis):
         # cnn
-        x = conv_base(input_model)
-        #x = layers.Dropout(dropout_1)(x)
+        x = conv_base
 
         # classificator 1
         x1 = layers.Flatten()(x)
@@ -148,27 +147,27 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def create_conv(self):
+    def create_conv(self, input_model):
          # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
         # block trainable cnn parameters
         conv_base.trainable = False
-        return conv_base
+        return conv_base(input_model)
 
-    def create_simple_conv(self):
-        conv_base = models.Sequential()
-        conv_base.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 256, 3)))
-        conv_base.add(layers.MaxPooling2D((2, 2)))
+    def create_simple_conv(self, input_model):
+        conv_base = input_model
+        conv_base = layers.Conv2D(32, (3, 3), activation='relu', input_shape=(64, 256, 3))(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
-        conv_base.add(layers.Conv2D(64, (3, 3), activation='relu'))
-        conv_base.add(layers.MaxPooling2D((2, 2)))
+        conv_base = layers.Conv2D(64, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
-        conv_base.add(layers.Conv2D(128, (3, 3), activation='relu'))
-        conv_base.add(layers.MaxPooling2D((2, 2)))
+        conv_base = layers.Conv2D(128, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
-        conv_base.add(layers.Conv2D(128, (3, 3), activation='relu'))
-        conv_base.add(layers.MaxPooling2D((2, 2)))
+        conv_base = layers.Conv2D(128, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
 
         return conv_base
 
@@ -177,13 +176,13 @@ class OptionsDetector(ImgGenerator):
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
-        if (cnn == "simple"):
-            conv_base = self.create_simple_conv()
-        else:
-            conv_base = self.create_conv()
-
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
+
+        if (cnn == "simple"):
+            conv_base = self.create_simple_conv(input_model)
+        else:
+            conv_base = self.create_conv(input_model)
 
         # traine callbacks
         self.CALLBACKS_LIST = [
