@@ -15,8 +15,11 @@ class TextImageGenerator:
                  batch_size,
                  downsample_factor,
                  letters,
-                 max_text_len):
+                 max_text_len,
+                 cname=""):
 
+        self.CNAME = cname
+        print(self.CNAME)
         self.img_h = img_h
         self.img_w = img_w
         self.batch_size = batch_size
@@ -157,10 +160,10 @@ class TextImageGenerator:
                 label_length[i] = len(text)
 
             inputs = {
-                'the_input': X_data,
-                'the_labels': Y_data,
-                'input_length': input_length,
-                'label_length': label_length,
+                'the_input_{}'.format(self.CNAME): X_data,
+                'the_labels_{}'.format(self.CNAME): Y_data,
+                'input_length_{}'.format(self.CNAME): input_length,
+                'label_length_{}'.format(self.CNAME): label_length,
                 #'source_str': source_str
             }
             outputs = {'ctc': np.zeros([self.batch_size])}

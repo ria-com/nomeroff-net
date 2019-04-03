@@ -93,25 +93,25 @@ class OCR(TextImageGenerator):
         return self.letters, self.max_text_len
 
     def explainTextGenerator(self, train_dir, letters, max_plate_length, verbose=1):
-        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length)
+        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length, cname=type(self).__name__)
         tiger.build_data()
 
         for inp, out in tiger.next_batch():
             print('Text generator output (data which will be fed into the neutral network):')
             print('1) the_input (image)')
             if K.image_data_format() == 'channels_first':
-                img = inp['the_input'][0, 0, :, :]
+                img = inp['the_input_{}'.format(type(self).__name__)][0, 0, :, :]
             else:
-                img = inp['the_input'][0, :, :, 0]
+                img = inp['the_input_{}'.format(type(self).__name__)][0, :, :, 0]
 
             #import matplotlib.pyplot as plt
             #plt.imshow(img.T, cmap='gray')
             #plt.show()
             print('2) the_labels (plate number): %s is encoded as %s' %
-                  (tiger.labels_to_text(inp['the_labels'][0]), list(map(int, inp['the_labels'][0]))))
+                  (tiger.labels_to_text(inp['the_labels_{}'.format(type(self).__name__)][0]), list(map(int, inp['the_labels_{}'.format(type(self).__name__)][0]))))
             print('3) input_length (width of image that is fed to the loss function): %d == %d / 4 - 2' %
-                  (inp['input_length'][0], tiger.img_w))
-            print('4) label_length (length of plate number): %d' % inp['label_length'][0])
+                  (inp['input_length_{}'.format(type(self).__name__)][0], tiger.img_w))
+            print('4) label_length (length of plate number): %d' % inp['label_length_{}'.format(type(self).__name__)][0])
             break
 
     def ctc_lambda_func(self, args):
@@ -136,11 +136,11 @@ class OCR(TextImageGenerator):
         err_c = 0
         succ_c = 0
         for inp_value, _ in self.tiger_test.next_batch():
-            bs = inp_value['the_input'].shape[0]
-            X_data = inp_value['the_input']
+            bs = inp_value['the_input_{}'.format(type(self).__name__)].shape[0]
+            X_data = inp_value['the_input_{}'.format(type(self).__name__)]
             net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
             pred_texts = self.tiger_test.decode_batch(net_out_value)
-            labels = inp_value['the_labels']
+            labels = inp_value['the_labels_{}'.format(type(self).__name__)]
             texts = []
             for label in labels:
                 text = self.tiger_test.labels_to_text(label)
@@ -202,12 +202,12 @@ class OCR(TextImageGenerator):
 
         if verbose:
             print("START BUILD DATA")
-        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_train.build_data(aug_count=aug_count)
-        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_val.build_data()
 
-        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length)
+        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_test.build_data()
         if verbose:
             print("DATA PREPARED")
@@ -255,9 +255,9 @@ class OCR(TextImageGenerator):
         y_pred = Activation('softmax', name='softmax_{}'.format(type(self).__name__))(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
-        labels = Input(name='the_labels', shape=[self.tiger_train.max_text_len], dtype='float32')
-        input_length = Input(name='input_length', shape=[1], dtype='int64')
-        label_length = Input(name='label_length', shape=[1], dtype='int64')
+        labels = Input(name='the_labels_{}'.format(type(self).__name__), shape=[self.tiger_train.max_text_len], dtype='float32')
+        input_length = Input(name='input_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
+        label_length = Input(name='label_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
         # Keras doesn't currently support loss funcs with extra parameters
         # so CTC loss is implemented in a lambda layer
         loss_out = Lambda(self.ctc_lambda_func, output_shape=(1,), name='ctc')([y_pred, labels, input_length, label_length])
@@ -283,8 +283,8 @@ class OCR(TextImageGenerator):
                                 validation_data=self.tiger_val.next_batch(is_random),
                                 validation_steps=self.tiger_val.n)
 
-        net_inp = model.get_layer(name='the_input').input
-        net_out = model.get_layer(name='softmax').output
+        net_inp = model.get_layer(name='the_input_{}'.format(type(self).__name__)).input
+        net_out = model.get_layer(name='softmax_{}'.format(type(self).__name__)).output
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
 
