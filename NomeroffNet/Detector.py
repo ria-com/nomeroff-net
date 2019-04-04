@@ -67,7 +67,7 @@ class Detector:
         for image in images:
             # delete 4 chanel
             res.append(image[..., :3])
-        return res;
+        return res
 
     def detectFromFile(self, image_paths, verbose = 0):
         images = [mpimg.imread(image_path) for image_path in image_paths]
