@@ -8,7 +8,7 @@ import asyncio
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
 
-    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 9):
+    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 11):
         self.COEF_APPROX = coef_approx
         self.MAX_COUNT_STEP_APPROX = max_count_step_approx
         self.TARGET_POINTS = target_points
@@ -380,7 +380,7 @@ class RectDetector(object):
 
     def isHaveCommonPointRecursive(self, C, i1, i2, deep=0):
         deep = deep + 1;
-        if len(C[i1]["links"]) < 2 or deep > len(C):
+        if len(C[i1]["links"]) < 1 or deep > len(C):
             return False
         for iTarget in C[i1]["links"]:
             if iTarget == i2:
@@ -630,6 +630,9 @@ class RectDetector(object):
                     else:
                         B.append(interestedLines[i])
                 targetLines = self.makeTargetLines(A,B)
+
+                print("targetLines")
+                print(targetLines)
 
                 if fixGeometry:
                     targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
