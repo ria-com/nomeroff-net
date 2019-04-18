@@ -25,7 +25,7 @@ from .Base.ImgGenerator import ImgGenerator
 
 
 class OptionsDetector(ImgGenerator):
-    def __init__(self):
+    def __init__(self, options = {}):
         # input
         self.DEPTH          = 1
         self.HEIGHT         = 64
@@ -33,10 +33,10 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs
-        self.CLASS_REGION = ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru"]
+        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru"])
 
         # outputs
-        self.CLASS_STATE = ["BACKGROUND", "FILLED", "NOT_FILLED"]
+        self.CLASS_STATE = options.get("class_state", ["BACKGROUND", "FILLED", "NOT_FILLED"])
 
         # model
         self.MODEL = None
@@ -158,6 +158,8 @@ class OptionsDetector(ImgGenerator):
         return conv_base
 
     def train(self, log_dir="./", verbose=1):
+        keras.backend.clear_session()
+
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)

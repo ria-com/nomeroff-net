@@ -25,6 +25,10 @@ from keras.layers.recurrent import GRU as GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
 
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
+
 class OCR(TextImageGenerator):
     def __init__(self):
         # Input parameters
@@ -213,6 +217,7 @@ class OCR(TextImageGenerator):
             print("DATA PREPARED")
 
     def train(self, mode="cpu", is_random=1, model_path="./model.h5", load=False, verbose=1):
+        keras.backend.clear_session()
         if mode == "gpu":
             self.GRU = GRUgpu
         if mode == "cpu":

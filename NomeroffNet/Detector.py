@@ -7,6 +7,11 @@ from tensorflow.python.tools import freeze_graph
 from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
+import keras
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+session = tf.Session(config=config)
 
 class Detector:
     def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
@@ -127,6 +132,7 @@ class Detector:
     #  Training
     ############################################################
     def train(self, augmentation=None, verbose=1):
+        keras.backend.clear_session()
         from .nnmrcnn import Dataset
         import mrcnn.model as modellib
         from mrcnn import utils
