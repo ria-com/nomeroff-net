@@ -65,11 +65,11 @@ class OptionsDetector(ImgGenerator):
 
         # compile model hyperparameters
         self.LOSSES = {
-            "REGION": "categorical_crossentropy",
-            "STATE": "categorical_crossentropy",
+            "REGION": "categorical_crossentropy", # tf.losses.softmax_cross_entropy
+            "STATE": "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
         }
         self.LOSS_WEIGHTS = {"REGION": 1.0, "STATE": 1.0}
-        self.OPT = "adamax"
+        self.OPT = "adamax" #  tf.keras.optimizers.Adamax
         self.METRICS = ["accuracy"]
 
         # for frozen graph
@@ -90,8 +90,7 @@ class OptionsDetector(ImgGenerator):
                      output_labels2, out_dense_init, W_regularizer, \
                      out_dense_activation, dense_activation, BatchNormalization_axis):
         # cnn
-        x = conv_base(input_model)
-        #x = layers.Dropout(dropout_1)(x)
+        x = conv_base
 
         # classificator 1
         x1 = layers.Flatten()(x)
@@ -149,25 +148,41 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def create_conv(self):
+    def create_conv(self, inp):
          # trainable cnn model
         conv_base = VGG16(weights='imagenet',
             include_top=False)
         # block trainable cnn parameters
         conv_base.trainable = False
+        return conv_base(inp)
+
+    def create_simple_conv(self, inp):
+        conv_base = layers.Conv2D(32, (3, 3), activation='relu')(inp)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
+
+        conv_base = layers.Conv2D(64, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
+
+        conv_base = layers.Conv2D(128, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
+
+        conv_base = layers.Conv2D(128, (3, 3), activation='relu')(conv_base)
+        conv_base = layers.MaxPooling2D((2, 2))(conv_base)
+
         return conv_base
 
     def train(self, log_dir="./", verbose=1):
-        keras.backend.clear_session()
-
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
 
-        conv_base = self.create_conv()
-
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
+
+        if (cnn == "simple"):
+            conv_base = self.create_simple_conv(input_model)
+        else:
+            conv_base = self.create_conv(input_model)
 
         # traine callbacks
         self.CALLBACKS_LIST = [

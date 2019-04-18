@@ -51,15 +51,18 @@ class ImgGenerator:
             )
 
     def normalize(self, img, with_aug=False):
+        if with_aug:
+            imgs = aug([img])
+            img = imgs[0]
         img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
         img = img.astype(np.float32)
 
         # advanced normalisation
-        #img /= 255
         img_min = np.amin(img)
         img -= img_min
         img_max = np.amax(img)
-        img /= img_max
+        img /= (img_max or 1)
+        img[img == 0] = .0001
         return img
 
     def next_sample(self):
