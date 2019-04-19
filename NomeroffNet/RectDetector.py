@@ -631,8 +631,8 @@ class RectDetector(object):
                         B.append(interestedLines[i])
                 targetLines = self.makeTargetLines(A,B)
 
-                print("targetLines")
-                print(targetLines)
+                #print("targetLines")
+                #print(targetLines)
 
                 if fixGeometry:
                     targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
