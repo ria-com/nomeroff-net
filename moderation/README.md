@@ -25,13 +25,21 @@
    Annotation format:
    ```json
     {
-      "description": "AA0006IT", 
-      "tags": [], 
-      "name": "AA0006IT", 
-      "objects": [], 
-      "size": {"width": 156, "height": 34}
+      "description": "001AAA10", 
+      "name": "001AAA10",  
+      "region_id": 7, 
+      "state_id": 2, 
+      "size": {
+        "width": 149, 
+        "height": 32,
+      }, 
+      "moderation": {
+        "isModerated": 1, 
+        "moderatedBy": "ApelSYN",
+        "predicted": "00AAAA10"
+      }
     }
-```
+   ```
 
 ## Hot key
 To start, focus on one of the license plates by clicking on it.
