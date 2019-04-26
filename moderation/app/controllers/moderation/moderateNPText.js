@@ -58,14 +58,11 @@ module.exports = function(ctx, next) {
 
         const files = fs.readdirSync(img);
 
+        const err_data = [];
         const res = [];
         let count = 0;
         let iter = 0;
         for (let i in files) {
-            iter++;
-            if (count > max_files_count) {
-                break;
-            }
 
             const f = files[i];
             const number = f.substring(0, f.length - 4);
@@ -82,12 +79,15 @@ module.exports = function(ctx, next) {
                 data = JSON.parse(fs.readFileSync(jsonPath));
             }
 
+
             if (data.moderation == undefined || data.moderation.isModerated != 1) {
+                err_data.push(data.moderation);
                 count++;
+                console.log(data.moderation === undefined ? "" : data.moderation.predicted || "");
                 const data_item = {
                     img_path: `img/${f}`,
                     name: number,
-                    predicted: data.moderation == undefined ? "" : data.moderation.predicted || "",
+                    predicted: data.moderation === undefined ? "" : data.moderation.predicted || "",
                     description: data.description,
                 };
                 const options = config.moderation.regionOCRModeration.options;
@@ -95,12 +95,15 @@ module.exports = function(ctx, next) {
                     data_item[key] = data[key];
                 }
                 res.push(data_item)
+            } else {
+                iter++;
             }
         }
 
+        //console.log(iter);
         ctx.body = {
             expectModeration: files.length - iter,
-            data:res,
+            data:res.slice(0, max_files_count),
             options: config.moderation.regionOCRModeration.options,
             user: config.user.name
         };
