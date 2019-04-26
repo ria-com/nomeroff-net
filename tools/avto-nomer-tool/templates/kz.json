@@ -1,0 +1,14 @@
+{
+  "description": "E928EX13",
+  "name": "E928EX13_0",
+  "region_id": 7,
+  "state_id": 2,
+  "size": {
+    "height": 26,
+    "width": 119
+  },
+  "moderation": {
+    "isModerated": 0,
+    "moderatedBy": "ApelSYN"
+  }
+}

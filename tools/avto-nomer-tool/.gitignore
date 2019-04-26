@@ -1,0 +1,5 @@
+.idea/*
+node_modules/*
+package-lock.json
+config/default.js
+__tests__
