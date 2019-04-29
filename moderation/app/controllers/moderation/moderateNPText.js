@@ -20,7 +20,7 @@ function chencheAnnotation (img, ann, chended_numbers, who) {
             if (fs.existsSync(annotationPath)) {
                 fs.unlinkSync(annotationPath);
             }
-            fs.unlinkSync(path.join(img, numberData.name));
+            fs.unlinkSync(path.join(base_dir, numberData.img_path));
             return;
         }
         Object.assign(numberData, {
