@@ -1,49 +1,39 @@
 const config  = require('config'),
       path = require("path"),
       fs = require("fs")
-
 ;
+const base_dir = config.moderation.regionOCRModeration.base_dir;
+const img = path.join(base_dir, "/img/");
+const ann = path.join(base_dir, "/ann/");
 
 function chencheAnnotation (img, ann, chended_numbers, who) {
-
-    if (chended_numbers != undefined) {
-
-        for (let k in chended_numbers) {
-            const f = chended_numbers[k];
-            const number = f.number;
-            const newNumber = f.newNumber;
-
-                if (fs.existsSync(path.join(img, `${number}.png`))) {
-                if (Boolean(Number(f.deleted))) {
-                    console.log(f.deleted);
-                    fs.unlinkSync(path.join(img, `${number}.png`));
-                    if (fs.existsSync(path.join(ann, `${number}.json`))) {
-                        fs.unlinkSync(path.join(ann, `${number}.json`));
-                    }
-                } else {
-                    const data = JSON.parse(fs.readFileSync(path.join(ann, `${number}.json`)));
-                    const options = config.moderation.regionOCRModeration.options;
-                    for (let key in options) {
-                        data[key] = f[key];
-                    }
-                    data.description = newNumber;
-                    data.name = number;
-                    data.moderation = {isModerated: 1, moderatedBy:who || "unkdownUser"};
-                    //console.log(JSON.stringify(data));
-                    fs.writeFileSync(path.join(ann, `${number}.json`), JSON.stringify(data));
-                }
-            }
-        }
+    if (chended_numbers === undefined) {
+        return;
     }
+
+    chended_numbers.forEach(function (numberData) {
+        let annotationPath = path.join(
+            ann,
+            numberData.name,
+        ) + '.json';
+        if (numberData.deleted) {
+            if (fs.existsSync(annotationPath)) {
+                fs.unlinkSync(annotationPath);
+            }
+            fs.unlinkSync(path.join(img, numberData.name));
+            return;
+        }
+        Object.assign(numberData, {
+            moderation: {isModerated: 1, moderatedBy:who || "unknownUser"}
+        });
+        fs.writeFileSync(annotationPath, JSON.stringify(numberData));
+    });
 }
 
 module.exports = function(ctx, next) {
-    const base_dir = config.moderation.regionOCRModeration.base_dir;
     const max_files_count = ctx.request.body.max_count || 100;
     const chended_numbers = ctx.request.body.chended_numbers;
     const who_changed = ctx.request.body.who_changed;
-    const img = path.join(base_dir, "/img/");
-    const ann = path.join(base_dir, "/ann/");
 
     if (!fs.existsSync(base_dir)) {
         ctx.body = {
@@ -65,7 +55,8 @@ module.exports = function(ctx, next) {
         for (let i in files) {
 
             const f = files[i];
-            const number = f.substring(0, f.length - 4);
+            // more reliable way
+            const number = path.basename(f, path.extname(f));
 
             const jsonPath = path.join(ann, `${number}.json`);
             const imgPath = path.join(img, `${number}.png`);

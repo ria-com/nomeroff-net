@@ -17,48 +17,13 @@
     <style>
         body { padding-bottom: 20px; }
         .navbar { margin-bottom: 20px; }
-        .logo { margin-top: 40px; margin-bottom: 60px; }
-        .operative { font-weight: bold; border: 1px solid yellow; }
-        #quine { border: 4px solid #88c; }
-
-        div.editNumberplate {padding-bottom: 5px; font-size: 3rem; letter-spacing: 5px;}
-        input.numberplate {width: 295px}
-        div.edited { color: green }
-        tr.forDelete {
-            background-color: #f77 !important;
-        }
-        td.deleteTD {
-            width: 10px;
-        }
-        td h1 {
-            height: 48px;
-        }
-        p.warnings {
-            color: #f44;
-        }
-        input.NewNumber {
-            letter-spacing: 5px;
-            background: white;
-            display: block;
-            border: 0;
-            padding: 0;
-            text-align: center;
-            font-size: 33pt;
-            margin: auto;
-        }
-        select.seledited {
-            color:green;
-        }
-        p.predicted {
-            font-size: 15pt;
-        }
     </style>
 </head>
 
 <body>
 
 
-<div class="container">
+<div class="container" id="app">
     <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
         <a class="navbar-brand" href="#">OCR Moderation</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample09" aria-controls="navbarsExample09" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,15 +40,63 @@
     </nav>
 
     <main role="main">
-        <div style="color: silver;" id="infoBox"></div>
+        <div style="color: silver;" id="infoBox">
+            <p>
+                Expect moderation: {{ expectModeration }}
+            </p>
+        </div>
         <div class="jumbotron">
             <div class="col-sm-10 mx-auto">
-                <table class="table table-striped" id="npsTable"><tbody/></table>
-                <form>
-                    <input type="submit" name="reset" value="Reset" id="reset" class="btn" />
-                    <input type="submit" name="loadNext" value="Save & Load Next" id="loadNext" class="btn btn-primary" />
+                <form @submit.prevent="submit">
+                <table class="table table-striped" id="npsTable">
+                    <tbody>
+                    <tr v-for="_data in data">
+                        <td class="text-center">
+                            <div class="form-group">
+                                <input type="text" class="form-control" v-model="_data.description"
+                                       placeholder="Input number from the image below">
+                            </div>
+                            <a :href="_data.img_path" target="_blank">
+                                <img :src="_data.img_path" style="max-width: 300px; max-height: 300px">
+                            </a>
+                        </td>
+                        <td class="optionTD">
+                            <p>
+                                <select v-model="_data.region_id" :disabled="_data.deleted" :required="!_data.deleted"
+                                        class="form-control">
+                                    <option disabled="" :value="undefined">Region</option>
+                                    <option :value="region_id" v-for="region_id in options.region_id">
+                                        {{ region_id }}
+                                    </option>
+                                </select>
+                            </p>
+                            <p>
+                                <select v-model="_data.state_id" :disabled="_data.deleted" :required="!_data.deleted"
+                                        class="form-control">
+                                    <option disabled="" :value="undefined">State</option>
+                                    <option :value="state_id" v-for="state_id in options.state_id">
+                                        {{ state_id }}
+                                    </option>
+                                </select>
+                            </p>
+                            <div class="checkbox">
+                                <label>
+                                    <input tabindex="-1" type="checkbox" class="del" title="Mark for removing" v-model="_data.deleted" value="1">
+                                    Remove
+                                </label>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr v-if="!data.length">
+                        <td colspan="3">
+                            <h3>You're great, no files to annotate!</h3>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                    <input type="submit" name="reset" value="Reset" id="reset" class="btn" :disabled="loading" />
+                    <input type="submit" name="loadNext" value="Save & Load Next" id="loadNext" class="btn btn-primary" :disabled="loading" />
                 </form>
-
             </div>
         </div>
     </main>
@@ -92,297 +105,47 @@
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
 
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
 <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
 <script>
-    function drawCat(current, ownoptval, options, label) {
+    new Vue({
+        el: '#app',
+        data: {
+            options: {
+                region_id: [],
+                state_id: [],
+            },
+            data: [],
+            loading: false,
+            expectModeration: null,
+        },
 
-        var p = document.createElement("p");
-        var N = options.length;
-        var select = document.createElement("select");
-        select.dataset.options = ownoptval;
-        select.addEventListener("blur", function(e){
-            if (e.target[e.target.selectedIndex].value != e.target.dataset.options) {
-                e.target.className += " seledited";
+        mounted: function () {
+            var _this = this;
+            this.loading = true;
+            $.post('/regionOCRModeration', null, null, 'json').done(function (res) {
+                Object.assign(_this, res);
+            }).always(function () {
+                _this.loading = false;
+            })
+        },
+        methods: {
+            submit: function () {
+                var _this = this;
+                if (this.loading) {
+                    return;
+                }
+                // cannot submit twice
+                this.loading = true;
+
+                $.post('/regionOCRModeration', {chended_numbers: this.data}, null, 'json').done(function (res) {
+                    Object.assign(_this, res);
+                }).always(function () {
+                    _this.loading = false;
+                })
             }
-        });
-
-        var labelOption = document.createElement("option");
-        var text = document.createTextNode(label);
-        labelOption.appendChild(text);
-        labelOption.disabled = "disabled";
-        if (ownoptval == undefined ) {
-            labelOption.selected = "selected";
         }
-        labelOption.value = 0;
-        select.appendChild(labelOption);
-
-        for (var i=0; i < N; i++) {
-            var option = document.createElement("option");
-            option.value = i;
-            if (ownoptval == i) {
-                option.selected = "selected";
-            }
-            var text = document.createTextNode(options[i]);
-            option.appendChild(text);
-            select.appendChild(option);
-        }
-        p.appendChild(select);
-        current.appendChild(p);
-    }
-    function npH1Redraw(div, disc) {
-        var h1 = document.createElement("h1");
-        var h1Text = document.createTextNode(disc);
-        h1.appendChild(h1Text);
-
-        div.appendChild(h1);
-    }
-
-    function npInputRedraw(div, currentDesc) {
-        while (div.firstChild) {
-            div.removeChild(div.firstChild);
-        }
-        npH1Redraw(div, currentDesc)
-    }
-
-    $( document ).ready(function() {
-        // CONFIG DATA
-        var USER = "defaultUser";
-        var npsTable = document.getElementById("npsTable").firstChild;
-
-        getNewData();
-        function getNewData(user, newdata) {
-            var sendata = {};
-            if (user != undefined) {
-                sendata.who_changed = user;
-            }
-            if (newdata != undefined) {
-                sendata.chended_numbers = newdata;
-            }
-            $.ajax({
-                url: 'http://localhost:5005/regionOCRModeration',
-                dataType: 'json',
-                data: sendata,
-                cache: false,
-                type: 'post',
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus);
-                    console.log(errorThrown);
-                },
-                success: function (response) {
-                    var res = response;
-                    USER = res.user;
-                    if (response.message == undefined) {
-                        var expectModeration = response.expectModeration;
-
-                        var infoBox = document.getElementById("infoBox");
-                        var info_p = document.createElement("p");
-                        var info_text = document.createTextNode("Expect moderation: " + expectModeration);
-                        info_p.appendChild(info_text);
-                        while (infoBox.firstChild) {
-                            infoBox.removeChild(infoBox.firstChild);
-                        }
-                        infoBox.appendChild(info_p);
-
-                        response = response.data;
-                        for (var i in response) {
-                            var item = response[i];
-                            var tr = document.createElement("tr");
-                            var td = document.createElement("td");
-                            td.className = "text-center";
-
-                            var div = document.createElement("div");
-                            div.className = "NP editNumberplate";
-                            div.id = item.name;
-                            div.dataset.description = item.description || "_";
-
-                            npH1Redraw(div, item.description || "_");
-                            td.appendChild(div);
-                            if ((item.predicted || "").length) {
-                                var p = document.createElement("p");
-                                p.className = "predicted";
-                                var pText = document.createTextNode("predicted: ");
-                                p.appendChild(pText);
-
-                                var b = document.createElement("b");
-                                var bText = document.createTextNode(item.predicted);
-                                b.appendChild(bText);
-                                p.appendChild(b);
-
-                                td.appendChild(p);
-                            }
-
-                            var img = document.createElement("img");
-                            img.src = item.img_path;
-                            img.width = "295";
-                            img.height = "64";
-                            td.appendChild(img);
-
-                            tr.appendChild(td);
-
-                            var td0 = document.createElement("td");
-                            td0.className = "optionTD";
-                            for (var opt in res.options) {
-                                drawCat(td0, item[opt], res.options[opt], opt);
-                            }
-                            tr.appendChild(td0);
-
-                            var td2 = document.createElement("td");
-                            td2.className = "deleteTD";
-                            var input2 = document.createElement("input");
-                            input2.setAttribute("tabindex", "-1");
-                            input2.type = "checkbox";
-                            input2.className = "del";
-                            input2.title = "Mark for removing";
-
-                            td2.appendChild(input2);
-                            tr.appendChild(td2);
-
-                            npsTable.appendChild(tr);
-                        }
-
-                        $("div.NP").click(function clickEvent(e){
-                            if (e.currentTarget.childNodes.length && e.currentTarget.childNodes[0].nodeName != "INPUT") {
-                                var input = document.createElement("input");
-                                input.className = "NewNumber numberplate";
-                                input.value = e.currentTarget.childNodes[0].innerText;
-                                input.id = "target";
-
-                                while (e.currentTarget.firstChild) {
-                                    e.currentTarget.removeChild(e.currentTarget.firstChild);
-                                }
-
-                                e.currentTarget.appendChild(input);
-                                input.focus();
-
-                                input.addEventListener("input", function(e){
-                                    e.target.value = e.target.value.toUpperCase();
-                                });
-
-                                input.addEventListener("blur", function(e){
-                                    if (e.target.value != e.target.parentNode.dataset.description) {
-                                        e.target.parentNode.className += " edited";
-                                    }
-                                    npInputRedraw(e.target.parentNode, e.target.value);
-                                });
-                            }
-                        });
-
-                        $("input.del").click(function clickEvent(e){
-                            if (e.currentTarget.checked) {
-                                e.currentTarget.parentNode.parentNode.className = "forDelete";
-                            } else {
-                                e.currentTarget.parentNode.parentNode.className = "";
-                            }
-                        });
-
-                    } else {
-                        var infoBox = document.getElementById("infoBox");
-                        var info_p = document.createElement("p");
-                        info_p.className = "warnings";
-                        var info_text = document.createTextNode("Warning: " + response.message);
-                        info_p.appendChild(info_text);
-                        while (infoBox.firstChild) {
-                            infoBox.removeChild(infoBox.firstChild);
-                        }
-                        infoBox.appendChild(info_p);
-                    }
-                }
-            });
-        }
-
-        document.addEventListener("keypress", function (e) {
-            if(e.code == "Enter" || e.code == "Numpad2") {
-                event.preventDefault();
-                var target = document.getElementById("target");
-                if (target != null) {
-                    target.scrollIntoView();
-                    var next = target.parentNode.parentNode.parentNode.nextElementSibling;
-                    target.blur();
-                    if (next != null) {
-                        //console.log(next);
-                        next = next.firstChild.firstChild;
-                        next.click();
-                    }
-                    return false;
-                }
-            }
-            if(e.code == "NumpadDecimal") {
-                event.preventDefault();
-                var target = document.getElementById("target");
-                if (target != null) {
-                    target.parentNode.parentNode.nextElementSibling.nextElementSibling.firstChild.click();
-                    target.scrollIntoView();
-                    var next = target.parentNode.parentNode.parentNode.nextElementSibling;
-                    target.blur();
-                    if (next != null) {
-                        //console.log(next);
-                        next = next.firstChild.firstChild;
-                        next.click();
-                    }
-                    return false;
-                }
-            }
-            if(e.code == "Numpad8") {
-                event.preventDefault();
-                var target = document.getElementById("target");
-                if (target != null) {
-                    var prev = target.parentNode.parentNode.parentNode.previousElementSibling;
-                    target.blur();
-                    if (prev != null) {
-                        prev.scrollIntoView();
-                        prev = prev.firstChild.firstChild;
-                        prev.click();
-                    }
-                    return false;
-                }
-            }
-            //if (e.keyCode == 5) {
-            //    evt.preventDefault();
-            //    evt.stopPropagation();
-            //}
-        });
-
-        $("#reset").click(function(e){
-            e.preventDefault();
-            while (npsTable.firstChild) {
-                npsTable.removeChild(npsTable.firstChild);
-            }
-            getNewData();
-            return false;
-        });
-        $("#loadNext").click(function(e){
-            e.preventDefault();
-
-            var divs = document.getElementsByClassName("NP");
-            var newdata = [];
-            for (var i in divs) {
-                var d = divs[i];
-                var name = d.id;
-                if (d.id != undefined) {
-                    var discription = d.childNodes[0].textContent.trim();
-                    var item_data = {
-                        "number": name.trim(),
-                        "newNumber": discription == "_" ? undefined : discription,
-                        "deleted": d.parentNode.parentNode.lastChild.firstChild.checked ? 1 : 0
-                    };
-                    for (var item of d.parentNode.parentNode.childNodes[1].childNodes) {
-                        item = item.firstChild;
-                        item_data[item.firstChild.firstChild.textContent] = +item[item.selectedIndex].value;
-                    }
-                    //console.log(item_data);
-                    newdata.push(item_data);
-                }
-            }
-            while (npsTable.firstChild) {
-                npsTable.removeChild(npsTable.firstChild);
-            }
-            getNewData(USER, newdata);
-            return false;
-        });
     });
 </script>
 </body>
