@@ -11,8 +11,7 @@ const
 ;
 
 const router = new Router(),
-    koaBody = KoaBody(),
-    render = views(config.template.path, config.template.options);
+    koaBody = KoaBody();
 
 router
     .post('/regionOCRModeration', koaBody, moderateNPText)
