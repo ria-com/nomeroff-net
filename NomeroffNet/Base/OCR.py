@@ -217,7 +217,6 @@ class OCR(TextImageGenerator):
             print("DATA PREPARED")
 
     def train(self, mode="cpu", is_random=1, model_path="./model.h5", load=False, verbose=1):
-        keras.backend.clear_session()
         if mode == "gpu":
             self.GRU = GRUgpu
         if mode == "cpu":
