@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "config": "^3.0.1",
+    "image-size": "^0.7.4",
     "koa": "^2.7.0",
     "koa-body": "^4.0.7",
     "koa-convert": "^1.2.0",
