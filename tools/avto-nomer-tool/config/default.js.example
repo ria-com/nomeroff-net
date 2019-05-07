@@ -1,0 +1,17 @@
+const p = require('../package');
+module.exports = {
+    app: {
+        name: p.name,
+        description: p.description,
+        version: p.version
+    },
+    template: {
+        path: `${__dirname}/../templates`,
+        annDefault: 'kz.json'
+    },
+    dataset: {
+        baseDir: `${__dirname}/../../../dataset/ocr/kz`,
+        ann: { dir: 'ann', ext: 'json'},
+        img: { dir: 'img', ext: 'png'}
+    }
+};

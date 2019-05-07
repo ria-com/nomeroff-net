@@ -1,0 +1,16 @@
+{
+  "name": "avto-nomer-tool",
+  "version": "1.0.0",
+  "description": "Avto-nomer annotation creator tool",
+  "main": "console.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Oleg Cherniy",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "config": "^3.1.0",
+    "image-size": "^0.7.4",
+    "optimist": "^0.6.1"
+  }
+}

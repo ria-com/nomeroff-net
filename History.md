@@ -1,3 +1,15 @@
+0.2.2 / 2019-03-19
+==================
+  **features**
+  * RectDetector: A new perspective distortion correction mechanism has been added, which more accurately positions the number frame. It is activated using the "fixGeometry" parameter,  fixGeometry = true
+  * Added experimental support for recognition of Kazakhstan (kz) numbers. Recognition Accuracy 91%
+
+  **training**
+  * Added a simplified convolutional network architecture for numberplate classification. To train a simplified model, pass the cnn == "simple" to the train method.
+
+  **bugfix** 
+  * Fixed a critical bug in a RectDetector that could lead to python sticking
+
 0.2.1 / 2019-03-07
 ==================
   **features**
