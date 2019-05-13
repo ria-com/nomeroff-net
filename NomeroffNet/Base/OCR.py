@@ -178,7 +178,7 @@ class OCR(TextImageGenerator):
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)
-        self.MODEL.summary()
+
         net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
         net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
