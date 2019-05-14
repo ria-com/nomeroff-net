@@ -171,7 +171,7 @@ class OptionsDetector(ImgGenerator):
 
         return conv_base
 
-    def train(self, log_dir="./", verbose=1):
+    def train(self, log_dir="./", verbose=1, cnn=None):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
