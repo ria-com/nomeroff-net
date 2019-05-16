@@ -1,3 +1,13 @@
+0.2.3 / 2019-05-16
+==================
+  **features**
+  * Added experimental support for recognition of Kazakhstan (kz) 2 line box numbers. Recognition Accuracy 95%.
+
+  **training**
+  * Re-train Kazakhstan (kz) numbers recognition model. Get Recognition Accuracy 94%.
+  * Re-train options numbers classification model with ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz", "kz_box"] classes output. Get Classification Accuracy 99,9%.
+  * Set simplified convolutional network architecture for numberplate classification by default.
+
 0.2.2 / 2019-03-19
 ==================
   **features**
