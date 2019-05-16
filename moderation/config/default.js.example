@@ -10,9 +10,9 @@ module.exports = {
     },
     moderation: {
         regionOCRModeration: {
-            base_dir: "/var/www/nomeroff-net/datasets/ocr/kz/kz2/",
+            base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
             options: {
-                region_id: ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz"],
+                region_id: ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "2line", "3line"],
                 state_id: ["garbage", "filled", "not filled"]
             }
         },
@@ -29,7 +29,7 @@ module.exports = {
             },
             moderation:{
                 isModerated:0,
-                moderatedBy:"defaultUser",
+                moderatedBy:"dimabendera",
                 predicted: ""
             }
         }
