@@ -35,7 +35,7 @@ npm install
 
 
 #### Поделить датасет на 2 части в заданой пропорции
-Перед разделением двнные будут рамдомно перемешаны
+Перед разделением данные будут рамдомно перемешаны
 ```bash
 ./console.js --section=default --action=dataSplit --opt.splitRate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test  
 ```

@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 0.2.1
+Nomeroff Net. Automatic numberplate recognition system. Version 0.2.3
 
 ## Introduction
 Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional 
@@ -129,6 +129,7 @@ for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR UA Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip)
   * [AUTO.RIA Numberplate OCR EU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
   * [AUTO.RIA Numberplate OCR RU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip)
+  * [AUTO.RIA Numberplate OCR KZ Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
 
 This gives you the opportunity to get **97% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 
@@ -150,4 +151,5 @@ Contributions to this repository are welcome. Examples of things you can contrib
 ## Links
   * [Nomeroff Net project site](https://nomeroff.net.ua/)
   * [GitHub repository](https://github.com/ria-com/nomeroff-net)
-  * [Numberplate recognition. Practical guide. Part 1 (in Russian)](https://habr.com/post/432444/)
+  * [Numberplate recognition. Practical guide. Part 1 (in Russian)](https://habr.com/ru/post/432444/)
+  * [Numberplate recognition. As we got 97% accuracy for Ukrainian numbers. Part 2 (in Russian)](https://habr.com/ru/post/439330/)

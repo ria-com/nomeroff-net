@@ -151,6 +151,47 @@ async function dataSplit (options) {
 }
 
 
-module.exports = {index, createAnnotations, moveChecked, dataSplit};
+/**
+ * Перенести в одельную папку "мусор" ("region_id": 0) из OCR-датасета
+ *
+ * @param options
+ * @example ./console.js --section=default --action=moveGarbage  --opt.srcDir=../../datasets/ocr/kz/draft --opt.targetDir=../../datasets/ocr/kz/garbage
+ */
+async function moveGarbage (options) {
+    const srcDir = options.srcDir || './draft',
+        targetDir = options.targetDir || './checked',
+        annExt = '.'+config.dataset.ann.ext,
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
+        target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+    ;
+    let checkedAnn = [],
+        checkedImg = []
+    ;
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    fs.readdir(src.annPath, async function(err, items) {
+        for (var i=0; i<items.length; i++) {
+            const  filename = items[i],
+                fileObj = path.parse(filename);
+            //console.log(fileObj)
+            if (fileObj.ext == annExt) {
+                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                    annFilename = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    imgName = `${data.name}.${config.dataset.img.ext}`
+                ;
+                if (data.region_id != undefined && data.region_id == 0) {
+                    checkedAnn.push(annName);
+                    checkedImg.push(imgName);
+                }
+            }
+        }
+        console.log(`Garbage: ${checkedAnn.length}`);
+        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+    });
+}
+
+module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage};
 
 
