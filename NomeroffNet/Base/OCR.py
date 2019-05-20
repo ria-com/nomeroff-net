@@ -77,6 +77,10 @@ class OCR(TextImageGenerator):
         letters_train = set(c_train.keys())
         letters_val = set(c_val.keys())
         letters_test = set(c_test.keys())
+        if verbose:
+            print("Letters train ", letters_train)
+            print("Letters val ", letters_val)
+            print("Letters test ", letters_test)
 
         if max_plate_length_val == max_plate_length_train:
             if verbose:
@@ -174,6 +178,7 @@ class OCR(TextImageGenerator):
 
     def load(self, path_to_model, verbose = 0):
         self.MODEL = load_model(path_to_model, compile=False)
+
         net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
         net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
