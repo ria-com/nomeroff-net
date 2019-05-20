@@ -30,7 +30,7 @@ class ImgGenerator:
                 json_filepath = os.path.join(ann_dirpath, name + '.json')
                 if os.path.exists(json_filepath):
                     description = json.load(open(json_filepath, 'r'))
-                    self.samples.append([img_filepath, [description["state_id"], description["region_id"]]])
+                    self.samples.append([img_filepath, [description["state_id"], description["region_id"], description["count_lines"]]])
 
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
@@ -46,7 +46,8 @@ class ImgGenerator:
             self.discs.append(
                 [
                     to_categorical(disc[0], self.labels_counts[0]),
-                    to_categorical(disc[1], self.labels_counts[1])
+                    to_categorical(disc[1], self.labels_counts[1]),
+                    to_categorical(disc[2], self.labels_counts[2])
                 ]
             )
 
@@ -75,7 +76,7 @@ class ImgGenerator:
 
     def generator(self):
         while True:
-            Ys = [[], []]
+            Ys = [[], [], []]
             Xs = []
             for i in np.arange(self.batch_size):
                 x, y = self.next_sample()
@@ -87,4 +88,5 @@ class ImgGenerator:
                 Xs.append(x)
                 Ys[1].append(y[0])
                 Ys[0].append(y[1])
+                Ys[2].append(y[2])
             yield np.array(Xs), Ys
