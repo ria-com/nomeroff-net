@@ -8,7 +8,7 @@ import asyncio
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
 
-    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 9):
+    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 11):
         self.COEF_APPROX = coef_approx
         self.MAX_COUNT_STEP_APPROX = max_count_step_approx
         self.TARGET_POINTS = target_points
@@ -223,18 +223,86 @@ class RectDetector(object):
         return sorted(distanses, key=lambda x: x["d"])
 
     def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
-        threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-        while True:
-            interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
-            if len(interestedLinesFilterd) > minElements:
-                break
-            threshold = threshold*.9
-        # interestedLinesForFilter = interestedLines[:len(interestedLines)-8]
-        # interestedLinesFiltered = [x for x in interestedLinesForFilter if x["d"] < threshold]
-        return interestedLinesFilterd
+        if (len(interestedLines) > minElements):
+            threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
+            while True:
+                interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
+                if len(interestedLinesFilterd) > minElements:
+                    break
+                threshold = threshold*.9
+            # interestedLinesForFilter = interestedLines[:len(interestedLines)-8]
+            # interestedLinesFiltered = [x for x in interestedLinesForFilter if x["d"] < threshold]
+            return interestedLinesFilterd
+        else:
+            return interestedLines
 
         #threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
         #return [x for x in interestedLines if x["d"] >= threshold]
+
+    def linearLineMatrixCrossPoint(self, p0,p1,point):
+        arr = self.linearLineMatrix(p0,p1)
+        x = point[0]
+        y = point[1]
+        arr[2] = arr[0]*x + arr[1]*y
+        return arr
+
+    def detectSimilarLines(self, C,targetLine, significantAlignPercentage=0.3):
+        arr = []
+        for i in range(len(C)):
+            if ((targetLine['p0'] == C[i]['p1']) or (targetLine['p1'] == C[i]['p0'])):
+                arr.append(C[i])
+        if len(arr) > 1:
+            dProp = arr[0]['d']/arr[1]['d'];
+            if (dProp <= (1-significantAlignPercentage)):
+                arr = [arr[1]]
+            else:
+                if (dProp >= (1-significantAlignPercentage)):
+                    arr = [arr[0]]
+                else:
+                    arr = []
+        return arr
+
+    def detectAlignmentLines(self, targetLines,A,B):
+        arrA0 = self.detectSimilarLines(A,targetLines[0])
+        arrB0 = self.detectSimilarLines(B,targetLines[1])
+        arrA1 = self.detectSimilarLines(A,targetLines[2])
+        arrB1 = self.detectSimilarLines(B,targetLines[3])
+        return np.array([arrA0,arrB0,arrA1,arrB1])
+
+    def makeAligmentKeyPoints(self, line, arr):
+        commonPoint = -1
+        startPoint = -1
+        endPoint = -1
+        subline = arr[0]
+        if subline['p0'] == line['p1']:
+            commonPoint = line['p1']
+            startPoint = line['p0']
+            endPoint = subline['p1']
+        else:
+            commonPoint = line['p0']
+            startPoint = line['p1']
+            endPoint = subline['p0']
+        return { "cPoint": commonPoint, "sPoint": startPoint, "ePoint": endPoint }
+
+    def makeAligmentMatrix(self, line, arr, points):
+        if (len(arr) == 0):
+            return line["matrix"]
+        else:
+            pObj = self.makeAligmentKeyPoints(line, arr)
+            return self.linearLineMatrixCrossPoint(points[pObj["sPoint"]][0],points[pObj["ePoint"]][0],points[pObj["cPoint"]][0])
+
+    def makeTargetPoints2(self, targetLines,targetAlignmentLines,points):
+
+        line0matrix = self.makeAligmentMatrix(targetLines[0],targetAlignmentLines[0],points)
+        line1matrix = self.makeAligmentMatrix(targetLines[1],targetAlignmentLines[1],points)
+        line2matrix = self.makeAligmentMatrix(targetLines[2],targetAlignmentLines[2],points)
+        line3matrix = self.makeAligmentMatrix(targetLines[3],targetAlignmentLines[3],points)
+
+        point1 = self.detectIntersection(line0matrix,line1matrix)
+        point2 = self.detectIntersection(line1matrix,line2matrix)
+        point3 = self.detectIntersection(line2matrix,line3matrix)
+        point4 = self.detectIntersection(line3matrix,line0matrix)
+        return np.array([point1,point2,point3,point4])
 
     def gDiff(self, a, b):
         d1 = abs(a-b)
@@ -315,7 +383,7 @@ class RectDetector(object):
 
     def isHaveCommonPointRecursive(self, C, i1, i2, deep=0):
         deep = deep + 1;
-        if len(C[i1]["links"]) < 2 or deep > len(C):
+        if len(C[i1]["links"]) < 1 or deep > len(C):
             return False
         for iTarget in C[i1]["links"]:
             if iTarget == i2:
@@ -502,7 +570,7 @@ class RectDetector(object):
             return mainArr
         return sorted(mainArr, key=lambda x: cv2.contourArea(np.array(x).astype(int)), reverse=True)
 
-    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
+    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
         arrPoints = self.detectRect(image)
 
         for points in arrPoints:
@@ -519,7 +587,12 @@ class RectDetector(object):
                 else:
                     B.append(interestedLines[i])
             targetLines = self.makeTargetLines(A,B)
-            targetPoints = np.float32(self.makeTargetPoints(targetLines))
+            if fixGeometry:
+                targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
+                targetPoints = self.makeTargetPoints2(targetLines,targetAlignmentLines,arrPoints[0])
+            else:
+                targetPoints = np.float32(self.makeTargetPoints(targetLines))
+
             minXIdx = self.findMinXIdx(targetPoints)
 
             targetPoints=self.reshapePoints(targetPoints,minXIdx)
@@ -531,15 +604,15 @@ class RectDetector(object):
 
             return targetPoints
 
-    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
+    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
          ''' Main method '''
          loop = asyncio.get_event_loop()
-         promises = [loop.create_task(self.detectOneAsync(image, outboundWidthOffset=outboundWidthOffset, outboundHeightOffset=outboundHeightOffset, fixRectangleAngle=fixRectangleAngle)) for image in images]
+         promises = [loop.create_task(self.detectOneAsync(image, outboundWidthOffset=outboundWidthOffset, outboundHeightOffset=outboundHeightOffset, fixRectangleAngle=fixRectangleAngle, fixGeometry=fixGeometry)) for image in images]
          if bool(promises):
             await asyncio.wait(promises)
          return np.array([promise.result() for promise in promises])
 
-    def detect(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3):
+    def detect(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=1):
         ''' Main method '''
         resPoints = []
         for image in images:
@@ -560,7 +633,16 @@ class RectDetector(object):
                     else:
                         B.append(interestedLines[i])
                 targetLines = self.makeTargetLines(A,B)
-                targetPoints = np.float32(self.makeTargetPoints(targetLines))
+
+                #print("targetLines")
+                #print(targetLines)
+
+                if fixGeometry:
+                    targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
+                    targetPoints = self.makeTargetPoints2(targetLines,targetAlignmentLines,arrPoints[0])
+                else:
+                    targetPoints = np.float32(self.makeTargetPoints(targetLines))
+
                 minXIdx = self.findMinXIdx(targetPoints)
 
                 targetPoints=self.reshapePoints(targetPoints,minXIdx)

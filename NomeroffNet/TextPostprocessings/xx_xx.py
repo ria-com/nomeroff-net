@@ -76,7 +76,6 @@ class xx_xx():
                 dop = list(self.REPLACEMENT["#"].keys())
                 main = self.ALLOWED_NUMBERS
             buf_reg = "".join(main + dop)
-
             reg = "{}[{}]".format(reg, buf_reg)
         reg_sim = re.compile(reg)
         for i in np.arange(vcount):

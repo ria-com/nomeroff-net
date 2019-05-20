@@ -1,0 +1,244 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!--link rel="icon" href="../../../../favicon.ico"-->
+
+    <title>Nomeroff Net. Automatic numberplate recognition system from AUTO.RIA.com. Version 0.2.0</title>
+
+    <!-- BootstrapCDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
+
+    <!-- Custom styles for this template -->
+    <style>
+        body { padding-bottom: 20px; }
+        .navbar { margin-bottom: 20px; }
+        .logo { margin-top: 40px; margin-bottom: 60px; }
+        .operative { font-weight: bold; border: 1px solid yellow; }
+        #quine { border: 4px solid #88c; }
+    </style>
+</head>
+
+<body>
+
+
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+        <a class="navbar-brand" href="#">Nomeroff Net</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample09" aria-controls="navbarsExample09" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample09">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="onlinedemo.html">Online Demo</a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown09" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Examples</a>
+                    <div class="dropdown-menu" aria-labelledby="dropdown09">
+                        <a class="dropdown-item" href="#quickExample">Quick Numberplate Recognition Example</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo1.ipynb">Mask Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo2.ipynb">Numberplate Rectangle Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Numberplate Detection Demo</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#links">Links</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main">
+        <div class="jumbotron">
+            <div class="col-sm-10 mx-auto">
+                <div class="logo">
+                    <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
+                </div>
+                <p>Automatic numberplate recognition system. Version 0.2.0</p>
+
+
+                <h1>Introduction</h1>
+                <p>Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional neural network on the <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> architecture, and cusomized OCR-module powered by <a href="https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md">GRU architecture</a>.</p>
+
+                <h1>Installation</h1>
+
+                <p>The project requires the installation of Python 3.6, or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2)
+
+                <p>Checkout nomeroff-net & Mask_RCNN from github:</p>
+<pre class="prettyprint lang-bsh">
+$ git clone https://github.com/ria-com/nomeroff-net.git
+$ cd ./nomeroff-net
+$ git clone https://github.com/matterport/Mask_RCNN.git
+$ pip3 install -r requirements.txt
+</pre>
+                <p>Download the <a href="models/">latest models</a> that are required for your neural network to work and place them in the <b>./models</b> folder of the nomeroff-net project</p>
+
+                <h1 id="quickExample">Quick recognition example</h1>
+
+<pre class="prettyprint" lang="prettyprint lang-py">
+import os
+import sys
+import matplotlib.image as mpimg
+import warnings
+warnings.filterwarnings('ignore')
+
+
+# change this property
+NOMEROFF_NET_DIR = os.path.abspath('../')
+
+# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
+MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
+
+MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
+
+# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
+mode = "cpu"
+OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_12-{}.h5".format(mode))
+OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.h5".format(mode))
+OCR_NP_RU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ru_3-{}.h5".format(mode))
+
+sys.path.append(NOMEROFF_NET_DIR)
+
+# Import license plate recognition tools.
+from NomeroffNet import  filters, RectDetector, TextDetector,  OptionsDetector, Detector, textPostprocessing
+
+# Initialize npdetector with default configuration file.
+nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
+
+# Load weights in keras format.
+nnet.loadModel(MASK_RCNN_MODEL_PATH)
+
+# Initialize rect detector with default configuration file.
+rectDetector = RectDetector()
+
+# Initialize text detector.
+# Also you may use gpu version models.
+textDetector = TextDetector({
+    "eu_ua_2004_2015": {
+        "for_regions": ["eu_ua_2015", "eu_ua_2004"],
+        "model_path": OCR_NP_UKR_TEXT
+    },
+    "eu": {
+        "for_regions": ["eu", "eu_ua_1995"],
+        "model_path": OCR_NP_EU_TEXT
+    },
+    "ru": {
+        "for_regions": ["ru"],
+        "model_path": OCR_NP_RU_TEXT
+    }
+})
+
+# Initialize train detector.
+optionsDetector = OptionsDetector()
+optionsDetector.load(OPTIONS_MODEL_PATH)
+
+# Detect numberplate
+img_path = 'images/example2.jpeg'
+img = mpimg.imread(img_path)
+NP = nnet.detect([img])
+
+# Generate image mask.
+cv_img_masks = filters.cv_img_mask(NP)
+
+# Detect points.
+arrPoints = rectDetector.detect(cv_img_masks)
+zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
+
+# find standart
+# Added a classifier (isHiddenIds) for determining the fact of hide text of number, in order not to recognize a deliberately damaged license plate image.
+regionIds, isHiddenIds = optionsDetector.predict(zones)
+regionNames = optionsDetector.getRegionLabels(regionIds)
+
+# find text with postprocessing by standart
+textArr = textDetector.predict(zones, regionNames)
+textArr = textPostprocessing(textArr, regionNames)
+print(textArr)
+#['RP70012', 'JJF509']
+</pre>
+
+
+                <h1>Online Demo</h1>
+                <p>In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the recognition result online</p>
+                <p>
+                    <a href="onlinedemo.html">Online Demo &raquo;</a>
+                    <!-- a class="btn btn-primary" href="/onlineDemo" role="button">Online Demo &raquo;</a-->
+                </p>
+
+                <h1>AUTO.RIA Numberplate Dataset</h1>
+                <p>All data on the basis of which the training was conducted is provided by RIA.com. In the following, we will call this data the <a href="datasets/autoriaNumberplateDataset-2018-11-20.zip">AUTO.RIA Numberplate Dataset</a>.</p>
+                <p>We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
+
+                <h1>AUTO.RIA Numberplate Options Dataset</h1>
+                <p>The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
+                    <a href="datasets/autoriaNumberplateOptionsDataset-2019-03-06.zip">AUTO.RIA Numberplate Options Dataset</a>.</p>
+                <p>The categorizer accurately (98%) determines the country and the type of license plate. Please note that now the classifier is configured
+                    mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.</p>
+
+                <h1>AUTO.RIA Numberplate OCR Datasets</h1>
+                <p>As OCR, we use a <a href="https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md">specialized implementation of a neural network with GRU layers</a>,
+                for which we have created several datasets:</p>
+                <ul>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip">AUTO.RIA Numberplate OCR UA Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip">AUTO.RIA Numberplate OCR EU Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip">AUTO.RIA Numberplate OCR RU Dataset</a></li>
+                </ul>
+                <p>This gives you the opportunity to get <b>97% accuracy</b> on photos that are uploaded to <a href="https://auto.ria.com">AUTO.RIA</a> project</p>
+
+
+                <h1>Road map</h1>
+                <p>For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:</p>
+                <ul>
+                    <li>Post a detailed instruction on the training of recognition models and classifier for license plates of your country.</li>
+                    <li>To expand the classification of countries of license plates by which to determine the country in which this license plate is registered.</li>
+                </ul>
+
+
+                <h1>Contributing</h1>
+
+                <p>Contributions to this repository are welcome. Examples of things you can contribute:</p>
+                <ul>
+                    <li>Training on other datasets.</li>
+                    <li>Accuracy Improvements.</li>
+                </ul>
+
+
+                <h1><a name="credits"></a>Credits</h1>
+                <ul>
+                    <li>Dmytro Probachay &lt;dmytro.probachay@ria.com&gt;</li>
+                    <li>Oleg Cherniy &lt;oleg.cherniy@ria.com&gt;</li>
+                </ul>
+
+
+                <h1><a name="links"></a>Links</h1>
+                    <ul>
+                    <li><a href="https://github.com/ria-com/nomeroff-net">GitHub repository</a></li>
+                    <li><a href="https://habr.com/post/432444/">Numberplate recognition. Practical guide. Part 1 (in Russian)</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+</div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<link href="images/logo/nomeroff_net.css" rel="stylesheet">
+
+</body>
+</html>

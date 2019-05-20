@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 0.2.0
+Nomeroff Net. Automatic numberplate recognition system. Version 0.2.1
 
 ## Introduction
 Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional 
@@ -10,7 +10,7 @@ The project is now at the initial stage of development, write to us if you are i
 
 ## Installation
 Nomeroff Net requires last version of [Mask_RCNN](https://github.com/matterport/Mask_RCNN),  
-Python 3.6, or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
+Python 3.5, 3.6 or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
 
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
@@ -18,6 +18,9 @@ cd ./nomeroff-net
 git clone https://github.com/matterport/Mask_RCNN.git
 pip3 install -r requirements.txt
 ```
+
+Download the [latest models](https://nomeroff.net.ua/models/) that are required for your neural network to work and place 
+them in the **./models** folder of the nomeroff-net project
 
 
 ## Hello Nomeroff Net
@@ -36,13 +39,15 @@ NOMEROFF_NET_DIR = os.path.abspath('../')
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
-MASK_RCNN_LOG_DIR = "../logs/"
-MASK_RCNN_MODEL_PATH = "../models/mask_rcnn_numberplate_0700.h5"
-OPTIONS_MODEL_PATH =  "../models/numberplate_options_2019_2_15.h5"
+MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
 
-# If you use gpu version tensorflow please change model to gpu version named like *-gpu.h5
-OCR_NP_UKR_TEXT =  "../models/anpr_ocr_ua_1_2_11-cpu.h5"
-OCR_NP_EU_TEXT =  "../models/anpr_ocr_eu_2-cpu.h5"
+# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
+mode = "cpu"
+OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_12-{}.h5".format(mode))
+OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.h5".format(mode))
+OCR_NP_RU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ru_3-{}.h5".format(mode))
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -59,15 +64,19 @@ nnet.loadModel(MASK_RCNN_MODEL_PATH)
 rectDetector = RectDetector()
 
 # Initialize text detector.
-# You may use gpu version models.
+# Also you may use gpu version models.
 textDetector = TextDetector({
-    "eu_ua_2014_2015": {
+    "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": OCR_NP_UKR_TEXT
     },
     "eu": {
         "for_regions": ["eu", "eu_ua_1995"],
         "model_path": OCR_NP_EU_TEXT
+    },
+    "ru": {
+        "for_regions": ["ru"],
+        "model_path": OCR_NP_RU_TEXT
     }
 })
 
@@ -109,7 +118,7 @@ We will be grateful for your help in the formation and layout of the dataset wit
 
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
-[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2019-02-20.zip).
+[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2019-03-06.zip).
 
 The categorizer accurately **(98%)** determines the country and the type of license plate. Please note that now the classifier is configured
 mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.
@@ -119,6 +128,7 @@ As OCR, we use a [specialized implementation of a neural network with GRU layers
 for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR UA Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip)
   * [AUTO.RIA Numberplate OCR EU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
+  * [AUTO.RIA Numberplate OCR RU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip)
 
 This gives you the opportunity to get **97% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 
