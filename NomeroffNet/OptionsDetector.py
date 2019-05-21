@@ -32,7 +32,7 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs 1
-        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru"])
+        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz"])
 
         # outputs 2
         self.CLASS_STATE = options.get("class_state", ["BACKGROUND", "FILLED", "NOT_FILLED"])
@@ -248,11 +248,11 @@ class OptionsDetector(ImgGenerator):
         return  self.MODEL
 
     def test(self):
-        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
+        test_loss, test_loss1, test_loss2, test_loss3, test_acc1, test_acc2, test_acc3 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
         print("test loss: {}".format(test_loss))
-        print("test loss: {}    test loss: {}".format(test_loss1, test_loss2))
-        print("test acc: {}    test acc {}".format(test_acc1, test_acc2))
-        return test_loss, test_loss1, test_loss2, test_acc1, test_acc2
+        print("test loss: {}    test loss: {}       test loss: {}".format(test_loss1, test_loss2, test_loss3))
+        print("test acc: {}    test acc {}      test acc {}".format(test_acc1, test_acc2, test_acc3))
+        return test_loss, test_loss1, test_loss2, test_loss3, test_acc1, test_acc2, test_acc3
 
     def save(self, path, verbose=1):
         if self.MODEL != None:
