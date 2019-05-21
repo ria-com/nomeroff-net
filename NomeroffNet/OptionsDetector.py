@@ -285,7 +285,7 @@ class OptionsDetector(ImgGenerator):
         for img in imgs:
             Xs.append(self.normalize(img))
 
-        predicted = [[], []]
+        predicted = [[], [], []]
         if bool(Xs):
             predicted = self.MODEL.predict(np.array(Xs))
 
@@ -297,7 +297,11 @@ class OptionsDetector(ImgGenerator):
         for state in predicted[1]:
             stateIds.append(int(np.argmax(state)))
 
-        return regionIds, stateIds
+        countLines = []
+        for countL in predicted[2]:
+            countLines.append(int(np.argmax(countL)))
+
+        return regionIds, stateIds, countLines
 
     def getRegionLabels(self, indexes):
         return [self.CLASS_REGION[index] for index in indexes]
