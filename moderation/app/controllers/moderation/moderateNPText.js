@@ -1,7 +1,7 @@
 const config  = require('config'),
-      path = require("path"),
-      fs = require("fs"),
-      sizeOf = require('image-size')
+    path = require("path"),
+    fs = require("fs"),
+    sizeOf = require('image-size')
 
 ;
 
