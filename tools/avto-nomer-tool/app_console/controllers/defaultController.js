@@ -33,7 +33,7 @@ async function createAnnotations (options) {
               tplPath = path.join(config.template.path, config.template.annDefault),
               annTrmplate = require(tplPath);
         checkDir(imgPath);
-        checkDir(annPath);
+        checkDir(annPath,true);
 
         console.log(imgPath);
         fs.readdir(imgPath, async function(err, items) {
