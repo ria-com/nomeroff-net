@@ -105,9 +105,6 @@ module.exports = function(ctx, next) {
                 for (let key in options) {
                     data_item[key] = data[key];
                 }
-                //data_item["regionP"] = data.moderation === undefined ? "" : data.moderation.regionPredicted || "";
-                //data_item["stateP"] = data.moderation === undefined ? "" : data.moderation.statePredicted || "";
-                //data_item["countP"] = data.moderation === undefined ? "" : data.moderation.countPredicted || "";
                 res.push(data_item)
             } else {
                 count++;
