@@ -548,20 +548,6 @@ class RectDetector(object):
         minY = min(points, key=lambda p: p[1])
         return maxX, maxY, minX, minY
 
-    def uniquePoints(self, arrPoints):
-       arrPointsNew = []
-       for i in range(0,len(arrPoints)):
-           points = arrPoints[i]
-           pointsNew = []
-           pStart = [[-1,-1]]
-           for j in range(0,len(points)):
-               p = points[j]
-               if (not (pStart==p).all()):
-                   pointsNew.append(p)
-               pStart = p
-           arrPointsNew.append(pointsNew)
-       return np.array(arrPointsNew)
-
     def checkIfIsSquare(self, points, coef = 2.):
         points = np.array(points)
 
@@ -586,7 +572,6 @@ class RectDetector(object):
 
     async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
         arrPoints = self.detectRect(image)
-        arrPoints = self.uniquePoints(arrPoints)
 
         for points in arrPoints:
             distanses = self.findDistances(points)
@@ -633,7 +618,6 @@ class RectDetector(object):
         for image in images:
             res = []
             arrPoints = self.detectRect(image)
-            arrPoints = self.uniquePoints(arrPoints)
 
             for points in arrPoints:
                 distanses = self.findDistances(points)

@@ -288,7 +288,7 @@ class OptionsDetector(ImgGenerator):
         predicted = [[], [], []]
         if bool(Xs):
             predicted = self.MODEL.predict(np.array(Xs))
-
+	    
         regionIds = []
         for region in predicted[0]:
             regionIds.append(int(np.argmax(region)))
