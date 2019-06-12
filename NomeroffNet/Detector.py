@@ -40,6 +40,10 @@ class Detector:
             self.OUTPUT_NODES = ("mrcnn_detection/Reshape_1:0", "mrcnn_class/Reshape_1:0", "mrcnn_bbox/Reshape:0", "mrcnn_mask/Reshape_1:0",
                                  "ROI/packed_2:0", "rpn_class/concat:0", "rpn_bbox/concat:0") # 7 elem
 
+             #from mrcnn import visualize
+             #self.visualize = visualize
+
+
     def loadFrozenModel(self, FROZEN_MODEL_PATH):
         graph_def = tf.GraphDef()
         with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
@@ -80,6 +84,21 @@ class Detector:
 
     def detect(self, images, verbose = 0):
         return self.MODEL.detect(self.normalize(images), verbose=verbose)
+
+#    def detect_masks(self, images, verbose = 0):
+#        r = self.MODEL.detect(self.normalize(images), verbose=verbose)
+#        # loop over of the detected object's bounding boxes and masks
+#        for i in range(0, r["rois"].shape[0]):
+#            # extract the class ID and mask for the current detection, then
+#            # grab the color to visualize the mask (in BGR format)
+#            classID = r["class_ids"][i]
+#            mask = r["masks"][:, :, i]
+#            color = COLORS[classID][::-1]
+#
+#            # visualize the pixel-wise mask of the object
+#            image = visualize.apply_mask(image, mask, color, alpha=0.5)
+
+
 
     def frozen_detect(self, images, verbose = 0):
         if verbose:
