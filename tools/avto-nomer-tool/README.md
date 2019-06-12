@@ -39,3 +39,16 @@ npm install
 ```bash
 ./console.js --section=default --action=dataSplit --opt.splitRate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test  
 ```
+
+
+#### Поделить датасет для Mask RCNN на 2 части в заданой пропорции
+```bash
+./console.js --section=via --action=split --opr.rate=0.2 --opt.srcDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-07/draft --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-07 --opt.viaFile=via_region_data.json```
+```
+
+#### Объеденить 2 датасета в один для Mask RCNN
+```bash
+./console.js --section=via --action=joinVia --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src1/via_data_ria_1_full.json --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src2/via_data_ria2.json --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target --opt.viaFile=via_region_data.json
+```
+
+
