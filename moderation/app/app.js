@@ -1,8 +1,8 @@
 const Koa = require('koa'),
-      config = require('config'),
-      logger = require('koa-logger'),
-      err = require('./helpers/error'),
-      serve = require('koa-static')
+    config = require('config'),
+    logger = require('koa-logger'),
+    err = require('./helpers/error'),
+    serve = require('koa-static')
 ;
 
 

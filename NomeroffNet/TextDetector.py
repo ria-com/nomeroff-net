@@ -2,12 +2,16 @@ import sys, os
 import numpy as np
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
+from tools import np_split
 
 class TextDetector():
     def __init__(self, prisets):
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
+
+        self.DEFAULT_LABEL = "eu_ua_2015"
+        self.DEFAULT_LINES_COUNT = 1
 
         i = 0
         for prisetName in prisets:
@@ -28,7 +32,18 @@ class TextDetector():
             self.detectors_names.append(_label)
             i += 1
 
-    def predict(self, zones, labels, frozen=False):
+    def predict(self, zones, labels=None, lines=None, frozen=False):
+        if labels is None:
+            labels = []
+        if lines is None:
+            lines = []
+
+        while len(labels) < len(zones):
+            labels.append(self.DEFAULT_LABEL)
+        while len(lines) < len(zones):
+            lines.append(self.DEFAULT_LINES_COUNT)
+
+        zones = np_split(zones, lines)
         predicted = {}
 
         orderAll = []

@@ -1,5 +1,4 @@
 from .xx_xx import xx_xx
-import operator
 
 class eu_ua_2004_squire(xx_xx):
     def __init__(self):

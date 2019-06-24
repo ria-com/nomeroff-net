@@ -2,5 +2,5 @@
 node_modules/*
 package-lock.json
 config/default.js
-.ipynb_checkpoints
+py/.ipynb_checkpoints
 __tests__

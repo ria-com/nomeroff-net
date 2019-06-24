@@ -1,5 +1,4 @@
 from .xx_xx import xx_xx
-import operator
 
 class eu_ua_1995(xx_xx):
     def __init__(self):

@@ -23,7 +23,6 @@ from tensorflow.python.framework.graph_util import convert_variables_to_constant
 
 from .Base.ImgGenerator import ImgGenerator
 
-
 class OptionsDetector(ImgGenerator):
     def __init__(self, options = {}):
         # input
@@ -32,11 +31,14 @@ class OptionsDetector(ImgGenerator):
         self.WEIGHT         = 295
         self.COLOR_CHANNELS = 3
 
-        # outputs
-        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru"])
+        # outputs 1
+        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz"])
 
-        # outputs
+        # outputs 2
         self.CLASS_STATE = options.get("class_state", ["BACKGROUND", "FILLED", "NOT_FILLED"])
+
+        # outputs 3
+        self.CLASS_COUNT_LINE = options.get("class_count_line", ["0", "1", "2"])
 
         # model
         self.MODEL = None
@@ -65,10 +67,11 @@ class OptionsDetector(ImgGenerator):
 
         # compile model hyperparameters
         self.LOSSES = {
-            "REGION": "categorical_crossentropy", # tf.losses.softmax_cross_entropy
-            "STATE": "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
+            "REGION":     "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
+            "STATE":      "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
+            "COUNT_LINE": "categorical_crossentropy",  # tf.losses.softmax_cross_entropy
         }
-        self.LOSS_WEIGHTS = {"REGION": 1.0, "STATE": 1.0}
+        self.LOSS_WEIGHTS = {"REGION": 1.0, "STATE": 1.0, "COUNT_LINE": 1.0}
         self.OPT = "adamax" #  tf.keras.optimizers.Adamax
         self.METRICS = ["accuracy"]
 
@@ -87,7 +90,7 @@ class OptionsDetector(ImgGenerator):
                 self.MODEL = Model(newInput, newOutputs)
 
     def create_model(self, input_model, conv_base, dropout_1, dropout_2, dense_layers, output_labels1, \
-                     output_labels2, out_dense_init, W_regularizer, \
+                     output_labels2, output_labels3, out_dense_init, W_regularizer, \
                      out_dense_activation, dense_activation, BatchNormalization_axis):
         # cnn
         x = conv_base
@@ -108,8 +111,16 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Dense(output_labels2, init=out_dense_init, W_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
+        # classificator 3
+        x3 = layers.Flatten()(x)
+        x3 = layers.Dropout(dropout_2)(x3)
+        x3 = layers.Dense(dense_layers, activation=dense_activation)(x3)
+        x3 = layers.BatchNormalization(axis=BatchNormalization_axis)(x3)
+        x3 = layers.Dense(output_labels3, init=out_dense_init, W_regularizer=W_regularizer)(x3)
+        x3 = layers.Activation(out_dense_activation, name="COUNT_LINE")(x3)
+
         #x = keras.layers.concatenate([x1, x2], axis=1)
-        model = Model(input=input_model, outputs=[x1, x2])
+        model = Model(input=input_model, outputs=[x1, x2, x3])
 
         # compile model
         model.compile(
@@ -175,6 +186,7 @@ class OptionsDetector(ImgGenerator):
         # init count outputs
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
+        self.OTPUT_LABELS_3 = len(self.CLASS_COUNT_LINE)
 
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
@@ -205,6 +217,7 @@ class OptionsDetector(ImgGenerator):
             model = self.create_model(input_model = input_model, conv_base = conv_base, \
                                  dropout_1 = self.DROPOUT_1 , dropout_2 = self.DROPOUT_2, dense_layers = self.DENSE_LAYERS, \
                                  output_labels1 = self.OTPUT_LABELS_1, output_labels2 = self.OTPUT_LABELS_2, \
+                                 output_labels3 = self.OTPUT_LABELS_3,
                                  out_dense_init = self.OUT_DENSE_INIT, W_regularizer = self.W_REGULARIZER, \
                                  out_dense_activation = self.OUT_DENSE_ACTIVATION , dense_activation = self.DENSE_ACTIVATION, \
                                  BatchNormalization_axis = self.BATCH_NORMALIZATION_AXIS)
@@ -235,11 +248,11 @@ class OptionsDetector(ImgGenerator):
         return  self.MODEL
 
     def test(self):
-        test_loss, test_loss1, test_loss2, test_acc1, test_acc2 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
+        test_loss, test_loss1, test_loss2, test_loss3, test_acc1, test_acc2, test_acc3 = self.MODEL.evaluate_generator(self.test_generator, steps=self.VALIDATION_STEPS)
         print("test loss: {}".format(test_loss))
-        print("test loss: {}    test loss: {}".format(test_loss1, test_loss2))
-        print("test acc: {}    test acc {}".format(test_acc1, test_acc2))
-        return test_loss, test_loss1, test_loss2, test_acc1, test_acc2
+        print("test loss: {}    test loss: {}       test loss: {}".format(test_loss1, test_loss2, test_loss3))
+        print("test acc: {}    test acc {}      test acc {}".format(test_acc1, test_acc2, test_acc3))
+        return test_loss, test_loss1, test_loss2, test_loss3, test_acc1, test_acc2, test_acc3
 
     def save(self, path, verbose=1):
         if self.MODEL != None:
@@ -272,10 +285,10 @@ class OptionsDetector(ImgGenerator):
         for img in imgs:
             Xs.append(self.normalize(img))
 
-        predicted = [[], []]
+        predicted = [[], [], []]
         if bool(Xs):
             predicted = self.MODEL.predict(np.array(Xs))
-
+	    
         regionIds = []
         for region in predicted[0]:
             regionIds.append(int(np.argmax(region)))
@@ -284,14 +297,18 @@ class OptionsDetector(ImgGenerator):
         for state in predicted[1]:
             stateIds.append(int(np.argmax(state)))
 
-        return regionIds, stateIds
+        countLines = []
+        for countL in predicted[2]:
+            countLines.append(int(np.argmax(countL)))
+
+        return regionIds, stateIds, countLines
 
     def getRegionLabels(self, indexes):
         return [self.CLASS_REGION[index] for index in indexes]
 
     def compile_train_generator(self, train_dir, target_size, batch_size=32):
         # with data augumentation
-        imageGenerator = ImgGenerator(train_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION)])
+        imageGenerator = ImgGenerator(train_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION), len(self.CLASS_COUNT_LINE)])
         print("start train build")
         imageGenerator.build_data()
         self.STEPS_PER_EPOCH = self.STEPS_PER_EPOCH or imageGenerator.n / imageGenerator.batch_size or imageGenerator.n / imageGenerator.batch_size + 1
@@ -299,7 +316,7 @@ class OptionsDetector(ImgGenerator):
         return  imageGenerator.generator()
 
     def compile_test_generator(self, test_dir, target_size, batch_size=32):
-        imageGenerator = ImgGenerator(test_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION)])
+        imageGenerator = ImgGenerator(test_dir, self.WEIGHT, self.HEIGHT, self.BATCH_SIZE, [len(self.CLASS_STATE), len(self.CLASS_REGION), len(self.CLASS_COUNT_LINE)])
         print("start test build")
         imageGenerator.build_data()
         self.VALIDATION_STEPS = self.VALIDATION_STEPS or imageGenerator.n / imageGenerator.batch_size or imageGenerator.n / imageGenerator.batch_size + 1

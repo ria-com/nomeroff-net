@@ -33,11 +33,11 @@ async function createAnnotations (options) {
               tplPath = path.join(config.template.path, config.template.annDefault),
               annTrmplate = require(tplPath);
         checkDir(imgPath);
-        checkDir(annPath);
+        checkDir(annPath,true);
 
         console.log(imgPath);
         fs.readdir(imgPath, async function(err, items) {
-                for (var i=0; i<items.length; i++) {
+                for (let i=0; i<items.length; i++) {
                         const  filename = items[i],
                                fileObj = path.parse(filename);
                         if (fileObj.ext == imgExt) {
@@ -52,6 +52,7 @@ async function createAnnotations (options) {
                                                 height: imgSize.height
                                         }
                                 });
+                                console.log(`Store ${annFile}`);
                                 await jsonStore(annFile, data);
                                 // if (data.description.length > 8) {
                                 //         console.log(`File: ${filename} [${data.description}]`);
