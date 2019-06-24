@@ -1,3 +1,14 @@
+0.3.0 / 2019-06-24
+==================
+  **training**
+  * Re-train mask-rcnn model.
+  
+  **bugfix** 
+  * Fix rounding bug in RectDetect
+  
+  **tools**
+  * Add Mask RCCN dataset tools to auto-nomer-tool
+
 0.2.3 / 2019-05-16
 ==================
   **features**
