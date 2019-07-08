@@ -104,7 +104,7 @@ async function moveChecked (options) {
 }
 
 /**
- * Поделить датасет на 2 части в заданой пропорции
+ * Поделить датасет на 2 части в заданой пропорции (перенести из заданной папки в указанную с заданной пропорцией)
  *
  * @param options
  * @example ./console.js --section=default --action=dataSplit --opt.splitRate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test
@@ -193,6 +193,58 @@ async function moveGarbage (options) {
     });
 }
 
-module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage};
+/**
+ * Склеить несколько папок в одну только для незакрашеных номеров
+ *
+ * @param options
+ * @example ./console.js --section=default --action=dataJoin --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok --opt.targetDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/target
+ */
+async function dataJoin (options) {
+    if (options.srcDir!=undefined && Array.isArray(options.srcDir)) { // --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok
+        new Error('"opt.srcJson" must be array for 2 (min) elements!')
+    }
+    const srcDir = options.srcDir,
+        targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'), // --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target
+        annExt = '.'+config.dataset.ann.ext
+    ;
+    for (let dir of srcDir) {
+        checkDirStructure(dir,[config.dataset.img.dir,config.dataset.ann.dir]);
+    }
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    let data;
+
+    for (let dir of srcDir) {
+        let annDir = path.join(dir, config.dataset.ann.dir),
+            imgDir = path.join(dir, config.dataset.img.dir),
+            Anns = [],
+            Imgs = []
+        ;
+
+        fs.readdir(annDir, async function(err, items) {
+            for (let filename of items) {
+                //console.log(`filename: ${filename}`);
+                let fileObj = path.parse(filename);
+                if (fileObj.ext == annExt) {
+                    let annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                        annFilename = path.join( annDir, annName);
+                    let data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                        imgName = `${data.name}.${config.dataset.img.ext}`
+                    ;
+                    if (data.state_id != undefined && data.state_id == 2) {
+                        Anns.push(annName);
+                        Imgs.push(imgName);
+                    }
+                }
+            }
+            console.log(`Anns: ${Anns.length}`);
+            moveDatasetFiles({srcDir:dir, targetDir, Anns, Imgs, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+        })
+    }
+}
+
+
+
+module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage,dataJoin};
 
 

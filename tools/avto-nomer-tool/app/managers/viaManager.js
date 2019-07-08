@@ -24,7 +24,9 @@ module.exports = {
             let fileIn = path.join(srcDir, dataPart._via_img_metadata[key].filename),
                 fileOut = path.join(targetDir, subDir, dataPart._via_img_metadata[key].filename)
             ;
-            fs.renameSync(fileIn, fileOut);
+            if (!fs.existsSync(fileOut)) {
+                fs.renameSync(fileIn, fileOut);
+            }
         }
         return dataPart
     },
