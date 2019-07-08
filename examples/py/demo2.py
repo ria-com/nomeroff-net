@@ -3,16 +3,12 @@ import os
 import sys
 import json
 import matplotlib.image as mpimg
-from matplotlib import pyplot as plt
-import warnings
-warnings.filterwarnings('ignore')
+import cv2
 
 # Load default configuration file.
 NOMEROFF_NET_DIR = "../../"
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
-
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
 
 sys.path.append(NOMEROFF_NET_DIR)
 
@@ -24,7 +20,7 @@ rectDetector = RectDetector()
 # Initialize npdetector with default configuration.
 nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
 # Load weights in keras format.
-nnet.loadModel(MASK_RCNN_MODEL_PATH)
+nnet.loadModel("latest")
 
 rootDir = "../images/"
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
@@ -33,12 +29,18 @@ for dirName, subdirList, fileList in os.walk(rootDir):
         img_path = os.path.join(dirName, fname)
         img = mpimg.imread(img_path)
         NP = nnet.detect([img])
-
+        
         # Generate image mask.
-        cv_img_masks = filters.cv_img_mask(NP)
-
+        cv_img_masks = filters.cv_img_mask(NP) 
+       
         res = []
         # Detect points.
         arrPoints = rectDetector.detect(cv_img_masks)
-
-        print(arrPoints)
+            
+        # draw
+        filters.draw_box(img, arrPoints, (0, 255, 0), 3)
+        
+        # show
+        cv2.imshow('image',img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
