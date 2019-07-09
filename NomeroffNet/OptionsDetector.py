@@ -21,6 +21,7 @@ from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 
+from .model_controll_manager import download_latest_model
 from .Base.ImgGenerator import ImgGenerator
 
 class OptionsDetector(ImgGenerator):
@@ -265,7 +266,17 @@ class OptionsDetector(ImgGenerator):
             return False
         return True
 
-    def load(self, path_to_model, verbose = 0):
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+
+    def load(self, path_to_model, options={}, verbose = 0):
+        if path_to_model == "latest":
+            model_info   = download_latest_model(self.get_classname(), "simple")
+            path_to_model   = model_info["path"]
+            options["class_region"] = model_info["class_region"]
+
+        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz"])
         if path_to_model.split(".")[-1] != "pb":
             self.MODEL = load_model(path_to_model)
             if verbose:

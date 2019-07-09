@@ -64,7 +64,7 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 0.2.0</p>
+                <p>Automatic numberplate recognition system. Version 0.3.1</p>
 
 
                 <h1>Introduction</h1>
@@ -99,9 +99,11 @@ NOMEROFF_NET_DIR = os.path.abspath('../')
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
 
+print(MASK_RCNN_DIR)
+
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
-OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
+MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0640_2019_06_24.h5")
+OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_06_27.h5")
 
 # If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
 mode = "cpu"
@@ -158,7 +160,7 @@ zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
 
 # find standart
 # Added a classifier (isHiddenIds) for determining the fact of hide text of number, in order not to recognize a deliberately damaged license plate image.
-regionIds, isHiddenIds = optionsDetector.predict(zones)
+regionIds, isHiddenIds, lines = optionsDetector.predict(zones)
 regionNames = optionsDetector.getRegionLabels(regionIds)
 
 # find text with postprocessing by standart
@@ -190,10 +192,11 @@ print(textArr)
                 <p>As OCR, we use a <a href="https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md">specialized implementation of a neural network with GRU layers</a>,
                 for which we have created several datasets:</p>
                 <ul>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip">AUTO.RIA Numberplate OCR UA Dataset</a></li>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip">AUTO.RIA Numberplate OCR EU Dataset</a></li>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip">AUTO.RIA Numberplate OCR RU Dataset</a></li>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip">AUTO.RIA Numberplate OCR KZ Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip">AUTO.RIA Numberplate OCR UA (Ukrainian) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip">AUTO.RIA Numberplate OCR EU (European) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip">AUTO.RIA Numberplate OCR RU (Russian) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip">AUTO.RIA Numberplate OCR KZ (Kazakh) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip">AUTO.RIA Numberplate OCR GE (Georgian) Dataset</a></li>
                 </ul>
                 <p>This gives you the opportunity to get <b>97% accuracy</b> on photos that are uploaded to <a href="https://auto.ria.com">AUTO.RIA</a> project</p>
 

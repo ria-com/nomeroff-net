@@ -24,12 +24,17 @@ from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
+from model_controll_manager import download_latest_model
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
 class OCR(TextImageGenerator):
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+
     def __init__(self):
         # Input parameters
         self.IMG_H = 64
@@ -164,7 +169,7 @@ class OCR(TextImageGenerator):
             break
         print("acc: {}".format(succ_c/(err_c+succ_c)))
 
-    def predict(self, imgs):
+    def predict(self, imgs, *argv):
         Xs = []
         for img in imgs:
             x = self.normalize(img)
@@ -177,6 +182,11 @@ class OCR(TextImageGenerator):
         return pred_texts
 
     def load(self, path_to_model, verbose = 0):
+        if path_to_model =="latest":
+            model_info = download_latest_model("TextDetector", self.get_classname())
+            path_to_model = model_info["path"]
+
+
         self.MODEL = load_model(path_to_model, compile=False)
 
         net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input

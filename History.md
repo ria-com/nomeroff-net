@@ -1,3 +1,11 @@
+0.3.1 / 2019-07-06
+==================
+  **training**
+  * Added experimental support for recognition of Georgia (ge) numbers. Recognition Accuracy 97%
+  
+  **features** 
+  * Added latest model autoloader. 
+
 0.3.0 / 2019-06-24
 ==================
   **training**

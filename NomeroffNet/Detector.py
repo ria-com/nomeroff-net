@@ -13,6 +13,8 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
+from .model_controll_manager import download_latest_model
+
 class Detector:
     def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
         if mask_rcnn_dir != None:
@@ -59,7 +61,15 @@ class Detector:
         sess_config.gpu_options.allow_growth = True
         self.sess = tf.Session(graph=graph, config=sess_config)
 
-    def loadModel(self, model_path, verbose = 0, mode="inference"):
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+
+    def loadModel(self, model_path="latest", verbose = 0, mode="inference"):
+        if model_path == "latest":
+            model_info = download_latest_model(self.get_classname(), "mrcnn")
+            model_path = model_info["path"]
+
         import mrcnn.model as modellib
         self.MODEL = modellib.MaskRCNN(mode="inference", model_dir=self.LOG_DIR, config=self.CONFIG)
         if model_path.split(".")[-1] == "pb":

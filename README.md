@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 0.2.3
+Nomeroff Net. Automatic numberplate recognition system. Version 0.3.1
 
 ## Introduction
 Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional 
@@ -24,68 +24,40 @@ them in the **./models** folder of the nomeroff-net project
 
 
 ## Hello Nomeroff Net
-
 ```python
+# Import all necessary libraries.
 import os
+import numpy as np
 import sys
 import matplotlib.image as mpimg
-import warnings
-warnings.filterwarnings('ignore')
-
 
 # change this property
-NOMEROFF_NET_DIR = os.path.abspath('../')
+NOMEROFF_NET_DIR = os.path.abspath('../../')
 
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
-
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
-OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
-
-# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
-mode = "cpu"
-OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_12-{}.h5".format(mode))
-OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.h5".format(mode))
-OCR_NP_RU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ru_3-{}.h5".format(mode))
 
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  filters, RectDetector, TextDetector,  OptionsDetector, Detector, textPostprocessing
+from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessing, textPostprocessingAsync
 
 # Initialize npdetector with default configuration file.
 nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
+nnet.loadModel("latest")
 
-# Load weights in keras format.
-nnet.loadModel(MASK_RCNN_MODEL_PATH)
-
-# Initialize rect detector with default configuration file.
 rectDetector = RectDetector()
 
-# Initialize text detector.
-# Also you may use gpu version models.
-textDetector = TextDetector({
-    "eu_ua_2004_2015": {
-        "for_regions": ["eu_ua_2015", "eu_ua_2004"],
-        "model_path": OCR_NP_UKR_TEXT
-    },
-    "eu": {
-        "for_regions": ["eu", "eu_ua_1995"],
-        "model_path": OCR_NP_EU_TEXT
-    },
-    "ru": {
-        "for_regions": ["ru"],
-        "model_path": OCR_NP_RU_TEXT
-    }
-})
-
-# Initialize train detector.
 optionsDetector = OptionsDetector()
-optionsDetector.load(OPTIONS_MODEL_PATH)
+optionsDetector.load("latest")
+
+# Initialize text detector.
+textDetector = TextDetector.get_static_module("eu")()
+textDetector.load("latest")
 
 # Detect numberplate
-img_path = 'images/example2.jpeg'
+img_path = '../images/example2.jpeg'
 img = mpimg.imread(img_path)
 NP = nnet.detect([img])
 
@@ -97,15 +69,13 @@ arrPoints = rectDetector.detect(cv_img_masks)
 zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
 
 # find standart
-# Added a classifier (isHiddenIds) for determining the fact of hide text of number, in order not to recognize a deliberately damaged license plate image.
-regionIds, isHiddenIds = optionsDetector.predict(zones)
+regionIds, stateIds, countLines = optionsDetector.predict(zones)
 regionNames = optionsDetector.getRegionLabels(regionIds)
-
-# find text with postprocessing by standart
-textArr = textDetector.predict(zones, regionNames)
+ 
+# find text with postprocessing by standart  
+textArr = textDetector.predict(zones)
 textArr = textPostprocessing(textArr, regionNames)
 print(textArr)
-#['RP70012', 'JJF509']
 ```
 
 ## Online Demo
@@ -126,10 +96,11 @@ mainly for the definition of Ukrainian numbers, for other countries it will be n
 ## AUTO.RIA Numberplate OCR Datasets
 As OCR, we use a [specialized implementation of a neural network with GRU layers](https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md),
 for which we have created several datasets:
-  * [AUTO.RIA Numberplate OCR UA Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip)
-  * [AUTO.RIA Numberplate OCR EU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
-  * [AUTO.RIA Numberplate OCR RU Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip)
-  * [AUTO.RIA Numberplate OCR KZ Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
+  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-02-19.zip)
+  * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
+  * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-03-06.zip)
+  * [AUTO.RIA Numberplate OCR KZ Dataset (Kazakh)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
+  * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
 
 This gives you the opportunity to get **97% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 

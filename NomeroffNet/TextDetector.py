@@ -4,8 +4,14 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
 
+from .model_controll_manager import download_latest_model
+
 class TextDetector():
-    def __init__(self, prisets):
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+
+    def __init__(self, prisets={}):
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
@@ -23,6 +29,7 @@ class TextDetector():
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
             TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
             detector = TextPostprocessing()
+
             if priset['model_path'].split(".")[-1] == "pb":
                 detector.load_frozen(priset['model_path'])
                 detector.predict = detector.frozen_predict
@@ -31,6 +38,9 @@ class TextDetector():
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
+
+    def get_avalible_module():
+        pass
 
     def predict(self, zones, labels=None, lines=None, frozen=False):
         if labels is None:
@@ -67,6 +77,10 @@ class TextDetector():
             orderAll = orderAll + predicted[key]["order"]
 
         return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])]
+
+    @staticmethod
+    def get_static_module(name):
+        return getattr(getattr(TextDetectors, name), name)
 
     def get_module(self, name):
         ind = self.detectors_names.index(name)
