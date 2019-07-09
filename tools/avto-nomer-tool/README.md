@@ -40,6 +40,14 @@ npm install
 ./console.js --section=default --action=dataSplit --opt.splitRate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test  
 ```
 
+#### Склеить 2 датасета в один
+Перед разделением данные будут рамдомно перемешаны
+```bash
+./console.js --section=default --action=dataJoin --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok     --opt.targetDir=--opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/target  
+```
+
+
+
 
 #### Поделить датасет для Mask RCNN на 2 части в заданой пропорции
 ```bash
