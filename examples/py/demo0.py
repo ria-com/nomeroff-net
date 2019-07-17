@@ -5,7 +5,7 @@ import sys
 import matplotlib.image as mpimg
 
 # change this property
-NOMEROFF_NET_DIR = os.path.abspath('../../')
+NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
 
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
@@ -30,7 +30,9 @@ textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
 # Detect numberplate
-img_path = '../images/example2.jpeg'
+print("START RECOGNIZING")
+img_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/example2.jpeg')
+
 img = mpimg.imread(img_path)
 NP = nnet.detect([img])
 

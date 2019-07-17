@@ -573,8 +573,8 @@ class RectDetector(object):
 
         if d1 > d2:
             d1, d2 = d2, d1
-        print(d2/d1)
-        print(angle)
+        #print(d2/d1)
+        #print(angle)
         if (d2/d1) <= coef:
             return True
         return False
