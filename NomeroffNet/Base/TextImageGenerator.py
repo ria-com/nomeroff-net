@@ -19,7 +19,7 @@ class TextImageGenerator:
                  cname=""):
 
         self.CNAME = cname
-        print(self.CNAME)
+        #print(self.CNAME)
         self.img_h = img_h
         self.img_w = img_w
         self.batch_size = batch_size

@@ -7,7 +7,8 @@ import json
 import matplotlib.image as mpimg
 
 # change this property
-NOMEROFF_NET_DIR = os.path.abspath('../../')
+NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
+print(NOMEROFF_NET_DIR)
 
 # specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
@@ -17,6 +18,8 @@ sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
 from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessing, textPostprocessingAsync
+
+print("LOADING MODELS...")
 
 # Initialize npdetector with default configuration file.
 nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
@@ -52,7 +55,9 @@ textDetector = TextDetector({
 })
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-rootDir = '../images/'
+print("START RECOGNIZING")
+rootDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/')
+
 max_img_w = 1600
 for dirName, subdirList, fileList in os.walk(rootDir):
     for fname in fileList:
@@ -75,16 +80,16 @@ for dirName, subdirList, fileList in os.walk(rootDir):
         NP = nnet.detect([resized_img]) 
         
         # Generate image mask.
-        cv_img_masks = await filters.cv_img_mask_async(NP)
+        cv_img_masks = filters.cv_img_mask(NP)
             
         # Detect points.
-        arrPoints = await rectDetector.detectAsync(cv_img_masks, outboundHeightOffset=0, fixGeometry=True, fixRectangleAngle=10)
+        arrPoints = rectDetector.detect(cv_img_masks, outboundHeightOffset=0, fixGeometry=True, fixRectangleAngle=10)
         print(arrPoints)
         arrPoints[..., 1:2] = arrPoints[..., 1:2]*img_h_r
         arrPoints[..., 0:1] = arrPoints[..., 0:1]*img_w_r
         
         # cut zones
-        zones = await rectDetector.get_cv_zonesBGR_async(img, arrPoints)
+        zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
     
         # find standart
         regionIds, stateIds, countLines = optionsDetector.predict(zones)
@@ -94,5 +99,5 @@ for dirName, subdirList, fileList in os.walk(rootDir):
 
         # find text with postprocessing by standart  
         textArr = textDetector.predict(zones, regionNames, countLines)
-        textArr = await textPostprocessingAsync(textArr, regionNames)
+        textArr = textPostprocessing(textArr, regionNames)
         print(textArr)

@@ -6,7 +6,7 @@ import matplotlib.image as mpimg
 import cv2
 
 # Load default configuration file.
-NOMEROFF_NET_DIR = "../../"
+NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
 
@@ -22,7 +22,9 @@ nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
 # Load weights in keras format.
 nnet.loadModel("latest")
 
-rootDir = "../images/"
+print("START RECOGNIZING")
+rootDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/')
+
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
 for dirName, subdirList, fileList in os.walk(rootDir):
     for fname in fileList:

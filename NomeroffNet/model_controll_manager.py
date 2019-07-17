@@ -7,7 +7,8 @@ import pathlib
 
 # load latest paths
 dirpath = os.getcwd()
-with open(os.path.join(dirpath, "../models/latest.json")) as jLatest:
+
+with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models/latest.json")) as jLatest:
     latest_models = json.load(jLatest)
 
 def load_last_models():
@@ -38,7 +39,7 @@ def download_url(url, output_path):
 
 def download_latest_model(detector, model_name, ext="h5", mode = device_mode):
     info = latest_models[detector][model_name][ext]
-    info["path"] = os.path.join(dirpath, "../models", detector, model_name, os.path.basename(info[mode]))
+    info["path"] = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models", detector, model_name, os.path.basename(info[mode]))
 
     p = pathlib.Path(os.path.dirname(info["path"]))
     p.mkdir(parents=True, exist_ok=True)
