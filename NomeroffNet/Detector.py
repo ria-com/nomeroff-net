@@ -13,7 +13,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
-from .model_controll_manager import download_latest_model
+from .mcm.mcm import download_latest_model
 
 class Detector:
     def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):

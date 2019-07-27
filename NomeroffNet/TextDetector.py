@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
 
-from .model_controll_manager import download_latest_model
+from .mcm.mcm import download_latest_model
 
 class TextDetector():
     @classmethod
