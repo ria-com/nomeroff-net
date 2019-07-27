@@ -1,4 +1,4 @@
-Cython==0.29.13
+Cython==0.28.5
 matplotlib
 setuptools
 numpy
