@@ -82,6 +82,11 @@ class TextImageGenerator:
         for i, (img_filepath, text) in enumerate(self.samples):
             img = cv2.imread(img_filepath)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+            # CLAHE
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+            img = clahe.apply(img)
+
             img = cv2.resize(img, (self.img_w, self.img_h))
             img = img.astype(np.float32)
             img -= np.amin(img)
@@ -98,6 +103,11 @@ class TextImageGenerator:
                 img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 img = imgs[0]
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+                # CLAHE
+                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+                img = clahe.apply(img)
+
                 img = cv2.resize(img, (self.img_w, self.img_h))
                 img = img.astype(np.float32)
                 img -= np.amin(img)
@@ -115,6 +125,11 @@ class TextImageGenerator:
     def normalize(self, img):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = cv2.resize(img, (self.IMG_W, self.IMG_H))
+
+        # CLAHE
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+        img = clahe.apply(img)
+
         img = img.astype(np.float32)
         img -= np.amin(img)
         img /= np.amax(img)

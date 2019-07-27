@@ -21,7 +21,7 @@ from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 
-from .model_controll_manager import download_latest_model
+from .mcm.mcm import download_latest_model
 from .Base.ImgGenerator import ImgGenerator
 
 class OptionsDetector(ImgGenerator):

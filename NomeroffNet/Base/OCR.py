@@ -24,7 +24,7 @@ from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
 
 from .TextImageGenerator import TextImageGenerator
-from model_controll_manager import download_latest_model
+from NomeroffNet.mcm.mcm import download_latest_model
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
