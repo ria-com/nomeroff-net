@@ -1,8 +1,10 @@
+Cython
 cython
+matplotlib
+setuptools
 numpy
 Keras
 imgaug
-matplotlib
 tensorflow
 opencv_python
 imutils
