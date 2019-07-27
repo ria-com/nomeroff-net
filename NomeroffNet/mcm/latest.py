@@ -1,4 +1,4 @@
-{
+latest_models = {
   "Detector": {
     "mrcnn": {
       "h5": {

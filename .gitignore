@@ -7,6 +7,7 @@ samples/logs/*
 perl/*
 cofig/*.json
 source/*
+./.pypirc
 
 datasets/ocr/*
 datasets/region/*
