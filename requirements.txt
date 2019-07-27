@@ -1,6 +1,6 @@
+Cython
 numpy>=1.15.1
 Keras>=2.2.4
-Cython
 pycocotools>=2.0.0
 imgaug
 matplotlib>=3.0.0
