@@ -1,17 +1,15 @@
-import json
 import os
 from tensorflow.python.client import device_lib
 import urllib.request
 from tqdm import tqdm
 import pathlib
+from .latest import latest_models
 
 # load latest paths
 dirpath = os.getcwd()
 
-with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./latest.json")) as jLatest:
-    latest_models = json.load(jLatest)
 
-def load_last_models():
+def show_last_models():
     print(latest_models)
 
 def get_mode():

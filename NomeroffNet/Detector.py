@@ -8,6 +8,7 @@ from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 import keras
+import git
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
@@ -16,35 +17,35 @@ session = tf.Session(config=config)
 from .mcm.mcm import download_latest_model
 
 class Detector:
-    def __init__(self, mask_rcnn_dir, log_dir, mask_rcnn_config = None):
-        if mask_rcnn_dir != None:
-            self.MASK_RCNN_DIR = mask_rcnn_dir
-            self.LOG_DIR = log_dir
+    def download_mrcnn():
+        import git
+        git.Git("/your/directory/to/clone").clone("git://gitorious.org/git-python/mainline.git")
 
-            DEFAULT_MASK_RCNN_CONFIG = {
-              "NAME": "numberplate",
-              "GPU_COUNT": 1,
-              "IMAGES_PER_GPU": 1,
-              "NUM_CLASSES": 2,
-              "DETECTION_MIN_CONFIDENCE": 0.7,
-              "IMAGE_MAX_DIM": 1024, # work ?
-              "IMAGE_RESIZE_MODE": "square" # work ?
-            }
-            self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
+    def __init__(self, mask_rcnn_dir=None, log_dir="./logs/", mask_rcnn_config = None):
+        self.MASK_RCNN_DIR = mask_rcnn_dir
+        self.LOG_DIR = log_dir
+
+        DEFAULT_MASK_RCNN_CONFIG = {
+          "NAME": "numberplate",
+          "GPU_COUNT": 1,
+          "IMAGES_PER_GPU": 1,
+          "NUM_CLASSES": 2,
+          "DETECTION_MIN_CONFIDENCE": 0.7,
+          "IMAGE_MAX_DIM": 1024, # work ?
+          "IMAGE_RESIZE_MODE": "square" # work ?
+        }
+        self.NN_MASK_RCNN_CONFIG = mask_rcnn_config or DEFAULT_MASK_RCNN_CONFIG
+        if not mask_rcnn_dir is None:
             sys.path.append(mask_rcnn_dir)
 
-            from .nnmrcnn import InferenceConfig
-            self.CONFIG = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
+        from .nnmrcnn import InferenceConfig
+        self.CONFIG = InferenceConfig(self.NN_MASK_RCNN_CONFIG)
 
-            # for frozen graph
-            self.INPUT_NODES = ("input_image:0", "input_image_meta:0", "input_anchors:0") # 3 elem
+        # for frozen graph
+        self.INPUT_NODES = ("input_image:0", "input_image_meta:0", "input_anchors:0") # 3 elem
 
-            self.OUTPUT_NODES = ("mrcnn_detection/Reshape_1:0", "mrcnn_class/Reshape_1:0", "mrcnn_bbox/Reshape:0", "mrcnn_mask/Reshape_1:0",
-                                 "ROI/packed_2:0", "rpn_class/concat:0", "rpn_bbox/concat:0") # 7 elem
-
-             #from mrcnn import visualize
-             #self.visualize = visualize
-
+        self.OUTPUT_NODES = ("mrcnn_detection/Reshape_1:0", "mrcnn_class/Reshape_1:0", "mrcnn_bbox/Reshape:0", "mrcnn_mask/Reshape_1:0",
+                             "ROI/packed_2:0", "rpn_class/concat:0", "rpn_bbox/concat:0") # 7 elem
 
     def loadFrozenModel(self, FROZEN_MODEL_PATH):
         graph_def = tf.GraphDef()
