@@ -1,5 +1,4 @@
 cython
-git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI
 numpy
 Keras
 imgaug
@@ -11,3 +10,4 @@ scikit_image
 jupyter
 asyncio
 GitPython
+git+https://github.com/philferriere/cocoapi.git#egg=pycocotools&subdirectory=PythonAPI
