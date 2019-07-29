@@ -3,7 +3,6 @@ from tensorflow.python.framework import graph_io
 from tensorflow.python.tools import freeze_graph
 from tensorflow.core.protobuf import saver_pb2
 from tensorflow.python.training import saver as saver_lib
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
 from keras import backend as K
 
 def convert_keras_to_freeze_pb(model, frozen_model_path):
