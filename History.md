@@ -1,3 +1,13 @@
+0.3.5 / 2019-07-06
+==================
+  **model control manager**
+  * pip3 install nomeroff-net 
+
+0.3.3 / 2019-07-06
+==================
+  **model control manager**
+  * Added mcm to NomeroffNet 
+
 0.3.1 / 2019-07-06
 ==================
   **training**

@@ -6,7 +6,7 @@ import cv2
 import matplotlib.image as mpimg
 
 # Load default configuration file.
-NOMEROFF_NET_DIR = "../../"
+NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
 MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
 MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
 
@@ -22,7 +22,8 @@ nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
 nnet.loadModel("latest")
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-rootDir = '../images/'
+print("START RECOGNIZING")
+rootDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/')
 
 for dirName, subdirList, fileList in os.walk(rootDir):
     for fname in fileList:
