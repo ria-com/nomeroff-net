@@ -32,6 +32,15 @@ pip3 install -r requirements.txt
 Download the [latest models](https://nomeroff.net.ua/models/) that are required for your neural network to work and place 
 them in the **./models** folder of the nomeroff-net project
 
+### Windows
+On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from [here](https://go.microsoft.com/fwlink/?LinkId=691126):
+
+<img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
+
+Then, run `visualcppbuildtools_full.exe` and select default options:
+
+<img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
+
 
 ## Hello Nomeroff Net
 ```python
