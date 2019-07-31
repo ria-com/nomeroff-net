@@ -11,7 +11,7 @@ The project is now at the initial stage of development, write to us if you are i
 ## Installation
 
 ### Installation in pip
-To install nomeroff-net in pip, use
+To install cpu version nomeroff-net in pip, use
 
 ```bash
 pip3 install git+https://github.com/matterport/Mask_RCNN
@@ -31,6 +31,15 @@ pip3 install -r requirements.txt
 
 Download the [latest models](https://nomeroff.net.ua/models/) that are required for your neural network to work and place 
 them in the **./models** folder of the nomeroff-net project
+
+### Windows
+On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from [here](https://go.microsoft.com/fwlink/?LinkId=691126):
+
+<img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
+
+Then, run `visualcppbuildtools_full.exe` and select default options:
+
+<img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
 
 ## Hello Nomeroff Net
@@ -86,6 +95,7 @@ regionNames = optionsDetector.getRegionLabels(regionIds)
 textArr = textDetector.predict(zones)
 textArr = textPostprocessing(textArr, regionNames)
 print(textArr)
+# ['JJF509', 'RP70012']
 ```
 
 ## Online Demo
@@ -112,7 +122,7 @@ for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR KZ Dataset (Kazakh)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
   * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
 
-This gives you the opportunity to get **97% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
+This gives you the opportunity to get **98% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 
 ## Road map
 For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:

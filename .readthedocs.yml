@@ -1,0 +1,24 @@
+channels:
+  - conda-forge
+  - bioconda
+  - r
+  - jkroes
+dependencies:
+  - cython
+  - python=3.6
+  - numpy
+  - pandas
+  - pip:
+      - matplotlib
+      - setuptools
+      - numpy
+      - Keras
+      - imgaug
+      - tensorflow
+      - opencv_python
+      - imutils
+      - scikit_image
+      - jupyter
+      - asyncio
+      - GitPython
+      - pycocotools
