@@ -11,7 +11,7 @@ class TextDetector():
     def get_classname(cls):
         return cls.__name__
 
-    def __init__(self, prisets={}):
+    def __init__(self, prisets={}, mode="cpu"):
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
@@ -31,10 +31,10 @@ class TextDetector():
             detector = TextPostprocessing()
 
             if priset['model_path'].split(".")[-1] == "pb":
-                detector.load_frozen(priset['model_path'])
+                detector.load_frozen(priset['model_path'], mode)
                 detector.predict = detector.frozen_predict
             else:
-                detector.load(priset['model_path'])
+                detector.load(priset['model_path'], mode)
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1

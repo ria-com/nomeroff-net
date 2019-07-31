@@ -181,9 +181,9 @@ class OCR(TextImageGenerator):
             pred_texts = self.decode_batch(net_out_value)
         return pred_texts
 
-    def load(self, path_to_model, verbose = 0):
+    def load(self, path_to_model, mode="cpu", verbose = 0):
         if path_to_model =="latest":
-            model_info = download_latest_model("TextDetector", self.get_classname())
+            model_info = download_latest_model("TextDetector", self.get_classname(), mode=mode)
             path_to_model = model_info["path"]
 
 
@@ -307,7 +307,7 @@ class OCR(TextImageGenerator):
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
 
-    def load_frozen(self, FROZEN_MODEL_PATH):
+    def load_frozen(self, FROZEN_MODEL_PATH, mode="cpu"):
         graph_def = tf.GraphDef()
         with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
             graph_def.ParseFromString(f.read())
