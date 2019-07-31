@@ -107,7 +107,7 @@ async function moveChecked (options) {
  * Поделить датасет на 2 части в заданой пропорции (перенести из заданной папки в указанную с заданной пропорцией)
  *
  * @param options
- * @example ./console.js --section=default --action=dataSplit --opt.splitRate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test
+ * @example ./console.js --section=default --action=dataSplit --opt.rate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test
  *          use opt.test=1 if you want emulate split process
  */
 async function dataSplit (options) {
