@@ -32,7 +32,7 @@ latest_models = {
     "eu_ua_2004_2015": {
       "h5": {
         "gpu": "https://nomeroff.net.ua/models/ocr/ua/anpr_ocr_ua_17-gpu.h5",
-        "cpu": "https://nomeroff.net.ua/models/ocr/ua/anpr_ocr_ua_12-cpu.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua/anpr_ocr_ua_17-cpu.h5"
       }
     },
     "eu": {
