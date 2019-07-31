@@ -35,6 +35,12 @@ latest_models = {
         "cpu": "https://nomeroff.net.ua/models/ocr/ua/anpr_ocr_ua_17-cpu.h5"
       }
     },
+    "eu_ua_1995": {
+      "h5": {
+        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/anpr_ocr_ua-1995_2-gpu.h5",
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/anpr_ocr_ua-1995_2-cpu.h5"
+      }
+    },
     "eu": {
       "h5": {
         "cpu": "https://nomeroff.net.ua/models/ocr/eu/anpr_ocr_eu_2-cpu.h5",
