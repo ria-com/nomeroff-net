@@ -50,6 +50,8 @@ def download_url(url, output_path):
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 def download_latest_model(detector, model_name, ext="h5", mode = device_mode):
+    if mode != "cpu" and mode != "gpu":
+	mode = device_mode
     info = latest_models[detector][model_name][ext]
     info["path"] = os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models", detector, model_name, os.path.basename(info[mode]))
 
