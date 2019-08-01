@@ -11,7 +11,7 @@ class TextDetector():
     def get_classname(cls):
         return cls.__name__
 
-    def __init__(self, prisets={}, mode="cpu"):
+    def __init__(self, prisets={}, mode="auto"):
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
