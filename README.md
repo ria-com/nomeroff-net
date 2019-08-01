@@ -18,6 +18,12 @@ pip3 install git+https://github.com/matterport/Mask_RCNN
 pip3 install nomeroff-net
 ```
 
+To install gpu version nomeroff-net in pip, use
+```bash
+pip3 install git+https://github.com/matterport/Mask_RCNN
+pip3 install nomeroff-net-gpu
+```
+
 ### Installation from Source
 Nomeroff Net requires last version of [Mask_RCNN](https://github.com/matterport/Mask_RCNN),  
 Python 3.5, 3.6 or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
