@@ -8,6 +8,8 @@ neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) archi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
+<img width="700px" height="700px" style="display: flex" src="https://nomeroff.net.ua/images/habr/example.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
+
 ## Installation
 
 ### Installation in pip
