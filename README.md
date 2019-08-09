@@ -8,8 +8,6 @@ neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) archi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-<img width="700px" height="700px" style="display: flex" src="https://nomeroff.net.ua/images/habr/example.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
 ## Installation
 
 ### Installation in pip
@@ -99,6 +97,7 @@ textArr = textPostprocessing(textArr, regionNames)
 print(textArr)
 # ['JJF509', 'RP70012']
 ```
+<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo0.ipynb">Hello Jupyter Nomeroff Net</a>
 
 ## Online Demo
 In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the [recognition result online](https://nomeroff.net.ua/onlinedemo.html)
@@ -108,12 +107,19 @@ All data on the basis of which the training was conducted is provided by RIA.com
 
 We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using [VGG Image Annotator (VIA)](http://www.robots.ox.ac.uk/~vgg/software/via/)
 
+Nomeroff-Net Mask-RCNN Example:
+<img src="https://nomeroff.net.ua/images/nn/mrcnn_example.png" alt="Nomeroff-Net Mask-RCNN Example"/>
+<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo1.ipynb">Mask detection example</a>
+<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo2.ipynb">Key points detection example</a>
+
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
 [AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2019-05-15.zip).
 
 The categorizer accurately **(99%)** determines the country and the type of license plate. Please note that now the classifier is configured
 mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.
+
+<img src="https://nomeroff.net.ua/images/nn/clfctr_example.png" alt="Nomeroff-Net OCR Example"/>
 
 ## AUTO.RIA Numberplate OCR Datasets
 As OCR, we use a [specialized implementation of a neural network with GRU layers](https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md),
@@ -125,6 +131,9 @@ for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
 
 This gives you the opportunity to get **98% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
+
+<img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
+<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Number plate recognition example</a>
 
 ## Road map
 For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:
