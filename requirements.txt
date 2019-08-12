@@ -12,3 +12,4 @@ jupyter
 asyncio
 GitPython
 pycocotools
+tqdm
