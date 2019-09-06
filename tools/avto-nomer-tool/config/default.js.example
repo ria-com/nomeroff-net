@@ -13,5 +13,9 @@ module.exports = {
         baseDir: `${__dirname}/../../../dataset/ocr/kz`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
+    },
+    via: {
+        partDirs: ['train', 'val']
     }
+
 };
