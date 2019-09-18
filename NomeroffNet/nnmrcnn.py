@@ -23,7 +23,7 @@ class InferenceConfig(Config):
 #  Dataset
 ############################################################
 class Dataset(utils.Dataset):
-    def load_numberplate(self, subset, config):
+    def load_numberplate(self, subset, config, class_attribute_name):
         """
                 Load a subset of the Numberplate dataset.
                 dataset_dir: Root directory of the dataset.
@@ -71,15 +71,6 @@ class Dataset(utils.Dataset):
 
         # Add images
         for a in annotations:
-            # Get the x, y coordinaets of points of the polygons that make up
-            # the outline of each object instance. These are stores in the
-            # shape_attributes (see json format above)
-            # The if condition is needed to support VIA versions 1.x and 2.x.
-            if type(a['regions']) is dict:
-                polygons = [r['shape_attributes'] for r in a['regions'].values()]
-            else:
-                polygons = [r['shape_attributes'] for r in a['regions']]
-
             # load_mask() needs the image size to convert polygons to masks.
             # Unfortunately, VIA doesn't include it in JSON, so we must read
             # the image. This is only managable since the dataset is tiny.
@@ -87,12 +78,22 @@ class Dataset(utils.Dataset):
             image = skimage.io.imread(image_path)
             height, width = image.shape[:2]
 
-            self.add_image(
-                "numberplate",
-                image_id=a['filename'],  # use file name as a unique image id
-                path=image_path,
-                width=width, height=height,
-                polygons=polygons)
+            for i_class, class_name in enumerate(config.CLASS_NAMES):
+                # Get the x, y coordinaets of points of the polygons that make up
+                # the outline of each object instance. These are stores in the
+                # shape_attributes (see json format above)
+                # The if condition is needed to support VIA versions 1.x and 2.x.
+                if type(a['regions']) is dict:
+                    polygons = [r['shape_attributes'] for r in a['regions'].values() if r["region_attributes"][class_attribute_name or "classname"] || i == 1]
+                else:
+                    polygons = [r['shape_attributes'] for r in a['regions'] if r["region_attributes"][class_attribute_name or "classname"] || i == 1]
+
+                self.add_image(
+                    class_name,
+                    image_id=a['filename'],  # use file name as a unique image id
+                    path=image_path,
+                    width=width, height=height,
+                    polygons=polygons)
 
     def load_mask(self, image_id):
         """Generate instance masks for an image.
