@@ -26,6 +26,8 @@ from keras.layers.recurrent import GRU as GRUcpu
 from .TextImageGenerator import TextImageGenerator
 from NomeroffNet.mcm.mcm import download_latest_model
 
+import time
+
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
@@ -143,6 +145,7 @@ class OCR(TextImageGenerator):
     def test(self, verbose=1):
         if verbose:
             print("\nRUN TEST")
+            start_time = time.time()
         net_inp = self.MODEL.get_layer(name='the_input_{}'.format(type(self).__name__)).input
         net_out = self.MODEL.get_layer(name='softmax_{}'.format(type(self).__name__)).output
 
@@ -167,6 +170,8 @@ class OCR(TextImageGenerator):
                 else:
                     succ_c += 1
             break
+        if verbose:
+            print("Test processing time: {} seconds".format(time.time() - start_time))
         print("acc: {}".format(succ_c/(err_c+succ_c)))
 
     def predict(self, imgs, *argv):

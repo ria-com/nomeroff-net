@@ -49,8 +49,8 @@ latest_models = {
     },
     "ru": {
       "h5": {
-        "cpu": "https://nomeroff.net.ua/models/ocr/ru/anpr_ocr_ru_3-cpu.h5",
-        "gpu": "https://nomeroff.net.ua/models/ocr/ru/anpr_ocr_ru_3-gpu.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/ru/anpr_ocr_ru_6-cpu.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/ru/anpr_ocr_ru_6-gpu.h5"
       }
     },
     "kz": {
