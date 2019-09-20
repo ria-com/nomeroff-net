@@ -84,9 +84,9 @@ class Dataset(utils.Dataset):
                 # shape_attributes (see json format above)
                 # The if condition is needed to support VIA versions 1.x and 2.x.
                 if type(a['regions']) is dict:
-                    polygons = [r['shape_attributes'] for r in a['regions'].values() if r["region_attributes"][class_attribute_name or "classname"] || i == 1]
+                    polygons = [r['shape_attributes'] for r in a['regions'].values() if r["region_attributes"][class_attribute_name or "classname"] == class_name or 1 == i_class]
                 else:
-                    polygons = [r['shape_attributes'] for r in a['regions'] if r["region_attributes"][class_attribute_name or "classname"] || i == 1]
+                    polygons = [r['shape_attributes'] for r in a['regions'] if r["region_attributes"][class_attribute_name or "classname"] == class_name or i == i_class]
 
                 self.add_image(
                     class_name,
