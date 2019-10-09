@@ -9,21 +9,25 @@ module.exports = {
         // console.log('keys-----------------------------');
         // console.log(keys);
         for (let item of keys) {
-            let file =  path.join(srcDir, item);
+            let file =  path.join(srcDir, data._via_img_metadata[item].filename);
+            //console.log(file);
             if (fs.existsSync(file)) {
                 dataPart._via_img_metadata[item] = data._via_img_metadata[item]
             } else {
                 new Error(`File "${item}" is not exists!`)
             }
         }
+        console.log(dataPart);
         return dataPart
     },
 
     moveViaPart(dataPart, srcDir, targetDir, subDir) {
+        //console.log(`Start moving ${targetDir}`);
         for (let key in dataPart._via_img_metadata) {
             let fileIn = path.join(srcDir, dataPart._via_img_metadata[key].filename),
                 fileOut = path.join(targetDir, subDir, dataPart._via_img_metadata[key].filename)
             ;
+            //console.log(`fileIn: ${fileIn}\nfileOut: ${fileOut}`);
             if (!fs.existsSync(fileOut)) {
                 fs.renameSync(fileIn, fileOut);
             }

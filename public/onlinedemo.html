@@ -13,6 +13,7 @@
     <!-- BootstrapCDN -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 
     <!-- Custom styles for this template -->
     <style>
@@ -188,6 +189,12 @@
         reader.readAsDataURL(file);
         //$('body').append(img)
         img.onload = function(){
+            var orientation = 1;
+            console.log("EXIFF analize on!");
+            EXIF.getData(img, function() {
+                orientation = EXIF.getTag(this, "Orientation");
+                console.log("Orientation:" + orientation);
+            });
             grecaptcha.execute('6LdvT4sUAAAAAHNJBxV3AXDIVrcFJOoXQt4KE7kq', { action: 'processingPhoto' } )
                 .then(function(token) {
                     form_data.append('token', token);
@@ -209,11 +216,90 @@
                             if (res.error_id == 0) {
                                 var scaleWidth  = res.numberplateData.width/740,
                                     scaleHeight = res.numberplateData.height/555,
-                                    offset = 10;
-                                scale = (scaleWidth> scaleHeight)?scaleWidth:scaleHeight;
+                                    offset = 10,
+                                    scale = (scaleWidth> scaleHeight)?scaleWidth:scaleHeight;
+                                ;
+                                c.width=760 ;
+                                c.height=575;
+                                console.log(`scale: ${scale}, scaleWidth: ${scaleWidth}, scaleHeight: ${scaleHeight}`);
 
-                                ctx.clearRect(0, 0, c.width, c.height);
-                                ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
+
+                                if (!orientation || orientation > 8 || orientation === 1) {
+                                    ctx.clearRect(0, 0, c.width, c.height);
+                                    ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
+                                } else {
+                                        switch (orientation) {
+                                            case 2:
+                                                // // horizontal flip
+                                                // ctx.translate(width, 0)
+                                                // ctx.scale(-1, 1)
+                                                ctx.save();
+                                                console.log("Oriemtation 2 is not support!");
+                                                break
+                                            case 3:
+                                                // // 180° rotate left
+                                                // ctx.translate(width, height)
+                                                // ctx.rotate(Math.PI)
+                                                ctx.save();
+                                                ctx.translate(res.numberplateData.width/scale+offset*2,res.numberplateData.height/scale+offset*2);
+                                                ctx.rotate(Math.PI);
+                                                ctx.clearRect(0, 0, c.width, c.height);
+                                                ctx.drawImage(img,offset,offset,res.numberplateData.width/scale,res.numberplateData.height/scale);
+                                                break
+                                            case 4:
+                                                // // vertical flip
+                                                // ctx.translate(0, height)
+                                                // ctx.scale(1, -1)
+                                                ctx.save();
+                                                console.log("Oriemtation 4 is not support!");
+                                                break
+                                            case 5:
+                                                // // vertical flip + 90 rotate right
+                                                // ctx.rotate(0.5 * Math.PI)
+                                                // ctx.scale(1, -1)
+                                                ctx.save();
+                                                console.log("Oriemtation 5 is not support!");
+                                                break
+                                            case 6:
+                                                // // 90° rotate right
+                                                // ctx.rotate(0.5 * Math.PI)
+                                                // ctx.translate(0, -height)
+                                                scaleWidth  = res.numberplateData.width/555;
+                                                scaleHeight = res.numberplateData.height/740;
+                                                scale = (scaleWidth < scaleHeight)?scaleWidth:scaleHeight;
+                                                [c.width, c.height] = [c.height, c.width];
+                                                ctx.save();
+                                                ctx.rotate(0.5 * Math.PI);
+                                                ctx.translate(0, -c.width);
+                                                ctx.clearRect(0, 0, c.width, c.height);
+                                                ctx.drawImage(img,offset,offset,res.numberplateData.height/scale,res.numberplateData.width/scale);
+                                                break
+                                            case 7:
+                                                // // horizontal flip + 90 rotate right
+                                                // ctx.rotate(0.5 * Math.PI)
+                                                // ctx.translate(width, -height)
+                                                // ctx.scale(-1, 1)
+                                                ctx.save();
+                                                console.log("Oriemtation 7 is not support!");
+                                                break
+                                            case 8:
+                                                // // 90° rotate left
+                                                // ctx.rotate(-0.5 * Math.PI)
+                                                // ctx.translate(-width, 0)
+                                                scaleWidth  = res.numberplateData.width/555;
+                                                scaleHeight = res.numberplateData.height/740;
+                                                scale = (scaleWidth < scaleHeight)?scaleWidth:scaleHeight;
+                                                [c.width, c.height] = [c.height, c.width];
+                                                ctx.save();
+                                                ctx.rotate(-0.5 * Math.PI);
+                                                ctx.translate(-c.height,0);
+                                                ctx.clearRect(0, 0, c.width, c.height);
+                                                ctx.drawImage(img,offset,offset,res.numberplateData.height/scale,res.numberplateData.width/scale);
+                                                break
+                                    }
+                                    ctx.restore();
+                                }
+
                                 var detectedTime = res.numberplateData.time;
                                 var detectedNumberplates = [];
                                 for (var car of res.numberplateData.image.cars) {
