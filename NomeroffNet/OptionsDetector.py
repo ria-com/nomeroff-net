@@ -36,10 +36,10 @@ class OptionsDetector(ImgGenerator):
         self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz", "eu-ua-fake-dnr", "eu-ua-fake-lnr"])
 
         # outputs 2
-        self.CLASS_STATE = options.get("class_state", ["BACKGROUND", "FILLED", "NOT_FILLED"])
+        self.CLASS_STATE = options.get("class_state", ["garbage", "filled", "not filled", "empty"])
 
         # outputs 3
-        self.CLASS_COUNT_LINE = options.get("class_count_line", ["0", "1", "2"])
+        self.CLASS_COUNT_LINE = options.get("class_count_line", ["0", "1", "2", "3"])
 
         # model
         self.MODEL = None
@@ -276,7 +276,7 @@ class OptionsDetector(ImgGenerator):
             path_to_model   = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-fake-dnr", "eu-ua-fake-lnr", "ge"])
         if path_to_model.split(".")[-1] != "pb":
             self.MODEL = load_model(path_to_model)
             if verbose:
@@ -306,6 +306,7 @@ class OptionsDetector(ImgGenerator):
 
         stateIds = []
         for state in predicted[1]:
+            print(state)
             stateIds.append(int(np.argmax(state)))
 
         countLines = []

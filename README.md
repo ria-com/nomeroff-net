@@ -3,7 +3,7 @@
 Nomeroff Net. Automatic numberplate recognition system. Version 0.3.1
 
 ## Introduction
-Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional 
+Nomeroff Net is an opensource python license plate recognition framework based on the application of a convolutional 
 neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) architecture, and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.

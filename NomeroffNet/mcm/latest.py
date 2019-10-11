@@ -2,8 +2,8 @@ latest_models = {
   "Detector": {
     "mrcnn": {
       "h5": {
-        "gpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_0640_2019_06_24.h5",
-        "cpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_0640_2019_06_24.h5"
+        "gpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_1000_2019_10_07.h5",
+        "cpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_1000_2019_10_07.h5"
       }
     }
   },
@@ -23,8 +23,8 @@ latest_models = {
           "eu-ua-fake-lnr",
           "ge"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/0.3.x/numberplate_options_2019_06_27.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/0.3.x/numberplate_options_2019_06_27.h5"
+        "gpu": "https://nomeroff.net.ua/models/options/0.3.x/numberplate_options_2019_10_07.h5",
+        "cpu": "https://nomeroff.net.ua/models/options/0.3.x/numberplate_options_2019_10_07.h5"
       }
     }
   },
