@@ -34,7 +34,7 @@ git clone https://github.com/ria-com/nomeroff-net.git
 cd nomeroff-net
 ```
 
-##### For Centos, Fedora and other RedHat like
+##### For Centos, Fedora and other RedHat-like OS:
 ```bash
 # for Opencv
 yum install libSM
@@ -46,7 +46,7 @@ yum install python3-devel
 yum install gcc
 ```
 
-##### For Ubuntu and other Debian like
+##### For Ubuntu and other Debian-like OS:
 ```bash
 # ensure that you have installed gcc compiler
 apt-get install gcc
@@ -57,8 +57,8 @@ apt-get install -y libsm6
 apt-get install -y libfontconfig1 libxrender1
 apt-get install -y libxtst6
 
-# for pycocotools install 
-apt-get install python3-dev
+# for pycocotools install (Check the name of the dev-package for your python3)
+apt-get install python3.6-dev
 ```
 
 ##### install python requirments
