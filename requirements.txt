@@ -1,10 +1,10 @@
 cython
 matplotlib
 setuptools
-numpy
-Keras
+numpy==1.17.*
+Keras==2.2.*
 imgaug
-tensorflow
+tensorflow==1.15
 opencv_python
 imutils
 scikit_image

@@ -45,7 +45,7 @@ async function split (options) {
         let dataPart = prepareViaPart(data, partKeys[key], srcDir);
         //console.log(`making dataPart for ${key} is done...`)
         moveViaPart(dataPart,srcDir,targetDir,key);
-        //console.log(`moveViaPart for ${key} is done...`)
+        console.log(`moveViaPart for ${key} is done...`)
         writeViaPart(dataPart,targetDir,key,viaFile);
         console.log(`Macking ${key} done...`)
     }

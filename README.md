@@ -3,7 +3,7 @@
 Nomeroff Net. Automatic numberplate recognition system. Version 0.3.1
 
 ## Introduction
-Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional 
+Nomeroff Net is an opensource python license plate recognition framework based on the application of a convolutional 
 neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) architecture, and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
@@ -24,21 +24,52 @@ pip3 install git+https://github.com/matterport/Mask_RCNN
 pip3 install nomeroff-net-gpu
 ```
 
-### Installation from Source
-Nomeroff Net requires last version of [Mask_RCNN](https://github.com/matterport/Mask_RCNN),  
-Python 3.5, 3.6 or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2) and [opencv 3.4 or latest](https://opencv.org/) 
+### Installation from Source (Linux)
 
+Nomeroff Net requires Python 3.5, 3.6 or 3.7 and [opencv 3.4 or latest](https://opencv.org/) 
+
+Clone Project
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
-cd ./nomeroff-net
-git clone https://github.com/matterport/Mask_RCNN.git
+cd nomeroff-net
+```
+
+##### For Centos, Fedora and other RedHat-like OS:
+```bash
+# for Opencv
+yum install libSM
+
+# for pycocotools install 
+yum install python3-devel 
+
+# ensure that you have installed gcc compiler
+yum install gcc
+```
+
+##### For Ubuntu and other Debian-like OS:
+```bash
+# ensure that you have installed gcc compiler
+apt-get install gcc
+
+# for opencv install
+apt-get install -y libglib2.0
+apt-get install -y libsm6
+apt-get install -y libfontconfig1 libxrender1
+apt-get install -y libxtst6
+
+# for pycocotools install (Check the name of the dev-package for your python3)
+apt-get install python3.6-dev
+```
+
+##### install python requirments
+```bash
+pip3 install Cython
+pip3 install numpy
+pip3 install git+https://github.com/matterport/Mask_RCNN
 pip3 install -r requirements.txt
 ```
 
-Download the [latest models](https://nomeroff.net.ua/models/) that are required for your neural network to work and place 
-them in the **./models** folder of the nomeroff-net project
-
-### Windows
+### Installation from Source (Windows)
 On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from [here](https://go.microsoft.com/fwlink/?LinkId=691126):
 
 <img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
