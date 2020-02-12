@@ -9,6 +9,7 @@ module.exports = {
         // console.log('keys-----------------------------');
         // console.log(keys);
         for (let item of keys) {
+            //console.log(`item: ${item}`);
             let file =  path.join(srcDir, data._via_img_metadata[item].filename);
             //console.log(file);
             if (fs.existsSync(file)) {
@@ -17,7 +18,7 @@ module.exports = {
                 new Error(`File "${item}" is not exists!`)
             }
         }
-        console.log(dataPart);
+        //console.log(dataPart);
         return dataPart
     },
 
@@ -37,6 +38,10 @@ module.exports = {
 
     writeViaPart(dataPart, targetDir, subDir, viaFile) {
         let fullViaFile = path.join(targetDir, subDir, viaFile);
+        module.exports.writeViaPartFull(dataPart, fullViaFile);
+    },
+
+    writeViaPartFull(dataPart, fullViaFile) {
         let wstream = fs.createWriteStream(fullViaFile);
         wstream.write(JSON.stringify(dataPart,null,2));
         wstream.end();

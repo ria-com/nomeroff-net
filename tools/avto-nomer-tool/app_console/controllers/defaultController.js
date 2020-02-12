@@ -194,6 +194,53 @@ async function moveGarbage (options) {
 }
 
 /**
+ * Перенести в одельную что-либо по условию в тексте кода из OCR-датасета
+ *
+ * @param options
+ * @example ./console.js --section=default --action=moveSomething  --opt.srcDir=/mnt/data/home/nn/datasets/autoriaNumberplateOptions3Dataset-2019-10-04/lnr --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateOptions3Dataset-2019-10-04/lnr.true
+ */
+async function moveSomething (options) {
+    const srcDir = options.srcDir || './draft',
+        targetDir = options.targetDir || './checked',
+        annExt = '.'+config.dataset.ann.ext,
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
+        target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+    ;
+    let checkedAnn = [],
+        checkedImg = []
+    ;
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    fs.readdir(src.annPath, async function(err, items) {
+        for (var i=0; i<items.length; i++) {
+            const  filename = items[i],
+                fileObj = path.parse(filename);
+            //console.log(fileObj)
+            if (fileObj.ext == annExt) {
+                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                    annFilename = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    imgName = `${data.name}.${config.dataset.img.ext}`
+                ;
+                // Условие
+                if (data.region_id != undefined && data.region_id == 8) {
+                //if (data.count_lines != undefined && data.count_lines == 2) {
+                    checkedAnn.push(annName);
+                    checkedImg.push(imgName);
+                }
+            }
+        }
+        console.log(`Garbage: ${checkedAnn.length}`);
+        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+    });
+}
+
+
+
+
+
+/**
  * Склеить несколько папок в одну только для незакрашеных номеров
  *
  * @param options
@@ -245,6 +292,6 @@ async function dataJoin (options) {
 
 
 
-module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage,dataJoin};
+module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage, dataJoin, moveSomething };
 
 
