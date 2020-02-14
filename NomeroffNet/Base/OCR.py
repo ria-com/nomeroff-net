@@ -142,7 +142,7 @@ class OCR(TextImageGenerator):
             if verbose:
                 print("SAVED TO {}".format(path))
 
-    def test(self, verbose=1):
+    def test(self, verbose=1, random_state=1):
         if verbose:
             print("\nRUN TEST")
             start_time = time.time()
@@ -151,7 +151,7 @@ class OCR(TextImageGenerator):
 
         err_c = 0
         succ_c = 0
-        for inp_value, _ in self.tiger_test.next_batch():
+        for inp_value, _ in self.tiger_test.next_batch(random_state, input_name=self.MODEL.layers[0].name, output_name=self.MODEL.layers[-1].name):
             bs = inp_value['the_input_{}'.format(type(self).__name__)].shape[0]
             X_data = inp_value['the_input_{}'.format(type(self).__name__)]
             net_out_value = self.SESS.run(net_out, feed_dict={net_inp:X_data})
@@ -297,15 +297,14 @@ class OCR(TextImageGenerator):
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
         model.compile(loss={'{}'.format(model.layers[-1].name): lambda y_true, y_pred: y_pred}, optimizer=sgd)
 
-        if not load:
-            # captures output of softmax so we can decode the output during visualization
-            test_func = K.function([input_data], [y_pred])
+        # captures output of softmax so we can decode the output during visualization
+        test_func = K.function([input_data], [y_pred])
 
-            model.fit_generator(generator=self.tiger_train.next_batch(is_random),
-                                steps_per_epoch=self.tiger_train.n,
-                                epochs=self.EPOCHS,
-                                validation_data=self.tiger_val.next_batch(is_random),
-                                validation_steps=self.tiger_val.n)
+        model.fit_generator(generator=self.tiger_train.next_batch(is_random, input_name=model.layers[0].name, output_name=model.layers[-1].name),
+                            steps_per_epoch=self.tiger_train.n,
+                            epochs=self.EPOCHS,
+                            validation_data=self.tiger_val.next_batch(is_random, input_name=model.layers[0].name, output_name=model.layers[-1].name),
+                            validation_steps=self.tiger_val.n)
 
         net_inp = model.get_layer(name='{}'.format(model.layers[0].name)).input
         net_out = model.get_layer(name='{}'.format(model.layers[-1].name)).output
