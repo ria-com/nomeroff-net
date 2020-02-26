@@ -177,7 +177,7 @@ class RectDetector(object):
             await asyncio.wait(promises)
         return [cv2.cvtColor(promise.result(), cv2.COLOR_RGB2BGR) for promise in promises]
 
-    def get_cv_zonesRGB(self, img, rects, gw = 0, gh = 0, coef=4.6):
+    def get_cv_zonesRGB(self, img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
         dsts = []
         for rect in rects:
             rect, w, h = self.rotate_to_pretty(rect, auto_width_height = auto_width_height)
