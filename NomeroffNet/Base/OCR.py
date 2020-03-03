@@ -307,7 +307,11 @@ class OCR(TextImageGenerator):
                             validation_steps=self.tiger_val.n)
 
         net_inp = model.get_layer(name='{}'.format(model.layers[0].name)).input
-        net_out = model.get_layer(name='{}'.format(model.layers[-1].name)).output
+        net_out = model.get_layer(name='{}'.format(model.layers[-5].name)).output
+        if load:
+            net_inp = model.get_layer(name='{}'.format(model.layers[0].name)).input
+            net_out = model.get_layer(name='{}'.format(model.layers[-1].name)).output
+
         self.MODEL = Model(input=net_inp, output=net_out)
         return self.MODEL
 
