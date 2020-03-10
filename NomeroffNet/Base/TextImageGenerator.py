@@ -117,6 +117,8 @@ class TextImageGenerator:
                 self.imgs[i, :, :] = img
                 self.texts.append(text)
             aug_count -= 1
+        self.n = len(self.imgs)
+        self.indexes = list(range(self.n))
 
 
     def get_output_size(self):
