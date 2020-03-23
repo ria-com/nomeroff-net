@@ -174,7 +174,7 @@ class OCR(TextImageGenerator):
             print("Test processing time: {} seconds".format(time.time() - start_time))
         print("acc: {}".format(succ_c/(err_c+succ_c)))
 
-    def predict(self, imgs, *argv):
+    def predict(self, imgs, return_acc=False):
         Xs = []
         for img in imgs:
             x = self.normalize(img)
@@ -184,6 +184,8 @@ class OCR(TextImageGenerator):
             net_out_value = self.MODEL.predict(np.array(Xs))
             #print(net_out_value)
             pred_texts = self.decode_batch(net_out_value)
+        if return_acc:
+            return pred_texts, net_out_value
         return pred_texts
 
     def load(self, path_to_model, mode="cpu", verbose = 0):

@@ -42,7 +42,7 @@ class TextDetector():
     def get_avalible_module():
         pass
 
-    def predict(self, zones, labels=None, lines=None, frozen=False):
+    def predict(self, zones, labels=None, lines=None, frozen=False, return_acc=False):
         if labels is None:
             labels = []
         if lines is None:
@@ -71,11 +71,19 @@ class TextDetector():
                 orderAll.append(i)
             i += 1
 
+        scores = []
         for key in predicted.keys():
             if not frozen:
-                resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"])
+                if return_acc:
+                    buffRes, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+                    resAll = resAll + buffRes
+                    scores = scores + list(acc)
+                else:
+                    resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
             orderAll = orderAll + predicted[key]["order"]
 
+        if return_acc:
+            return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])], [x for _, x in sorted(zip(orderAll,scores), key=lambda pair: pair[0])]
         return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])]
 
     @staticmethod
