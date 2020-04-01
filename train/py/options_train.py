@@ -79,7 +79,7 @@ class MyNumberClassificator(OptionsDetector):
         self.CLASS_STATE = ["BACKGROUND", "FILLED", "NOT_FILLED"]
 
         # outputs 2
-        self.CLASS_REGION = ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit"]
+        self.CLASS_REGION = ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dnr", "eu-ua-ordlo-lnr", "ge"]
 
         self.EPOCHS           = 2
         self.BATCH_SIZE       = 10
