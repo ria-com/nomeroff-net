@@ -19,6 +19,7 @@ from keras.utils.data_utils import get_file
 from keras.preprocessing import image
 import keras.callbacks
 from collections import Counter
+import tensorflow as tf
 
 from keras.layers import CuDNNGRU as GRUgpu
 from keras.layers.recurrent import GRU as GRUcpu
@@ -332,6 +333,17 @@ class OCR(TextImageGenerator):
         sess_config = tf.ConfigProto()
         sess_config.gpu_options.allow_growth = True
         self.sess = tf.Session(graph=graph, config=sess_config)
+
+    def get_acc(self, predicted, decode):
+        labels = []
+        for text in decode:
+            labels.append(self.text_to_labels(text))
+        sess = tf.Session()
+        with sess:
+            loss = tf.keras.backend.ctc_batch_cost(
+                np.array(labels), np.array(predicted)[:, 2:, :], np.array([[self.label_length] for label in labels]), np.array([[self.max_text_len] for label in labels])
+            )
+            return  1 - loss.eval()
 
     def frozen_predict(self, imgs):
         Xs = []

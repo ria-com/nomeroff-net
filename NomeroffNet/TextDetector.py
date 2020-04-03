@@ -3,6 +3,8 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
+import tensorflow as tf
+import keras
 
 from .mcm.mcm import download_latest_model
 
@@ -89,6 +91,13 @@ class TextDetector():
     @staticmethod
     def get_static_module(name):
         return getattr(getattr(TextDetectors, name), name)
+
+    def get_acc(self, predicted, decode, regions):
+        acc = []
+        for i, region in enumerate(regions):
+            detector = self.detectors[int(self.detectors_map[region])]
+            acc.append(detector.get_acc([predicted[i]], [decode[i]])[0])
+        return acc
 
     def get_module(self, name):
         ind = self.detectors_names.index(name)
