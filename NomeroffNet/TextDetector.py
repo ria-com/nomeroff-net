@@ -61,6 +61,7 @@ class TextDetector():
         orderAll = []
         resAll = []
         i = 0
+        scores = []
         for zone, label in zip(zones, labels):
             if label in self.detectors_map.keys():
                 detector = self.detectors_map[label]
@@ -71,9 +72,9 @@ class TextDetector():
             else:
                 resAll.append("")
                 orderAll.append(i)
+                scores.append([])
             i += 1
 
-        scores = []
         for key in predicted.keys():
             if not frozen:
                 if return_acc:
@@ -95,8 +96,12 @@ class TextDetector():
     def get_acc(self, predicted, decode, regions):
         acc = []
         for i, region in enumerate(regions):
-            detector = self.detectors[int(self.detectors_map[region])]
-            acc.append(detector.get_acc([predicted[i]], [decode[i]])[0])
+            if self.detectors_map.get(region, None) is None or len(decode[i]) == 0:
+                acc.append([0])
+            else:
+                detector = self.detectors[int(self.detectors_map[region])]
+                _acc = detector.get_acc([predicted[i]], [decode[i]])
+                acc.append(_acc[0])
         return acc
 
     def get_module(self, name):
