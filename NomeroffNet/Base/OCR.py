@@ -33,6 +33,8 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 
+from keras import backend as K
+
 class OCR(TextImageGenerator):
     @classmethod
     def get_classname(cls):
@@ -338,12 +340,10 @@ class OCR(TextImageGenerator):
         labels = []
         for text in decode:
             labels.append(self.text_to_labels(text))
-        sess = tf.Session()
-        with sess:
-            loss = tf.keras.backend.ctc_batch_cost(
-                np.array(labels), np.array(predicted)[:, 2:, :], np.array([[self.label_length] for label in labels]), np.array([[self.max_text_len] for label in labels])
-            )
-            return  1 - loss.eval()
+        loss = tf.keras.backend.ctc_batch_cost(
+            np.array(labels), np.array(predicted)[:, 2:, :], np.array([[self.label_length] for label in labels]), np.array([[self.max_text_len] for label in labels])
+        )
+        return  1 - loss.eval(session=K.get_session())
 
     def frozen_predict(self, imgs):
         Xs = []
