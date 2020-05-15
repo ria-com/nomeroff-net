@@ -78,7 +78,7 @@ class OptionsDetector(ImgGenerator):
 
         # for frozen graph
         self.INPUT_NODE = "input_2:0"
-        self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0")
+        self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0", "COUNT_LINE/Softmax:0")
 
     def change_dimension(self, w, h):
         if w != self.WEIGHT and h != self.HEIGHT:

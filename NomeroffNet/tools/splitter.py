@@ -30,4 +30,4 @@ def np_split_sorce(imgs, lines, coef=0.1):
                 firstPart  = numpy.concatenate((firstPart, middlePart), axis=1)
             lastPart  = img[-n:]
             res_imgs.append([firstPart, lastPart])
-    return numpy.array(res_imgs)
+    return res_imgs
