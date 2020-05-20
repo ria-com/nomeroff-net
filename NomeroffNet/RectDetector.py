@@ -115,7 +115,7 @@ class RectDetector(object):
         h = np.mean([line1, line3])
         return h
 
-    def findHieght(self, rect):
+    def findHeight(self, rect):
         line2 = self.distance(rect[1], rect[2])
         line4 = self.distance(rect[3], rect[0])
         w = np.mean([line2, line4])
@@ -136,14 +136,14 @@ class RectDetector(object):
         return res
 
 
-    def rotate_to_pretty(self, points):
+    def rotate_to_pretty(self, points, auto_width_height = True):
         new_arr = []
         points = self.to_pretty_point(points)
         new_arr.append(points)
         w = self.findWidth(points)
-        h = self.findHieght(points)
+        h = self.findHeight(points)
 
-        if h > w:
+        if h > w and auto_width_height:
             h, w = w, h
             points = self.reshapePoints(points, 1)
         return points, w, h
@@ -151,8 +151,8 @@ class RectDetector(object):
     def detetct_pretty_w_h_to_zone(self, w, h, coef=4.6):
         return int(h*coef), int(h)
 
-    async def get_cv_zoneRGB_async(self, img, rect, gw = 0, gh = 0, coef=4.6):
-        rect, w, h = self.rotate_to_pretty(rect)
+    async def get_cv_zoneRGB_async(self, img, rect, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
+        rect, w, h = self.rotate_to_pretty(rect, auto_width_height = auto_width_height)
         if (gw == 0 or gh == 0):
             w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
         else:
@@ -163,24 +163,24 @@ class RectDetector(object):
         dst = cv2.warpPerspective(img,M,(w,h))
         return dst;
 
-    async def get_cv_zonesRGB_async(self, img, rects, gw = 0, gh = 0, coef=4.6):
+    async def get_cv_zonesRGB_async(self, img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
         loop = asyncio.get_event_loop()
-        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef)) for rect in rects]
+        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef, auto_width_height = auto_width_height)) for rect in rects]
         if bool(promises):
             await asyncio.wait(promises)
         return [promise.result() for promise in promises]
 
-    async def get_cv_zonesBGR_async(self, img, rects, gw = 0, gh = 0, coef=4.6):
+    async def get_cv_zonesBGR_async(self, img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
         loop = asyncio.get_event_loop()
-        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef)) for rect in rects]
+        promises = [loop.create_task(self.get_cv_zoneRGB_async(img, rect, gw = gw, gh = gh, coef=coef, auto_width_height = auto_width_height)) for rect in rects]
         if bool(promises):
             await asyncio.wait(promises)
         return [cv2.cvtColor(promise.result(), cv2.COLOR_RGB2BGR) for promise in promises]
 
-    def get_cv_zonesRGB(self, img, rects, gw = 0, gh = 0, coef=4.6):
+    def get_cv_zonesRGB(self, img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
         dsts = []
         for rect in rects:
-            rect, w, h = self.rotate_to_pretty(rect)
+            rect, w, h = self.rotate_to_pretty(rect, auto_width_height = auto_width_height)
             if (gw == 0 or gh == 0):
                 w, h = self.detetct_pretty_w_h_to_zone(w, h, coef)
             else:
@@ -190,10 +190,10 @@ class RectDetector(object):
             M = cv2.getPerspectiveTransform(pts1, pts2)
             dst = cv2.warpPerspective(img,M,(w,h))
             dsts.append(dst)
-        return dsts;
+        return dsts
 
-    def get_cv_zonesBGR(self, img, rects, gw = 0, gh = 0, coef=4.6):
-        dsts = self.get_cv_zonesRGB(img, rects, gw, gh, coef)
+    def get_cv_zonesBGR(self, img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
+        dsts = self.get_cv_zonesRGB(img, rects, gw, gh, coef, auto_width_height = auto_width_height)
         bgrDsts = []
         for dst in dsts:
             dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
@@ -225,7 +225,7 @@ class RectDetector(object):
     def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
         if (len(interestedLines) > minElements):
             threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-            while True:
+            while threshold>1:
                 interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
                 if len(interestedLinesFilterd) > minElements:
                     break
@@ -312,6 +312,16 @@ class RectDetector(object):
         else:
             return d2
 
+    def initCentroids(self, X):
+        distances = []
+        for i in range(len(X)):
+            for j in range(i+1,len(X)):
+                d = self.gDiff(X[i],X[j])
+                distances.append({"d": d, "i": i, "j": j})
+        sdistances = self.clacRectLines(distances)
+        tLine = distances[len(distances)-1]
+        return np.array([X[tLine["i"]],X[tLine["j"]]])
+
     def cdist(self, X, centroids):
         lines = []
         for x in X:
@@ -332,8 +342,9 @@ class RectDetector(object):
     def gKMeans(self, X, maxDeep=0, currentLevel=0):
         ''' Simplified implementation of k-means clustering for 2 classes over a one-character array '''
 
-        parts = np.int32(np.random.random(2)*currentLevel)
-        centroids = np.array([0+parts[0],90+parts[1]])
+        #parts = np.int32(np.random.random(2)*currentLevel)
+        #centroids = np.array([0+parts[0],90+parts[1]])
+        centroids = self.initCentroids(X)
 
         # Consider the distance from observations to centroid
         for i in range(0,10):
