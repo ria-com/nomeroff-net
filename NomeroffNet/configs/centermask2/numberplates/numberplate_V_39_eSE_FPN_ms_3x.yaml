@@ -1,0 +1,9 @@
+_BASE_: "Base-NumberPlate-VoVNet.yaml"
+MODEL:
+  WEIGHTS: "https://nomeroff.net.ua/models/mrcnn/model_final.pth"
+  VOVNET:
+    CONV_BODY : "V-39-eSE"
+SOLVER:
+  STEPS: (0, 60000)
+  MAX_ITER: 60000
+OUTPUT_DIR: "output/numberplate/numberplate-V-39-ms-3x"
