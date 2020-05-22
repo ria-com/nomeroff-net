@@ -1,5 +1,4 @@
 cython
-matplotlib
 setuptools
 numpy>=1.16.*
 Keras==2.2.*
@@ -13,3 +12,7 @@ asyncio
 GitPython
 pycocotools
 tqdm
+matplotlib
+pytorch
+torchvision
+detectron2
