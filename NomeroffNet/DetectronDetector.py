@@ -34,7 +34,7 @@ class Detector:
         return cls.__name__
 
     def loadModel(self, centermask2_path = "../centermask2",
-                  config_file='../NomeroffNet/configs/centermask2/numberplates/numberplate_V_39_eSE_FPN_ms_3x.yaml'):
+                  config_file='../NomeroffNet/configs/centermask2/numberplates/centermask_numberplate_V_39_eSE_FPN_ms_3x.yaml'):
         """
         Create configs and perform basic setups.
         TODO: create folder config/centermask2/ and put all architecture them

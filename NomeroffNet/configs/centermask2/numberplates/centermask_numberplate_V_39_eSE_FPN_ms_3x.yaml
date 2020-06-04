@@ -1,6 +1,6 @@
 _BASE_: "Base-NumberPlate-VoVNet.yaml"
 MODEL:
-  WEIGHTS: "https://nomeroff.net.ua/models/mrcnn/model_final.pth"
+  WEIGHTS: "https://nomeroff.net.ua/models/mrcnn/centermask-numberplate_V_39_ms_3x.pth"
   VOVNET:
     CONV_BODY : "V-39-eSE"
 SOLVER:
