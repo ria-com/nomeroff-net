@@ -315,7 +315,8 @@ class RectDetector(object):
                 d = self.gDiff(X[i],X[j])
                 distances.append({"d": d, "i": i, "j": j})
         sdistances = self.clacRectLines(distances)
-        tLine = distances[len(distances)-1]
+        if len(distances):
+            tLine = distances[len(distances)-1]
         return np.array([X[tLine["i"]],X[tLine["j"]]])
 
     def cdist(self, X, centroids):
