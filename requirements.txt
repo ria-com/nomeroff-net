@@ -1,7 +1,7 @@
 cython
 matplotlib
 setuptools
-numpy==1.17.*
+numpy>=1.16.*
 Keras==2.2.*
 imgaug
 tensorflow==1.15.2

@@ -78,7 +78,7 @@ class OptionsDetector(ImgGenerator):
 
         # for frozen graph
         self.INPUT_NODE = "input_2:0"
-        self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0")
+        self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0", "COUNT_LINE/Softmax:0")
 
     def change_dimension(self, w, h):
         if w != self.WEIGHT and h != self.HEIGHT:
@@ -276,7 +276,7 @@ class OptionsDetector(ImgGenerator):
             path_to_model   = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-fake-dnr", "eu-ua-fake-lnr", "ge"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dnr", "eu-ua-ordlo-lnr", "ge"])
         if path_to_model.split(".")[-1] != "pb":
             self.MODEL = load_model(path_to_model)
             if verbose:
@@ -291,7 +291,7 @@ class OptionsDetector(ImgGenerator):
     def getStateLabel(self, index):
         return self.CLASS_STATE[index]
 
-    def predict(self, imgs):
+    def predict(self, imgs, return_acc=False):
         Xs = []
         for img in imgs:
             Xs.append(self.normalize(img))
@@ -299,7 +299,7 @@ class OptionsDetector(ImgGenerator):
         predicted = [[], [], []]
         if bool(Xs):
             predicted = self.MODEL.predict(np.array(Xs))
-	    
+
         regionIds = []
         for region in predicted[0]:
             regionIds.append(int(np.argmax(region)))
@@ -313,6 +313,8 @@ class OptionsDetector(ImgGenerator):
         for countL in predicted[2]:
             countLines.append(int(np.argmax(countL)))
 
+        if return_acc:
+            return regionIds, stateIds, countLines, predicted
         return regionIds, stateIds, countLines
 
     def getRegionLabels(self, indexes):

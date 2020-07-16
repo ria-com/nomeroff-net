@@ -225,7 +225,7 @@ class RectDetector(object):
     def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
         if (len(interestedLines) > minElements):
             threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-            while True:
+            while threshold>1:
                 interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
                 if len(interestedLinesFilterd) > minElements:
                     break
@@ -312,6 +312,16 @@ class RectDetector(object):
         else:
             return d2
 
+    def initCentroids(self, X):
+        distances = []
+        for i in range(len(X)):
+            for j in range(i+1,len(X)):
+                d = self.gDiff(X[i],X[j])
+                distances.append({"d": d, "i": i, "j": j})
+        sdistances = self.clacRectLines(distances)
+        tLine = distances[len(distances)-1]
+        return np.array([X[tLine["i"]],X[tLine["j"]]])
+
     def cdist(self, X, centroids):
         lines = []
         for x in X:
@@ -332,8 +342,9 @@ class RectDetector(object):
     def gKMeans(self, X, maxDeep=0, currentLevel=0):
         ''' Simplified implementation of k-means clustering for 2 classes over a one-character array '''
 
-        parts = np.int32(np.random.random(2)*currentLevel)
-        centroids = np.array([0+parts[0],90+parts[1]])
+        #parts = np.int32(np.random.random(2)*currentLevel)
+        #centroids = np.array([0+parts[0],90+parts[1]])
+        centroids = self.initCentroids(X)
 
         # Consider the distance from observations to centroid
         for i in range(0,10):

@@ -3,6 +3,8 @@ import numpy as np
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
+import tensorflow as tf
+import keras
 
 from .mcm.mcm import download_latest_model
 
@@ -42,7 +44,7 @@ class TextDetector():
     def get_avalible_module():
         pass
 
-    def predict(self, zones, labels=None, lines=None, frozen=False):
+    def predict(self, zones, labels=None, lines=None, frozen=False, return_acc=False):
         if labels is None:
             labels = []
         if lines is None:
@@ -59,6 +61,7 @@ class TextDetector():
         orderAll = []
         resAll = []
         i = 0
+        scores = []
         for zone, label in zip(zones, labels):
             if label in self.detectors_map.keys():
                 detector = self.detectors_map[label]
@@ -69,18 +72,37 @@ class TextDetector():
             else:
                 resAll.append("")
                 orderAll.append(i)
+                scores.append([])
             i += 1
 
         for key in predicted.keys():
             if not frozen:
-                resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"])
+                if return_acc:
+                    buffRes, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+                    resAll = resAll + buffRes
+                    scores = scores + list(acc)
+                else:
+                    resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
             orderAll = orderAll + predicted[key]["order"]
 
+        if return_acc:
+            return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])], [x for _, x in sorted(zip(orderAll,scores), key=lambda pair: pair[0])]
         return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])]
 
     @staticmethod
     def get_static_module(name):
         return getattr(getattr(TextDetectors, name), name)
+
+    def get_acc(self, predicted, decode, regions):
+        acc = []
+        for i, region in enumerate(regions):
+            if self.detectors_map.get(region, None) is None or len(decode[i]) == 0:
+                acc.append([0])
+            else:
+                detector = self.detectors[int(self.detectors_map[region])]
+                _acc = detector.get_acc([predicted[i]], [decode[i]])
+                acc.append(_acc[0])
+        return acc
 
     def get_module(self, name):
         ind = self.detectors_names.index(name)

@@ -117,6 +117,8 @@ class TextImageGenerator:
                 self.imgs[i, :, :] = img
                 self.texts.append(text)
             aug_count -= 1
+        self.n = len(self.imgs)
+        self.indexes = list(range(self.n))
 
 
     def get_output_size(self):
@@ -148,7 +150,9 @@ class TextImageGenerator:
                 random.shuffle(self.indexes)
         return self.imgs[self.indexes[self.cur_index]], self.texts[self.indexes[self.cur_index]]
 
-    def next_batch(self, is_random=1):
+    def next_batch(self, is_random=1, input_name=None, output_name="ctc"):
+        if not input_name:
+            input_name = 'the_input_{}'.format(self.CNAME)
         while True:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
@@ -175,11 +179,11 @@ class TextImageGenerator:
                 label_length[i] = len(text)
 
             inputs = {
-                'the_input_{}'.format(self.CNAME): X_data,
+                '{}'.format(input_name): X_data,
                 'the_labels_{}'.format(self.CNAME): Y_data,
                 'input_length_{}'.format(self.CNAME): input_length,
                 'label_length_{}'.format(self.CNAME): label_length,
                 #'source_str': source_str
             }
-            outputs = {'ctc': np.zeros([self.batch_size])}
+            outputs = {'{}'.format(output_name): np.zeros([self.batch_size])}
             yield (inputs, outputs)

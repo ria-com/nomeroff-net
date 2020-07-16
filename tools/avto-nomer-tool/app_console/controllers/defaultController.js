@@ -21,7 +21,7 @@ async function index (options) {
  * Создание OCR-датасета Nomeroff Net
  *
  * @param options
- * @example ./console.js --action=createAnnotations  --baseDir=../../dataset/ocr/kz/kz2
+ * @example ./console.js --section=default --action=createAnnotations  --baseDir=../../dataset/ocr/kz/kz2
  */
 async function createAnnotations (options) {
         let baseDir = options.baseDir || config.dataset.baseDir;
@@ -45,7 +45,7 @@ async function createAnnotations (options) {
                                       imgFile = path.join(imgPath, filename),
                                       imgSize = sizeOf(imgFile);
                                 let data = Object.assign(annTrmplate,{
-                                        description: fileObj.name,
+                                        description: fileObj.name, // fileObj.name.split('_')[1]
                                         name: fileObj.name,
                                         size: {
                                                 width: imgSize.width,
@@ -224,7 +224,8 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 // Условие
-                if (data.region_id != undefined && data.region_id == 8) {
+                if (data.description.length < 6) {
+                // if (data.region_id != undefined && data.region_id == 8) {
                 //if (data.count_lines != undefined && data.count_lines == 2) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
