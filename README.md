@@ -1,37 +1,24 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 0.3.1
+Nomeroff Net. Automatic numberplate recognition system. Version 0.4.0
 
 ## Introduction
-Nomeroff Net is an opensource python license plate recognition framework based on the application of a convolutional 
-neural network on the [Mask_RCNN](https://github.com/matterport/Mask_RCNN) architecture, and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
+Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation 
+neural network and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
 ## Installation
 
-### Installation in pip
-To install cpu version nomeroff-net via pip, use
-
-```bash
-pip3 install git+https://github.com/matterport/Mask_RCNN
-pip3 install nomeroff-net
-```
-
-To install gpu version nomeroff-net via pip, use
-```bash
-pip3 install git+https://github.com/matterport/Mask_RCNN
-pip3 install nomeroff-net-gpu
-```
-
 ### Installation from Source (Linux)
 
-Nomeroff Net requires Python 3.5, 3.6 or 3.7 and [opencv 3.4 or latest](https://opencv.org/) 
+Nomeroff Net requires Python >= 3.6 and [opencv 3.4 or latest](https://opencv.org/) 
 
-Clone Project
+Clone Project and clone related projects
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
 cd nomeroff-net
+git clone https://github.com/youngwanLEE/centermask2.git
 ```
 
 ##### For Centos, Fedora and other RedHat-like OS:
@@ -65,7 +52,6 @@ apt-get install python3.6-dev
 ```bash
 pip3 install Cython
 pip3 install numpy
-pip3 install git+https://github.com/matterport/Mask_RCNN
 pip3 install -r requirements.txt
 ```
 
@@ -87,52 +73,54 @@ import numpy as np
 import sys
 import matplotlib.image as mpimg
 
-# change this property
-NOMEROFF_NET_DIR = os.path.abspath('../../')
-
-# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-
+# NomeroffNet path
+NOMEROFF_NET_DIR = os.path.abspath('../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessing, textPostprocessingAsync
+from NomeroffNet import  Detector
+from NomeroffNet import  filters
+from NomeroffNet import  RectDetector
+from NomeroffNet import  OptionsDetector
+from NomeroffNet import  TextDetector
+from NomeroffNet import  textPostprocessing
 
-# Initialize npdetector with default configuration file.
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-nnet.loadModel("latest")
-
+# load models
 rectDetector = RectDetector()
 
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-# Initialize text detector.
 textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
+
 # Detect numberplate
-img_path = '../images/example2.jpeg'
+img_path = 'images/example2.jpeg'
 img = mpimg.imread(img_path)
-NP = nnet.detect([img])
+NP = nnet.detect_mask([img])
 
 # Generate image mask.
-cv_img_masks = filters.cv_img_mask(NP)
+cv_imgs_masks = nnet.detect_mask([img])
+    
+for cv_img_masks in cv_imgs_masks:
+    # Detect points.
+    arrPoints = rectDetector.detect(cv_img_masks)
+    
+    # cut zones
+    zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
 
-# Detect points.
-arrPoints = rectDetector.detect(cv_img_masks)
-zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
-
-# find standart
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
-regionNames = optionsDetector.getRegionLabels(regionIds)
- 
-# find text with postprocessing by standart  
-textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
-print(textArr)
-# ['JJF509', 'RP70012']
+    # find standart
+    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionNames = optionsDetector.getRegionLabels(regionIds)
+    
+    # find text with postprocessing by standart  
+    textArr = textDetector.predict(zones)
+    textArr = textPostprocessing(textArr, regionNames)
+    print(textArr)
+    # ['JJF509', 'RP70012']
 ```
 <br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo0.ipynb">Hello Jupyter Nomeroff Net</a>
 
@@ -175,10 +163,6 @@ This gives you the opportunity to get **98% accuracy** on photos that are upload
 <img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
 <br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Number plate recognition example</a>
 
-## Road map
-For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:
-  * Post a detailed instruction on the training of recognition models and classifier for license plates of your country.
-  * To expand the classification of countries of license plates by which to determine the country in which this license plate is registered.
 
 ## Contributing
 Contributions to this repository are welcome. Examples of things you can contribute:

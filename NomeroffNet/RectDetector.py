@@ -225,19 +225,15 @@ class RectDetector(object):
     def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
         if (len(interestedLines) > minElements):
             threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
+            interestedLinesFilterd = []
             while threshold>1:
                 interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
                 if len(interestedLinesFilterd) > minElements:
                     break
                 threshold = threshold*.9
-            # interestedLinesForFilter = interestedLines[:len(interestedLines)-8]
-            # interestedLinesFiltered = [x for x in interestedLinesForFilter if x["d"] < threshold]
             return interestedLinesFilterd
         else:
             return interestedLines
-
-        #threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-        #return [x for x in interestedLines if x["d"] >= threshold]
 
     def linearLineMatrixCrossPoint(self, p0,p1,point):
         arr = self.linearLineMatrix(p0,p1)
@@ -319,7 +315,8 @@ class RectDetector(object):
                 d = self.gDiff(X[i],X[j])
                 distances.append({"d": d, "i": i, "j": j})
         sdistances = self.clacRectLines(distances)
-        tLine = distances[len(distances)-1]
+        if len(distances):
+            tLine = distances[len(distances)-1]
         return np.array([X[tLine["i"]],X[tLine["j"]]])
 
     def cdist(self, X, centroids):
@@ -584,8 +581,7 @@ class RectDetector(object):
 
         if d1 > d2:
             d1, d2 = d2, d1
-        #print(d2/d1)
-        #print(angle)
+
         if (d2/d1) <= coef:
             return True
         return False
@@ -661,9 +657,6 @@ class RectDetector(object):
                         B.append(interestedLines[i])
                 targetLines = self.makeTargetLines(A,B)
 
-                #print("targetLines")
-                #print(targetLines)
-
                 if fixGeometry:
                     targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
                     targetPoints = self.makeTargetPoints2(targetLines,targetAlignmentLines,arrPoints[0])
@@ -681,6 +674,7 @@ class RectDetector(object):
 
                 res.append(targetPoints)
 
-            resPoints.append(res[0])
+            if len(res):
+                resPoints.append(res[0])
 
         return np.array(resPoints)

@@ -50,12 +50,12 @@ def cv_img_mask(nns):
             res.append(img_as_ubyte(gray))
     return res
 
-def color_splash(image, nns, color=(0, 255, 0), white_balance=200):
+def color_splash(image, masks, color=(0, 255, 0), white_balance=200):
     res = []
     gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * white_balance
-    for nn in nns:
-        if nn["masks"].shape[-1] > 0:
-            mask = (np.sum(nn["masks"], -1, keepdims=True) >= 1)
+    for mask in masks:
+        if mask.shape[-1] > 0:
+            mask = (np.sum(mask, -1, keepdims=True) >= 1)
             fulled = np.full(image.shape, color)
             splash = np.where(mask, fulled, gray).astype(np.uint8)
         else:

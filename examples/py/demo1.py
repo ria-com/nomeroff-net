@@ -1,42 +1,34 @@
 # Import all necessary libraries.
-import sys
 import os
-import json
-import cv2
+import numpy as np
+import sys
+import glob
 import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 
-# Load default configuration file.
-NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
-
+# NomeroffNet path
+NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import Detector, filters
+from NomeroffNet import  Detector
+from NomeroffNet import  filters
 
-# Initialize the detector with default configuration file.
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-
-# Load weights in keras format.
-nnet.loadModel("latest")
+# load model
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-print("START RECOGNIZING")
-rootDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/')
+rootDir = '../images/*'
 
-for dirName, subdirList, fileList in os.walk(rootDir):
-    for fname in fileList:
-        img_path = os.path.join(dirName, fname)
-        img = mpimg.imread(img_path)
+imgs = [mpimg.imread(img_path) for img_path in glob.glob(rootDir)]
         
-        np = nnet.detect([img])
-    
-        # Generate splashs.
-        splashs = filters.color_splash(img, np)
-        for splash in splashs:
-            cv2.imshow('image',splash)
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+cv_imgs_masks = nnet.detect_mask(imgs)
 
-
+for img, cv_img_masks in zip(imgs, cv_imgs_masks):
+    # Generate splashs.
+    splashs = filters.color_splash(img, cv_img_masks)
+    for splash in splashs:
+        plt.imshow(splash)
+        plt.axis("off")
+        plt.show()

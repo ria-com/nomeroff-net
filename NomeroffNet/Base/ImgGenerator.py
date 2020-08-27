@@ -3,7 +3,7 @@ import json
 import cv2
 import numpy as np
 import random
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 from .aug import aug
 
 class ImgGenerator:
@@ -89,4 +89,7 @@ class ImgGenerator:
                 Ys[1].append(y[0])
                 Ys[0].append(y[1])
                 Ys[2].append(y[2])
+            Ys[0] = np.array(Ys[0])
+            Ys[1] = np.array(Ys[1])
+            Ys[2] = np.array(Ys[2])
             yield np.array(Xs), Ys

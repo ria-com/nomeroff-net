@@ -1,119 +1,107 @@
+# Specify device
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "" 
+
 import os
 import sys
 import json
-import matplotlib.image as mpimg
-from termcolor import colored
-import cv2
-import time
 import numpy as np
+import cv2
+from matplotlib import pyplot as plt
+from termcolor import colored
 import warnings
-import asyncio
+import time
 warnings.filterwarnings('ignore')
 
 # change this property
 NOMEROFF_NET_DIR = os.path.abspath('../../')
-
-# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
-
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-MASK_RCNN_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/mask_rcnn_numberplate_0700.h5")
-OPTIONS_MODEL_PATH =  os.path.join(NOMEROFF_NET_DIR, "models/numberplate_options_2019_03_05.h5")
-
-# If you use gpu version tensorflow please change model to gpu version named like *-gpu.pb
-mode =  "cpu" if  "NN_MODE" not in os.environ else os.environ["NN_MODE"] if os.environ["NN_MODE"]=="gpu" else "cpu"
-OCR_NP_UKR_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ua_12-{}.h5".format(mode))
-OCR_NP_EU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_eu_2-{}.h5".format(mode))
-OCR_NP_RU_TEXT =  os.path.join(NOMEROFF_NET_DIR, "models/anpr_ocr_ru_3-{}.h5".format(mode))
-
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessingAsync
-
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-nnet.loadModel(MASK_RCNN_MODEL_PATH)
+# Import license plate recognition tools.
+from NomeroffNet import  filters
+from NomeroffNet import  RectDetector
+from NomeroffNet import  TextDetector
+from NomeroffNet import  OptionsDetector
+from NomeroffNet.DetectronDetector import  Detector
+from NomeroffNet import  textPostprocessing
+from NomeroffNet import  textPostprocessingAsync
 
 rectDetector = RectDetector()
 
 optionsDetector = OptionsDetector()
-optionsDetector.load(OPTIONS_MODEL_PATH)
+optionsDetector.load("latest")
 
 # Initialize text detector.
 textDetector = TextDetector({
     "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
-        "model_path": OCR_NP_UKR_TEXT
+        "model_path": "latest"
+    },
+    "eu_ua_1995": {
+        "for_regions": ["eu_ua_1995"],
+        "model_path": "latest"
     },
     "eu": {
-        "for_regions": ["eu", "eu_ua_1995"],
-        "model_path": OCR_NP_EU_TEXT
+        "for_regions": ["eu"],
+        "model_path": "latest"
     },
     "ru": {
-        "for_regions": ["ru"],
-        "model_path": OCR_NP_RU_TEXT
+        "for_regions": ["ru", "eu-ua-fake-lnr", "eu-ua-fake-dnr"],
+        "model_path": "latest" 
+    },
+    "kz": {
+        "for_regions": ["kz"],
+        "model_path": "latest"
+    },
+    "ge": {
+        "for_regions": ["ge"],
+        "model_path": "latest"
     }
 })
 
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
 
-async def test(dirName, fname, max_img_w=1280):
+def test(dirName, fname):
     img_path = os.path.join(dirName, fname)
-    img = mpimg.imread(img_path)
+    img = cv2.imread(img_path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    # corect size for better speed
-    img_w = img.shape[1]
-    img_h = img.shape[0]
-    img_w_r = 1
-    img_h_r = 1
-    if img_w > max_img_w:
-        resized_img = cv2.resize(img, (max_img_w, int(max_img_w/img_w*img_h)))
-        img_w_r = img_w/max_img_w
-        img_h_r = img_h/(max_img_w/img_w*img_h)
-    else:
-        resized_img = img
+    cv_imgs_masks = nnet.detect_mask([img])
+    
+    for cv_img_masks in cv_imgs_masks:
+        #print(np.array(cv_img_masks).shape)
+        # Detect points.
+        arrPoints = rectDetector.detect(cv_img_masks)
 
-    NP = nnet.detect([resized_img])
+        # cut zones
+        zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
 
-    # Generate image mask.
-    cv_img_masks = await filters.cv_img_mask_async(NP)
+        # find standart
+        regionIds, stateIds, countLines = optionsDetector.predict(zones)
+        regionNames = optionsDetector.getRegionLabels(regionIds)
 
-    # Detect points.
-    arrPoints = await rectDetector.detectAsync(cv_img_masks,  outboundHeightOffset=3-img_w_r)
-    arrPoints[..., 1:2] = arrPoints[..., 1:2]*img_h_r
-    arrPoints[..., 0:1] = arrPoints[..., 0:1]*img_w_r
+        # find text with postprocessing by standart  
+        textArr = textDetector.predict(zones, regionNames, countLines)
+        textArr = textPostprocessing(textArr, regionNames)
+        return textArr
+    
+N = 10
 
-    # cut zones
-    zones = await rectDetector.get_cv_zonesBGR_async(img, arrPoints)
+i = 0
+j = 0
+start_time = time.time()
+rootDir = '../images/'
+for i in np.arange(N):
+    print("pass {}".format(i))
+    for dirName, subdirList, fileList in os.walk(rootDir):
+        for fname in fileList:
+            test(dirName, fname)
+            j += 1
+            #print(i, j)
+    i += 1
+end_time = time.time() - start_time
 
-    # find standart
-    regionIds, stateIds = optionsDetector.predict(zones)
-    regionNames = optionsDetector.getRegionLabels(regionIds)
-
-    # find text with postprocessing by standart
-    textArr = textDetector.predict(zones, regionNames)
-    textArr = await textPostprocessingAsync(textArr, regionNames)
-    return textArr
-
-async def runAll():
-    print("START")
-    N = 10
-    i = 0
-    j = 0
-    start_time = time.time()
-    rootDir = '../images/'
-    for i in np.arange(N):
-        for dirName, subdirList, fileList in os.walk(rootDir):
-            for fname in fileList:
-                await test(dirName, fname)
-                j += 1
-        i += 1
-        print(i/N)
-    end_time = time.time() - start_time
-    print("Processed {} photos".format(j))
-    print("Time {}".format(end_time))
-    print("One photo process {} seconds".format(end_time/j))
-
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-result = loop.run_until_complete(runAll())
-
-runAll()
+print(f"Processed {j} photos")
+print(f"Time {end_time}")
+print(f"One photo process {end_time/j} seconds")

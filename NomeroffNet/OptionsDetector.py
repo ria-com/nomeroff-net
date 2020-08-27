@@ -1,25 +1,19 @@
-import cv2
-import keras
 import os
 import numpy as np
-from keras.layers import merge
-from keras.optimizers import Adam
-from keras.regularizers import l2
-from keras.layers.normalization import BatchNormalization
-from keras import models
-from keras import layers
-from keras import backend as K
-from keras.models import Model, Input
-from keras.preprocessing import image
-from keras.applications import VGG16
-from keras import callbacks
-from keras.models import load_model
 import tensorflow as tf
-from tensorflow.python.framework import graph_io
-from tensorflow.python.tools import freeze_graph
-from tensorflow.core.protobuf import saver_pb2
-from tensorflow.python.training import saver as saver_lib
-from tensorflow.python.framework.graph_util import convert_variables_to_constants
+
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.regularizers import l2
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras import models
+from tensorflow.keras import layers
+from tensorflow.keras import backend as K
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras import callbacks
+from tensorflow.keras.models import load_model
 
 from .mcm.mcm import download_latest_model
 from .Base.ImgGenerator import ImgGenerator
@@ -76,7 +70,7 @@ class OptionsDetector(ImgGenerator):
         self.OPT = "adamax" #  tf.keras.optimizers.Adamax
         self.METRICS = ["accuracy"]
 
-        # for frozen graph
+        # for tf
         self.INPUT_NODE = "input_2:0"
         self.OUTPUT_NODES = ("REGION/Softmax:0", "STATE/Softmax:0", "COUNT_LINE/Softmax:0")
 
@@ -101,7 +95,7 @@ class OptionsDetector(ImgGenerator):
         x1 = layers.Dropout(dropout_2)(x1)
         x1 = layers.Dense(dense_layers, activation=dense_activation)(x1)
         x1 = layers.BatchNormalization(axis=BatchNormalization_axis)(x1)
-        x1 = layers.Dense(output_labels1, init=out_dense_init, W_regularizer=W_regularizer)(x1)
+        x1 = layers.Dense(output_labels1, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x1)
         x1 = layers.Activation(out_dense_activation, name="REGION")(x1)
 
         # classificator 2
@@ -109,7 +103,7 @@ class OptionsDetector(ImgGenerator):
         x2 = layers.Dropout(dropout_2)(x2)
         x2 = layers.Dense(dense_layers, activation=dense_activation)(x2)
         x2 = layers.BatchNormalization(axis=BatchNormalization_axis)(x2)
-        x2 = layers.Dense(output_labels2, init=out_dense_init, W_regularizer=W_regularizer)(x2)
+        x2 = layers.Dense(output_labels2, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x2)
         x2 = layers.Activation(out_dense_activation, name="STATE")(x2)
 
         # classificator 3
@@ -117,11 +111,11 @@ class OptionsDetector(ImgGenerator):
         x3 = layers.Dropout(dropout_2)(x3)
         x3 = layers.Dense(dense_layers, activation=dense_activation)(x3)
         x3 = layers.BatchNormalization(axis=BatchNormalization_axis)(x3)
-        x3 = layers.Dense(output_labels3, init=out_dense_init, W_regularizer=W_regularizer)(x3)
+        x3 = layers.Dense(output_labels3, kernel_initializer=out_dense_init, kernel_regularizer=W_regularizer)(x3)
         x3 = layers.Activation(out_dense_activation, name="COUNT_LINE")(x3)
 
         #x = keras.layers.concatenate([x1, x2], axis=1)
-        model = Model(input=input_model, outputs=[x1, x2, x3])
+        model = Model(inputs=[input_model], outputs=[x1, x2, x3])
 
         # compile model
         model.compile(
@@ -188,7 +182,7 @@ class OptionsDetector(ImgGenerator):
         self.OTPUT_LABELS_1 = len(self.CLASS_REGION)
         self.OTPUT_LABELS_2 = len(self.CLASS_STATE)
         self.OTPUT_LABELS_3 = len(self.CLASS_COUNT_LINE)
-
+        
         # create input
         input_model = Input(shape=(self.HEIGHT, self.WEIGHT, self.COLOR_CHANNELS))
 
@@ -277,13 +271,11 @@ class OptionsDetector(ImgGenerator):
             options["class_region"] = model_info["class_region"]
 
         self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dnr", "eu-ua-ordlo-lnr", "ge"])
-        if path_to_model.split(".")[-1] != "pb":
-            self.MODEL = load_model(path_to_model)
-            if verbose:
-                self.MODEL.summary()
-        else:
-            self.load_frozen(path_to_model)
-            self.predict = self.frozen_predict
+        
+        self.MODEL = load_model(path_to_model)
+        if verbose:
+            self.MODEL.summary()
+
 
     def getRegionLabel(self, index):
         return self.CLASS_REGION[index]
@@ -336,39 +328,3 @@ class OptionsDetector(ImgGenerator):
         self.VALIDATION_STEPS = self.VALIDATION_STEPS or imageGenerator.n / imageGenerator.batch_size or imageGenerator.n / imageGenerator.batch_size + 1
         print("end test build")
         return  imageGenerator.generator()
-
-    def load_frozen(self, FROZEN_MODEL_PATH):
-        graph_def = tf.GraphDef()
-        with tf.gfile.GFile(FROZEN_MODEL_PATH, "rb") as f:
-            graph_def.ParseFromString(f.read())
-
-        graph = tf.Graph()
-        with graph.as_default():
-            self.net_inp, self.net_out1, self.net_out2 = tf.import_graph_def(
-                graph_def, return_elements = [self.INPUT_NODE, self.OUTPUT_NODES[0], self.OUTPUT_NODES[1]]
-            )
-            #print([x.name for x in graph_def.node])
-
-        sess_config = tf.ConfigProto()
-        sess_config.gpu_options.allow_growth = True
-        self.sess = tf.Session(graph=graph, config=sess_config)
-
-    def frozen_predict(self, imgs):
-        Xs = []
-        for img in imgs:
-            img = self.normalize(img)
-            Xs.append(img)
-
-        predicted = [[], []]
-        if bool(Xs):
-            predicted = self.sess.run([self.net_out1, self.net_out2], feed_dict={self.net_inp:Xs})
-
-        regionIds = []
-        for region in predicted[0]:
-            regionIds.append(int(np.argmax(region)))
-
-        stateIds = []
-        for state in predicted[1]:
-            stateIds.append(int(np.argmax(state)))
-
-        return regionIds, stateIds

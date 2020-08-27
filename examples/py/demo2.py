@@ -1,48 +1,41 @@
 # Import all necessary libraries.
 import os
+import numpy as np
+import glob
 import sys
-import json
 import matplotlib.image as mpimg
-import cv2
+import matplotlib.pyplot as plt
 
-# Load default configuration file.
-NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, "Mask_RCNN/")
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, "logs/")
-
+# NomeroffNet path
+NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
 from NomeroffNet import Detector, filters, RectDetector
 
-# Initialize rect detector with default configuration.
-rectDetector = RectDetector()
-# Initialize npdetector with default configuration.
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-# Load weights in keras format.
-nnet.loadModel("latest")
+# Import license plate recognition tools.
+from NomeroffNet import  Detector
+from NomeroffNet import  filters
+from NomeroffNet import  RectDetector
 
-print("START RECOGNIZING")
-rootDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/')
+# load models
+rectDetector = RectDetector()
+
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
 
 # Walking through the ./examples/images/ directory and checking each of the images for license plates.
-for dirName, subdirList, fileList in os.walk(rootDir):
-    for fname in fileList:
-        img_path = os.path.join(dirName, fname)
-        img = mpimg.imread(img_path)
-        NP = nnet.detect([img])
+rootDir = '../images/*'
+
+imgs = [mpimg.imread(img_path) for img_path in glob.glob(rootDir)]
         
-        # Generate image mask.
-        cv_img_masks = filters.cv_img_mask(NP) 
-       
-        res = []
-        # Detect points.
-        arrPoints = rectDetector.detect(cv_img_masks)
-            
-        # draw
-        filters.draw_box(img, arrPoints, (0, 255, 0), 3)
-        
-        # show
-        cv2.imshow('image',img)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+cv_imgs_masks = nnet.detect_mask(imgs)
+
+for img, cv_img_masks in zip(imgs, cv_imgs_masks):    
+    # Detect points.
+    arrPoints = rectDetector.detect(cv_img_masks)
+
+    filters.draw_box(img, arrPoints, (0, 255, 0), 3)
+    plt.axis("off")
+    plt.imshow(img)
+    plt.show()

@@ -1,3 +1,27 @@
+0.4.0 / 2020-08-21
+==================
+  **updates**
+  * Updated all code for tensorflow 2.x usage
+  * Updated all models for tensorflow 2.x usage
+  * Use tensorflow.keras instance keras
+  
+  **deprecated**
+  * MaskRcnn model cut out
+  * tensorflow 1.x not supported now 
+  
+Centermask2 / 2020-07-15
+==================
+  **training**
+  * Added new cpu ua OCR-model with 'KA' combination
+  
+  **features**
+  * Added methods that return OCR probabilities get_acc
+  * Added newest pytorch Centermask2 model (3x-faster than MaskRcnn)
+  
+  **bugfix** 
+  * fixed 4 points Detector
+  * bug with augmented images fixed
+
 0.3.5 / 2019-07-06
 ==================
   **model control manager**
