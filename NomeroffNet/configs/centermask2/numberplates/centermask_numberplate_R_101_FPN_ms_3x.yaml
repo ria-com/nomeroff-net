@@ -1,0 +1,13 @@
+_BASE_: "Base-CenterMask-ResNet.yaml"
+MODEL:
+  WEIGHTS: "https://nomeroff.net.ua/models/mrcnn/centermask_numberplate_R_101_FPN_ms_3x.pth"
+  MASK_ON: True
+  RESNETS:
+    DEPTH: 101
+DATASETS:
+  TRAIN: ("numberplate_train",)
+  TEST: ("numberplate_val",)
+SOLVER:
+  STEPS: (0, 250000)
+  MAX_ITER: 270000
+OUTPUT_DIR: "output/CenterMask-R-101-FPN-ms-3x"

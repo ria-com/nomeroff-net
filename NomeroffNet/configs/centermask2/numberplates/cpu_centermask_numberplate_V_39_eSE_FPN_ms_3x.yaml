@@ -1,0 +1,10 @@
+_BASE_: "Base-NumberPlate-VoVNet.yaml"
+MODEL:
+  WEIGHTS: "https://nomeroff.net.ua/models/mrcnn/centermask-numberplate_V_39_ms_3x_2020_06_05.pth"
+  DEVICE: "cpu"
+  VOVNET:
+    CONV_BODY : "V-39-eSE"
+SOLVER:
+  STEPS: (0, 60000)
+  MAX_ITER: 60000
+OUTPUT_DIR: "output/numberplate/numberplate-V-39-ms-3x"
