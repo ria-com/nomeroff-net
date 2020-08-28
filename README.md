@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 0.4.0
+Nomeroff Net. Automatic numberplate recognition system. Version 1.0.0
 
 ## Introduction
 Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation 
