@@ -8,6 +8,7 @@ neural network and cusomized OCR-module powered by [GRU architecture](https://gi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
+Version 1.0 2.5x faster Nomeroff Net 0.3.x! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
 ## Installation
 
 ### Installation from Source (Linux)
@@ -153,7 +154,7 @@ mainly for the definition of Ukrainian numbers, for other countries it will be n
 ## AUTO.RIA Numberplate OCR Datasets
 As OCR, we use a [specialized implementation of a neural network with GRU layers](https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md),
 for which we have created several datasets:
-  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-07-30.zip)
+  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-07-14.zip)
   * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian) with old design Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2019-07-30.tar.gz)
   * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2019-02-19.zip)
   * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2019-08-30.zip)
@@ -167,7 +168,6 @@ This gives you the opportunity to get **98% accuracy** on photos that are upload
 <img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
 <br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Number plate recognition example</a>
 
-
 ## Contributing
 Contributions to this repository are welcome. Examples of things you can contribute:
   * Training on other datasets.
@@ -176,7 +176,6 @@ Contributions to this repository are welcome. Examples of things you can contrib
 ## Credits
   * Dmytro Probachay &lt;dmytro.probachay@ria.com&gt;
   * Oleg Cherniy &lt;oleg.cherniy@ria.com&gt;
-
 
 ## Links
   * [Nomeroff Net project site](https://nomeroff.net.ua/)
