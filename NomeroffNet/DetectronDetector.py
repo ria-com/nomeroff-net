@@ -13,8 +13,18 @@ from detectron2.engine import default_setup
 from detectron2.config import CfgNode
 from detectron2.data.datasets import register_coco_instances
 
-import skimage
-from skimage.morphology import convex_hull_image
+def thresh_callback(src_gray, threshold=256/2):
+    src_gray = cv2.blur(src_gray, (3,3))
+    # Detect edges using Canny
+    canny_output = cv2.Canny(src_gray, threshold, threshold * 2)
+    # Find contours
+    contours, _ = cv2.findContours(canny_output, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    drawing = np.zeros((canny_output.shape[0], canny_output.shape[1], 3), dtype=np.uint8)
+    # Find the convex hull object for each contour
+    for i in range(len(contours)):
+        hull = cv2.convexHull(contours[i])
+        cv2.fillConvexPoly(drawing, hull, (255, 255, 255))
+    return drawing
 
 class Detector:
     def __init__(self,
@@ -65,12 +75,15 @@ class Detector:
             outputs = self.predictor(im)
             output_cpu = outputs["instances"].to("cpu")
             masks = np.array(output_cpu.get_fields()["pred_masks"])
-            masks = [cv2.cvtColor((mask*255).astype(np.uint8), cv2.COLOR_GRAY2RGB) for mask in masks]
 
-            # do convex hull
             if convex_hull:
-                masks =[skimage.color.gray2rgb(np.array(convex_hull_image(mask), dtype=np.uint8)) * 255 for mask in masks]
+                masks = [thresh_callback((mask*255).astype(np.uint8)) for mask in masks]
+            else:
+                masks = [cv2.cvtColor((mask*255).astype(np.uint8), cv2.COLOR_GRAY2RGB) for mask in masks]
 
+            for mask in masks:
+                print("222")
+                print(mask.shape)
             # if mask and np.all((arr == 0))
             if len(masks):
                 outputs_cpu.append(masks)
