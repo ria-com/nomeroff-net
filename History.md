@@ -1,3 +1,15 @@
+1.0.0 / 2020-08-27
+==================
+  **updates**
+  * Change main version to 1.0.0 beta
+  * Updated all examples for new version
+  * Fix small bugs in RectDetector
+  * Updated all OCR models
+  
+  **roadmap**
+  * Fix all docker files for new requirements needed
+  * Fix all setup*.py needed
+
 0.4.0 / 2020-08-21
 ==================
   **updates**
