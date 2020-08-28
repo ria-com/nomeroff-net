@@ -13,8 +13,11 @@ from detectron2.engine import default_setup
 from detectron2.config import CfgNode
 from detectron2.data.datasets import register_coco_instances
 
+import skimage
+from skimage.morphology import convex_hull_image
+
 class Detector:
-    def __init__(self, 
+    def __init__(self,
                  name        = "numberplate_train",
                  json_file = "./datasets/numberplate/train/coco_numberplate.json",
                  image_root  = "./datasets/numberplate/train",
@@ -29,7 +32,7 @@ class Detector:
         except Exception as e:
             # TODO: show warning
             pass
-        
+
     @classmethod
     def get_classname(cls):
         return cls.__name__
@@ -44,7 +47,7 @@ class Detector:
         centermask2_path= os.path.join(nomeroffnet_path, "centermask2")
         sys.path.append(centermask2_path)
         from centermask.config import get_cfg
-        
+
         if get_mode() == "cpu":
             config_file = f"cpu_{config_file}"
         config_file = os.path.join(nomeroffnet_path, subdir, config_file)
@@ -53,7 +56,7 @@ class Detector:
         cfg.freeze()
         self.predictor = DefaultPredictor(cfg)
 
-    def detect_mask(self, images, verbose = 0):
+    def detect_mask(self, images, verbose = 0, convex_hull=1):
         """
         TODO: multi gpu instances runtime
         """
@@ -63,6 +66,11 @@ class Detector:
             output_cpu = outputs["instances"].to("cpu")
             masks = np.array(output_cpu.get_fields()["pred_masks"])
             masks = [cv2.cvtColor((mask*255).astype(np.uint8), cv2.COLOR_GRAY2RGB) for mask in masks]
+
+            # do convex hull
+            if convex_hull:
+                masks =[skimage.color.gray2rgb(np.array(convex_hull_image(mask), dtype=np.uint8)) * 255 for mask in masks]
+
             # if mask and np.all((arr == 0))
             if len(masks):
                 outputs_cpu.append(masks)
