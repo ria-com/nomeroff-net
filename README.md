@@ -50,6 +50,10 @@ apt-get install python3.6-dev
 
 ##### install python requirments
 ```bash
+pip3 install torch
+pip3 install PyYAML==5.3
+pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
+pip3 install torchvision
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
