@@ -298,7 +298,7 @@ class OptionsDetector(ImgGenerator):
 
         stateIds = []
         for state in predicted[1]:
-            print(state)
+            #print(state)
             stateIds.append(int(np.argmax(state)))
 
         countLines = []

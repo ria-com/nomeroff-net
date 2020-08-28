@@ -81,9 +81,9 @@ class Detector:
             else:
                 masks = [cv2.cvtColor((mask*255).astype(np.uint8), cv2.COLOR_GRAY2RGB) for mask in masks]
 
-            for mask in masks:
-                print("222")
-                print(mask.shape)
+            #for mask in masks:
+            #    print("222")
+            #    print(mask.shape)
             # if mask and np.all((arr == 0))
             if len(masks):
                 outputs_cpu.append(masks)
