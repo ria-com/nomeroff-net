@@ -591,7 +591,7 @@ class RectDetector(object):
             return mainArr
         return sorted(mainArr, key=lambda x: cv2.contourArea(np.array(x).astype(int)), reverse=True)
 
-    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
+    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=1):
         arrPoints = self.detectRect(image)
         arrPoints = self.uniquePoints(arrPoints)
 
@@ -626,7 +626,7 @@ class RectDetector(object):
 
             return targetPoints
 
-    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
+    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=1):
          ''' Main method '''
          loop = asyncio.get_event_loop()
          promises = [loop.create_task(self.detectOneAsync(image, outboundWidthOffset=outboundWidthOffset, outboundHeightOffset=outboundHeightOffset, fixRectangleAngle=fixRectangleAngle, fixGeometry=fixGeometry)) for image in images]
