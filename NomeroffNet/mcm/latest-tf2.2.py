@@ -23,8 +23,8 @@ latest_models = {
   "TextDetector": {
     "eu_ua_2004_2015": {
       "h5": {
-        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2.2/anpr_ocr_ua-1995_2020_09_07_tensorflow_v2.2.h5",
-        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2.2/anpr_ocr_ua-1995_2020_09_07_tensorflow_v2.2.h5"
+        "gpu": "https://nomeroff.net.ua/models/ocr/ua/tf2.2/anpr_ocr_ua_2020_09_08_tensorflow_v2.2.h5",
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua/tf2.2/anpr_ocr_ua_2020_09_08_tensorflow_v2.2.h5"
       }
     },
     "eu_ua_1995": {
