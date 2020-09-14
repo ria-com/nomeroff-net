@@ -25,7 +25,6 @@ RUN pip3 install scikit_image
 RUN pip3 install Cython
 RUN pip3 install pycocotools
 RUN pip3 install matplotlib
-RUN pip3 install 'https://nomeroff.net.ua/tf/packages/tensorflow-2.3.0-cp36-cp36m-linux_x86_64.whl'
 RUN pip3 install opencv_python
 RUN pip3 install imutils
 RUN pip3 install "numpy>=1.16.*"
@@ -35,6 +34,7 @@ RUN pip3 install asyncio
 RUN pip3 install GitPython
 RUN pip3 install pycocotools
 RUN pip3 install tqdm
+RUN pip3 install 'https://nomeroff.net.ua/tf/packages/tensorflow-2.3.0-cp36-cp36m-linux_x86_64.whl'
 RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 
 
