@@ -54,7 +54,7 @@ class OCR(TextImageGenerator):
         self.DOWNSAMPLE_FACROT = self.POOL_SIZE * self.POOL_SIZE
 
         self.INPUT_NODE = "the_input_{}:0".format(type(self).__name__)
-        self.OUTPUT_NODE = "softmax_{}/truediv:0".format(type(self).__name__)
+        self.OUTPUT_NODE = "softmax_{}".format(type(self).__name__)
         
         # callbacks hyperparameters
         self.REDUCE_LRO_N_PLATEAU_PATIENCE = 3
@@ -144,7 +144,7 @@ class OCR(TextImageGenerator):
             if verbose:
                 print("SAVED TO {}".format(path))
 
-    def test(self, verbose=1, random_state=1):
+    def test(self, verbose=1, random_state=0):
         if verbose:
             print("\nRUN TEST")
             start_time = time.time()
@@ -177,6 +177,36 @@ class OCR(TextImageGenerator):
         if verbose:
             print("Test processing time: {} seconds".format(time.time() - start_time))
         print("acc: {}".format(succ_c/(err_c+succ_c)))
+   
+    def test_pb(self, verbose=1, random_state=0):
+        if verbose:
+            print("\nRUN TEST")
+            start_time = time.time()
+
+        err_c = 0
+        succ_c = 0
+        for X_data, labels in self.tiger_test.next_batch_pb(random_state):
+            tensorX = tf.convert_to_tensor(np.array(X_data).astype(np.float32))
+            net_out_value = self.PB_MODEL(tensorX)[self.OUTPUT_NODE]
+            pred_texts = self.decode_batch(net_out_value)
+            
+            texts = []
+            for label in labels:
+                text = self.tiger_test.labels_to_text(label)
+                texts.append(text)
+            
+            bs = len(labels)
+            for i in range(bs):
+                if (pred_texts[i] != texts[i]):
+                    if verbose:
+                        print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
+                    err_c += 1
+                else:
+                    succ_c += 1
+            break
+        if verbose:
+            print("Test processing time: {} seconds".format(time.time() - start_time))
+        print("acc: {}".format(succ_c/(err_c+succ_c)))
 
     def predict(self, imgs, return_acc=False):
         Xs = []
@@ -186,6 +216,21 @@ class OCR(TextImageGenerator):
         pred_texts = []
         if bool(Xs):
             net_out_value = self.MODEL.predict(np.array(Xs))
+            #print(net_out_value)
+            pred_texts = self.decode_batch(net_out_value)
+        if return_acc:
+            return pred_texts, net_out_value
+        return pred_texts
+    
+    def predict_pb(self, imgs, return_acc=False):
+        Xs = []
+        for img in imgs:
+            x = self.normalize_pb(img)
+            Xs.append(x)
+        pred_texts = []
+        if bool(Xs):
+            tensorX = tf.convert_to_tensor(np.array(Xs).astype(np.float32))
+            net_out_value = self.PB_MODEL(tensorX)[self.OUTPUT_NODE]
             #print(net_out_value)
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
@@ -209,6 +254,10 @@ class OCR(TextImageGenerator):
             self.MODEL.summary()
 
         return self.MODEL
+    
+    def load_pb(self, model_dir, mode="cpu", verbose = 0):
+        pb_model = tf.saved_model.load(model_dir)
+        self.PB_MODEL = pb_model.signatures["serving_default"]
 
     def prepare(self, path_to_dataset, use_aug=False, verbose=1):
         train_path = os.path.join(path_to_dataset, "train")

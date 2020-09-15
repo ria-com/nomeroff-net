@@ -31,8 +31,12 @@ class TextDetector():
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
             TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
             detector = TextPostprocessing()
-
-            detector.load(priset['model_path'], mode)
+            
+            if priset['model_path'] == "latest" or priset['model_path'].split(".")[-1] == "h5":
+                detector.load(priset['model_path'], mode)
+            else:
+                detector.load_pb(priset['model_path'], mode)
+                detector.predict = detector.predict_pb
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
@@ -77,6 +81,7 @@ class TextDetector():
                 resAll = resAll + buffRes
                 scores = scores + list(acc)
             else:
+                
                 resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
             orderAll = orderAll + predicted[key]["order"]
 

@@ -307,7 +307,36 @@ class OptionsDetector(ImgGenerator):
         if return_acc:
             return regionIds, stateIds, countLines, predicted
         return regionIds, stateIds, countLines
+    
+    def predict_pb(self, imgs, return_acc=False):
+        Xs = []
+        for img in imgs:
+            Xs.append(self.normalize(img))
 
+        predicted = [[], [], []]
+        if bool(Xs):
+            tensorX = tf.convert_to_tensor(Xs)
+            predicted = self.pb_model(tensorX)
+
+        regionIds = []
+        for region in predicted[0]:
+            regionIds.append(int(np.argmax(region)))
+
+        stateIds = []
+        for state in predicted[1]:
+            stateIds.append(int(np.argmax(state)))
+
+        countLines = []
+        for countL in predicted[2]:
+            countLines.append(int(np.argmax(countL)))
+
+        if return_acc:
+            return regionIds, stateIds, countLines, predicted
+        return regionIds, stateIds, countLines
+    
+    def load_pb(self, model_dir):
+        self.pb_model = tf.saved_model.load(model_dir)
+        
     def getRegionLabels(self, indexes):
         return [self.CLASS_REGION[index] for index in indexes]
 

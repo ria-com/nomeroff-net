@@ -128,6 +128,18 @@ class TextImageGenerator:
         x = np.zeros((self.IMG_W, self.IMG_H, 1))
         x[:, :, :] = img
         return x
+    
+    def normalize_pb(self, img):
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = cv2.resize(img, (self.IMG_W, self.IMG_H))
+
+        img -= np.amin(img)
+        img /= np.amax(img)
+        img = [[[h] for h in w] for w in img.T]
+
+        x = np.zeros((self.IMG_W, self.IMG_H, 1))
+        x[:, :, :] = img
+        return x
 
     def next_sample(self, is_random=1):
         self.cur_index += 1
@@ -175,3 +187,38 @@ class TextImageGenerator:
             }
             outputs = {'{}'.format(output_name): np.zeros([self.batch_size])}
             yield (inputs, outputs)
+
+    def next_batch_pb(self, is_random=1, input_name=None, output_name="ctc"):
+        if not input_name:
+            input_name = 'the_input_{}'.format(self.CNAME)
+        while True:
+            # width and height are backwards from typical Keras convention
+            # because width is the time dimension when it gets fed into the RNN
+            if K.image_data_format() == 'channels_first':
+                X_data = np.ones([self.batch_size, 1, self.img_w, self.img_h])
+            else:
+                X_data = np.ones([self.batch_size, self.img_w, self.img_h, 1])
+
+            Y_data = np.ones([self.batch_size, self.max_text_len])
+            input_length = np.ones((self.batch_size, 1)) * (self.img_w // self.downsample_factor - 2)
+            label_length = np.zeros((self.batch_size, 1))
+            source_str = []
+            
+            labels = []
+            for i in range(self.batch_size):
+                img, text = self.next_sample(is_random)
+                img = img.T
+                if K.image_data_format() == 'channels_first':
+                    img = np.expand_dims(img, 0)
+                else:
+                    img = np.expand_dims(img, -1)
+                X_data[i] = img
+                Y_data[i] = np.array(self.text_to_labels(text))
+                source_str.append(text)
+                label_length[i] = len(text)
+                labels.append(text)
+
+            inputs = X_data
+            outputs = Y_data
+            yield (inputs, outputs)
+   
