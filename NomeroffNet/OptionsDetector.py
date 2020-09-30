@@ -270,7 +270,7 @@ class OptionsDetector(ImgGenerator):
             path_to_model   = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dnr", "eu-ua-ordlo-lnr", "ge"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su"])
         
         self.MODEL = load_model(path_to_model)
         if verbose:
