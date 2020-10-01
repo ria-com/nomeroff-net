@@ -15,8 +15,8 @@ latest_models = {
           "eu-ua-fake-lnr",
           "ge"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_08_20_tensorflow_v2.2.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_08_20_tensorflow_v2.2.h5"
+        "gpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_10_01_tensorflow_v2_2.h5",
+        "cpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_10_01_tensorflow_v2_2.h5"
       }
     }
   },
