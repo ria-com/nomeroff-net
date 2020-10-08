@@ -26,7 +26,7 @@ latest_models = {
           "su"
         ],
         "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_10_01_tensorflow_v2_3.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_10_01_tensorflow_v2_3.h5s"
+        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_10_01_tensorflow_v2_3.h5"
       }
     }
   },
