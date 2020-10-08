@@ -12,6 +12,8 @@ source/*
 datasets/ocr/*
 datasets/region/*
 datasets/mrcnn/*
+tensorflow/*
 
 public/npdetect.php
 Mask_RCNN/*
+centermask2/*

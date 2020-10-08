@@ -1,53 +1,57 @@
+# # Specify device
+# import os
+# os.environ["CUDA_VISIBLE_DEVICES"] = "" 
+
 # Import all necessary libraries.
 import os
 import numpy as np
 import sys
 import matplotlib.image as mpimg
 
-# change this property
-NOMEROFF_NET_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../')
-
-# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-
+# NomeroffNet path
+NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessing, textPostprocessingAsync
+from NomeroffNet import  Detector
+from NomeroffNet import  filters
+from NomeroffNet import  RectDetector
+from NomeroffNet import  OptionsDetector
+from NomeroffNet import  TextDetector
+from NomeroffNet import  textPostprocessing
 
-# Initialize npdetector with default configuration file.
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-nnet.loadModel("latest")
-
+# load models
 rectDetector = RectDetector()
 
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-# Initialize text detector.
 textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
-# Detect numberplate
-print("START RECOGNIZING")
-img_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../images/example2.jpeg')
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
 
+# Detect numberplate
+img_path = '../images/example2.jpeg'
 img = mpimg.imread(img_path)
-NP = nnet.detect([img])
+NP = nnet.detect_mask([img])
 
 # Generate image mask.
-cv_img_masks = filters.cv_img_mask(NP)
+cv_imgs_masks = nnet.detect_mask([img])
+    
+for cv_img_masks in cv_imgs_masks:
+    # Detect points.
+    arrPoints = rectDetector.detect(cv_img_masks)
+    
+    # cut zones
+    zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
 
-# Detect points.
-arrPoints = rectDetector.detect(cv_img_masks)
-zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
-
-# find standart
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
-regionNames = optionsDetector.getRegionLabels(regionIds)
- 
-# find text with postprocessing by standart  
-textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
-print(textArr)
+    # find standart
+    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionNames = optionsDetector.getRegionLabels(regionIds)
+    
+    # find text with postprocessing by standart  
+    textArr = textDetector.predict(zones)
+    textArr = textPostprocessing(textArr, regionNames)
+    print(textArr)

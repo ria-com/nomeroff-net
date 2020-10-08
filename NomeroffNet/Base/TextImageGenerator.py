@@ -76,11 +76,20 @@ class TextImageGenerator:
             ret.append(outstr)
         return ret
 
-    def build_data(self, aug_count=0):
+    def build_data(self, use_aug = False):
         self.imgs = np.zeros((self.n, self.img_h, self.img_w))
         self.texts = []
+        
+       
         for i, (img_filepath, text) in enumerate(self.samples):
             img = cv2.imread(img_filepath)
+            
+            if use_aug:
+                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                imgs = aug([img])
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                img = imgs[0]
+
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
             # CLAHE
@@ -95,28 +104,7 @@ class TextImageGenerator:
             # because width is the time dimension when it gets fed into the RNN
             self.imgs[i, :, :] = img
             self.texts.append(text)
-        while aug_count:
-            for i, (img_filepath, text) in enumerate(self.samples):
-                img = cv2.imread(img_filepath)
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-                imgs = aug([img])
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                img = imgs[0]
-                img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-                # CLAHE
-                clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-                img = clahe.apply(img)
-
-                img = cv2.resize(img, (self.img_w, self.img_h))
-                img = img.astype(np.float32)
-                img -= np.amin(img)
-                img /= np.amax(img)
-                # width and height are backwards from typical Keras convention
-                # because width is the time dimension when it gets fed into the RNN
-                self.imgs[i, :, :] = img
-                self.texts.append(text)
-            aug_count -= 1
+            
         self.n = len(self.imgs)
         self.indexes = list(range(self.n))
 
@@ -133,6 +121,18 @@ class TextImageGenerator:
         img = clahe.apply(img)
 
         img = img.astype(np.float32)
+        img -= np.amin(img)
+        img /= np.amax(img)
+        img = [[[h] for h in w] for w in img.T]
+
+        x = np.zeros((self.IMG_W, self.IMG_H, 1))
+        x[:, :, :] = img
+        return x
+    
+    def normalize_pb(self, img):
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        img = cv2.resize(img, (self.IMG_W, self.IMG_H))
+
         img -= np.amin(img)
         img /= np.amax(img)
         img = [[[h] for h in w] for w in img.T]
@@ -174,7 +174,7 @@ class TextImageGenerator:
                 else:
                     img = np.expand_dims(img, -1)
                 X_data[i] = img
-                Y_data[i] = self.text_to_labels(text)
+                Y_data[i] = np.array(self.text_to_labels(text))
                 source_str.append(text)
                 label_length[i] = len(text)
 
@@ -187,3 +187,38 @@ class TextImageGenerator:
             }
             outputs = {'{}'.format(output_name): np.zeros([self.batch_size])}
             yield (inputs, outputs)
+
+    def next_batch_pb(self, is_random=1, input_name=None, output_name="ctc"):
+        if not input_name:
+            input_name = 'the_input_{}'.format(self.CNAME)
+        while True:
+            # width and height are backwards from typical Keras convention
+            # because width is the time dimension when it gets fed into the RNN
+            if K.image_data_format() == 'channels_first':
+                X_data = np.ones([self.batch_size, 1, self.img_w, self.img_h])
+            else:
+                X_data = np.ones([self.batch_size, self.img_w, self.img_h, 1])
+
+            Y_data = np.ones([self.batch_size, self.max_text_len])
+            input_length = np.ones((self.batch_size, 1)) * (self.img_w // self.downsample_factor - 2)
+            label_length = np.zeros((self.batch_size, 1))
+            source_str = []
+            
+            labels = []
+            for i in range(self.batch_size):
+                img, text = self.next_sample(is_random)
+                img = img.T
+                if K.image_data_format() == 'channels_first':
+                    img = np.expand_dims(img, 0)
+                else:
+                    img = np.expand_dims(img, -1)
+                X_data[i] = img
+                Y_data[i] = np.array(self.text_to_labels(text))
+                source_str.append(text)
+                label_length[i] = len(text)
+                labels.append(text)
+
+            inputs = X_data
+            outputs = Y_data
+            yield (inputs, outputs)
+   

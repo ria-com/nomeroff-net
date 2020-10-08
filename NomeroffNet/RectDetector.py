@@ -8,7 +8,7 @@ import asyncio
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
 
-    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 11):
+    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 15):
         self.COEF_APPROX = coef_approx
         self.MAX_COUNT_STEP_APPROX = max_count_step_approx
         self.TARGET_POINTS = target_points
@@ -205,7 +205,7 @@ class RectDetector(object):
 
     def findDistances(self, points):
         ''' Getting an array with line characteristics '''
-        distanses = []
+        distanсes = []
         cnt = len(points)
         for i in range(cnt):
             p0 = i
@@ -213,31 +213,27 @@ class RectDetector(object):
                 p1 = i+1
             else:
                 p1 = 0
-            distanses.append({ "d": self.distance(points[p0][0], points[p1][0]), "p0": p0, "p1":p1,
+            distanсes.append({ "d": self.distance(points[p0][0], points[p1][0]), "p0": p0, "p1":p1,
                               "matrix": self.linearLineMatrix(points[p0][0],points[p1][0]),
                               "coef": self.fline(points[p0][0],points[p1][0])})
-        return distanses
+        return distanсes
 
-    def clacRectLines(self, distanses):
+    def clacRectLines(self, distanсes):
         ''' Sort lines to length '''
-        return sorted(distanses, key=lambda x: x["d"])
+        return sorted(distanсes, key=lambda x: x["d"])
 
     def filterInterestedLines(self, interestedLines,minElements,thresholdPercentage):
         if (len(interestedLines) > minElements):
             threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
+            interestedLinesFilterd = []
             while threshold>1:
                 interestedLinesFilterd = [x for x in interestedLines if x["d"] >= threshold]
                 if len(interestedLinesFilterd) > minElements:
                     break
                 threshold = threshold*.9
-            # interestedLinesForFilter = interestedLines[:len(interestedLines)-8]
-            # interestedLinesFiltered = [x for x in interestedLinesForFilter if x["d"] < threshold]
             return interestedLinesFilterd
         else:
             return interestedLines
-
-        #threshold = interestedLines[len(interestedLines)-1]["d"]*thresholdPercentage
-        #return [x for x in interestedLines if x["d"] >= threshold]
 
     def linearLineMatrixCrossPoint(self, p0,p1,point):
         arr = self.linearLineMatrix(p0,p1)
@@ -319,7 +315,8 @@ class RectDetector(object):
                 d = self.gDiff(X[i],X[j])
                 distances.append({"d": d, "i": i, "j": j})
         sdistances = self.clacRectLines(distances)
-        tLine = distances[len(distances)-1]
+        if len(distances):
+            tLine = distances[len(distances)-1]
         return np.array([X[tLine["i"]],X[tLine["j"]]])
 
     def cdist(self, X, centroids):
@@ -471,10 +468,10 @@ class RectDetector(object):
         return np.linalg.lstsq(X, y, rcond=None)[0]
 
     def addOffset(self, targetPoints, offsetHorisontal, offsetVertical):
-       distanses = self.findDistances(self.makeUglyPoints(targetPoints))
+       distanсes = self.findDistances(self.makeUglyPoints(targetPoints))
        points=[]
-       cnt = len(distanses)
-       offsetFlag = distanses[0]['d']>distanses[1]['d']
+       cnt = len(distanсes)
+       offsetFlag = distanсes[0]['d']>distanсes[1]['d']
        for i in range(cnt):
            iPrev = i
            iNext = i+1
@@ -487,7 +484,7 @@ class RectDetector(object):
                offset2 = offsetVertical
                offset1 = offsetHorisontal
            offsetFlag = not offsetFlag
-           points.append(self.detectIntersectionNormDD(distanses[iPrev]['matrix'],distanses[iNext]['matrix'],offset1,offset2))
+           points.append(self.detectIntersectionNormDD(distanсes[iPrev]['matrix'],distanсes[iNext]['matrix'],offset1,offset2))
        return np.array(points)
 
     def fixClockwise(self, targetPoints):
@@ -514,40 +511,40 @@ class RectDetector(object):
         line2matrix = self.detectParalelMatrix(line2['matrix'],point)
         return self.detectIntersection(line1['matrix'],line2matrix)
 
-    def detectUnstableLines(self, distanses,points,d0,d1):
-        angle0 = distanses[0]["coef"][3]-distanses[1]["coef"][3]
+    def detectUnstableLines(self, distanсes,points,d0,d1):
+        angle0 = distanсes[0]["coef"][3]-distanсes[1]["coef"][3]
         if d0<d1:
-            angle1 = distanses[0]["coef"][3]-distanses[3]["coef"][3]
+            angle1 = distanсes[0]["coef"][3]-distanсes[3]["coef"][3]
             if abs(angle0)>abs(angle1):
-                if (distanses[2]["d"] < distanses[0]["d"]):
-                    points[3] = self.detectIntersectionParalelLine(distanses[2],distanses[1],points[distanses[0]["p0"]])
+                if (distanсes[2]["d"] < distanсes[0]["d"]):
+                    points[3] = self.detectIntersectionParalelLine(distanсes[2],distanсes[1],points[distanсes[0]["p0"]])
                 else:
-                    points[0] = self.detectIntersectionParalelLine(distanses[0],distanses[1],points[distanses[2]["p1"]])
+                    points[0] = self.detectIntersectionParalelLine(distanсes[0],distanсes[1],points[distanсes[2]["p1"]])
             else:
-                if (distanses[2]["d"] <distanses[0]["d"]):
-                    points[2] = self.detectIntersectionParalelLine(distanses[2],distanses[3],points[distanses[0]["p1"]])
+                if (distanсes[2]["d"] <distanсes[0]["d"]):
+                    points[2] = self.detectIntersectionParalelLine(distanсes[2],distanсes[3],points[distanсes[0]["p1"]])
                 else:
-                    points[1] = self.detectIntersectionParalelLine(distanses[0],distanses[3],points[distanses[2]["p0"]])
+                    points[1] = self.detectIntersectionParalelLine(distanсes[0],distanсes[3],points[distanсes[2]["p0"]])
         else:
-            angle1 = distanses[1]["coef"][3]-distanses[2]["coef"][3]
+            angle1 = distanсes[1]["coef"][3]-distanсes[2]["coef"][3]
             if abs(angle0)>abs(angle1):
-                if (distanses[3]["d"] <distanses[1]["d"]):
-                    points[3] = self.detectIntersectionParalelLine(distanses[3],distanses[0],points[distanses[1]["p1"]])
+                if (distanсes[3]["d"] <distanсes[1]["d"]):
+                    points[3] = self.detectIntersectionParalelLine(distanсes[3],distanсes[0],points[distanсes[1]["p1"]])
                 else:
-                    points[2] = self.detectIntersectionParalelLine( distanses[1],distanses[0],points[distanses[3]["p0"]])
+                    points[2] = self.detectIntersectionParalelLine( distanсes[1],distanсes[0],points[distanсes[3]["p0"]])
             else:
-                if (distanses[3]["d"] <distanses[1]["d"]):
-                    points[0] = self.detectIntersectionParalelLine(distanses[3],distanses[2],points[distanses[1]["p0"]])
+                if (distanсes[3]["d"] <distanсes[1]["d"]):
+                    points[0] = self.detectIntersectionParalelLine(distanсes[3],distanсes[2],points[distanсes[1]["p0"]])
                 else:
-                    points[1] = self.detectIntersectionParalelLine(distanses[1],distanses[2],points[distanses[3]["p1"]])
+                    points[1] = self.detectIntersectionParalelLine(distanсes[1],distanсes[2],points[distanсes[3]["p1"]])
         return points
 
     def fixRectangle(self, points, fixRectangleAngle=3):
-        distanses = self.findDistances(self.makeUglyPoints(points))
-        d0 = self.gDiff(distanses[0]["coef"][3],distanses[2]["coef"][3])
-        d1 = self.gDiff(distanses[1]["coef"][3],distanses[3]["coef"][3])
+        distanсes = self.findDistances(self.makeUglyPoints(points))
+        d0 = self.gDiff(distanсes[0]["coef"][3],distanсes[2]["coef"][3])
+        d1 = self.gDiff(distanсes[1]["coef"][3],distanсes[3]["coef"][3])
         if (d0>fixRectangleAngle) or (d1>fixRectangleAngle):
-            points = self.detectUnstableLines(distanses,points,d0,d1)
+            points = self.detectUnstableLines(distanсes,points,d0,d1)
         if (d0>fixRectangleAngle) or (d1>fixRectangleAngle):
             points = self.fixRectangle(points, fixRectangleAngle)
         return points
@@ -579,13 +576,12 @@ class RectDetector(object):
         d1 = self.distance(points[0], points[1])
         d2 = self.distance(points[1], points[2])
 
-        distanses = self.findDistances(self.makeUglyPoints(points))
-        angle = distanses[0]["coef"][3]
+        distanсes = self.findDistances(self.makeUglyPoints(points))
+        angle = distanсes[0]["coef"][3]
 
         if d1 > d2:
             d1, d2 = d2, d1
-        #print(d2/d1)
-        #print(angle)
+
         if (d2/d1) <= coef:
             return True
         return False
@@ -595,13 +591,13 @@ class RectDetector(object):
             return mainArr
         return sorted(mainArr, key=lambda x: cv2.contourArea(np.array(x).astype(int)), reverse=True)
 
-    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
+    async def detectOneAsync(self, image, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=1):
         arrPoints = self.detectRect(image)
         arrPoints = self.uniquePoints(arrPoints)
 
         for points in arrPoints:
-            distanses = self.findDistances(points)
-            interestedLines = self.clacRectLines(distanses)
+            distanсes = self.findDistances(points)
+            interestedLines = self.clacRectLines(distanсes)
 
             # Get 4 lines that are part of a rectangle describing the license plate area.
             labels = self.gKMeansMajorLines(interestedLines)
@@ -630,7 +626,7 @@ class RectDetector(object):
 
             return targetPoints
 
-    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=0):
+    async def detectAsync(self, images, outboundWidthOffset=3, outboundHeightOffset=0, fixRectangleAngle=3, fixGeometry=1):
          ''' Main method '''
          loop = asyncio.get_event_loop()
          promises = [loop.create_task(self.detectOneAsync(image, outboundWidthOffset=outboundWidthOffset, outboundHeightOffset=outboundHeightOffset, fixRectangleAngle=fixRectangleAngle, fixGeometry=fixGeometry)) for image in images]
@@ -647,8 +643,8 @@ class RectDetector(object):
             arrPoints = self.uniquePoints(arrPoints)
 
             for points in arrPoints:
-                distanses = self.findDistances(points)
-                interestedLines = self.clacRectLines(distanses)
+                distanсes = self.findDistances(points)
+                interestedLines = self.clacRectLines(distanсes)
 
                 # Get 4 lines that are part of a rectangle describing the license plate area.
                 labels = self.gKMeansMajorLines(interestedLines)
@@ -660,9 +656,6 @@ class RectDetector(object):
                     else:
                         B.append(interestedLines[i])
                 targetLines = self.makeTargetLines(A,B)
-
-                #print("targetLines")
-                #print(targetLines)
 
                 if fixGeometry:
                     targetAlignmentLines = self.detectAlignmentLines(targetLines,A,B)
@@ -681,6 +674,7 @@ class RectDetector(object):
 
                 res.append(targetPoints)
 
-            resPoints.append(res[0])
+            if len(res):
+                resPoints.append(res[0])
 
         return np.array(resPoints)

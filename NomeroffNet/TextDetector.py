@@ -4,7 +4,7 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
 import tensorflow as tf
-import keras
+import tensorflow.keras
 
 from .mcm.mcm import download_latest_model
 
@@ -31,12 +31,12 @@ class TextDetector():
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
             TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
             detector = TextPostprocessing()
-
-            if priset['model_path'].split(".")[-1] == "pb":
-                detector.load_frozen(priset['model_path'], mode)
-                detector.predict = detector.frozen_predict
-            else:
+            
+            if priset['model_path'] == "latest" or priset['model_path'].split(".")[-1] == "h5":
                 detector.load(priset['model_path'], mode)
+            else:
+                detector.load_pb(priset['model_path'], mode)
+                detector.predict = detector.predict_pb
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
@@ -44,7 +44,7 @@ class TextDetector():
     def get_avalible_module():
         pass
 
-    def predict(self, zones, labels=None, lines=None, frozen=False, return_acc=False):
+    def predict(self, zones, labels=None, lines=None, return_acc=False):
         if labels is None:
             labels = []
         if lines is None:
@@ -76,13 +76,13 @@ class TextDetector():
             i += 1
 
         for key in predicted.keys():
-            if not frozen:
-                if return_acc:
-                    buffRes, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
-                    resAll = resAll + buffRes
-                    scores = scores + list(acc)
-                else:
-                    resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+            if return_acc:
+                buffRes, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+                resAll = resAll + buffRes
+                scores = scores + list(acc)
+            else:
+                
+                resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
             orderAll = orderAll + predicted[key]["order"]
 
         if return_acc:
