@@ -78,7 +78,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
 
 # Import all necessary libraries.
-import os
 import numpy as np
 import sys
 import matplotlib.image as mpimg
