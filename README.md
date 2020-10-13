@@ -71,9 +71,13 @@ Then, run `visualcppbuildtools_full.exe` and select default options:
 
 
 ## Hello Nomeroff Net
-```python
-# Import all necessary libraries.
+```
+# Specify device
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0" 
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
+
+# Import all necessary libraries.
 import numpy as np
 import sys
 import matplotlib.image as mpimg

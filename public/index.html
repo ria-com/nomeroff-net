@@ -143,8 +143,12 @@ pip3 install -r requirements.txt
                 <h1 id="quickExample">Hello Nomeroff Net</h1>
 
 <pre class="prettyprint" lang="prettyprint lang-py">
-# Import all necessary libraries.
+# Specify device
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
+
+# Import all necessary libraries.
 import numpy as np
 import sys
 import matplotlib.image as mpimg
