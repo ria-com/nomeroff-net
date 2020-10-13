@@ -8,7 +8,7 @@ neural network and cusomized OCR-module powered by [GRU architecture](https://gi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 1.0 2.5x faster Nomeroff Net 0.3.x! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
+Version 1.0 2.5x faster Nomeroff Net [0.4.x](https://github.com/ria-com/nomeroff-net/tree/v0.4)! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
 ## Installation
 
 ### Installation from Source (Linux)
@@ -157,7 +157,7 @@ for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-07-14.zip)
   * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian) with old design Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2019-07-30.tar.gz)
   * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip)
-  * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-09.zip)
+  * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip)
   * [AUTO.RIA Numberplate OCR KZ Dataset (Kazakh)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
   * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
   * [AUTO.RIA Numberplate OCR BY Dataset (Belarus)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip)

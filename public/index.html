@@ -64,26 +64,83 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 0.3.1</p>
+                <p>Automatic numberplate recognition system. Version 1.0.0</p>
 
 
                 <h1>Introduction</h1>
-                <p>Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional neural network on the <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> architecture, and cusomized OCR-module powered by <a href="https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md">GRU architecture</a>.</p>
+                <p>Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation
+                    neural network and cusomized OCR-module powered by <a href="https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md">GRU architecture</a>.</p>
+
+                <p>The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.</p>
+
+                <p>Version 1.0 2.5x faster Nomeroff Net <a href="https://github.com/ria-com/nomeroff-net/tree/v0.4">0.4.x!</a> This improvement was achieved by replacing <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> with a <a href="https://github.com/youngwanLEE/centermask2">CenterMask2</a> (more modern and high-speed implementation of the instance segmaentation task).</p>
 
                 <h1>Installation</h1>
 
-                <p>The project requires the installation of Python 3.6, or 3.7 (if you plan to install the latest tensorflow >=1.13.rc2)
+                <h2>Installation from Source (Linux)</h2>
 
-                <p>Checkout nomeroff-net & Mask_RCNN from github:</p>
+                <p>Nomeroff Net requires Python >= 3.6 and <a href="https://opencv.org/">opencv 3.4 or latest</a></p>
+
+
+                <p>Clone Project and clone related projects:</p>
 <pre class="prettyprint lang-bsh">
-$ git clone https://github.com/ria-com/nomeroff-net.git
-$ cd ./nomeroff-net
-$ git clone https://github.com/matterport/Mask_RCNN.git
-$ pip3 install -r requirements.txt
+git clone https://github.com/ria-com/nomeroff-net.git
+cd nomeroff-net
+git clone https://github.com/youngwanLEE/centermask2.git
 </pre>
-                <p>Download the <a href="models/">latest models</a> that are required for your neural network to work and place them in the <b>./models</b> folder of the nomeroff-net project</p>
+                <h2>For Centos, Fedora and other RedHat-like OS:</h2>
 
-                <h1 id="quickExample">Quick recognition example</h1>
+<pre class="prettyprint lang-bsh">
+# for Opencv
+yum install libSM
+
+# for pycocotools install
+yum install python3-devel
+
+# ensure that you have installed gcc compiler
+yum install gcc
+</pre>
+
+
+                <h2>For Ubuntu and other Debian-like OS:</h2>
+
+<pre class="prettyprint lang-bsh">
+# ensure that you have installed gcc compiler
+apt-get install gcc
+
+# for opencv install
+apt-get install -y libglib2.0
+apt-get install -y libsm6
+apt-get install -y libfontconfig1 libxrender1
+apt-get install -y libxtst6
+
+# for pycocotools install (Check the name of the dev-package for your python3)
+apt-get install python3.6-dev
+</pre>
+
+
+                <h2>Install python requirments</h2>
+
+<pre class="prettyprint lang-bsh">
+pip3 install torch
+pip3 install PyYAML==5.3
+pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
+pip3 install torchvision
+pip3 install Cython
+pip3 install numpy
+pip3 install -r requirements.txt
+</pre>
+
+                <h2>Installation from Source (Windows)</h2>
+
+                <p>On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from <a href="https://go.microsoft.com/fwlink/?LinkId=691126">here</a>:<br/>
+                    <img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system" style="padding:10px 0px;"/>
+                </p>
+                <p>Then, run `visualcppbuildtools_full.exe` and select default options:<br/>
+                    <img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system" style="padding:10px 0px;"/>
+                </p>
+
+                <h1 id="quickExample">Hello Nomeroff Net</h1>
 
 <pre class="prettyprint" lang="prettyprint lang-py">
 # Import all necessary libraries.
@@ -92,52 +149,54 @@ import numpy as np
 import sys
 import matplotlib.image as mpimg
 
-# change this property
-NOMEROFF_NET_DIR = os.path.abspath('../../')
-
-# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
-MASK_RCNN_DIR = os.path.join(NOMEROFF_NET_DIR, 'Mask_RCNN')
-MASK_RCNN_LOG_DIR = os.path.join(NOMEROFF_NET_DIR, 'logs')
-
+# NomeroffNet path
+NOMEROFF_NET_DIR = os.path.abspath('../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  filters, RectDetector, TextDetector, OptionsDetector, Detector, textPostprocessing, textPostprocessingAsync
+from NomeroffNet import  Detector
+from NomeroffNet import  filters
+from NomeroffNet import  RectDetector
+from NomeroffNet import  OptionsDetector
+from NomeroffNet import  TextDetector
+from NomeroffNet import  textPostprocessing
 
-# Initialize npdetector with default configuration file.
-nnet = Detector(MASK_RCNN_DIR, MASK_RCNN_LOG_DIR)
-nnet.loadModel("latest")
-
+# load models
 rectDetector = RectDetector()
 
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-# Initialize text detector.
 textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
+nnet = Detector()
+nnet.loadModel(NOMEROFF_NET_DIR)
+
 # Detect numberplate
-img_path = '../images/example2.jpeg'
+img_path = 'images/example2.jpeg'
 img = mpimg.imread(img_path)
-NP = nnet.detect([img])
+NP = nnet.detect_mask([img])
 
 # Generate image mask.
-cv_img_masks = filters.cv_img_mask(NP)
+cv_imgs_masks = nnet.detect_mask([img])
 
-# Detect points.
-arrPoints = rectDetector.detect(cv_img_masks)
-zones = rectDetector.get_cv_zonesBGR(img, arrPoints)
+for cv_img_masks in cv_imgs_masks:
+    # Detect points.
+    arrPoints = rectDetector.detect(cv_img_masks)
 
-# find standart
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
-regionNames = optionsDetector.getRegionLabels(regionIds)
+    # cut zones
+    zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
 
-# find text with postprocessing by standart
-textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
-print(textArr)
-# ['JJF509', 'RP70012']
+    # find standart
+    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionNames = optionsDetector.getRegionLabels(regionIds)
+
+    # find text with postprocessing by standart
+    textArr = textDetector.predict(zones)
+    textArr = textPostprocessing(textArr, regionNames)
+    print(textArr)
+    # ['JJF509', 'RP70012']
 </pre>
 
 
@@ -165,7 +224,7 @@ print(textArr)
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-07-30.zip">AUTO.RIA Numberplate OCR UA (Ukrainian) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2019-07-30.tar.gz">AUTO.RIA Numberplate OCR UA (Ukrainian) with old design Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip">AUTO.RIA Numberplate OCR EU (European) Dataset</a></li>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-09.zip">AUTO.RIA Numberplate OCR RU (Russian) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip">AUTO.RIA Numberplate OCR RU (Russian) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip">AUTO.RIA Numberplate OCR KZ (Kazakh) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip">AUTO.RIA Numberplate OCR GE (Georgian) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip">AUTO.RIA Numberplate OCR BY (Belarus) Dataset</a></li>
