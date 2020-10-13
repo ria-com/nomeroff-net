@@ -64,16 +64,16 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 0.3.1</p>
+                <p>Automatic numberplate recognition system. Version 1.0.0</p>
 
 
                 <h1>Introduction</h1>
                 <p>Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation
-                   neural network and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).</p>
+                    neural network and cusomized OCR-module powered by <a href="https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md">GRU architecture</a>.</p>
 
                 <p>The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.</p>
 
-                <p>Version 1.0 2.5x faster Nomeroff Net 0.3.x! This improvement was achieved by replacing <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> with a <a href="https://github.com/youngwanLEE/centermask2">CenterMask2</a> (more modern and high-speed implementation of the instance segmaentation task).</p>
+                <p>Version 1.0 2.5x faster Nomeroff Net <a href="https://github.com/ria-com/nomeroff-net/tree/v0.4">0.4.x!</a> This improvement was achieved by replacing <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> with a <a href="https://github.com/youngwanLEE/centermask2">CenterMask2</a> (more modern and high-speed implementation of the instance segmaentation task).</p>
 
                 <h1>Installation</h1>
 
@@ -119,7 +119,7 @@ apt-get install python3.6-dev
 </pre>
 
 
-                <h2>install python requirments</h2>
+                <h2>Install python requirments</h2>
 
 <pre class="prettyprint lang-bsh">
 pip3 install torch
@@ -133,14 +133,12 @@ pip3 install -r requirements.txt
 
                 <h2>Installation from Source (Windows)</h2>
 
-                <p>On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from <a href="https://go.microsoft.com/fwlink/?LinkId=691126">here</a>:</p>
-
-                <img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
-                <p>Then, run `visualcppbuildtools_full.exe` and select default options:</p>
-
-                <img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
+                <p>On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from <a href="https://go.microsoft.com/fwlink/?LinkId=691126">here</a>:<br/>
+                    <img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system" style="padding:10px 0px;"/>
+                </p>
+                <p>Then, run `visualcppbuildtools_full.exe` and select default options:<br/>
+                    <img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system" style="padding:10px 0px;"/>
+                </p>
 
                 <h1 id="quickExample">Hello Nomeroff Net</h1>
 

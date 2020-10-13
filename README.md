@@ -8,7 +8,7 @@ neural network and cusomized OCR-module powered by [GRU architecture](https://gi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 1.0 2.5x faster Nomeroff Net 0.3.x! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
+Version 1.0 2.5x faster Nomeroff Net [0.4.x](https://github.com/ria-com/nomeroff-net/tree/v0.4)! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
 ## Installation
 
 ### Installation from Source (Linux)
