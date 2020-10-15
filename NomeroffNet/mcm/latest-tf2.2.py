@@ -13,7 +13,9 @@ latest_models = {
           "kz",
           "eu-ua-fake-dnr",
           "eu-ua-fake-lnr",
-          "ge"
+          "ge",
+          "by",
+          "su"
         ],
         "gpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_10_01_tensorflow_v2_2.h5",
         "cpu": "https://nomeroff.net.ua/models/options/tf2.2/numberplate_options_2020_10_01_tensorflow_v2_2.h5"
@@ -35,14 +37,14 @@ latest_models = {
     },
     "eu": {
       "h5": {
-        "cpu": "https://nomeroff.net.ua/models/ocr/eu/tf2.2/anpr_ocr_eu_2020_09_07_tensorflow_v2.2.h5",
-        "gpu": "https://nomeroff.net.ua/models/ocr/eu/tf2.2/anpr_ocr_eu_2020_09_07_tensorflow_v2.2.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/eu/tf2.2/anpr_ocr_eu_2020_10_14_tensorflow_v2.2.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/eu/tf2.2/anpr_ocr_eu_2020_10_14_tensorflow_v2.2.h5"
       }
     },
     "ru": {
       "h5": {
-        "cpu": "https://nomeroff.net.ua/models/ocr/ru/tf2.2/anpr_ocr_ru_2020_09_08_tensorflow_v2.2.h5",
-        "gpu": "https://nomeroff.net.ua/models/ocr/ru/tf2.2/anpr_ocr_ru_2020_09_08_tensorflow_v2.2.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/ru/tf2.2/anpr_ocr_ru_2020_10_14_tensorflow_v2.2.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/ru/tf2.2/anpr_ocr_ru_2020_10_14_tensorflow_v2.2.h5"
       }
     },
     "kz": {
@@ -53,8 +55,14 @@ latest_models = {
     },
     "ge": {
       "h5": {
-        "cpu": "https://nomeroff.net.ua/models/ocr/ge/tf2.2/anpr_ocr_ge_2020_08_26_tensorflow_v2.h5",
-        "gpu": "https://nomeroff.net.ua/models/ocr/ge/tf2.2/anpr_ocr_ge_2020_08_26_tensorflow_v2.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/ge/tf2.2/anpr_ocr_ge_2020_10_16_tensorflow_v2.2.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/ge/tf2.2/anpr_ocr_ge_2020_10_16_tensorflow_v2.2.h5"
+      }
+    },
+    "by": {
+      "h5": {
+        "cpu": "https://nomeroff.net.ua/models/ocr/by/tf2.2/anpr_ocr_by_2020_10_14_tensorflow_v2.2.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/by/tf2.2/anpr_ocr_by_2020_10_14_tensorflow_v2.2.h5"
       }
     }
   }
