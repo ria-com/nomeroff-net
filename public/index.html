@@ -180,7 +180,6 @@ nnet.loadModel(NOMEROFF_NET_DIR)
 # Detect numberplate
 img_path = 'images/example2.jpeg'
 img = mpimg.imread(img_path)
-NP = nnet.detect_mask([img])
 
 # Generate image mask.
 cv_imgs_masks = nnet.detect_mask([img])
