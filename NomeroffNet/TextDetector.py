@@ -1,12 +1,9 @@
 import sys, os
-import numpy as np
+
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
-import tensorflow as tf
-import tensorflow.keras
 
-from .mcm.mcm import download_latest_model
 
 class TextDetector():
     @classmethod
@@ -86,8 +83,8 @@ class TextDetector():
             orderAll = orderAll + predicted[key]["order"]
 
         if return_acc:
-            return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])], [x for _, x in sorted(zip(orderAll,scores), key=lambda pair: pair[0])]
-        return [x for _, x in sorted(zip(orderAll,resAll), key=lambda pair: pair[0])]
+            return [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])], [x for _, x in sorted(zip(orderAll,scores), key=lambda pair: pair[0])]
+        return [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])]
 
     @staticmethod
     def get_static_module(name):

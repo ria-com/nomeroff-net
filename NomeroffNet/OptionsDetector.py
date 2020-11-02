@@ -2,20 +2,15 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.regularizers import l2
-from tensorflow.keras.layers import BatchNormalization
-from tensorflow.keras import models
 from tensorflow.keras import layers
-from tensorflow.keras import backend as K
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
-from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras import callbacks
 from tensorflow.keras.models import load_model
 
-from .mcm.mcm import download_latest_model
+from .Base.mcm.mcm import download_latest_model
 from .Base.ImgGenerator import ImgGenerator
 
 class OptionsDetector(ImgGenerator):
