@@ -12,7 +12,7 @@ GitPython
 pycocotools
 tqdm
 matplotlib
-torch
-torchvision
+torch==1.6.*
+torchvision==0.7.0
 PyYAML==5.3
 detectron2
