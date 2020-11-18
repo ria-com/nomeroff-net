@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import tensorflow as tf
 
@@ -10,8 +11,10 @@ from tensorflow.keras.applications import VGG16
 from tensorflow.keras import callbacks
 from tensorflow.keras.models import load_model
 
-from .Base.mcm.mcm import download_latest_model
-from .Base.ImgGenerator import ImgGenerator
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
+from mcm.mcm import download_latest_model
+from Base.ImgGenerator import ImgGenerator
 
 class OptionsDetector(ImgGenerator):
     def __init__(self, options = {}):
