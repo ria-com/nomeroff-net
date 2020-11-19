@@ -1,16 +1,10 @@
 import os
-import time
 import sys
-import glob
 import cv2
 import numpy as np
-from NomeroffNet.mcm.mcm import get_mode
+from .Base.mcm.mcm import get_mode
 
 from detectron2.engine import DefaultPredictor
-from detectron2.engine import launch
-from detectron2.engine import default_argument_parser
-from detectron2.engine import default_setup 
-from detectron2.config import CfgNode
 from detectron2.data.datasets import register_coco_instances
 
 def thresh_callback(src_gray, threshold=256/2):

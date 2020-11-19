@@ -4,30 +4,26 @@ import tensorflow as tf
 import os
 from os.path import join
 import json
-import random
 import numpy as np
 
-from tensorflow.keras import backend as K
 from tensorflow.keras.layers import Conv2D, MaxPooling2D
 from tensorflow.keras.layers import Input, Dense, Activation
 from tensorflow.keras.layers import Reshape, Lambda
 from tensorflow.keras.layers import add, concatenate
 from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.optimizers import SGD
-from tensorflow.keras.utils import get_file
-from tensorflow.keras.preprocessing import image
 from tensorflow.keras import callbacks
-import tensorflow.keras.callbacks
+
 from collections import Counter
 
 from tensorflow.keras.layers import GRU
 
 from .TextImageGenerator import TextImageGenerator
-from NomeroffNet.mcm.mcm import download_latest_model
+from .mcm.mcm import download_latest_model
 
 import time
 
 from tensorflow.keras import backend as K
+
 
 class OCR(TextImageGenerator):
     @classmethod
