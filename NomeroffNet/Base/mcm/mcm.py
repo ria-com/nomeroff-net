@@ -5,9 +5,8 @@ from tqdm import tqdm
 import pathlib
 from .latest import latest_models
 
-# load latest paths
-dirpath = os.getcwd()
-
+# sys var for model storage main dir
+MODEL_STORAGE_DIR = os.environ.get("MODEL_STORAGE_DIR", os.path.dirname(os.path.realpath(__file__)))
 
 def show_last_models():
     print(latest_models)
@@ -23,14 +22,14 @@ device_mode = get_mode()
 
 def ls():
     models_list = []
-    for r, d, f in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models")):
+    for r, d, f in os.walk(os.path.join(MODEL_STORAGE_DIR, "./models")):
         for file in f:
             models_list.append(file)
     return models_list
 
 def rm(model_name):
     models_list = []
-    for r, d, f in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models")):
+    for r, d, f in os.walk(os.path.join(MODEL_STORAGE_DIR, "./models")):
         for file in f:
             if file == model_name:
                 os.remove(os.path.join(r, file))
@@ -53,13 +52,12 @@ def download_latest_model(detector, model_name, ext="h5", mode = device_mode):
     if mode != "cpu" and mode != "gpu":
         mode = device_mode
     info = latest_models[detector][model_name][ext]
-    info["path"] = os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models", detector, model_name, os.path.basename(info[mode]))
+    info["path"] = os.path.join(MODEL_STORAGE_DIR, "./models", detector, model_name, os.path.basename(info[mode]))
 
     p = pathlib.Path(os.path.dirname(info["path"]))
     p.mkdir(parents=True, exist_ok=True)
 
     if not os.path.exists(info["path"]):
-        #print("downloading model {} to {} ...".format(info[mode], info["path"]))
         download_url(info[mode], info['path'])
 
     return info
