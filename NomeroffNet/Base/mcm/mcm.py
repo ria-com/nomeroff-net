@@ -22,14 +22,14 @@ device_mode = get_mode()
 
 def ls():
     models_list = []
-    for r, d, f in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models")):
+    for r, d, f in os.walk(os.path.join(MODEL_STORAGE_DIR, "./models")):
         for file in f:
             models_list.append(file)
     return models_list
 
 def rm(model_name):
     models_list = []
-    for r, d, f in os.walk(os.path.join(os.path.dirname(os.path.realpath(__file__)), "./models")):
+    for r, d, f in os.walk(os.path.join(MODEL_STORAGE_DIR, "./models")):
         for file in f:
             if file == model_name:
                 os.remove(os.path.join(r, file))
