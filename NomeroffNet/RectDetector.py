@@ -1,9 +1,58 @@
 import os
 import cv2
 import numpy as np
-import imutils
 import math
 import asyncio
+
+def get_opencv_major_version(lib=None):
+    # if the supplied library is None, import OpenCV
+    if lib is None:
+        import cv2 as lib
+
+    # return the major version number
+    return int(lib.__version__.split(".")[0])
+
+def is_cv2(or_better=False):
+    # grab the OpenCV major version number
+    major = get_opencv_major_version()
+
+    # check to see if we are using *at least* OpenCV 2
+    if or_better:
+        return major >= 2
+
+    # otherwise we want to check for *strictly* OpenCV 2
+    return major == 2
+
+def imutils_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
+    # initialize the dimensions of the image to be resized and
+    # grab the image size
+    dim = None
+    (h, w) = image.shape[:2]
+
+    # if both the width and height are None, then return the
+    # original image
+    if width is None and height is None:
+        return image
+
+    # check to see if the width is None
+    if width is None:
+        # calculate the ratio of the height and construct the
+        # dimensions
+        r = height / float(h)
+        dim = (int(w * r), height)
+
+    # otherwise, the height is None
+    else:
+        # calculate the ratio of the width and construct the
+        # dimensions
+        r = width / float(w)
+        dim = (width, int(h * r))
+
+    # resize the image
+    resized = cv2.resize(image, dim, interpolation=inter)
+
+    # return the resized image
+    return resized
 
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
@@ -37,7 +86,7 @@ class RectDetector(object):
         '''function detect rect'''
 
         # load the image and resize it to a smaller factor so that the shapes can be approximated better
-        resized = imutils.resize(image, width=1200)
+        resized = imutils_resize(image, width=1200)
         ratio = image.shape[0] / float(resized.shape[0])
 
         # convert the resized image to grayscale, blur it slightly, and threshold it
@@ -50,7 +99,7 @@ class RectDetector(object):
             cnts, hierarchy = cv2.findContours(thresh.copy(), 1, 2)
         else:
             cnts = cv2.findContours(thresh.copy(), 1, 2)
-            cnts = cnts[0] if imutils.is_cv2() else cnts[1]
+            cnts = cnts[0] if is_cv2() else cnts[1]
         res = []
         rows, cols = image.shape[:2]
 
@@ -390,7 +439,7 @@ class RectDetector(object):
             return False
 
     def isHaveCommonPointRecursive(self, C, i1, i2, deep=0):
-        deep = deep + 1;
+        deep = deep + 1
         if len(C[i1]["links"]) < 1 or deep > len(C):
             return False
         for iTarget in C[i1]["links"]:
