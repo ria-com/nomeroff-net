@@ -429,6 +429,9 @@ class OCR(TextImageGenerator):
         for text in decode:
             labels.append(self.text_to_labels(text))
         loss = tf.keras.backend.ctc_batch_cost(
-            np.array(labels), np.array(predicted)[:, 2:, :], np.array([[self.label_length] for label in labels]), np.array([[self.max_text_len] for label in labels])
+            np.array(labels),
+            np.array(predicted)[:, 2:, :],
+            np.array([[self.label_length] for label in labels]),
+            np.array([[self.max_text_len] for label in labels])
         )
-        return  1 - loss.eval(session=K.get_session())
+        return  1 - tf.keras.backend.eval(loss)
