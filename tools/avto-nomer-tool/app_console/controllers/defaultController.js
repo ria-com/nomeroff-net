@@ -13,7 +13,7 @@ const config = require('config'),
  * @module controllers/defaultController
  */
 async function index (options) {
-        console.log('Hello world defaultController & index action with options: ' +JSON.stringify(options));
+    console.log('Hello world defaultController & index action with options: ' +JSON.stringify(options));
 };
 
 

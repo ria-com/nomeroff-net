@@ -16,7 +16,6 @@ dependencies:
       - imgaug
       - tensorflow
       - opencv_python
-      - imutils
       - scikit_image
       - jupyter
       - asyncio

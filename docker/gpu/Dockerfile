@@ -27,7 +27,6 @@ RUN pip3 install pycocotools
 RUN pip3 install matplotlib
 #RUN pip3 install tensorflow>=2.*
 RUN pip3 install opencv_python
-RUN pip3 install imutils
 RUN pip3 install "numpy>=1.16.*"
 RUN pip3 install jupyter
 RUN pip3 install imgaug
