@@ -61,7 +61,7 @@ def download_url(url, output_path):
 def download_latest_model(detector, model_name, ext="h5", mode = None):
     mode = mode or get_mode()
     if mode != "cpu" and mode != "gpu":
-        mode = device_mode
+        mode = get_mode()
     info = latest_models[detector][model_name][ext]
     info["path"] = os.path.join(MODEL_STORAGE_DIR, "./models", detector, model_name, os.path.basename(info[mode]))
 
