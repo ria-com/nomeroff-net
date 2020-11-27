@@ -5,7 +5,7 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm.mcm import get_mode
+from mcm.mcm import get_mode_torch as get_mode
 
 from detectron2.engine import DefaultPredictor
 from detectron2.data.datasets import register_coco_instances

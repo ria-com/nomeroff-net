@@ -1,5 +1,4 @@
 import os
-from tensorflow.python.client import device_lib
 import urllib.request
 from tqdm import tqdm
 import pathlib
@@ -12,13 +11,19 @@ def show_last_models():
     print(latest_models)
 
 def get_mode():
+    from tensorflow.python.client import device_lib
     local_device_protos = device_lib.list_local_devices()
     for x in local_device_protos:
         if x.device_type == 'GPU':
             return "gpu"
     return "cpu"
 
-device_mode = get_mode()
+def get_mode_torch():
+    import torch
+    if torch.cuda.is_available():
+        return "gpu"
+    return "cpu"
+
 
 def ls():
     models_list = []
@@ -48,7 +53,7 @@ def download_url(url, output_path):
                              miniters=1, desc=url.split('/')[-1]) as t:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
-def download_latest_model(detector, model_name, ext="h5", mode = device_mode):
+def download_latest_model(detector, model_name, ext="h5", mode = get_mode()):
     if mode != "cpu" and mode != "gpu":
         mode = device_mode
     info = latest_models[detector][model_name][ext]
