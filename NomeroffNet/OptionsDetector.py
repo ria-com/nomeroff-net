@@ -25,7 +25,7 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs 1
-        self.CLASS_REGION = options.get("class_region", ["xx_unknown", "eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu", "xx_transit", "ru", "kz", "eu-ua-fake-dnr", "eu-ua-fake-lnr"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su"])
 
         # outputs 2
         self.CLASS_STATE = options.get("class_state", ["garbage", "filled", "not filled", "empty"])
