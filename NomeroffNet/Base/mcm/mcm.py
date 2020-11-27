@@ -1,5 +1,4 @@
 import os
-from tensorflow.python.client import device_lib
 import urllib.request
 from tqdm import tqdm
 import pathlib
@@ -11,14 +10,22 @@ MODEL_STORAGE_DIR = os.environ.get("MODEL_STORAGE_DIR", os.path.dirname(os.path.
 def show_last_models():
     print(latest_models)
 
+
 def get_mode():
+    from tensorflow.python.client import device_lib
     local_device_protos = device_lib.list_local_devices()
     for x in local_device_protos:
         if x.device_type == 'GPU':
             return "gpu"
     return "cpu"
 
-device_mode = get_mode()
+
+def get_mode_torch():
+    import torch
+    if torch.cuda.is_available():
+        return "gpu"
+    return "cpu"
+
 
 def ls():
     models_list = []
@@ -26,6 +33,7 @@ def ls():
         for file in f:
             models_list.append(file)
     return models_list
+
 
 def rm(model_name):
     models_list = []
@@ -35,6 +43,7 @@ def rm(model_name):
                 os.remove(os.path.join(r, file))
                 return True
     return False
+
 
 class DownloadProgressBar(tqdm):
     def update_to(self, b=1, bsize=1, tsize=None):
@@ -48,7 +57,9 @@ def download_url(url, output_path):
                              miniters=1, desc=url.split('/')[-1]) as t:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
-def download_latest_model(detector, model_name, ext="h5", mode = device_mode):
+
+def download_latest_model(detector, model_name, ext="h5", mode = None):
+    mode = mode or get_mode()
     if mode != "cpu" and mode != "gpu":
         mode = device_mode
     info = latest_models[detector][model_name][ext]
