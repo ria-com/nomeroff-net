@@ -25,7 +25,7 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs 1
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
 
         # outputs 2
         self.CLASS_STATE = options.get("class_state", ["garbage", "filled", "not filled", "empty"])
@@ -268,7 +268,7 @@ class OptionsDetector(ImgGenerator):
             path_to_model   = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
         
         self.MODEL = load_model(path_to_model)
         if verbose:

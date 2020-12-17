@@ -1,7 +1,7 @@
 cython
 setuptools
 numpy>=1.16.*
-imgaug
+imgaug==4.*
 tensorflow>=2.3.*
 opencv_python
 scikit_image

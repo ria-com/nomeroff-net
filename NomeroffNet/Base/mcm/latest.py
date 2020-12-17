@@ -23,10 +23,11 @@ latest_models = {
           "eu-ua-fake-lpr",
           "ge",
           "by",
-          "su"
+          "su",
+          "kg"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_10_01_tensorflow_v2_3.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_10_01_tensorflow_v2_3.h5"
+        "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_12_17_tensorflow_v2_3.h5",
+        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_12_17_tensorflow_v2_3.h5"
       }
     }
   },
@@ -78,6 +79,13 @@ latest_models = {
         "cpu": "https://nomeroff.net.ua/models/ocr/su/anpr_ocr_su_2020_11_27_tensorflow_v2.3.h5",
         "gpu": "https://nomeroff.net.ua/models/ocr/su/anpr_ocr_su_2020_11_27_tensorflow_v2.3.h5"
       }
+    },
+    "kg": {
+      "h5": {
+        "cpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_16_tensorflow_v2.3.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_16_tensorflow_v2.3.h5"
+      }
     }
+
   }
 }

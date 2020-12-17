@@ -1,8 +1,9 @@
 import numpy as np
 
 def aug(imgs):
+    import imgaug as ia
     from imgaug import augmenters as iaa
-    iaa.seed(1)
+    ia.seed(1)
 
     sometimes = lambda aug: iaa.Sometimes(0.5, aug)
     sometimes = lambda aug: iaa.Sometimes(0.5, aug)
