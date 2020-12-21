@@ -1,6 +1,6 @@
 _BASE_: "./Base-RCNN-FPN.yaml"
 MODEL:
-  WEIGHTS: "/var/www/np_mask/output/numberplate2020-12-20.pth"
+  WEIGHTS: "https://nomeroff.net.ua/models/detectron2/numberplate_R_50_FPN_3x_2020-12-20.pth"
   MASK_ON: True
   RESNETS:
     DEPTH: 50

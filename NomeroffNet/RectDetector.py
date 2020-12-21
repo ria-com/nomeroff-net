@@ -57,7 +57,7 @@ def imutils_resize(image, width=None, height=None, inter=cv2.INTER_AREA):
 class RectDetector(object):
     ''' Class for rectangle detection from the mask. '''
 
-    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 15):
+    def __init__(self, coef_approx = 0.00001, max_count_step_approx = 300, target_points = 13):
         self.COEF_APPROX = coef_approx
         self.MAX_COUNT_STEP_APPROX = max_count_step_approx
         self.TARGET_POINTS = target_points
