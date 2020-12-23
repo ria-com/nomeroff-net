@@ -224,8 +224,9 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 // Условие
-                if (data.description.length < 6) {
+                // if (data.description.length < 6) {
                 // if (data.region_id != undefined && data.region_id == 8) {
+                if (data.count_lines != undefined && data.count_lines == 1) {
                 //if (data.count_lines != undefined && data.count_lines == 2) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
@@ -238,6 +239,59 @@ async function moveSomething (options) {
 }
 
 
+/**
+ * Перенести дубликаты фоток из OCR-датасета
+ * информацию о дублях записать в --opt.logFile (./duplicates.json)
+ *
+ * @param options
+ * @example ./console.js --section=default --action=moveDuplicates --opt.srcDir=/tmp/1/train --opt.targetDir=/tmp/1/new --opt.logFile=./duplicates.json
+ */
+async function moveDuplicates (options) {
+    const srcDir = options.srcDir || './draft',
+        targetDir = options.targetDir || './checked',
+        logFile = options.logFile || './duplicates.json',
+        annExt = '.'+config.dataset.ann.ext,
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
+        target = { annPath: path.join(targetDir, config.dataset.ann.dir) },
+        imgPath = path.join(srcDir, config.dataset.img.dir)
+    ;
+    let checkedAnn = [],
+        checkedImg = []
+    ;
+    let checkSum = {}, checklogs = {};
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    fs.readdir(src.annPath, async function(err, items) {
+        for (var i=0; i<items.length; i++) {
+            const  filename = items[i],
+                fileObj = path.parse(filename);
+            //console.log(fileObj)
+            if (fileObj.ext == annExt) {
+                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                    annFilename = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    imgName = `${data.name}.${config.dataset.img.ext}`
+                ;
+                let imgFullFile = path.join(imgPath, imgName),
+                    imgSize = sizeOf(imgFullFile),
+                    imgSizeStat = fs.statSync(imgFullFile),
+                    imgSizeHash = `${imgSizeStat.size}-${imgSize.width}x${imgSize.height}`;
+                if (checkSum[imgSizeHash] != undefined) {
+                    checkedAnn.push(annName);
+                    checkedImg.push(imgName);
+                    if (checklogs[checkSum[imgSizeHash]] == undefined) { checklogs[checkSum[imgSizeHash]] = [] };
+                    checklogs[checkSum[imgSizeHash]].push(imgName)
+                } else {
+                    checkSum[imgSizeHash] = imgName;
+                }
+            }
+        }
+        console.log(`Garbage: ${checkedAnn.length}`);
+        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+        fs.writeFileSync(logFile, JSON.stringify(checklogs,null,2));
+    });
+}
 
 
 
@@ -293,6 +347,6 @@ async function dataJoin (options) {
 
 
 
-module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage, dataJoin, moveSomething };
+module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage, dataJoin, moveSomething, moveDuplicates };
 
 
