@@ -255,7 +255,7 @@ class OCR(TextImageGenerator):
         pb_model = tf.saved_model.load(model_dir)
         self.PB_MODEL = pb_model.signatures["serving_default"]
 
-    def prepare(self, path_to_dataset, use_aug=False, verbose=1):
+    def prepare(self, path_to_dataset, use_aug=False, verbose=1, aug_debug=False, aug_suffix = 'aug', aug_seed_num = 42):
         train_path = os.path.join(path_to_dataset, "train")
         test_path  = os.path.join(path_to_dataset, "test")
         val_path   = os.path.join(path_to_dataset, "val")
@@ -271,7 +271,7 @@ class OCR(TextImageGenerator):
         if verbose:
             print("START BUILD DATA")
         self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
-        self.tiger_train.build_data(use_aug=use_aug)
+        self.tiger_train.build_data(use_aug=use_aug, aug_debug=aug_debug, aug_suffix = aug_suffix, aug_seed_num = aug_seed_num)
         self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
         self.tiger_val.build_data()
 
