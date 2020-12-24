@@ -1,11 +1,15 @@
 import numpy as np
+import imgaug as ia
+import imgaug.augmenters as iaa
+
+def aug_seed(num = None):
+    if num is None:
+        ia.seed()
+    else:
+        ia.seed(num)
 
 def aug(imgs):
-    import imgaug as ia
-    from imgaug import augmenters as iaa
-    ia.seed(1)
 
-    sometimes = lambda aug: iaa.Sometimes(0.5, aug)
     sometimes = lambda aug: iaa.Sometimes(0.5, aug)
     seq = iaa.Sequential(
         [

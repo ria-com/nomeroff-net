@@ -1,4 +1,4 @@
-from os.path import join
+from os.path import join, basename
 import cv2
 import os
 import json
@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.keras import backend as K
 import random
 import itertools
-from .aug import aug
+from .aug import aug, aug_seed
 
 class TextImageGenerator:
     def __init__(self,
@@ -19,6 +19,7 @@ class TextImageGenerator:
                  cname=""):
 
         self.CNAME = cname
+        self.dirpath = dirpath
         #print(self.CNAME)
         self.img_h = img_h
         self.img_w = img_w
@@ -76,19 +77,27 @@ class TextImageGenerator:
             ret.append(outstr)
         return ret
 
-    def build_data(self, use_aug = False):
+    def build_data(self, use_aug = False, aug_debug=False, aug_suffix = 'aug', aug_seed_num = None):
         self.imgs = np.zeros((self.n, self.img_h, self.img_w))
         self.texts = []
-        
-       
+
+        if use_aug:
+            aug_seed(aug_seed_num)
+            img_dirpath_aug = join(self.dirpath, 'img_{}'.format(aug_suffix))
+            if not os.path.exists(img_dirpath_aug) and aug_debug:
+                print('Creating path "{}" for aug images'.format(img_dirpath_aug))
+                os.mkdir(img_dirpath_aug)
+
         for i, (img_filepath, text) in enumerate(self.samples):
             img = cv2.imread(img_filepath)
             
             if use_aug:
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 imgs = aug([img])
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
                 img = imgs[0]
+                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+                if aug_debug:
+                    cv2.imwrite(join(img_dirpath_aug, basename(img_filepath)), img)
 
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
