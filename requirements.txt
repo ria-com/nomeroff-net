@@ -1,7 +1,7 @@
 cython
 setuptools
 numpy>=1.16.*
-imgaug==4.*
+imgaug>=0.4.*
 tensorflow>=2.3.*
 opencv_python
 scikit_image
@@ -11,7 +11,7 @@ GitPython
 pycocotools
 tqdm
 matplotlib
-torch==1.6.*
-torchvision==0.7.0
+torch>=1.6.*
+torchvision>=0.7.0
 PyYAML==5.3
 detectron2
