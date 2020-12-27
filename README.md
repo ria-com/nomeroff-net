@@ -51,10 +51,10 @@ apt-get install python3.6-dev
 
 ##### install python requirments
 ```bash
-pip3 install torch==1.7
+pip3 install torch==1.6
 pip3 install PyYAML==5.3
 pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
-pip3 install torchvision==0.8
+pip3 install torchvision==0.7.0
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
@@ -157,7 +157,7 @@ mainly for the definition of Ukrainian numbers, for other countries it will be n
 ## AUTO.RIA Numberplate OCR Datasets
 As OCR, we use a [specialized implementation of a neural network with GRU layers](https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md),
 for which we have created several datasets:
-  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-12-21.zip)
+  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-07-14.zip)
   * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian) with old design Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2019-07-30.tar.gz)
   * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip)
   * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip)
@@ -165,7 +165,6 @@ for which we have created several datasets:
   * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
   * [AUTO.RIA Numberplate OCR BY Dataset (Belarus)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip)
   * [AUTO.RIA Numberplate OCR SU Dataset (exUSSR)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2020-11-27.zip)
-  * [AUTO.RIA Numberplate OCR KG Dataset (Kyrgyzstan)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKg-2020-12-18.zip)
 
 If we did not manage to update the link on dataset you can find the latest version [here](https://nomeroff.net.ua/datasets/)
 
