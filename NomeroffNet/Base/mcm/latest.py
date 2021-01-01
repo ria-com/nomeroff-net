@@ -82,8 +82,8 @@ latest_models = {
     },
     "kg": {
       "h5": {
-        "cpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_28_tensorflow_v2.3.h5",
-        "gpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_28_tensorflow_v2.3.h5"
+        "cpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_31_tensorflow_v2.3.h5",
+        "gpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_31_tensorflow_v2.3.h5"
       }
     }
 
