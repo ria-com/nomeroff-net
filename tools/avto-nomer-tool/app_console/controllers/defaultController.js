@@ -6,7 +6,8 @@ const config = require('config'),
       checkDirStructure = require('../../app/helpers/checkDirStructure'),
       moveDatasetFiles = require('../../app/helpers/moveDatasetFiles'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
-      sizeOf = require('image-size')
+      sizeOf = require('image-size'),
+      md5 = require('md5')
 ;
 
 /**
@@ -276,7 +277,8 @@ async function moveDuplicates (options) {
                 let imgFullFile = path.join(imgPath, imgName),
                     imgSize = sizeOf(imgFullFile),
                     imgSizeStat = fs.statSync(imgFullFile),
-                    imgSizeHash = `${imgSizeStat.size}-${imgSize.width}x${imgSize.height}`;
+                    imgMd5 = md5(fs.readFileSync(imgFullFile)),
+                    imgSizeHash = `${imgSizeStat.size}-${imgSize.width}x${imgSize.height}-${imgMd5}`;
                 if (checkSum[imgSizeHash] != undefined) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
