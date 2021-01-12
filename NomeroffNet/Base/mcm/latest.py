@@ -34,14 +34,14 @@ latest_models = {
   "TextDetector": {
     "eu_ua_2004_2015": {
       "h5": {
-        "gpu": "https://nomeroff.net.ua/models/ocr/ua/tf2/anpr_ocr_ua_2020_12_24_tensorflow_v2.h5",
-        "cpu": "https://nomeroff.net.ua/models/ocr/ua/tf2/anpr_ocr_ua_2020_12_24_tensorflow_v2.h5"
+        "gpu": "https://nomeroff.net.ua/models/ocr/ua/tf2/anpr_ocr_ua_2020_08_21_tensorflow_v2.h5",
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua/tf2/anpr_ocr_ua_2020_08_21_tensorflow_v2.h5"
       }
     },
     "eu_ua_1995": {
       "h5": {
-        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2020_08_26_tensorflow_v2.h5",
-        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2020_08_26_tensorflow_v2.h5"
+        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2021_01_12_tensorflow_v2.h5",
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2021_01_12_tensorflow_v2.h5"
       }
     },
     "eu": {
