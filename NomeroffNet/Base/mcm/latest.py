@@ -40,8 +40,8 @@ latest_models = {
     },
     "eu_ua_1995": {
       "h5": {
-        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2020_08_26_tensorflow_v2.h5",
-        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2020_08_26_tensorflow_v2.h5"
+        "gpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2021_01_12_tensorflow_v2.h5",
+        "cpu": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2021_01_12_tensorflow_v2.h5"
       }
     },
     "eu": {
