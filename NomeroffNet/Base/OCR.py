@@ -211,8 +211,10 @@ class OCR(TextImageGenerator):
             Xs.append(x)
         pred_texts = []
         if bool(Xs):
-            net_out_value = self.MODEL.predict(np.array(Xs))
-            #print(net_out_value)
+            if len(Xs) == 1:
+                net_out_value = self.MODEL.predict_on_batch(np.array(Xs))
+            else:
+                net_out_value = self.MODEL(np.array(Xs), training=False)
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
             return pred_texts, net_out_value

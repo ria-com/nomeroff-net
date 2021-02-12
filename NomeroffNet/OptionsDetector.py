@@ -288,7 +288,10 @@ class OptionsDetector(ImgGenerator):
 
         predicted = [[], [], []]
         if bool(Xs):
-            predicted = self.MODEL.predict(np.array(Xs))
+            if len(Xs) == 1:
+                predicted = self.MODEL.predict_on_batch(np.array(Xs))
+            else:
+                predicted = self.MODEL(np.array(Xs), training=False)
 
         regionIds = []
         for region in predicted[0]:
@@ -304,6 +307,7 @@ class OptionsDetector(ImgGenerator):
 
         if return_acc:
             return regionIds, stateIds, countLines, predicted
+        
         return regionIds, stateIds, countLines
     
     def predict_pb(self, imgs, return_acc=False):
