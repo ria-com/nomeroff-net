@@ -1,19 +1,22 @@
 # Import all necessary libraries.
 import os
 import sys
+import math
+import pathlib
 
-# change this property
-LINETEXT_DIR = os.path.abspath('../')
-
-# specify the path to Mask_RCNN if you placed it outside Nomeroff-net project
-CRAFT_DIR = os.path.join(LINETEXT_DIR, 'CRAFT-pytorch')
-
-sys.path.append(LINETEXT_DIR)
+# clone and append to path craft
+NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
+CRAFT_DIR        = os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch')
+CRAFT_URL        = "https://github.com/clovaai/CRAFT-pytorch.git"
+if not os.path.exists(CRAFT_DIR):
+    from git import Repo
+    Repo.clone_from(CRAFT_URL, CRAFT_DIR)
 sys.path.append(CRAFT_DIR)
 
 # -*- coding: utf-8 -*-
 import time
 import argparse
+from collections import OrderedDict
 
 import torch
 import torch.nn as nn
@@ -21,7 +24,6 @@ import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 
 from PIL import Image
-
 import cv2
 from skimage import io
 import numpy as np
@@ -31,13 +33,23 @@ import file_utils
 import json
 import zipfile
 import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
 
+# load CRAFT packages
 from craft import CRAFT
 
-###################################################################3
-# Craft routines
-from collections import OrderedDict
+# load NomerooffNet packages
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
+from mcm.mcm import download_latest_model
+from mcm.mcm import get_mode
+
+
+
 def copyStateDict(state_dict):
+    """
+    Craft routines
+    """
     if list(state_dict.keys())[0].startswith("module"):
         start_idx = 1
     else:
@@ -99,11 +111,12 @@ def test_net(net, image, text_threshold, link_threshold, low_text, cuda, poly, c
     return boxes, polys, ret_score_text
 
 
-
-###################################################################3
-# Math functions
 def distance(p0, p1):
+    """
+    distance between two points p0 and p1
+    """
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
+
 
 def split_boxes(bboxes,dimensions,similarity_range = 0.7):
     np_bboxes_idx = []
@@ -121,13 +134,11 @@ def split_boxes(bboxes,dimensions,similarity_range = 0.7):
             garbage_bboxes_idx.append(i)
     return np_bboxes_idx, garbage_bboxes_idx
 
-# https://gis.stackexchange.com/questions/22895/finding-minimum-area-rectangle-for-given-points
-import numpy as np
-from scipy.spatial import ConvexHull
 
 def minimum_bounding_rectangle(points):
     """
     Find the smallest bounding rectangle for a set of points.
+    detail: https://gis.stackexchange.com/questions/22895/finding-minimum-area-rectangle-for-given-points
     Returns a set of points representing the corners of the bounding box.
 
     :param points: an nx2 matrix of coordinates
@@ -192,10 +203,10 @@ def minimum_bounding_rectangle(points):
     return rval
 
 
-import math
-
-# Вычесление угла наклона прямой по 2 точкам
 def fline(p0,p1):
+    """
+    Вычесление угла наклона прямой по 2 точкам
+    """
     x1 = float(p0[0])
     y1 = float(p0[1])
 
@@ -217,12 +228,16 @@ def fline(p0,p1):
         a180 = 180 + a
     return [k, b, a, a180, r]
 
-# http://www.math.by/geometry/eqline.html
-# https://xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
+
 def detectIntersection(matrix1,matrix2):
+    """
+    http://www.math.by/geometry/eqline.html
+    https://xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
+    """
     X = np.array([matrix1[:2],matrix2[:2]])
     y = np.array([matrix1[2], matrix2[2]])
     return np.linalg.solve(X, y)
+
 
 def detectIntersectionNormDD(matrix1,matrix2,d1,d2):
     X = np.array([matrix1[:2],matrix2[:2]])
@@ -231,8 +246,11 @@ def detectIntersectionNormDD(matrix1,matrix2,d1,d2):
     y = np.array([c0, c1])
     return np.linalg.solve(X, y)
 
-# Вычесление коефициентов матрицы, описывающей линию по двум точкам
+
 def linearLineMatrix(p0,p1):
+    """
+    Вычесление коефициентов матрицы, описывающей линию по двум точкам
+    """
     x1 = float(p0[0])
     y1 = float(p0[1])
 
@@ -264,16 +282,13 @@ def findDistances(points):
     return distanses
 
 
-
-
-
-
 def reshapePoints(targetPoints,startIdx):
     if [startIdx>0]:
         part1 = targetPoints[:(startIdx)]
         part2 = targetPoints[(startIdx):]
         targetPoints = np.concatenate((part2,part1))
     return targetPoints
+
 
 def findMinXIdx(targetPoints):
     minXIdx = 3
@@ -363,6 +378,7 @@ def fixSideFacets(targetPoints, adoptToFrame=None):
     # linearLineMatrix(points[p0],points[p1])
     return np.array(points)
 
+
 def addCoordinatesOffset(points,x,y):
     for point in points:
         point[0] = point[0]+x
@@ -370,23 +386,40 @@ def addCoordinatesOffset(points,x,y):
     return points
 
 
-
-
-
-###################################################################3
-# NpPointsCraft Class
 class NpPointsCraft(object):
     """
+    NpPointsCraft Class
     git clone https://github.com/clovaai/CRAFT-pytorch.git
     """
     def __init__(self, **args):
         pass
-
-    def load(self, is_cuda=torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-             is_refine=True,
-             trained_model=os.path.join(LINETEXT_DIR, 'weights/craft_mlt_25k.pth'),
-             refiner_model=os.path.join(LINETEXT_DIR, 'weights/craft_refiner_CTW1500.pth')
+    
+    @classmethod
+    def get_classname(cls):
+        return cls.__name__
+    
+    def load(self, 
+             mtl_model_path="latest",
+             refiner_model_path="latest"
+            ):
+        if mtl_model_path == "latest":
+            model_info   = download_latest_model(self.get_classname(), "mtl", ext="pth")
+            mtl_model_path   = model_info["path"]
+        if refiner_model_path == "latest":
+            model_info   = download_latest_model(self.get_classname(), "refiner", ext="pth")
+            refiner_model_path   = model_info["path"]
+        device = "cpu"
+        if get_mode() == "gpu":
+            device = "cuda"
+        self.loadModel(device, True, mtl_model_path, refiner_model_path)
+                  
+    def loadModel(self, 
+                  device="cuda",
+                  is_refine=True,
+                  trained_model=os.path.join(CRAFT_DIR, 'weights/craft_mlt_25k.pth'),
+                  refiner_model=os.path.join(CRAFT_DIR, 'weights/craft_refiner_CTW1500.pth')
              ):
+        is_cuda=torch.device(device)
         self.is_cuda = is_cuda
         # load net
         self.net = CRAFT()  # initialize
@@ -500,4 +533,3 @@ class NpPointsCraft(object):
                 print(image.shape)
             targetPoints = fixSideFacets(targetPoints, image.shape)
         return targetPoints
-

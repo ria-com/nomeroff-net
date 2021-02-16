@@ -7,7 +7,7 @@ opencv_python
 scikit_image
 jupyter
 asyncio
-GitPython
+gitpython
 pycocotools
 tqdm
 matplotlib
