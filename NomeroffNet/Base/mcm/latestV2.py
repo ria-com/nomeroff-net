@@ -40,8 +40,8 @@ latest_models = {
           "su",
           "kg"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_12_17_tensorflow_v2_3.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2020_12_17_tensorflow_v2_3.h5"
+        "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2021_02_24_tensorflow_v2_3.h5",
+        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2021_02_24_tensorflow_v2_3.h5"
       }
     }
   },

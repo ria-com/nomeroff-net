@@ -3,6 +3,7 @@ import os
 import sys
 import math
 import pathlib
+import collections
 
 # clone and append to path craft
 NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
@@ -266,6 +267,14 @@ def linearLineMatrix(p0,p1):
     return [A, B, C]
 
 
+def getYByMatrix(matrix,x):
+    A = matrix[0]
+    B = matrix[1]
+    C = matrix[2]
+    if B != 0:
+        return (C-A*x)/B
+
+
 def findDistances(points):
     distanses = []
     cnt = len(points)
@@ -280,6 +289,17 @@ def findDistances(points):
                           "matrix": linearLineMatrix(points[p0], points[p1]),
                           "coef": fline(points[p0], points[p1])})
     return distanses
+
+def detectDistanceFromPointToLine(matrix,point):
+    # Определение растояния от точки к линии
+    # https://ru.onlinemschool.com/math/library/analytic_geometry/p_line1/
+    A = matrix[0]
+    B = matrix[1]
+    C = matrix[2]
+    x = point[0]
+    y = point[1]
+    return abs(A*x + B*y - C)/math.sqrt(A**2+B**2)
+
 
 
 def reshapePoints(targetPoints,startIdx):
@@ -339,6 +359,106 @@ def addOffsetManualPercentage(targetPoints, offsetLeftPercentage, offsetTopPerce
     return np.array(points)
 
 
+def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offsetTopMaxPercentage, offsetRightMaxPercentage,
+                              offsetBottomMaxPercentage):
+    distanses = findDistances(targetPoints)
+    points = []
+
+    distansesoffsetLeftPercentage = distansesoffsetLeftMaxPercentage
+    offsetTopPercentage = offsetTopMaxPercentage
+    offsetRightPercentage = offsetRightMaxPercentage
+    offsetBottomPercentage = offsetBottomMaxPercentage
+
+    k = Bbox[1]/Bbox[0]
+
+    if (k < 2):
+        offsetTopPercentage = offsetTopPercentage/2
+        offsetBottomPercentage = offsetBottomPercentage/2
+
+    if (k < 1):
+        offsetTopPercentage = 0
+        offsetBottomPercentage = 0
+
+    # print('========================================================================')
+    # print('distanses={}'.format(distanses))
+    # print('k={}'.format(k))
+    offsets = [distansesoffsetLeftPercentage, offsetTopPercentage, offsetRightPercentage, offsetBottomPercentage]
+    cnt = len(distanses)
+    for i in range(cnt):
+        iNext = i + 1
+        if (iNext == cnt):
+            iNext = 0
+        offsets[i] = distanses[iNext]['d'] * offsets[i] / 100
+    for i in range(cnt):
+        iPrev = i
+        iNext = i + 1
+        if (iNext == cnt):
+            iNext = 0
+        offset1 = offsets[iPrev]
+        offset2 = offsets[iNext]
+        points.append(
+            detectIntersectionNormDD(distanses[iPrev]['matrix'], distanses[iNext]['matrix'], offset1, offset2))
+    # Step 2
+    points = reshapePoints(points, 3)
+    #print('points BEFORE')
+    #print(points)
+
+    distanses = findDistances(points)
+
+    h = Bbox[0]
+    w = Bbox[1]
+    #print("h {}, w {}".format(h,w))
+    matrixLeft = linearLineMatrix([0,0], [0,h])
+    matrixRight = linearLineMatrix([w,0], [w,h])
+    #matrixTop = linearLineMatrix([0,0], [w,0])
+    #matrixBottom = linearLineMatrix([0,h], [w,h])
+    #print("matrixLeft {}, distanses[1]['matrix'] {} ".format(matrixLeft, distanses[1]['matrix']))
+    pLeftTop    = detectIntersection(matrixLeft, distanses[1]['matrix'])
+    pLeftBottom = detectIntersection(matrixLeft, distanses[3]['matrix'])
+    pRightTop    = detectIntersection(matrixRight, distanses[1]['matrix'])
+    pRightBottom = detectIntersection(matrixRight, distanses[3]['matrix'])
+
+    offsetLeftBottom = distance(points[0], pLeftBottom)
+    offsetLeftTop = distance(points[1], pLeftTop)
+    offsetRightTop = distance(points[2], pRightTop)
+    offsetRightBottom = distance(points[3], pRightBottom)
+
+    overLeftTop = points[1][0] < 0
+    overLeftBottom = points[0][0] < 0
+    if not (overLeftTop) and not (overLeftBottom):
+        if offsetLeftTop > offsetLeftBottom:
+            points[0] = pLeftBottom
+            leftDistance = detectDistanceFromPointToLine(distanses[0]['matrix'],pLeftBottom)
+            points[1] = detectIntersectionNormDD(distanses[0]['matrix'], distanses[1]['matrix'], leftDistance, 0)
+        else:
+            points[1] = pLeftTop
+            leftDistance = detectDistanceFromPointToLine(distanses[0]['matrix'],pLeftTop)
+            points[0] = detectIntersectionNormDD(distanses[3]['matrix'], distanses[0]['matrix'],  0, leftDistance)
+        #print("leftDistance {}".format(leftDistance))
+
+    #print("offsetLeftTop {}, offsetLeftBottom {}".format(offsetLeftTop, offsetLeftBottom))
+
+    overRightTop = points[2][0] > w
+    overRightBottom = points[3][0] > w
+    if not(overRightTop) and not(overRightBottom):
+        if offsetRightTop > offsetRightBottom:
+            points[3] = pRightBottom
+            rightDistance = detectDistanceFromPointToLine(distanses[2]['matrix'],pRightBottom)
+            points[2] = detectIntersectionNormDD(distanses[1]['matrix'], distanses[2]['matrix'], 0, rightDistance)
+        else:
+            points[2] = pRightTop
+            rightDistance = detectDistanceFromPointToLine(distanses[2]['matrix'],pRightTop)
+            points[3] = detectIntersectionNormDD(distanses[2]['matrix'], distanses[3]['matrix'], rightDistance, 0)
+        #print("rightDistance {}".format(rightDistance))
+
+    #print("offsetRightTop {}, offsetRightBottom {}".format(offsetRightTop, offsetRightBottom))
+
+    #print('points')
+    #print(points)
+    return np.array(points)
+
+
+
 def fixSideFacets(targetPoints, adoptToFrame=None):
     distanses = findDistances(targetPoints)
     points = targetPoints.copy()
@@ -380,10 +500,219 @@ def fixSideFacets(targetPoints, adoptToFrame=None):
 
 
 def addCoordinatesOffset(points,x,y):
-    for point in points:
-        point[0] = point[0]+x
-        point[1] = point[1]+y
-    return points
+    return [[point[0]+x, point[1]+y] for point in points]
+
+def getMeanDistance(rect, startIdx):
+    endIdx = startIdx+1
+    start2Idx = startIdx+2
+    end2Idx = endIdx+2
+    if end2Idx == 4:
+        end2Idx = 0
+    print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(startIdx, endIdx, start2Idx, end2Idx))
+    return np.mean([distance(rect[startIdx], rect[endIdx]), distance(rect[start2Idx], rect[end2Idx])])
+
+def buildPerspective(img, rect, w, h):
+    w = int(w)
+    h = int(h)
+    pts1 = np.float32(rect)
+    pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(img, M, (w, h))
+
+def getCvZonesRGB(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
+    dsts = []
+    for rect in rects:
+        h = getMeanDistance(rect, 0)
+        w = getMeanDistance(rect, 1)
+        print('h: {}, w: {}'.format(h,w))
+        if h > w and auto_width_height:
+            h, w = w, h
+        else:
+            rect = reshapePoints(rect, 3)
+        if (gw == 0 or gh == 0):
+            w, h = int(h*coef), int(h)
+        else:
+            w, h = gw, gh
+        dst = buildPerspective(img, rect, w, h)
+        dsts.append(dst)
+    return dsts
+
+def normalizeRect(rect):
+    minXIdx = findMinXIdx(rect)
+    rect = reshapePoints(rect, minXIdx)
+    rect = fixClockwise(rect)
+    distanses = findDistances(rect)
+    if distanses[0]['d'] > distanses[1]['d']:
+        rect = reshapePoints(rect,3)
+    return rect
+
+
+def getCvZoneRGB(img, rect, gw=0, gh=0, coef=4.6, auto_width_height=True):
+    if (gw == 0 or gh == 0):
+        distanses = findDistances(rect)
+        h = (distanses[0]['d'] + distanses[2]['d']) / 2
+        if auto_width_height:
+            w = int(h*coef)
+        else:
+            w = (distanses[1]['d'] + distanses[3]['d']) / 2
+    else:
+        w, h = gw, gh
+    # print('h: {}, w: {}'.format(h, w))
+    return buildPerspective(img, rect, w, h)
+
+def convertCvZonesRGBtoBGR(dsts):
+    bgrDsts = []
+    for dst in dsts:
+        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
+        bgrDsts.append(dst)
+    return bgrDsts
+
+def getCvZonesBGR(img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
+    dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height = auto_width_height)
+    return convertCvZonesRGBtoBGR(dsts)
+
+def prepareImageText(img):
+    # сперва переведём изображение из RGB в чёрно серый
+    # значения пикселей будут от 0 до 255
+    grayImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    img_min = np.amin(grayImage)
+    grayImage -= img_min
+    img_max = np.amax(img)
+    k = 255/img_max
+    grayImage = grayImage.astype(np.float64)
+    grayImage *= k
+    grayImage = grayImage.astype(np.uint8)
+
+    (thresh, blackAndWhiteImage) = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
+    return blackAndWhiteImage
+
+def detectBestPerspective(bwImages):
+    res = []
+    idx = 0
+    diff = 1000000
+    diffCnt = 0
+    for i, img in enumerate(bwImages):
+        s = np.sum(img, axis=0)
+        imgStat = collections.Counter(s)
+        imgStatDict = OrderedDict(imgStat.most_common())
+        maxStat = max(imgStatDict, key=int)
+        maxStatCount = imgStatDict[maxStat]
+        minStat = min(imgStatDict, key=int)
+        minStatCount = imgStatDict[minStat]
+        res.append({'max': maxStat, 'min': minStat, 'maxCnt': maxStatCount, 'minCnt': minStatCount })
+        #newDiff = maxStat-minStat
+
+        if minStat < diff:
+            idx = i
+            diff = minStat
+        if (minStat == diff) and (maxStatCount+minStatCount > diffCnt):
+            idx = i
+            diffCnt = maxStatCount+minStatCount
+        # print('detectBestPerspective')
+        # print({'max': maxStat, 'min': minStat, 'maxCnt': maxStatCount, 'minCnt': minStatCount})
+
+    return idx
+
+def addPointOffset(point,x,y):
+    return [point[0]+x,point[1]+y]
+
+def addPointOffsets(points,dx,dy):
+    return [
+              addPointOffset(points[0], -dx, -dy),
+              addPointOffset(points[1],  dx,  dy),
+              addPointOffset(points[2],  dx,  dy),
+              addPointOffset(points[3], -dx, -dy),
+           ]
+def makeRectVariants2(propablyPoints, h, w, qualityProfile = [3,1,0]):
+    distanses = findDistances(propablyPoints)
+
+    pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
+                       propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
+
+    pointBottomLeft = [pointCentreLeft[0],getYByMatrix(distanses[3]["matrix"], pointCentreLeft[0])]
+
+    dx = propablyPoints[0][0] - pointBottomLeft[0]
+    dy = propablyPoints[0][1] - pointBottomLeft[1]
+
+    # kwh = w/h
+    # print("K w/h: {}".format(kwh))
+    if dx == 0:
+        return [ propablyPoints ]
+
+    # k = distanses[1]['d']/distanses[0]['d']
+    # print("K np w/h: {}".format(k))
+    # if  (kwh < 1) and (k < 2):
+    #     return [ addPointOffsets(propablyPoints,dx,dy) ]
+
+    steps = qualityProfile[0]
+    stepsPlus = qualityProfile[1]
+    stepsMinus = qualityProfile[2]
+
+    dxStep = dx/steps
+    dyStep = dy/steps
+
+    pointsArr =[]
+    for i in range(-stepsMinus,steps+stepsPlus+1):
+        pointsArr.append(addPointOffsets(propablyPoints,i * dxStep,i * dyStep))
+    return pointsArr
+
+
+def makeRectVariants(propablyPoints, steps=5):
+    distanses = findDistances(propablyPoints)
+
+    pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
+                       propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
+
+    # pointCentreRight = [propablyPoints[2][0] + (propablyPoints[3][0] - propablyPoints[2][0]) / 2,
+    #                     propablyPoints[2][1] + (propablyPoints[3][1] - propablyPoints[2][1]) / 2]
+
+    matrixLeft = linearLineMatrix(pointCentreLeft, [pointCentreLeft[0],pointCentreLeft[1]-1])
+    # print('matrix: {}'.format(matrix))
+    pointBottomLeft = detectIntersection(distanses[3]["matrix"], matrixLeft)
+    # pointTopLeft = detectIntersection(distanses[1]["matrix"], matrixLeft)
+
+    dx = propablyPoints[0][0] - pointBottomLeft[0]
+    dy = propablyPoints[0][1] - pointBottomLeft[1]
+
+    if dx == 0:
+        return []
+
+    if dy/dx > 1:
+        steps = 5
+        dxStep = dx/(steps-2)
+        dyStep = dy/(steps-2)
+
+        pointsArr = []
+        for i in range(steps):
+            pointsArr.append([
+                addPointOffset(propablyPoints[0], -i*dxStep, -i*dyStep),
+                addPointOffset(propablyPoints[1], i * dxStep, i * dyStep),
+                addPointOffset(propablyPoints[2], i * dxStep, i * dyStep),
+                addPointOffset(propablyPoints[3], -i * dxStep, -i * dyStep),
+            ])
+    else:
+        steps = 5
+        dxStep = dx / steps
+        dyStep = dy / steps
+
+        pointsArr = []
+        for i in range(-2,steps+3):
+            pointsArr.append([
+                addPointOffset(propablyPoints[0], -i * dxStep, -i * dyStep),
+                addPointOffset(propablyPoints[1], i * dxStep, i * dyStep),
+                addPointOffset(propablyPoints[2], i * dxStep, i * dyStep),
+                addPointOffset(propablyPoints[3], -i * dxStep, -i * dyStep),
+            ])
+
+    return pointsArr
+
+
+def normalizePerspectiveImages(images):
+    newImages = []
+    for img in images:
+        newImages.append(prepareImageText(img))
+    return newImages
 
 
 class NpPointsCraft(object):
@@ -453,7 +782,7 @@ class NpPointsCraft(object):
             self.refine_net.eval()
             self.is_poly = True
 
-    def detect_by_path(self, image_path, targetBoxes, debug=False):
+    def detectByImagePath(self, image_path, targetBoxes, qualityProfile = [1,0,0], debug=False):
         image = imgproc.loadImage(image_path)
         for targetBox in targetBoxes:
             x = min(targetBox['x1'], targetBox['x2'])
@@ -462,10 +791,27 @@ class NpPointsCraft(object):
             h = abs(targetBox['y2']-targetBox['y1'])
             #print('x: {} w: {} y: {} h: {}'.format(x,w,y,h))
             image_part = image[y:y + h, x:x + w]
-            targetBox['points'] = addCoordinatesOffset(self.detectInBbox(image_part),x,y)
-        return targetBoxes
+            points = self.detectInBbox(image_part)
+            propablyPoints = addCoordinatesOffset(points, x, y)
+            targetBox['points'] = []
+            targetBox['imgParts'] = []
+            if (len(propablyPoints)):
+                targetPointsVariants = makeRectVariants2(propablyPoints,h,w, qualityProfile)
+                # targetBox['points'] = addCoordinatesOffset(points, x, y)
+                # targetPointsVariants = [targetPoints, fixSideFacets(targetPoints)]
+                if len(targetPointsVariants) > 1:
+                    imgParts = [getCvZoneRGB(image, reshapePoints(rect,1)) for rect in targetPointsVariants]
+                    idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
+                    print('--------------------------------------------------')
+                    print('idx={}'.format(idx))
+                    #targetBox['points'] = addoptRectToBbox2(targetPointsVariants[idx], image.shape,x,y)
+                    targetBox['points'] = targetPointsVariants[idx]
+                    targetBox['imgParts'] = imgParts
+                else:
+                    targetBox['points'] = targetPointsVariants[0]
+        return targetBoxes, image
 
-    def detect(self, image, targetBoxes, debug=False):
+    def detect(self, image, targetBoxes, qualityProfile = [1,0,0],debug=False):
         all_points = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))
@@ -474,8 +820,17 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3]-targetBox[1]))
             
             image_part = image[y:y + h, x:x + w]
-            points = addCoordinatesOffset(self.detectInBbox(image_part),x,y)
-            all_points.append(points)
+            propablyPoints = addCoordinatesOffset(self.detectInBbox(image_part),x,y)
+            points = []
+            if (len(propablyPoints)):
+                targetPointsVariants = makeRectVariants2(propablyPoints,h,w, qualityProfile)
+                if len(targetPointsVariants) > 1:
+                    imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
+                    idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
+                    points = targetPointsVariants[idx]
+                else:
+                    points = targetPointsVariants[0]
+                all_points.append(points)
         return all_points
 
     def detectInBbox(self, image, debug=False):
@@ -519,17 +874,16 @@ class NpPointsCraft(object):
         if len(np_bboxes_idx) > 1:
             targetPoints = minimum_bounding_rectangle(np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0))
 
+        imgParts = []
         if len(np_bboxes_idx) > 0:
-            minXIdx = findMinXIdx(targetPoints)
-            targetPoints = reshapePoints(targetPoints, minXIdx)
-            targetPoints = fixClockwise(targetPoints)
+            targetPoints = normalizeRect(targetPoints)
             if (debug):
                 print('###################################')
                 print(targetPoints)
 
-            targetPoints = addOffsetManualPercentage(targetPoints, 11, 10, 3, 10)
             if (debug):
                 print('image.shape')
                 print(image.shape)
-            targetPoints = fixSideFacets(targetPoints, image.shape)
+            #targetPoints = fixSideFacets(targetPoints, image.shape)
+            targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
         return targetPoints

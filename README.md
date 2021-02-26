@@ -76,61 +76,67 @@ Then, run `visualcppbuildtools_full.exe` and select default options:
 ```
 # Specify device
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0" 
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
 import numpy as np
 import sys
-import matplotlib.image as mpimg
+import cv2
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../')
+# CRAFT-pytorch & yolov5 path
+CRAFT_DIR = os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch')
+YOLOV5_DIR = os.path.join(NOMEROFF_NET_DIR, 'yolov5')
+
 sys.path.append(NOMEROFF_NET_DIR)
+sys.path.append(CRAFT_DIR)
+sys.path.append(YOLOV5_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  Detector
-from NomeroffNet import  filters
-from NomeroffNet import  RectDetector
-from NomeroffNet import  OptionsDetector
-from NomeroffNet import  TextDetector
-from NomeroffNet import  textPostprocessing
+from NomeroffNet.YoloV5Detector import Detector
+detector = Detector()
+detector.load()
+
+from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
+npPointsCraft = NpPointsCraft()
+npPointsCraft.load()
+
+from NomeroffNet.OptionsDetector import OptionsDetector
+from NomeroffNet.TextDetector import TextDetector
+
+from NomeroffNet import TextDetector
+from NomeroffNet import textPostprocessing
 
 # load models
-rectDetector = RectDetector()
-
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
 textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
-nnet = Detector()
-nnet.loadModel(NOMEROFF_NET_DIR)
-
 # Detect numberplate
 img_path = 'images/example2.jpeg'
-img = mpimg.imread(img_path)
+img = cv2.imread(img_path)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-# Generate image mask.
-cv_imgs_masks = nnet.detect_mask([img])
-    
-for cv_img_masks in cv_imgs_masks:
-    # Detect points.
-    arrPoints = rectDetector.detect(cv_img_masks)
-    
-    # cut zones
-    zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
+targetBoxes = detector.detect_bbox(img)
+all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
 
-    # find standart
-    regionIds, stateIds, countLines = optionsDetector.predict(zones)
-    regionNames = optionsDetector.getRegionLabels(regionIds)
-    
-    # find text with postprocessing by standart  
-    textArr = textDetector.predict(zones)
-    textArr = textPostprocessing(textArr, regionNames)
-    print(textArr)
-    # ['JJF509', 'RP70012']
+# cut zones
+zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
+
+# predict zones attributes 
+regionIds, stateIds, countLines = optionsDetector.predict(zones)
+regionNames = optionsDetector.getRegionLabels(regionIds)
+
+# find text with postprocessing by standart
+textArr = textDetector.predict(zones)
+textArr = textPostprocessing(textArr, regionNames)
+print(textArr)
+# ['JJF509', 'RP70012']
 ```
 <br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo0.ipynb">Hello Jupyter Nomeroff Net</a>
 
