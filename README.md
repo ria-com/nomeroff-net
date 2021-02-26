@@ -73,7 +73,7 @@ Then, run `visualcppbuildtools_full.exe` and select default options:
 
 
 ## Hello Nomeroff Net
-```
+```python
 # Specify device
 import os
 
