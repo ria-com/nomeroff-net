@@ -8,7 +8,7 @@ import numpy as np
 
 # download and append to path yolo repo
 NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
-YOLOV5_DIR       = os.path.join(NOMEROFF_NET_DIR, 'yolov5')
+YOLOV5_DIR       = os.environ.get("YOLOV5_DIR", os.path.join(NOMEROFF_NET_DIR, 'yolov5'))
 YOLOV5_URL       = "https://github.com/ultralytics/yolov5.git"
 if not os.path.exists(YOLOV5_DIR):
     from git import Repo

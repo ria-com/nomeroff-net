@@ -87,13 +87,8 @@ import cv2
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../')
-# CRAFT-pytorch & yolov5 path
-CRAFT_DIR = os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch')
-YOLOV5_DIR = os.path.join(NOMEROFF_NET_DIR, 'yolov5')
 
 sys.path.append(NOMEROFF_NET_DIR)
-sys.path.append(CRAFT_DIR)
-sys.path.append(YOLOV5_DIR)
 
 # Import license plate recognition tools.
 from NomeroffNet.YoloV5Detector import Detector
@@ -155,11 +150,8 @@ import cv2
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../')
-# Yolov5 path
-YOLOV5_DIR = os.path.join(NOMEROFF_NET_DIR, 'yolov5')
 
 sys.path.append(NOMEROFF_NET_DIR)
-sys.path.append(YOLOV5_DIR)
 
 # Import license plate recognition tools.
 from NomeroffNet.YoloV5Detector import Detector

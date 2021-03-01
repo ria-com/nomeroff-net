@@ -7,7 +7,7 @@ import collections
 
 # clone and append to path craft
 NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
-CRAFT_DIR        = os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch')
+CRAFT_DIR        = os.environ.get("CRAFT_DIR", os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch'))
 CRAFT_URL        = "https://github.com/clovaai/CRAFT-pytorch.git"
 if not os.path.exists(CRAFT_DIR):
     from git import Repo
@@ -748,8 +748,9 @@ class NpPointsCraft(object):
                   trained_model=os.path.join(CRAFT_DIR, 'weights/craft_mlt_25k.pth'),
                   refiner_model=os.path.join(CRAFT_DIR, 'weights/craft_refiner_CTW1500.pth')
              ):
-        is_cuda=torch.device(device)
+        is_cuda = device == "cuda"
         self.is_cuda = is_cuda
+
         # load net
         self.net = CRAFT()  # initialize
 
