@@ -7,20 +7,20 @@
   * Added train example
   * Updated avto-nomer-tool
   * Added ocr eu onnx-convertor 
+  * Updated demos .py scripts
+  * Updated benchmarks .py scripts
+  * Fixed all setup*.py needed
+  * Fixed all docker files for new requirements needed
+  * Updated .html demo
+  * Added faster model for finding license plates for the CPU
   
   **deprecated**
   * DetectronDetector
   * RectDetector
-  * MmdetectionDetector 
+  * MmdetectionDetector
   
   **roadmap**
-  * Update benchmarks .py scripts
-  * Update demos .py scripts
   * Remove is filled or not is filled classification
-  * Add image_tools module
-  * Fix all docker files for new requirements needed
-  * Fix all setup*.py needed
-  * Update .html demo
 
 1.0.0 / 2020-08-27
 ==================
