@@ -24,16 +24,11 @@ import torch.nn as nn
 import torch.backends.cudnn as cudnn
 from torch.autograd import Variable
 
-from PIL import Image
 import cv2
-from skimage import io
 import numpy as np
 import craft_utils
 import imgproc
 import file_utils
-import json
-import zipfile
-import matplotlib.pyplot as plt
 from scipy.spatial import ConvexHull
 
 # load CRAFT packages
@@ -42,9 +37,10 @@ from craft import CRAFT
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
+
 from mcm.mcm import download_latest_model
 from mcm.mcm import get_mode
-
+from tools import *
 
 
 def copyStateDict(state_dict):
@@ -63,6 +59,9 @@ def copyStateDict(state_dict):
 
 
 def test_net(net, image, text_threshold, link_threshold, low_text, cuda, poly, canvas_size,  refine_net=None, mag_ratio=1.5):
+    """
+    TODO: describe function
+    """
     t0 = time.time()
 
     # resize
@@ -112,14 +111,10 @@ def test_net(net, image, text_threshold, link_threshold, low_text, cuda, poly, c
     return boxes, polys, ret_score_text
 
 
-def distance(p0, p1):
-    """
-    distance between two points p0 and p1
-    """
-    return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
-
-
 def split_boxes(bboxes,dimensions,similarity_range = 0.7):
+    """
+    TODO: describe function
+    """
     np_bboxes_idx = []
     garbage_bboxes_idx =[]
     maxDy=0
@@ -204,32 +199,6 @@ def minimum_bounding_rectangle(points):
     return rval
 
 
-def fline(p0,p1):
-    """
-    Вычесление угла наклона прямой по 2 точкам
-    """
-    x1 = float(p0[0])
-    y1 = float(p0[1])
-
-    x2 = float(p1[0])
-    y2 = float(p1[1])
-
-    #print("Уравнение прямой, проходящей через эти точки:")
-    if (x1 - x2 == 0):
-        k = 1000000000
-        b = y2
-    else:
-        k = (y1 - y2) / (x1 - x2)
-        b = y2 - k*x2
-    #print(" y = %.4f*x + %.4f" % (k, b))
-    r = math.atan(k)
-    a = math.degrees(r)
-    a180 = a
-    if (a < 0 ):
-        a180 = 180 + a
-    return [k, b, a, a180, r]
-
-
 def detectIntersection(matrix1,matrix2):
     """
     http://www.math.by/geometry/eqline.html
@@ -241,6 +210,9 @@ def detectIntersection(matrix1,matrix2):
 
 
 def detectIntersectionNormDD(matrix1,matrix2,d1,d2):
+    """
+    TODO: describe function
+    """
     X = np.array([matrix1[:2],matrix2[:2]])
     c0 = matrix1[2]-d1*(matrix1[0]**2 + matrix1[1]**2)**0.5
     c1 = matrix2[2]-d2*(matrix2[0]**2 + matrix2[1]**2)**0.5
@@ -248,26 +220,10 @@ def detectIntersectionNormDD(matrix1,matrix2,d1,d2):
     return np.linalg.solve(X, y)
 
 
-def linearLineMatrix(p0,p1):
-    """
-    Вычесление коефициентов матрицы, описывающей линию по двум точкам
-    """
-    x1 = float(p0[0])
-    y1 = float(p0[1])
-
-    x2 = float(p1[0])
-    y2 = float(p1[1])
-
-    #print("Уравнение прямой, проходящей через эти точки:")
-    A = y1 - y2
-    B = x2 - x1
-    C = x2*y1-x1*y2
-    #print("%.4f*x + %.4fy = %.4f" % (A, B, C))
-    #print(A, B, C)
-    return [A, B, C]
-
-
 def getYByMatrix(matrix,x):
+    """
+    TODO: describe function
+    """
     A = matrix[0]
     B = matrix[1]
     C = matrix[2]
@@ -275,24 +231,11 @@ def getYByMatrix(matrix,x):
         return (C-A*x)/B
 
 
-def findDistances(points):
-    distanses = []
-    cnt = len(points)
-
-    for i in range(cnt):
-        p0 = i
-        if (i < cnt - 1):
-            p1 = i + 1
-        else:
-            p1 = 0
-        distanses.append({"d": distance(points[p0], points[p1]), "p0": p0, "p1": p1,
-                          "matrix": linearLineMatrix(points[p0], points[p1]),
-                          "coef": fline(points[p0], points[p1])})
-    return distanses
-
 def detectDistanceFromPointToLine(matrix,point):
-    # Определение растояния от точки к линии
-    # https://ru.onlinemschool.com/math/library/analytic_geometry/p_line1/
+    """
+    Определение растояния от точки к линии
+    https://ru.onlinemschool.com/math/library/analytic_geometry/p_line1/
+    """
     A = matrix[0]
     B = matrix[1]
     C = matrix[2]
@@ -301,16 +244,10 @@ def detectDistanceFromPointToLine(matrix,point):
     return abs(A*x + B*y - C)/math.sqrt(A**2+B**2)
 
 
-
-def reshapePoints(targetPoints,startIdx):
-    if [startIdx>0]:
-        part1 = targetPoints[:(startIdx)]
-        part2 = targetPoints[(startIdx):]
-        targetPoints = np.concatenate((part2,part1))
-    return targetPoints
-
-
 def findMinXIdx(targetPoints):
+    """
+    TODO: describe function
+    """
     minXIdx = 3
     for i in range(0,len(targetPoints)):
         if (targetPoints[i][0] < targetPoints[minXIdx][0]):
@@ -321,6 +258,9 @@ def findMinXIdx(targetPoints):
 
 
 def fixClockwise(targetPoints):
+    """
+    TODO: describe function
+    """
     stat1 = fline(targetPoints[0], targetPoints[1])
     stat2 = fline(targetPoints[0], targetPoints[2])
     if targetPoints[0][0] == targetPoints[1][0] and (targetPoints[0][1] > targetPoints[1][1]):
@@ -333,6 +273,9 @@ def fixClockwise(targetPoints):
 
 def addOffsetManualPercentage(targetPoints, offsetLeftPercentage, offsetTopPercentage, offsetRightPercentage,
                               offsetBottomPercentage):
+    """
+    TODO: describe function
+    """
     distanses = findDistances(targetPoints)
     points = []
     if distanses[0]['d'] > distanses[1]['d']:
@@ -361,6 +304,9 @@ def addOffsetManualPercentage(targetPoints, offsetLeftPercentage, offsetTopPerce
 
 def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offsetTopMaxPercentage, offsetRightMaxPercentage,
                               offsetBottomMaxPercentage):
+    """
+    TODO: describe function
+    """
     distanses = findDistances(targetPoints)
     points = []
 
@@ -458,8 +404,10 @@ def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offse
     return np.array(points)
 
 
-
 def fixSideFacets(targetPoints, adoptToFrame=None):
+    """
+    TODO: describe function
+    """
     distanses = findDistances(targetPoints)
     points = targetPoints.copy()
     #print('targetPoints: {}'.format(targetPoints))
@@ -500,44 +448,16 @@ def fixSideFacets(targetPoints, adoptToFrame=None):
 
 
 def addCoordinatesOffset(points,x,y):
+    """
+    TODO: describe function
+    """
     return [[point[0]+x, point[1]+y] for point in points]
 
-def getMeanDistance(rect, startIdx):
-    endIdx = startIdx+1
-    start2Idx = startIdx+2
-    end2Idx = endIdx+2
-    if end2Idx == 4:
-        end2Idx = 0
-    print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(startIdx, endIdx, start2Idx, end2Idx))
-    return np.mean([distance(rect[startIdx], rect[endIdx]), distance(rect[start2Idx], rect[end2Idx])])
-
-def buildPerspective(img, rect, w, h):
-    w = int(w)
-    h = int(h)
-    pts1 = np.float32(rect)
-    pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
-    M = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, M, (w, h))
-
-def getCvZonesRGB(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
-    dsts = []
-    for rect in rects:
-        h = getMeanDistance(rect, 0)
-        w = getMeanDistance(rect, 1)
-        print('h: {}, w: {}'.format(h,w))
-        if h > w and auto_width_height:
-            h, w = w, h
-        else:
-            rect = reshapePoints(rect, 3)
-        if (gw == 0 or gh == 0):
-            w, h = int(h*coef), int(h)
-        else:
-            w, h = gw, gh
-        dst = buildPerspective(img, rect, w, h)
-        dsts.append(dst)
-    return dsts
 
 def normalizeRect(rect):
+    """
+    TODO: describe function
+    """
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
     rect = fixClockwise(rect)
@@ -547,33 +467,11 @@ def normalizeRect(rect):
     return rect
 
 
-def getCvZoneRGB(img, rect, gw=0, gh=0, coef=4.6, auto_width_height=True):
-    if (gw == 0 or gh == 0):
-        distanses = findDistances(rect)
-        h = (distanses[0]['d'] + distanses[2]['d']) / 2
-        if auto_width_height:
-            w = int(h*coef)
-        else:
-            w = (distanses[1]['d'] + distanses[3]['d']) / 2
-    else:
-        w, h = gw, gh
-    # print('h: {}, w: {}'.format(h, w))
-    return buildPerspective(img, rect, w, h)
-
-def convertCvZonesRGBtoBGR(dsts):
-    bgrDsts = []
-    for dst in dsts:
-        dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
-        bgrDsts.append(dst)
-    return bgrDsts
-
-def getCvZonesBGR(img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
-    dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height = auto_width_height)
-    return convertCvZonesRGBtoBGR(dsts)
-
 def prepareImageText(img):
-    # сперва переведём изображение из RGB в чёрно серый
-    # значения пикселей будут от 0 до 255
+    """
+    сперва переведём изображение из RGB в чёрно серый
+    значения пикселей будут от 0 до 255
+    """
     grayImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     img_min = np.amin(grayImage)
@@ -587,7 +485,11 @@ def prepareImageText(img):
     (thresh, blackAndWhiteImage) = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
     return blackAndWhiteImage
 
+
 def detectBestPerspective(bwImages):
+    """
+    TODO: describe function
+    """
     res = []
     idx = 0
     diff = 1000000
@@ -614,17 +516,30 @@ def detectBestPerspective(bwImages):
 
     return idx
 
+
 def addPointOffset(point,x,y):
+    """
+    TODO: describe function
+    """
     return [point[0]+x,point[1]+y]
 
+
 def addPointOffsets(points,dx,dy):
+    """
+    TODO: describe function
+    """
     return [
               addPointOffset(points[0], -dx, -dy),
               addPointOffset(points[1],  dx,  dy),
               addPointOffset(points[2],  dx,  dy),
               addPointOffset(points[3], -dx, -dy),
            ]
+
+
 def makeRectVariants2(propablyPoints, h, w, qualityProfile = [3,1,0]):
+    """
+    TODO: describe function
+    """
     distanses = findDistances(propablyPoints)
 
     pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
@@ -659,6 +574,9 @@ def makeRectVariants2(propablyPoints, h, w, qualityProfile = [3,1,0]):
 
 
 def makeRectVariants(propablyPoints, steps=5):
+    """
+    TODO: describe function
+    """
     distanses = findDistances(propablyPoints)
 
     pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
@@ -709,6 +627,9 @@ def makeRectVariants(propablyPoints, steps=5):
 
 
 def normalizePerspectiveImages(images):
+    """
+    TODO: describe function
+    """
     newImages = []
     for img in images:
         newImages.append(prepareImageText(img))
@@ -731,6 +652,9 @@ class NpPointsCraft(object):
              mtl_model_path="latest",
              refiner_model_path="latest"
             ):
+        """
+        TODO: describe method
+        """
         if mtl_model_path == "latest":
             model_info   = download_latest_model(self.get_classname(), "mtl", ext="pth")
             mtl_model_path   = model_info["path"]
@@ -748,6 +672,9 @@ class NpPointsCraft(object):
                   trained_model=os.path.join(CRAFT_DIR, 'weights/craft_mlt_25k.pth'),
                   refiner_model=os.path.join(CRAFT_DIR, 'weights/craft_refiner_CTW1500.pth')
              ):
+        """
+        TODO: describe method
+        """
         is_cuda = device == "cuda"
         self.is_cuda = is_cuda
 
@@ -784,6 +711,9 @@ class NpPointsCraft(object):
             self.is_poly = True
 
     def detectByImagePath(self, image_path, targetBoxes, qualityProfile = [1,0,0], debug=False):
+        """
+        TODO: describe method
+        """
         image = imgproc.loadImage(image_path)
         for targetBox in targetBoxes:
             x = min(targetBox['x1'], targetBox['x2'])
@@ -813,6 +743,9 @@ class NpPointsCraft(object):
         return targetBoxes, image
 
     def detect(self, image, targetBoxes, qualityProfile = [1,0,0],debug=False):
+        """
+        TODO: describe method
+        """
         all_points = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))
@@ -835,6 +768,9 @@ class NpPointsCraft(object):
         return all_points
 
     def detectInBbox(self, image, debug=False):
+        """
+        TODO: describe method
+        """
         low_text = 0.4
         link_threshold = 0.7  # 0.4
         text_threshold = 0.6
