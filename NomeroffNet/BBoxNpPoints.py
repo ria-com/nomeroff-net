@@ -662,7 +662,7 @@ class NpPointsCraft(object):
             model_info   = download_latest_model(self.get_classname(), "refiner", ext="pth", mode=get_mode_torch())
             refiner_model_path   = model_info["path"]
         device = "cpu"
-        if get_mode() == "gpu":
+        if get_mode_torch() == "gpu":
             device = "cuda"
         self.loadModel(device, True, mtl_model_path, refiner_model_path)
                   
