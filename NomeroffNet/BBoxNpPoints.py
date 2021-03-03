@@ -39,7 +39,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
 
 from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode
+from mcm.mcm import get_mode_torch
 from tools import *
 
 
@@ -656,10 +656,10 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         if mtl_model_path == "latest":
-            model_info   = download_latest_model(self.get_classname(), "mtl", ext="pth")
+            model_info   = download_latest_model(self.get_classname(), "mtl", ext="pth", mode=get_mode_torch())
             mtl_model_path   = model_info["path"]
         if refiner_model_path == "latest":
-            model_info   = download_latest_model(self.get_classname(), "refiner", ext="pth")
+            model_info   = download_latest_model(self.get_classname(), "refiner", ext="pth", mode=get_mode_torch())
             refiner_model_path   = model_info["path"]
         device = "cpu"
         if get_mode() == "gpu":

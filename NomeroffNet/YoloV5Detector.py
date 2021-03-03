@@ -25,7 +25,7 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
 from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode
+from mcm.mcm import get_mode_torch
 
 
 class Detector:
@@ -52,7 +52,7 @@ class Detector:
 
     def load(self, path_to_model="latest"):
         if path_to_model == "latest":
-            model_info   = download_latest_model(self.get_classname(), "yolov5x", ext="pt")
+            model_info   = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
             path_to_model   = model_info["path"]
         device = "cpu"
         if get_mode() == "gpu":
