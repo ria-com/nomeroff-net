@@ -1,8 +1,6 @@
-Test version
-
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 1.0.0
+Nomeroff Net. Automatic numberplate recognition system. Version 2.0.0
 
 ## Introduction
 Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation 
@@ -10,7 +8,7 @@ neural network and cusomized OCR-module powered by [GRU architecture](https://gi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 1.0 2.5x faster Nomeroff Net [0.4.x](https://github.com/ria-com/nomeroff-net/tree/v0.4)! This improvement was achieved by replacing [Mask RCNN](https://github.com/matterport/Mask_RCNN) with a [CenterMask2](https://github.com/youngwanLEE/centermask2) (more modern and high-speed implementation of the instance segmaentation task).
+Version 2.0 2.5x faster Nomeroff Net [1.0.x](https://github.com/ria-com/nomeroff-net/tree/v1.0)! This improvement was achieved by replacing segmentation model [CenterMask2](https://github.com/youngwanLEE/centermask2) with a [Object Detection YoloV5](https://github.com/ultralytics/yolov5) and [Scene Text Detection CRAFT](https://github.com/clovaai/CRAFT-pytorch) models.
 ## Installation
 
 ### Installation from Source (Linux)
@@ -20,8 +18,7 @@ Nomeroff Net requires Python >= 3.6 and [opencv 3.4 or latest](https://opencv.or
 Clone Project and clone related projects
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
-cd nomeroff-net
-git clone https://github.com/youngwanLEE/centermask2.git
+cd nomeroff-ne
 ```
 
 ##### For Centos, Fedora and other RedHat-like OS:
@@ -55,7 +52,6 @@ apt-get install python3.6-dev
 ```bash
 pip3 install torch==1.7
 pip3 install PyYAML==5.3
-pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 pip3 install torchvision==0.8
 pip3 install Cython
 pip3 install numpy
