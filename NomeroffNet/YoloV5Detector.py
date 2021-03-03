@@ -55,7 +55,7 @@ class Detector:
             model_info   = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
             path_to_model   = model_info["path"]
         device = "cpu"
-        if get_mode() == "gpu":
+        if get_mode_torch() == "gpu":
             device = "cuda"
         self.loadModel(path_to_model, device)
 
