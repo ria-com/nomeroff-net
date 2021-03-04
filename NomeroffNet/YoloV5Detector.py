@@ -59,7 +59,7 @@ class Detector:
             device = "cuda"
         self.loadModel(path_to_model, device)
 
-    def detect_bbox(self, img, img_size=640, stride=32):
+    def detect_bbox(self, img, img_size=640, stride=32, min_accuracy=0.5):
         """
         
         """
@@ -84,6 +84,6 @@ class Detector:
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], img_shape).round()
                 res.append(det.cpu().detach().numpy())
         if len(res):
-            return res[0]
+            return [[x1, y1, x2, y2, acc, b] for x1, y1, x2, y2, acc, b  in res[0] if acc > min_accuracy]
         else:
             return []

@@ -765,6 +765,13 @@ class NpPointsCraft(object):
                 else:
                     points = targetPointsVariants[0]
                 all_points.append(points)
+            else:
+                all_points.append([
+                    [x, y+h],
+                    [x, y],
+                    [x+w, y],
+                    [x+w, y+h]
+                ])
         return all_points
 
     def detectInBbox(self, image, debug=False):
