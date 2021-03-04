@@ -82,9 +82,8 @@ class Detector:
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], img_shape).round()
-                det.cpu().detach().numpy()
-                res.append(det)
+                res.append(det.cpu().detach().numpy())
         if len(res):
-            return np.array(res[0])
+            return res[0]
         else:
             return []
