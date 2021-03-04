@@ -462,7 +462,7 @@ def normalizeRect(rect):
     rect = reshapePoints(rect, minXIdx)
     rect = fixClockwise(rect)
     distanses = findDistances(rect)
-    if distanses[0]['d'] > distanses[1]['d']:
+    if distanses[0]['d'] > distanses[1]['d'] or distanses[0]['matrix'][0] == 0:
         rect = reshapePoints(rect,3)
     return rect
 
