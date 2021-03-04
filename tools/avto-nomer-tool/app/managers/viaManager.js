@@ -29,8 +29,12 @@ module.exports = {
                 fileOut = path.join(targetDir, subDir, dataPart._via_img_metadata[key].filename)
             ;
             //console.log(`fileIn: ${fileIn}\nfileOut: ${fileOut}`);
-            if (!fs.existsSync(fileOut)) {
-                fs.renameSync(fileIn, fileOut);
+            try {
+                if (!fs.existsSync(fileOut)) {
+                    fs.renameSync(fileIn, fileOut);
+                }
+            } catch (e) {
+                console.log("Not exists rename", fileIn, fileOut);
             }
         }
         return dataPart

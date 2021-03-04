@@ -293,6 +293,14 @@ async function dataJoin (options) {
 
 
 
-module.exports = {index, createAnnotations, moveChecked, dataSplit, moveGarbage, dataJoin, moveSomething };
+module.exports = {
+    index,
+    createAnnotations,
+    moveChecked,
+    dataSplit,
+    moveGarbage,
+    dataJoin,
+    moveSomething,
+};
 
 

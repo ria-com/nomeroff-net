@@ -2,7 +2,7 @@ import os
 import urllib.request
 from tqdm import tqdm
 import pathlib
-from .latest import latest_models
+from .latestV2 import latest_models
 
 # sys var for model storage main dir
 MODEL_STORAGE_DIR = os.environ.get("MODEL_STORAGE_DIR", os.path.dirname(os.path.realpath(__file__)))

@@ -45,10 +45,11 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown09" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Examples</a>
                     <div class="dropdown-menu" aria-labelledby="dropdown09">
-                        <a class="dropdown-item" href="#quickExample">Quick Numberplate Recognition Example</a>
-                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo1.ipynb">Mask Detection Demo</a>
-                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo2.ipynb">Numberplate Rectangle Detection Demo</a>
-                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Numberplate Detection Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/get-started-demo.ipynb">Get Started Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/get-started-tiny-demo.ipynb">Get Started Tiny Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/number-plate-filling-demo.ipynb">Number Plate Filling Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/examples/number-plate-recognition-full-demo.ipynb">Number Plate Recognition Full Demo</a>
+                        <a class="dropdown-item" href="https://github.com/ria-com/nomeroff-net/blob/master/banchmarks/runtime-test.ipynb">Number Plate Recognition Speed Test</a>
                     </div>
                 </li>
                 <li class="nav-item">
@@ -64,16 +65,19 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 1.0.0</p>
+                <p>Automatic numberplate recognition system. Version 2.0.0</p>
 
 
                 <h1>Introduction</h1>
-                <p>Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation
-                    neural network and cusomized OCR-module powered by <a href="https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md">GRU architecture</a>.</p>
+                <p>Nomeroff Net is an opensource python license plate recognition framework
+                    based on the application of a Object Detection(yolov5)
+                    and Scene Text Detection(CRAFT)
+                    neural networks and cusomized OCR-module powered by
+                    <a href="https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md">GRU architecture</a>.</p>
 
-                <p>The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.</p>
-
-                <p>Version 1.0 2.5x faster Nomeroff Net <a href="https://github.com/ria-com/nomeroff-net/tree/v0.4">0.4.x!</a> This improvement was achieved by replacing <a href="https://github.com/matterport/Mask_RCNN">Mask RCNN</a> with a <a href="https://github.com/youngwanLEE/centermask2">CenterMask2</a> (more modern and high-speed implementation of the instance segmaentation task).</p>
+                <p> The project is under development,
+                    write to us if you are interested in helping us
+                    in the formation of a dataset for your country.</p>
 
                 <h1>Installation</h1>
 
@@ -86,7 +90,6 @@
 <pre class="prettyprint lang-bsh">
 git clone https://github.com/ria-com/nomeroff-net.git
 cd nomeroff-net
-git clone https://github.com/youngwanLEE/centermask2.git
 </pre>
                 <h2>For Centos, Fedora and other RedHat-like OS:</h2>
 
@@ -124,7 +127,6 @@ apt-get install python3.6-dev
 <pre class="prettyprint lang-bsh">
 pip3 install torch==1.7
 pip3 install PyYAML==5.3
-pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
 pip3 install torchvision==0.8
 pip3 install Cython
 pip3 install numpy
@@ -143,63 +145,63 @@ pip3 install -r requirements.txt
                 <h1 id="quickExample">Hello Nomeroff Net</h1>
 
 <pre class="prettyprint" lang="prettyprint lang-py">
-# Specify device
 import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
 import numpy as np
 import sys
-import matplotlib.image as mpimg
+import cv2
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../')
+
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet import  Detector
-from NomeroffNet import  filters
-from NomeroffNet import  RectDetector
-from NomeroffNet import  OptionsDetector
-from NomeroffNet import  TextDetector
-from NomeroffNet import  textPostprocessing
+from NomeroffNet.YoloV5Detector import Detector
+detector = Detector()
+detector.load()
+
+from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
+npPointsCraft = NpPointsCraft()
+npPointsCraft.load()
+
+from NomeroffNet.OptionsDetector import OptionsDetector
+from NomeroffNet.TextDetector import TextDetector
+
+from NomeroffNet import TextDetector
+from NomeroffNet import textPostprocessing
 
 # load models
-rectDetector = RectDetector()
-
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
 textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
-nnet = Detector()
-nnet.loadModel(NOMEROFF_NET_DIR)
-
 # Detect numberplate
 img_path = 'images/example2.jpeg'
-img = mpimg.imread(img_path)
+img = cv2.imread(img_path)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-# Generate image mask.
-cv_imgs_masks = nnet.detect_mask([img])
+targetBoxes = detector.detect_bbox(img)
+all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
 
-for cv_img_masks in cv_imgs_masks:
-    # Detect points.
-    arrPoints = rectDetector.detect(cv_img_masks)
+# cut zones
+zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
 
-    # cut zones
-    zones = rectDetector.get_cv_zonesBGR(img, arrPoints, 64, 295)
+# predict zones attributes
+regionIds, stateIds, countLines = optionsDetector.predict(zones)
+regionNames = optionsDetector.getRegionLabels(regionIds)
 
-    # find standart
-    regionIds, stateIds, countLines = optionsDetector.predict(zones)
-    regionNames = optionsDetector.getRegionLabels(regionIds)
-
-    # find text with postprocessing by standart
-    textArr = textDetector.predict(zones)
-    textArr = textPostprocessing(textArr, regionNames)
-    print(textArr)
-    # ['JJF509', 'RP70012']
+# find text with postprocessing by standart
+textArr = textDetector.predict(zones)
+textArr = textPostprocessing(textArr, regionNames)
+print(textArr)
+# ['JJF509', 'RP70012']
 </pre>
 
 
@@ -211,20 +213,20 @@ for cv_img_masks in cv_imgs_masks:
                 </p>
 
                 <h1>AUTO.RIA Numberplate Dataset</h1>
-                <p>All data on the basis of which the training was conducted is provided by RIA.com. In the following, we will call this data the <a href="datasets/autoriaNumberplateDataset-2018-11-20.zip">AUTO.RIA Numberplate Dataset</a>.</p>
+                <p>All data on the basis of which the training was conducted is provided by RIA.com. In the following, we will call this data the <a href="datasets/autoriaNumberplateDataset-2020-12-17.zip">AUTO.RIA Numberplate Dataset</a>.</p>
                 <p>We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using <a href="http://www.robots.ox.ac.uk/~vgg/software/via/">VGG Image Annotator (VIA)</a></p>
 
                 <h1>AUTO.RIA Numberplate Options Dataset</h1>
                 <p>The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
-                    <a href="datasets/autoriaNumberplateOptionsDataset-2019-05-15.zip">AUTO.RIA Numberplate Options Dataset</a>.</p>
+                    <a href="datasets/autoriaNumberplateOptions3Dataset-2020-12-17.zip">AUTO.RIA Numberplate Options Dataset</a>.</p>
                 <p>The categorizer accurately (<b>99%</b>) determines the country and the type of license plate. Please note that now the classifier is configured
                     mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.</p>
 
                 <h1>AUTO.RIA Numberplate OCR Datasets</h1>
-                <p>As OCR, we use a <a href="https://github.com/ria-com/nomeroff-net/blob/0.2.0/docs/OCR.md">specialized implementation of a neural network with GRU layers</a>,
+                <p>As OCR, we use a <a href="https://github.com/ria-com/nomeroff-net/docs/OCR.md">specialized implementation of a neural network with GRU layers</a>,
                 for which we have created several datasets:</p>
                 <ul>
-                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2019-07-30.zip">AUTO.RIA Numberplate OCR UA (Ukrainian) Dataset</a></li>
+                    <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-12-21.zip">AUTO.RIA Numberplate OCR UA (Ukrainian) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2021-01-12.zip">AUTO.RIA Numberplate OCR UA (Ukrainian) with old design Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip">AUTO.RIA Numberplate OCR EU (European) Dataset</a></li>
                     <li><a href="https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip">AUTO.RIA Numberplate OCR RU (Russian) Dataset</a></li>
@@ -236,15 +238,6 @@ for cv_img_masks in cv_imgs_masks:
                 </ul>
                 <p>If we did not manage to update the link on dataset you can find the latest version <a href="https://nomeroff.net.ua/datasets/">here</a></p>
                 <p>This gives you the opportunity to get <b>98% accuracy</b> on photos that are uploaded to <a href="https://auto.ria.com">AUTO.RIA</a> project</p>
-
-
-                <h1>Road map</h1>
-                <p>For several months now, we have been devoting some of our time to developing new features for the Nomeroff Net project. In the near future we plan:</p>
-                <ul>
-                    <li>Post a detailed instruction on the training of recognition models and classifier for license plates of your country.</li>
-                    <li>To expand the classification of countries of license plates by which to determine the country in which this license plate is registered.</li>
-                </ul>
-
 
                 <h1>Contributing</h1>
 

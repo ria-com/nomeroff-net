@@ -57,7 +57,11 @@ async function split (options) {
  * Объеденить 2 датасета в один для Mask RCNN
  *
  * @param options
- * @example ./console.js --section=via --action=joinVia --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src1/via_data_ria_1_full.json --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src2/via_data_ria2.json --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target --opt.viaFile=via_region_data.json
+ * @example ./console.js --section=via --action=joinVia \
+ * --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src1/via_data_ria_1_full.json
+ * --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src2/via_data_ria2.json \
+ * --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target
+ * --opt.viaFile=via_region_data.json
  */
 async function joinVia (options) {
     //console.log('Hello world defaultController & index action with options: ' +JSON.stringify(options));
@@ -170,4 +174,10 @@ async function groupSplit (options) {
 };
 
 
-module.exports = {index, split, joinVia, addAttribute, groupSplit};
+module.exports = {
+    index,
+    split,
+    joinVia,
+    addAttribute,
+    groupSplit,
+};

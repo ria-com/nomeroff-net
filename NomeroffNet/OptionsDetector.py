@@ -307,6 +307,7 @@ class OptionsDetector(ImgGenerator):
 
         if return_acc:
             return regionIds, stateIds, countLines, predicted
+        
         return regionIds, stateIds, countLines
     
     def predict_pb(self, imgs, return_acc=False):
