@@ -209,7 +209,7 @@ All data on the basis of which the training was conducted is provided by RIA.com
 We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using [VGG Image Annotator (VIA)](http://www.robots.ox.ac.uk/~vgg/software/via/)
 
 Dataset Example:
-<img src="https://github.com/ria-com/nomeroff-net/public/images/nn/segment_example.png" alt="Nomeroff-Net Segment Example"/>
+<img src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/segment_example.png" alt="Nomeroff-Net Segment Example"/>
 
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset

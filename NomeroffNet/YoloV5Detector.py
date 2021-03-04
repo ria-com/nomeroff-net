@@ -85,6 +85,6 @@ class Detector:
                 det.cpu().detach().numpy()
                 res.append(det)
         if len(res):
-            return res[0]
+            return np.array(res[0])
         else:
             return []
