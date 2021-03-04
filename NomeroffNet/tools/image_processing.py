@@ -114,7 +114,7 @@ def getMeanDistance(rect, startIdx):
     end2Idx = endIdx+2
     if end2Idx == 4:
         end2Idx = 0
-    print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(startIdx, endIdx, start2Idx, end2Idx))
+    #print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(startIdx, endIdx, start2Idx, end2Idx))
     return np.mean([distance(rect[startIdx], rect[endIdx]), distance(rect[start2Idx], rect[end2Idx])])
 
 
@@ -137,7 +137,7 @@ def getCvZonesRGB(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
     for rect in rects:
         h = getMeanDistance(rect, 0)
         w = getMeanDistance(rect, 1)
-        print('h: {}, w: {}'.format(h,w))
+        #print('h: {}, w: {}'.format(h,w))
         if h > w and auto_width_height:
             h, w = w, h
         else:
