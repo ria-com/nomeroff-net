@@ -235,7 +235,7 @@ for which we have created several datasets:
 
 If we did not manage to update the link on dataset you can find the latest version [here](https://nomeroff.net.ua/datasets/)
 
-This gives you the opportunity to get **98% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
+This gives you the opportunity to get **99% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
 
 <img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
 <br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Number plate recognition example</a>
