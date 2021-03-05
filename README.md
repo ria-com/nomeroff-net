@@ -50,9 +50,9 @@ apt-get install python3.6-dev
 
 ##### install python requirments
 ```bash
-pip3 install torch==1.7
+pip3 install torch==1.7.1
 pip3 install PyYAML==5.3
-pip3 install torchvision==0.8
+pip3 install torchvision==0.8.2
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
@@ -213,7 +213,7 @@ Dataset Example:
 
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
-[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptions3Dataset-2020-12-17.zip).
+[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptions3Dataset-2021-03-05.zip).
 
 The categorizer accurately **(99%)** determines the country and the type of license plate. Please note that now the classifier is configured
 mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.
