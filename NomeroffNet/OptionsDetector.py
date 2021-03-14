@@ -294,7 +294,7 @@ class OptionsDetector(ImgGenerator):
             return False
         return True
 
-    def load(self, path_to_model, options={}, verbose = 0):
+    def load(self, path_to_model="latest", options={}, verbose = 0):
         """
         TODO: describe method
         """
