@@ -96,7 +96,7 @@ async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
         plt.show()
 
     # find standart
-    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionIds, countLines = optionsDetector.predict(zones)
     regionNames = optionsDetector.getRegionLabels(regionIds)
     print(regionNames)
     print(countLines)

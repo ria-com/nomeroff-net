@@ -86,7 +86,7 @@ for img in imgs:
         plt.show()
 
     # find standart
-    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionIds, countLines = optionsDetector.predict(zones)
     regionNames = optionsDetector.getRegionLabels(regionIds)
     print(regionNames)
     print(countLines)

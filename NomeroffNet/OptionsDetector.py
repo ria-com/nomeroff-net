@@ -305,8 +305,11 @@ class OptionsDetector(ImgGenerator):
             options["class_region"] = model_info["class_region"]
 
         self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
-        
-        self.MODEL.load_state_dict(torch.load(path_to_model))
+
+        if mode_torch == "gpu":
+            self.MODEL.load_state_dict(torch.load(path_to_model))
+        else:
+            self.MODEL.load_state_dict(torch.load(path_to_model,  map_location=torch.device('cpu')))
         self.MODEL.eval()
     
     @torch.no_grad()
