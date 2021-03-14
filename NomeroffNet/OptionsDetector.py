@@ -12,8 +12,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
 from mcm.mcm import download_latest_model
 from mcm.mcm import get_mode_torch
-from Base.nnmodels import NPOptionsNet
-from Base.ImgGenerator import ImgGenerator
+from nnmodels import NPOptionsNet
+from ImgGenerator import ImgGenerator
 
 mode_torch = get_mode_torch()
 
