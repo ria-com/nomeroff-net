@@ -3,7 +3,7 @@ import json
 import cv2
 import numpy as np
 import random
-from .aug import aug
+
 
 class ImgGenerator:
 
@@ -57,6 +57,7 @@ class ImgGenerator:
 
     def normalize(self, img, with_aug=False):
         if with_aug:
+            from .aug import aug
             imgs = aug([img])
             img = imgs[0]
         img = cv2.resize(img, (self.WEIGHT, self.HEIGHT))
