@@ -321,7 +321,7 @@ class OptionsDetector(ImgGenerator):
         for img in imgs:
             Xs.append(self.normalize(img))
 
-        predicted = [[], [], []]
+        predicted = [[], []]
         if bool(Xs):
             x = torch.tensor(np.moveaxis(np.array(Xs), 3, 1))
             if mode_torch == "gpu":
