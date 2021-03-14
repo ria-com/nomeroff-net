@@ -300,7 +300,7 @@ class OptionsDetector(ImgGenerator):
         """
         self.create_model()
         if path_to_model == "latest":
-            model_info   = download_latest_model(self.get_classname(), "simple")
+            model_info   = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
             path_to_model   = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
