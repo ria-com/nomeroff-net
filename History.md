@@ -1,3 +1,9 @@
+2.1.0 / 2021-03-11
+==================
+  **updates**
+  * Removed is filled or not is filled classification
+  * Rewritten options classification on torch 
+
 2.0.0 / 2021-03-01
 ==================
   **updates**
@@ -18,9 +24,6 @@
   * DetectronDetector
   * RectDetector
   * MmdetectionDetector
-  
-  **roadmap**
-  * Remove is filled or not is filled classification
 
 1.0.0 / 2020-08-27
 ==================

@@ -94,7 +94,7 @@ async def test(dirName, fname):
     perspective_align_time = time.time() - start_time
 
     start_time = time.time()
-    regionIds, stateIds, countLines = optionsDetector.predict(zones)
+    regionIds, countLines = optionsDetector.predict(zones)
     regionNames = optionsDetector.getRegionLabels(regionIds)
     classification_time = time.time() - start_time
 
