@@ -61,7 +61,7 @@ class Detector:
 
     def detect_bbox(self, img, img_size=640, stride=32, min_accuracy=0.5):
         """
-        
+        TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
         """
         # normalize
         img_shape = img.shape
