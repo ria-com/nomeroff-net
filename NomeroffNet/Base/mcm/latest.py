@@ -1,9 +1,23 @@
 latest_models = {
   "Detector": {
-    "mrcnn": {
-      "h5": {
-        "gpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_1000_2019_10_07.h5",
-        "cpu": "https://nomeroff.net.ua/models/mrcnn/mask_rcnn_numberplate_1000_2019_10_07.h5"
+    "yolov5x": {
+      "pt": {
+        "gpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-03-29.pt",
+        "cpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-03-29.pt"
+      }
+    }
+  },
+  "NpPointsCraft": {
+    "mtl": {
+      "pth": {
+        "gpu": "https://nomeroff.net.ua/models/scene_text_detection/craft_mlt_25k_2020-02-16.pth",
+        "cpu": "https://nomeroff.net.ua/models/scene_text_detection/craft_mlt_25k_2020-02-16.pth"
+      }
+    },
+    "refiner": {
+      "pth": {
+        "gpu": "https://nomeroff.net.ua/models/scene_text_detection/craft_refiner_CTW1500_2020-02-16.pth",
+        "cpu": "https://nomeroff.net.ua/models/scene_text_detection/craft_refiner_CTW1500_2020-02-16.pth "
       }
     }
   },
@@ -26,8 +40,8 @@ latest_models = {
           "su",
           "kg"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2021_02_24_tensorflow_v2_3.h5",
-        "cpu": "https://nomeroff.net.ua/models/options/tf2.3/numberplate_options_2021_02_24_tensorflow_v2_3.h5"
+        "gpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_03_14.pb",
+        "cpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_03_14.pb"
       }
     }
   },
@@ -86,6 +100,5 @@ latest_models = {
         "gpu": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_31_tensorflow_v2.3.h5"
       }
     }
-
   }
 }

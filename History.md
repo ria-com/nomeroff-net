@@ -1,3 +1,30 @@
+2.1.0 / 2021-03-11
+==================
+  **updates**
+  * Removed is filled or not is filled classification
+  * Rewritten options classification on torch 
+
+2.0.0 / 2021-03-01
+==================
+  **updates**
+  * Replaced numberplate segmentation and RectDetector module on object detection(yolov5) and craft
+  * Added from_MaskRCNN_datafromat_to_YOLO_dataformat.ipynb dataset convertor
+  * Increased the number of examples in the dataset of finding license plate zones 
+  * Added train example
+  * Updated avto-nomer-tool
+  * Added ocr eu onnx-convertor 
+  * Updated demos .py scripts
+  * Updated benchmarks .py scripts
+  * Fixed all setup*.py needed
+  * Fixed all docker files for new requirements needed
+  * Updated .html demo
+  * Added faster model for finding license plates for the CPU
+  
+  **deprecated**
+  * DetectronDetector
+  * RectDetector
+  * MmdetectionDetector
+
 1.0.0 / 2020-08-27
 ==================
   **updates**
@@ -5,10 +32,6 @@
   * Updated all examples for new version
   * Fix small bugs in RectDetector
   * Updated all OCR models
-  
-  **roadmap**
-  * Fix all docker files for new requirements needed
-  * Fix all setup*.py needed
 
 0.4.0 / 2020-08-21
 ==================

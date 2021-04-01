@@ -1,5 +1,5 @@
 FROM tensorflow/tensorflow
-ENV EBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -28,12 +28,11 @@ RUN pip3 install matplotlib
 RUN pip3 install tensorflow>=2.*
 RUN pip3 install opencv_python
 RUN pip3 install "numpy>=1.16.*"
-RUN pip3 install jupyter
 RUN pip3 install imgaug
 RUN pip3 install asyncio
 RUN pip3 install GitPython
 RUN pip3 install pycocotools
 RUN pip3 install tqdm
-RUN pip3 install 'git+https://github.com/facebookresearch/detectron2.git'
+RUN pip3 install seaborn
 
 WORKDIR /var/www/nomeroff-net
