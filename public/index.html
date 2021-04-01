@@ -65,7 +65,7 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 2.0.0</p>
+                <p>Automatic numberplate recognition system. Version 2.1.0</p>
 
 
                 <h1>Introduction</h1>
@@ -147,6 +147,7 @@ pip3 install -r requirements.txt
 <pre class="prettyprint" lang="prettyprint lang-py">
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -194,7 +195,7 @@ all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
 zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
 
 # predict zones attributes
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
+regionIds, countLines = optionsDetector.predict(zones)
 regionNames = optionsDetector.getRegionLabels(regionIds)
 
 # find text with postprocessing by standart
@@ -207,9 +208,9 @@ print(textArr)
 <h1>Hello Nomeroff Net for systems with a small GPU size.</h1>
 <p>Note: This example disables some important Nomeroff Net features. It will recognize numbers that are photographed in a horizontal position.</p>
 <pre class="prettyprint" lang="prettyprint lang-py">
-# Specify device
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
