@@ -65,7 +65,7 @@ textDetector = TextDetector({
     }
 })
 
-rootDir = 'images/*'
+rootDir = '../images/*'
 
 imgs = [mpimg.imread(img_path) for img_path in glob.glob(rootDir)]
 
@@ -102,5 +102,5 @@ for img in imgs:
                       (int(targetBox[2]), int(targetBox[3])),
                       (0,120,255),
                       3)
-    plt.imshow(img)
-    plt.show()
+    cv2.imshow("Display window", img)
+    k = cv2.waitKey(0)

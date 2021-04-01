@@ -35,7 +35,7 @@ textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
 # Detect numberplate
-img_path = 'images/example2.jpeg'
+img_path = '../images/example2.jpeg'
 img = cv2.imread(img_path)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
