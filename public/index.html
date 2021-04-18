@@ -102,6 +102,11 @@ yum install python3-devel
 
 # ensure that you have installed gcc compiler
 yum install gcc
+
+yum install git
+
+# Before "yum install ..." download libjpeg-turbo.repo to /etc/yum.repos.d/
+yum install libjpeg-turbo-official
 </pre>
 
 
@@ -113,21 +118,23 @@ apt-get install gcc
 
 # for opencv install
 apt-get install -y libglib2.0
-apt-get install -y libsm6
-apt-get install -y libfontconfig1 libxrender1
-apt-get install -y libxtst6
+apt-get install -y libgl1-mesa-glx
 
 # for pycocotools install (Check the name of the dev-package for your python3)
 apt-get install python3.6-dev
+
+# other packages
+apt-get install -y git
+apt-get install -y libturbojpeg
 </pre>
 
 
                 <h2>Install python requirments</h2>
 
 <pre class="prettyprint lang-bsh">
-pip3 install torch==1.7.1
-pip3 install PyYAML==5.3
-pip3 install torchvision==0.8.2
+pip3 install "torch>=1.8"
+pip3 install "PyYAML>=5.4"
+pip3 install "torchvision>=0.9"
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
