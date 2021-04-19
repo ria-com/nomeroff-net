@@ -2,6 +2,8 @@ import math
 import numpy as np
 import cv2
 
+pi2 = np.pi / 2.
+
 
 def fline(p0, p1, debug=False):
     """
@@ -84,8 +86,8 @@ def buildPerspective(img, rect, w, h):
     h = int(h)
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
-    M = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, M, (w, h))
+    moment = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(img, moment, (w, h))
 
 
 def getCvZoneRGB(img, rect, gw=0, gh=0, coef=4.6, auto_width_height=True):
