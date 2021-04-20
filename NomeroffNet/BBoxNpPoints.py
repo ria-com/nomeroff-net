@@ -865,6 +865,6 @@ class NpPointsCraft(object):
         for poly in bboxes:
             dimensions.append({'dx': distance(poly[0], poly[1]), 'dy': distance(poly[1], poly[2])})
 
-        np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
+        np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions, 0.6)
 
         return [bboxes[i] for i in np_bboxes_idx]
