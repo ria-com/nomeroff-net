@@ -551,8 +551,27 @@ def makeRectVariants2(propablyPoints, h, w, qualityProfile=[3, 1, 0]):
     stepsPlus = qualityProfile[1]
     stepsMinus = qualityProfile[2]
 
+    if len(qualityProfile) > 3:
+        stepAdaptive = qualityProfile[3] > 0
+    else:
+        stepAdaptive = False
+    step = 1
+
     dxStep = dx / steps
     dyStep = dy / steps
+
+    if stepAdaptive and w/h > 2:
+        # Need normalizing
+        dd = math.sqrt(dx ** 2 + dy ** 2)
+        #print('pointCentreLeft {}  propablyPoints[0] {}'.format(pointCentreLeft, propablyPoints[0]))
+        d_max = distance(pointCentreLeft, propablyPoints[0])
+        steps_all = int(d_max / dd)
+
+        step = int((steps_all*2)/steps)
+        stepsMinus = steps_all+stepsMinus*step
+        stepsPlus = steps_all+stepsPlus*step
+        #print('dd: {}  d_max: {}  steps_all {}  step {}'.format(dd, d_max, steps_all, step))
+
 
     pointsArr = []
     for i in range(-stepsMinus, steps + stepsPlus + 1):
