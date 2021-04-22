@@ -148,13 +148,14 @@ class MultilineConverter:
             if target_zone_value != zone.shape[0]:
                 zone = target_resize(zone, target_zone_value)
             res_zone.append(zone)
+            res_zone.append(np.ones((target_zone_value, int(target_zone_value / 8), 3), dtype="uint8") * self.bg_fill)
 
         # Show result
         temp = np.hstack(res_zone)
         temp = normalize(temp)
 
         res_zone = [
-            np.ones((target_zone_value, int(target_zone_value / 2)), dtype="uint8") * self.bg_fill,
+            np.ones((target_zone_value, int(target_zone_value*2)), dtype="uint8") * self.bg_fill,
             temp,
             np.ones((target_zone_value, int(target_zone_value / 6)), dtype="uint8") * self.bg_fill
         ]
