@@ -37,6 +37,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base'))
 
 from mcm.mcm import download_latest_model
 from mcm.mcm import get_mode_torch
+from BBoxNpMultiline import MultilineConverter
 from tools.image_processing import (distance,
                                     convertCvZonesRGBtoBGR,
                                     reshapePoints,
@@ -733,6 +734,17 @@ class NpPointsCraft(object):
                 targetBox['points'] = targetPointsVariants[idx]
         return targetBoxes, image
 
+    def multiline_to_one_line(self, zones, all_points, all_properties, region_names):
+        for i, (points, properties, regions) in enumerate(
+                zip(all_points, all_properties, region_names)):
+            if properties['proportion'] > 0:
+                rects = self.detectProbablyMultilineZones(properties['parts'][properties['idx']])
+                if len(rects) > 1:
+                    mc = MultilineConverter(properties['parts'][properties['idx']], rects)
+                    converted_part = mc.covert_to_1_line(regions)
+                    zones[i] = np.reshape(converted_part, [*converted_part.shape, 1])
+        return zones
+
     def detect(self, image, targetBoxes, qualityProfile=[1, 0, 0], return_properties=False):
         """
         TODO: describe method
@@ -811,10 +823,6 @@ class NpPointsCraft(object):
             print(np_bboxes_idx)
             print('garbage_bboxes_idx')
             print(garbage_bboxes_idx)
-            print('raw_boxes')
-            print(raw_boxes)
-            print('raw_polys')
-            print(raw_polys)
 
         if len(np_bboxes_idx) == 1:
             targetPoints = bboxes[np_bboxes_idx[0]]

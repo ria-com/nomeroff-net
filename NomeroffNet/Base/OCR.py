@@ -193,7 +193,7 @@ class OCR(TextImageGenerator):
             
             bs = len(labels)
             for i in range(bs):
-                if (pred_texts[i] != texts[i]):
+                if pred_texts[i] != texts[i]:
                     if verbose:
                         print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
                     err_c += 1
