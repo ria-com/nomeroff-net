@@ -7,7 +7,6 @@ def prepare_multiline_rects(rects, zones, lines):
     """
     new_zones = []
     for idx in lines.keys():
-        #print('idx: %s' % idx)
         if len(lines[idx]) > 1:
             lines[idx] = sorted([line for line in lines[idx]], key=lambda x: rects[x['idx']][0][0])
         for line in lines[idx]:

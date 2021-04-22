@@ -164,9 +164,9 @@ def convertCvZonesRGBtoBGR(dsts):
     return bgrDsts
 
 
-def getCvZonesBGR(img, rects, gw = 0, gh = 0, coef=4.6, auto_width_height = True):
+def getCvZonesBGR(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
     """
     TODO: describe function
     """
-    dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height = auto_width_height)
+    dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height=auto_width_height)
     return convertCvZonesRGBtoBGR(dsts)

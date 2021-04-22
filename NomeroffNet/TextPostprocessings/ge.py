@@ -1,6 +1,7 @@
 from .xx_xx import xx_xx
 import string
 
+
 class ge(xx_xx):
     def __init__(self):
         super().__init__()
@@ -9,7 +10,6 @@ class ge(xx_xx):
 
         self.STANDARTS = ["@@@###", "@@###@@"]
         self.STANDART = ""
-
 
     def find(self, text, strong=False):
         for standart in self.STANDARTS:
@@ -26,6 +26,3 @@ class ge(xx_xx):
 
                 return newtext
         return text
-
-
-

@@ -4,6 +4,7 @@ import asyncio
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextPostprocessings
 
+
 async def textPostprocessingOneAsync(text, textPostprocessName):
     _textPostprocessName = textPostprocessName.replace("-", "_")
     if _textPostprocessName in dir(TextPostprocessings):
@@ -13,12 +14,14 @@ async def textPostprocessingOneAsync(text, textPostprocessName):
     postprocessManager = TextPostprocessing()
     return postprocessManager.find(text)
 
+
 async def textPostprocessingAsync(texts, textPostprocessNames):
     loop = asyncio.get_event_loop()
     promises = [loop.create_task(textPostprocessingOneAsync(text, textPostprocessName)) for text, textPostprocessName in zip(texts, textPostprocessNames)]
     if bool(promises):
         await asyncio.wait(promises)
     return [promise.result() for promise in promises]
+
 
 def textPostprocessing(texts, textPostprocessNames):
     resTexts = []

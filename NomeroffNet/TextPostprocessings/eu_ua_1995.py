@@ -1,5 +1,6 @@
 from .xx_xx import xx_xx
 
+
 class eu_ua_1995(xx_xx):
     def __init__(self):
         super().__init__()
@@ -34,5 +35,4 @@ class eu_ua_1995(xx_xx):
         }
 
     def find(self, text, strong=False):
-        text = super().find(text, strong)
         return text

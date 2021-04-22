@@ -1,15 +1,47 @@
-import sys, os
+import sys
+import os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 
+default_prisets = {
+    "eu_ua_2004_2015": {
+        "for_regions": ["eu_ua_2015", "eu_ua_2004"],
+        "model_path": "latest"
+    },
+    "eu_ua_1995": {
+        "for_regions": ["eu_ua_1995"],
+        "model_path": "latest"
+    },
+    "eu": {
+        "for_regions": ["eu", "xx_unknown"],
+        "model_path": "latest"
+    },
+    "ru": {
+        "for_regions": ["ru", "eu-ua-fake-lnr", "eu-ua-fake-dnr"],
+        "model_path": "latest"
+    },
+    "kz": {
+        "for_regions": ["kz"],
+        "model_path": "latest"
+    },
+    "ge": {
+        "for_regions": ["ge"],
+        "model_path": "latest"
+    },
+    "su": {
+        "for_regions": ["su"],
+        "model_path": "latest"
+    }
+}
 
-class TextDetector():
+
+class TextDetector:
     @classmethod
     def get_classname(cls):
         return cls.__name__
 
-    def __init__(self, prisets={}, mode="auto"):
+    def __init__(self, prisets=default_prisets, mode="auto"):
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
@@ -36,9 +68,6 @@ class TextDetector():
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
-
-    def get_avalible_module():
-        pass
 
     def predict(self, zones, labels=None, lines=None, return_acc=False):
         if labels is None:

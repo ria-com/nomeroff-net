@@ -753,9 +753,11 @@ class NpPointsCraft(object):
                 targetBox['points'] = targetPointsVariants[idx]
         return targetBoxes, image
 
-    def multiline_to_one_line(self, zones, all_points, all_properties, region_names):
+    def multiline_to_one_line(self, zones, all_points, all_properties, region_names, convert_all_by_region=None):
         for i, (points, properties, regions) in enumerate(
                 zip(all_points, all_properties, region_names)):
+            if convert_all_by_region:
+                regions = convert_all_by_region
             if properties['proportion'] > 0:
                 rects = self.detectProbablyMultilineZones(properties['parts'][properties['idx']])
                 if len(rects) > 1:

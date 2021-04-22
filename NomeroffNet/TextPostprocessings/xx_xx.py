@@ -1,9 +1,12 @@
 import re
 import numpy as np
 import string
+from .translit import translit_cyrillic_to_latin
 
-class xx_xx():
-    def __init__(self, standart = "", allowed_liters = string.ascii_letters, black_list=["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]):
+
+class xx_xx:
+    def __init__(self, standart="", allowed_liters=string.ascii_letters,
+                 black_list=["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]):
         self.STANDART = self.check_pattern_standart(standart)
         self.ALLOWED_LITERS = allowed_liters
         self.BLACK_LIST = black_list
@@ -11,12 +14,12 @@ class xx_xx():
         self.REPLACEMENT = {
             "#": {
                 "I": "1",
-                "Z": "2",#7
+                "Z": "2",  # 7
                 "O": "0",
                 "Q": "0",
                 "B": "8",
                 "D": "0",
-                "S": "5",#8
+                "S": "5",  # 8
                 "T": "7"
             },
             "@": {
@@ -29,7 +32,8 @@ class xx_xx():
 
     def delete_all_black_list_characters(self, text):
         reg = "[{}]".format("".join(self.BLACK_LIST))
-        return re.sub(re.compile(reg), "", text).replace("\\", "/").replace("\[", "|").replace("\]", "|") # replace hard
+        # replace hard
+        return re.sub(re.compile(reg), "", text).replace("\\", "/").replace("\[", "|").replace("\]", "|")
 
     def check_pattern_standart(self, standart):
         if not re.match(r"^[#@]*$", standart):
@@ -45,9 +49,9 @@ class xx_xx():
         reg = ""
         for item in self.STANDART:
             if item == "@":
-                reg = "{}[{}]".format(reg,"".join(self.ALLOWED_LITERS))
+                reg = "{}[{}]".format(reg, "".join(self.ALLOWED_LITERS))
             elif item == "#":
-                reg = "{}[{}]".format(reg,"".join(self.ALLOWED_NUMBERS))
+                reg = "{}[{}]".format(reg, "".join(self.ALLOWED_NUMBERS))
         reg_all = re.compile(reg)
         return re.search(reg_all, text)
 
@@ -86,6 +90,8 @@ class xx_xx():
         return text
 
     def find(self, text, strong=True):
+        text = translit_cyrillic_to_latin(text)
+
         text = self.check_is_str(text)
         text = self.delete_all_black_list_characters(text)
         text = text.upper()
@@ -95,7 +101,7 @@ class xx_xx():
 
         if len(self.STANDART):
             match = self.findFully(text)
-            if match :
+            if match:
                 return match.group(0)
 
         if not strong:
