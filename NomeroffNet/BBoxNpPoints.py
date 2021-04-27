@@ -531,7 +531,7 @@ def addPointOffsets(points, dx, dy):
     ]
 
 
-def makeRectVariants2(propablyPoints, h, w, qualityProfile=[3, 1, 0]):
+def makeRectVariants2(propablyPoints, h, w, qualityProfile=[3, 1, 0, 0]):
     """
     TODO: describe function
     """
@@ -722,7 +722,7 @@ class NpPointsCraft(object):
             self.refine_net.eval()
             self.is_poly = True
 
-    def detectByImagePath(self, image_path, targetBoxes, qualityProfile=[1, 0, 0]):
+    def detectByImagePath(self, image_path, targetBoxes, qualityProfile=[1, 0, 0, 0]):
         """
         TODO: describe method
         """
@@ -766,7 +766,7 @@ class NpPointsCraft(object):
                     zones[i] = np.reshape(converted_part, [*converted_part.shape, 1])
         return zones
 
-    def detect(self, image, targetBoxes, qualityProfile=[1, 0, 0], return_properties=False):
+    def detect(self, image, targetBoxes, qualityProfile=[1, 0, 0, 0], return_properties=False):
         """
         TODO: describe method
         """
