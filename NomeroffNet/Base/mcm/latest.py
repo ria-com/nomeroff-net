@@ -2,8 +2,8 @@ latest_models = {
   "Detector": {
     "yolov5x": {
       "pt": {
-        "gpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-12.pt",
-        "cpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-12.pt"
+        "gpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt",
+        "cpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt"
       }
     }
   },
