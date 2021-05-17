@@ -32,13 +32,13 @@ class OptionsDetector(ImgGenerator):
     """
     TODO: describe class
     """
-    def __init__(self, options = {}):
+    def __init__(self, options={}):
         """
         TODO: describe __init__
         """
         # input
-        self.HEIGHT         = 64
-        self.WEIGHT         = 295
+        self.HEIGHT = 64
+        self.WEIGHT = 192
         self.COLOR_CHANNELS = 3
 
         # outputs 1
@@ -71,8 +71,8 @@ class OptionsDetector(ImgGenerator):
         self.MODEL = None
 
         # train hyperparameters
-        self.BATCH_SIZE       = 32
-        self.EPOCHS           = 150
+        self.BATCH_SIZE       = 64
+        self.EPOCHS           = 100
 
     @classmethod
     def get_classname(cls):
