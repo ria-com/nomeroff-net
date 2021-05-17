@@ -16,7 +16,7 @@ def fline(p0, p1, debug=False):
     if debug:
         print("Уравнение прямой, проходящей через эти точки:")
     if (x1 - x2 == 0):
-        k = 1000000000
+        k = math.inf
         b = y2
     else:
         k = (y1 - y2) / (x1 - x2)
@@ -26,7 +26,7 @@ def fline(p0, p1, debug=False):
     r = math.atan(k)
     a = math.degrees(r)
     a180 = a
-    if (a < 0 ):
+    if (a < 0):
         a180 = 180 + a
     return [k, b, a, a180, r]
 
@@ -38,7 +38,7 @@ def distance(p0, p1):
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
-def linearLineMatrix(p0,p1):
+def linearLineMatrix(p0, p1):
     """
     Вычесление коефициентов матрицы, описывающей линию по двум точкам
     """

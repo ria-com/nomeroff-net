@@ -204,23 +204,23 @@ def detectIntersection(matrix1,matrix2):
     http://www.math.by/geometry/eqline.html
     https://xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
     """
-    X = np.array([matrix1[:2],matrix2[:2]])
+    X = np.array([matrix1[:2], matrix2[:2]])
     y = np.array([matrix1[2], matrix2[2]])
     return np.linalg.solve(X, y)
 
 
-def detectIntersectionNormDD(matrix1,matrix2,d1,d2):
+def detectIntersectionNormDD(matrix1, matrix2, d1, d2):
     """
     TODO: describe function
     """
-    X = np.array([matrix1[:2],matrix2[:2]])
+    X = np.array([matrix1[:2], matrix2[:2]])
     c0 = matrix1[2]-d1*(matrix1[0]**2 + matrix1[1]**2)**0.5
     c1 = matrix2[2]-d2*(matrix2[0]**2 + matrix2[1]**2)**0.5
     y = np.array([c0, c1])
     return np.linalg.solve(X, y)
 
 
-def getYByMatrix(matrix,x):
+def getYByMatrix(matrix, x):
     """
     TODO: describe function
     """
@@ -249,7 +249,7 @@ def findMinXIdx(targetPoints):
     TODO: describe function
     """
     minXIdx = 3
-    for i in range(0,len(targetPoints)):
+    for i in range(0, len(targetPoints)):
         if (targetPoints[i][0] < targetPoints[minXIdx][0]):
             minXIdx = i
         if (targetPoints[i][0] == targetPoints[minXIdx][0]) and (targetPoints[i][1] < targetPoints[minXIdx][1]):
@@ -269,6 +269,37 @@ def fixClockwise(targetPoints):
     if (stat2[2] < stat1[2]):
         targetPoints = np.array([targetPoints[0], targetPoints[3], targetPoints[2], targetPoints[1]])
     return targetPoints
+
+
+def order_points_old(pts):
+    # initialize a list of coordinates that will be ordered
+    # such that the first entry in the list is the top-left,
+    # the second entry is the top-right, the third is the
+    # bottom-right, and the fourth is the bottom-left
+    rect = np.zeros((4, 2), dtype="float32")
+
+    # the top-left point will have the smallest sum, whereas
+    # the bottom-right point will have the largest sum
+    s = pts.sum(axis=1)
+    lp = np.argmin(s)
+    rp = np.argmax(s)
+    # fix original code by Oleg Cherniy
+    rect[0] = pts[lp]
+    rect[2] = pts[rp]
+    pts_crop = [pts[idx] for idx in filter(lambda i: (i != lp) and (i != rp), range(len(pts)))]
+
+    # now, compute the difference between the points, the
+    # top-right point will have the smallest difference,
+    # whereas the bottom-left will have the largest difference
+    diff = np.diff(pts_crop, axis=1)
+    rect[1] = pts_crop[np.argmin(diff)]
+    rect[3] = pts_crop[np.argmax(diff)]
+
+    # return the ordered coordinates
+    return rect
+
+def fixClockwise2(targetPoints):
+    return order_points_old(np.array(targetPoints))
 
 
 def addOffsetManualPercentage(targetPoints, offsetLeftPercentage, offsetTopPercentage, offsetRightPercentage,
@@ -307,6 +338,7 @@ def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offse
     """
     TODO: describe function
     """
+    #print('addoptRectToBbox')
     distanses = findDistances(targetPoints)
     points = []
 
@@ -325,9 +357,9 @@ def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offse
         offsetTopPercentage = 0
         offsetBottomPercentage = 0
 
-    # print('========================================================================')
-    # print('distanses={}'.format(distanses))
-    # print('k={}'.format(k))
+    #print('========================================================================')
+    #print('distanses={}'.format(distanses))
+    #print('k={}'.format(k))
     offsets = [distansesoffsetLeftPercentage, offsetTopPercentage, offsetRightPercentage, offsetBottomPercentage]
     cnt = len(distanses)
     for i in range(cnt):
@@ -344,12 +376,18 @@ def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offse
         offset2 = offsets[iNext]
         points.append(
             detectIntersectionNormDD(distanses[iPrev]['matrix'], distanses[iNext]['matrix'], offset1, offset2))
+
     # Step 2
     points = reshapePoints(points, 3)
     #print('points BEFORE')
     #print(points)
 
     distanses = findDistances(points)
+
+    # print("distanses[3]['coef'][2]")
+    # print(distanses[3]['coef'][2])
+    if distanses[3]['coef'][2] == 90:
+        return np.array(points)
 
     h = Bbox[0]
     w = Bbox[1]
@@ -360,6 +398,7 @@ def addoptRectToBbox(targetPoints, Bbox, distansesoffsetLeftMaxPercentage, offse
     #matrixBottom = linearLineMatrix([0,h], [w,h])
     #print("matrixLeft {}, distanses[1]['matrix'] {} ".format(matrixLeft, distanses[1]['matrix']))
     pLeftTop    = detectIntersection(matrixLeft, distanses[1]['matrix'])
+    #print("matrixLeft {} distanses[1]['matrix'] {} pLeftTop {}".format(matrixLeft, distanses[1]['matrix'],pLeftTop))
     pLeftBottom = detectIntersection(matrixLeft, distanses[3]['matrix'])
     pRightTop    = detectIntersection(matrixRight, distanses[1]['matrix'])
     pRightBottom = detectIntersection(matrixRight, distanses[3]['matrix'])
@@ -458,13 +497,42 @@ def normalizeRect(rect):
     """
     TODO: describe function
     """
+    rect = fixClockwise2(rect)
+    # print('rect')
+    # print(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
-    rect = fixClockwise(rect)
+    # print('rect reshapePoints')
+    # print(rect)
     distanses = findDistances(rect)
     if distanses[0]['d'] > distanses[1]['d'] or distanses[0]['matrix'][0] == 0:
-        rect = reshapePoints(rect,3)
+        rect = reshapePoints(rect, 3)
     return rect
+
+def normalizeRect2(rect, w, h):
+    """
+    TODO: describe function
+    """
+    k = w/h
+    rect = fixClockwise2(rect)
+    minXIdx = findMinXIdx(rect)
+    rect = reshapePoints(rect, minXIdx)
+    coef_cw = fline(rect[0], rect[1])
+    coef_ccw = fline(rect[0], rect[3])
+    #print('coef_cw: {}  coef_ccw: {}'.format(coef_cw[2], coef_ccw[2]))
+    # pp.pprint(dy)
+    angle_cw = round(coef_cw[2], 2)
+    angle_ccw = round(coef_ccw[2], 2)
+    if angle_ccw >= 0 and angle_ccw <= 45:
+        pass
+    else:
+        rect = reshapePoints(rect, 3)
+    # if coef_ccw == 90:
+    #     rect = reshapePoints(rect, 3)
+    #print('normalizeRect2 rect')
+    #print(rect)
+    return rect
+
 
 
 def prepareImageText(img):
@@ -540,20 +608,29 @@ def makeRectVariants2(propablyPoints, h, w, qualityProfile = [3,1,0]):
     """
     TODO: describe function
     """
+    pointsArr =[]
+
     distanses = findDistances(propablyPoints)
+    #print("distanses: {}".format(distanses))
+
+    if distanses[0]['coef'][2] == 90:
+        pointsArr.append(propablyPoints)
+        return pointsArr
 
     pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
                        propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
+    #print("pointCentreLeft: {}".format(pointCentreLeft))
 
-    pointBottomLeft = [pointCentreLeft[0],getYByMatrix(distanses[3]["matrix"], pointCentreLeft[0])]
+
+    pointBottomLeft = [pointCentreLeft[0], getYByMatrix(distanses[3]["matrix"], pointCentreLeft[0])]
 
     dx = propablyPoints[0][0] - pointBottomLeft[0]
     dy = propablyPoints[0][1] - pointBottomLeft[1]
 
-    # kwh = w/h
-    # print("K w/h: {}".format(kwh))
-    if dx == 0:
-        return [ propablyPoints ]
+    kwh = w/h
+    #print("K w/h: {} dx: {}, dy: {}".format(kwh, dx, dy))
+    # if dx == 0:
+    #     return [ propablyPoints ]
 
     # k = distanses[1]['d']/distanses[0]['d']
     # print("K np w/h: {}".format(k))
@@ -567,9 +644,8 @@ def makeRectVariants2(propablyPoints, h, w, qualityProfile = [3,1,0]):
     dxStep = dx/steps
     dyStep = dy/steps
 
-    pointsArr =[]
-    for i in range(-stepsMinus,steps+stepsPlus+1):
-        pointsArr.append(addPointOffsets(propablyPoints,i * dxStep,i * dyStep))
+    for i in range(-stepsMinus, steps+stepsPlus+1):
+        pointsArr.append(addPointOffsets(propablyPoints, i * dxStep, i * dyStep))
     return pointsArr
 
 
@@ -733,8 +809,8 @@ class NpPointsCraft(object):
                 if len(targetPointsVariants) > 1:
                     imgParts = [getCvZoneRGB(image, reshapePoints(rect,1)) for rect in targetPointsVariants]
                     idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
-                    print('--------------------------------------------------')
-                    print('idx={}'.format(idx))
+                    #print('--------------------------------------------------')
+                    #print('idx={}'.format(idx))
                     #targetBox['points'] = addoptRectToBbox2(targetPointsVariants[idx], image.shape,x,y)
                     targetBox['points'] = targetPointsVariants[idx]
                     targetBox['imgParts'] = imgParts
@@ -754,10 +830,14 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3]-targetBox[1]))
             
             image_part = image[y:y + h, x:x + w]
-            propablyPoints = addCoordinatesOffset(self.detectInBbox(image_part),x,y)
+            propablyPoints = addCoordinatesOffset(self.detectInBbox(image_part), x, y)
             points = []
             if (len(propablyPoints)):
-                targetPointsVariants = makeRectVariants2(propablyPoints,h,w, qualityProfile)
+                # print('propablyPoints')
+                # print(propablyPoints)
+                targetPointsVariants = makeRectVariants2(propablyPoints, h, w, qualityProfile)
+                # print('targetPointsVariants')
+                # print(targetPointsVariants)
                 if len(targetPointsVariants) > 1:
                     imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
                     idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
@@ -820,7 +900,7 @@ class NpPointsCraft(object):
 
         imgParts = []
         if len(np_bboxes_idx) > 0:
-            targetPoints = normalizeRect(targetPoints)
+            targetPoints = normalizeRect2(targetPoints, image.shape[0], image.shape[1])
             if (debug):
                 print('###################################')
                 print(targetPoints)
@@ -829,5 +909,7 @@ class NpPointsCraft(object):
                 print('image.shape')
                 print(image.shape)
             #targetPoints = fixSideFacets(targetPoints, image.shape)
+            #print('targetPoints before addoptRectToBbox')
+            #print(targetPoints)
             targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
         return targetPoints
