@@ -1,9 +1,10 @@
 import math
 import numpy as np
 import cv2
+from typing import List
 
 
-def fline(p0, p1, debug=False):
+def fline(p0: List, p1: List, debug: bool = False) -> List:
     """
     Вычесление угла наклона прямой по 2 точкам
     """
@@ -31,14 +32,14 @@ def fline(p0, p1, debug=False):
     return [k, b, a, a180, r]
 
 
-def distance(p0, p1):
+def distance(p0: List, p1: List) -> float:
     """
     distance between two points p0 and p1
     """
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
-def linearLineMatrix(p0, p1, verbode=False):
+def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
     """
     Вычесление коефициентов матрицы, описывающей линию по двум точкам
     """
@@ -58,7 +59,7 @@ def linearLineMatrix(p0, p1, verbode=False):
     return [A, B, C]
 
 
-def findDistances(points):
+def findDistances(points: List) -> List:
     """
     TODO: describe function
     """
@@ -77,7 +78,7 @@ def findDistances(points):
     return distanses
 
 
-def buildPerspective(img, rect, w, h):
+def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     """
     TODO: describe function
     """
@@ -89,7 +90,8 @@ def buildPerspective(img, rect, w, h):
     return cv2.warpPerspective(img, M, (w, h))
 
 
-def getCvZoneRGB(img, rect, gw=0, gh=0, coef=4.6, auto_width_height=True):
+def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,
+                 coef: float = 4.6, auto_width_height: bool = True) -> List:
     """
     TODO: describe function
     """
@@ -102,36 +104,36 @@ def getCvZoneRGB(img, rect, gw=0, gh=0, coef=4.6, auto_width_height=True):
             w = (distanses[1]['d'] + distanses[3]['d']) / 2
     else:
         w, h = gw, gh
-    # print('h: {}, w: {}'.format(h, w))
     return buildPerspective(img, rect, w, h)
 
 
-def getMeanDistance(rect, startIdx, verbose=0):
+def getMeanDistance(rect: List, start_idx: int, verbose: bool = False) -> np.ndarray:
     """
     TODO: describe function
     """
-    endIdx = startIdx+1
-    start2Idx = startIdx+2
-    end2Idx = endIdx+2
-    if end2Idx == 4:
-        end2Idx = 0
+    end_idx = start_idx+1
+    start2_idx = start_idx+2
+    end2_idx = end_idx+2
+    if end2_idx == 4:
+        end2_idx = 0
     if verbose:
-        print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(startIdx, endIdx, start2Idx, end2Idx))
-    return np.mean([distance(rect[startIdx], rect[endIdx]), distance(rect[start2Idx], rect[end2Idx])])
+        print('startIdx: {}, endIdx: {}, start2Idx: {}, end2Idx: {}'.format(start_idx, end_idx, start2_idx, end2_idx))
+    return np.mean([distance(rect[start_idx], rect[end_idx]), distance(rect[start2_idx], rect[end2_idx])])
 
 
-def reshapePoints(targetPoints, startIdx):
+def reshapePoints(target_points: List, start_idx: int) -> List:
     """
     TODO: describe function
     """
-    if startIdx > 0:
-        part1 = targetPoints[:startIdx]
-        part2 = targetPoints[startIdx:]
-        targetPoints = np.concatenate((part2, part1))
-    return targetPoints
+    if start_idx > 0:
+        part1 = target_points[:start_idx]
+        part2 = target_points[start_idx:]
+        target_points = np.concatenate((part2, part1))
+    return target_points
 
 
-def getCvZonesRGB(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
+def getCvZonesRGB(img: np.ndarray, rects: list, gw: float = 0, gh: float = 0,
+                  coef: float = 4.6, auto_width_height: bool = True) -> List:
     """
     TODO: describe function
     """
@@ -152,18 +154,19 @@ def getCvZonesRGB(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
     return dsts
 
 
-def convertCvZonesRGBtoBGR(dsts):
+def convertCvZonesRGBtoBGR(dsts: List) -> List:
     """
     TODO: describe function
     """
-    bgrDsts = []
+    bgr_dsts = []
     for dst in dsts:
         dst = cv2.cvtColor(dst, cv2.COLOR_RGB2BGR)
-        bgrDsts.append(dst)
-    return bgrDsts
+        bgr_dsts.append(dst)
+    return bgr_dsts
 
 
-def getCvZonesBGR(img, rects, gw=0, gh=0, coef=4.6, auto_width_height=True):
+def getCvZonesBGR(img: np.ndarray, rects: list, gw: float = 0, gh: float = 0,
+                  coef: float = 4.6, auto_width_height: bool = True) -> List:
     """
     TODO: describe function
     """

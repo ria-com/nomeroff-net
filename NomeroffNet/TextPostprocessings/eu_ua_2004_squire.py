@@ -2,7 +2,7 @@ from .xx_xx import xx_xx
 
 
 class eu_ua_2004_squire(xx_xx):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.STANDART = "@@@@####"
         self.ALLOWED_LITERS = ["A", "B", "E", "I", "K", "M", "H", "O", "P", "C", "T", "X"]
@@ -34,7 +34,7 @@ class eu_ua_2004_squire(xx_xx):
             }
         }
 
-    def find(self, text, strong=False):
+    def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
         if len(text) == 6:
             text = text[:2] + text[4:8] + text[2:4]

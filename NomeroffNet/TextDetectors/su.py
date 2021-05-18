@@ -2,7 +2,7 @@ from Base import OCR
 
 
 class su(OCR):
-    def __init__(self):
+    def __init__(self) -> None:
         OCR.__init__(self)
         self.letters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                         'І', 'А', 'Б', 'В', 'Г', 'Д', 'Е', 'Ж', 'З', 'И',

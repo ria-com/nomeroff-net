@@ -1,6 +1,7 @@
+from typing import List
 
 
-def aug_seed(num=None):
+def aug_seed(num: int = None) -> None:
     import imgaug as ia
 
     if num is None:
@@ -9,10 +10,12 @@ def aug_seed(num=None):
         ia.seed(num)
 
 
-def aug(imgs):
+def aug(imgs: List) -> List:
     import imgaug.augmenters as iaa
 
-    sometimes = lambda aug: iaa.Sometimes(0.5, aug)
+    def sometimes(aug_method: object) -> iaa.Sometimes:
+        return iaa.Sometimes(0.5, aug_method)
+
     seq = iaa.Sequential(
         [
              sometimes(iaa.Crop(percent=(0, 0.01))),

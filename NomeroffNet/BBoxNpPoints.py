@@ -269,7 +269,7 @@ def fixClockwise(targetPoints: List) -> List:
     return targetPoints
 
 
-def order_points_old(pts):
+def order_points_old(pts: np.ndarray) -> List:
     # initialize a list of coordinates that will be ordered
     # such that the first entry in the list is the top-left,
     # the second entry is the top-right, the third is the
@@ -296,8 +296,8 @@ def order_points_old(pts):
     # return the ordered coordinates
     return rect
 
-def fixClockwise2(targetPoints):
-    return order_points_old(np.array(targetPoints))
+def fixClockwise2(target_points: list) -> List:
+    return order_points_old(np.array(target_points))
 
 
 def addOffsetManualPercentage(targetPoints: np.ndarray, offsetLeftPercentage: float, offsetTopPercentage: float,
@@ -481,22 +481,18 @@ def normalizeRect(rect: List) -> List:
         rect = reshapePoints(rect, 3)
     return rect
 
-def normalizeRect2(rect):
+def normalizeRect2(rect: List) -> List:
     """
     TODO: describe function
     """
     rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
-    coef_cw = fline(rect[0], rect[1])
     coef_ccw = fline(rect[0], rect[3])
     angle_ccw = round(coef_ccw[2], 2)
-    if angle_ccw >= 0 and angle_ccw <= 45:
-        pass
-    else:
+    if angle_ccw < 0 or angle_ccw < 45:
         rect = reshapePoints(rect, 3)
     return rect
-
 
 
 def prepareImageText(img: np.ndarray) -> np.ndarray:
@@ -504,17 +500,17 @@ def prepareImageText(img: np.ndarray) -> np.ndarray:
     сперва переведём изображение из RGB в чёрно серый
     значения пикселей будут от 0 до 255
     """
-    grayImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    img_min = np.amin(grayImage)
-    grayImage -= img_min
+    img_min = np.amin(gray_image)
+    gray_image -= img_min
     img_max = np.amax(img)
     k = 255/img_max
-    grayImage = grayImage.astype(np.float64)
-    grayImage *= k
-    grayImage = grayImage.astype(np.uint8)
+    gray_image = gray_image.astype(np.float64)
+    gray_image *= k
+    gray_image = gray_image.astype(np.uint8)
 
-    (thresh, blackAndWhiteImage) = cv2.threshold(grayImage, 127, 255, cv2.THRESH_BINARY)
+    (thresh, blackAndWhiteImage) = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
     return blackAndWhiteImage
 
 
