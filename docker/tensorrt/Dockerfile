@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:20.12-py3
+FROM nvcr.io/nvidia/tensorrt:21.03-py3
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -18,9 +18,12 @@ RUN apt-get install -y libxtst6
 RUN apt-get install -y git
 RUN apt-get install -y libgl1-mesa-glx
 
-RUN pip3 install "torch>=1.7"
-RUN pip3 install "torchvision>=0.8"
-RUN pip3 install PyYAML==5.3
+# turbojpeg
+RUN apt-get install -y libturbojpeg
+
+RUN pip3 install "torch>=1.8"
+RUN pip3 install "torchvision>=0.9"
+RUN pip3 install "PyYAML>=5.3"
 RUN pip3 install scikit_image
 RUN pip3 install Cython
 RUN pip3 install pycocotools
@@ -32,7 +35,8 @@ RUN pip3 install asyncio
 RUN pip3 install GitPython
 RUN pip3 install pycocotools
 RUN pip3 install tqdm
-RUN pip3 install 'https://nomeroff.net.ua/tf/packages/tensorflow-2.4.0rc0-cp36-cp36m-linux_x86_64.whl'
+RUN pip3 install 'https://nomeroff.net.ua/tf/packages/tensorflow-2.5.0rc1-cp38-cp38-linux_x86_64.whl'
 RUN pip3 install seaborn
+RUN pip3 install -U "git+git://github.com/lilohuang/PyTurboJPEG.git"
 
 WORKDIR /var/www/nomeroff-net

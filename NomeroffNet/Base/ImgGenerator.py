@@ -78,10 +78,10 @@ class ImgGenerator:
         return self.paths[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
 
     def generator(self, with_aug=0):
-        for j in np.arange(self.batch_count):
+        for _ in np.arange(self.batch_count):
             Ys = [[], []]
             Xs = []
-            for i in np.arange(self.batch_size):
+            for _ in np.arange(self.batch_size):
                 x, y = self.next_sample()
                 img = cv2.imread(x)
                 x = self.normalize(img, with_aug=with_aug)
@@ -93,7 +93,7 @@ class ImgGenerator:
             yield np.moveaxis(np.array(Xs), 3, 1), Ys
 
     def pathGenerator(self):
-        for j in np.arange(self.batch_count):
+        for _ in np.arange(self.batch_count):
             Ys = [[], []]
             Xs = []
             Paths = []

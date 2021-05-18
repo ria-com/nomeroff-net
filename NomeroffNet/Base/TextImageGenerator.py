@@ -8,6 +8,7 @@ import random
 import itertools
 from .aug import aug, aug_seed
 
+
 class TextImageGenerator:
     def __init__(self,
                  dirpath,
@@ -20,7 +21,6 @@ class TextImageGenerator:
 
         self.CNAME = cname
         self.dirpath = dirpath
-        #print(self.CNAME)
         self.img_h = img_h
         self.img_w = img_w
         self.batch_size = batch_size
@@ -117,17 +117,13 @@ class TextImageGenerator:
         self.n = len(self.imgs)
         self.indexes = list(range(self.n))
 
-
     def get_output_size(self):
         return len(self.letters) + 1
 
     def normalize(self, img):
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+        if img.shape[-1] == 3:
+            img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         img = cv2.resize(img, (self.IMG_W, self.IMG_H))
-
-        # CLAHE
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-        img = clahe.apply(img)
 
         img = img.astype(np.float32)
         img -= np.amin(img)
@@ -139,16 +135,7 @@ class TextImageGenerator:
         return x
     
     def normalize_pb(self, img):
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        img = cv2.resize(img, (self.IMG_W, self.IMG_H))
-
-        img -= np.amin(img)
-        img /= np.amax(img)
-        img = [[[h] for h in w] for w in img.T]
-
-        x = np.zeros((self.IMG_W, self.IMG_H, 1))
-        x[:, :, :] = img
-        return x
+        return self.normalize(img)
 
     def next_sample(self, is_random=1):
         self.cur_index += 1
@@ -230,4 +217,3 @@ class TextImageGenerator:
             inputs = X_data
             outputs = Y_data
             yield (inputs, outputs)
-   

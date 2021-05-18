@@ -65,7 +65,7 @@
                 <div class="logo">
                     <a href="https://nomeroff.net.ua"><img width="400" src="images/logo/nomeroff_net.svg" onerror="this.onerror=null; this.src='http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.png'" alt="Nomeroff Net. Automatic numberplate recognition system Logo"></a>
                 </div>
-                <p>Automatic numberplate recognition system. Version 2.0.0</p>
+                <p>Automatic numberplate recognition system. Version 2.1.0</p>
 
 
                 <h1>Introduction</h1>
@@ -102,6 +102,11 @@ yum install python3-devel
 
 # ensure that you have installed gcc compiler
 yum install gcc
+
+yum install git
+
+# Before "yum install ..." download https://libjpeg-turbo.org/pmwiki/uploads/Downloads/libjpeg-turbo.repo to /etc/yum.repos.d/
+yum install libjpeg-turbo-official
 </pre>
 
 
@@ -113,21 +118,23 @@ apt-get install gcc
 
 # for opencv install
 apt-get install -y libglib2.0
-apt-get install -y libsm6
-apt-get install -y libfontconfig1 libxrender1
-apt-get install -y libxtst6
+apt-get install -y libgl1-mesa-glx
 
 # for pycocotools install (Check the name of the dev-package for your python3)
 apt-get install python3.6-dev
+
+# other packages
+apt-get install -y git
+apt-get install -y libturbojpeg
 </pre>
 
 
                 <h2>Install python requirments</h2>
 
 <pre class="prettyprint lang-bsh">
-pip3 install torch==1.7.1
-pip3 install PyYAML==5.3
-pip3 install torchvision==0.8.2
+pip3 install "torch>=1.8"
+pip3 install "PyYAML>=5.4"
+pip3 install "torchvision>=0.9"
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
@@ -147,6 +154,7 @@ pip3 install -r requirements.txt
 <pre class="prettyprint" lang="prettyprint lang-py">
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -194,7 +202,7 @@ all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
 zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
 
 # predict zones attributes
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
+regionIds, countLines = optionsDetector.predict(zones)
 regionNames = optionsDetector.getRegionLabels(regionIds)
 
 # find text with postprocessing by standart
@@ -207,9 +215,9 @@ print(textArr)
 <h1>Hello Nomeroff Net for systems with a small GPU size.</h1>
 <p>Note: This example disables some important Nomeroff Net features. It will recognize numbers that are photographed in a horizontal position.</p>
 <pre class="prettyprint" lang="prettyprint lang-py">
-# Specify device
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 

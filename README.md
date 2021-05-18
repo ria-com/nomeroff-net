@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 2.0.0
+Nomeroff Net. Automatic numberplate recognition system. Version 2.1.0
 
 ## Introduction
 Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation 
@@ -8,7 +8,7 @@ neural network and cusomized OCR-module powered by [GRU architecture](https://gi
 
 The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 2.0 2.5x faster Nomeroff Net [1.0.x](https://github.com/ria-com/nomeroff-net/tree/v1.0)! This improvement was achieved by replacing segmentation model [CenterMask2](https://github.com/youngwanLEE/centermask2) with a [Object Detection YoloV5](https://github.com/ultralytics/yolov5) and [Scene Text Detection CRAFT](https://github.com/clovaai/CRAFT-pytorch) models.
+Version 2.1 2.5x faster Nomeroff Net [1.0.x](https://github.com/ria-com/nomeroff-net/tree/v1.0)! This improvement was achieved by replacing segmentation model [CenterMask2](https://github.com/youngwanLEE/centermask2) with a [Object Detection YoloV5](https://github.com/ultralytics/yolov5) and [Scene Text Detection CRAFT](https://github.com/clovaai/CRAFT-pytorch) models.
 ## Installation
 
 ### Installation from Source (Linux)
@@ -31,6 +31,11 @@ yum install python3-devel
 
 # ensure that you have installed gcc compiler
 yum install gcc
+
+yum install git
+
+# Before "yum install ..." download https://libjpeg-turbo.org/pmwiki/uploads/Downloads/libjpeg-turbo.repo to /etc/yum.repos.d/
+yum install libjpeg-turbo-official
 ```
 
 ##### For Ubuntu and other Debian-like OS:
@@ -40,19 +45,21 @@ apt-get install gcc
 
 # for opencv install
 apt-get install -y libglib2.0
-apt-get install -y libsm6
-apt-get install -y libfontconfig1 libxrender1
-apt-get install -y libxtst6
+apt-get install -y libgl1-mesa-glx
 
 # for pycocotools install (Check the name of the dev-package for your python3)
 apt-get install python3.6-dev
+
+# other packages
+apt-get install -y git
+apt-get install -y libturbojpeg
 ```
 
 ##### install python requirments
 ```bash
-pip3 install torch==1.7.1
-pip3 install PyYAML==5.3
-pip3 install torchvision==0.8.2
+pip3 install "torch>=1.8"
+pip3 install "PyYAML>=5.4"
+pip3 install "torchvision>=0.9"
 pip3 install Cython
 pip3 install numpy
 pip3 install -r requirements.txt
@@ -73,6 +80,7 @@ Then, run `visualcppbuildtools_full.exe` and select default options:
 # Specify device
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -120,7 +128,7 @@ all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
 zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
 
 # predict zones attributes 
-regionIds, stateIds, countLines = optionsDetector.predict(zones)
+regionIds, countLines = optionsDetector.predict(zones)
 regionNames = optionsDetector.getRegionLabels(regionIds)
 
 # find text with postprocessing by standart
@@ -136,6 +144,7 @@ Note: This example disables some important Nomeroff Net features. It will recogn
 # Specify device
 import os
 
+# Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
@@ -187,7 +196,7 @@ for targetBox in targetBoxes:
     regionNames.append('eu')
 
 # predict zones attributes 
-#regionIds, stateIds, countLines = optionsDetector.predict(zones)
+#regionIds, countLines = optionsDetector.predict(zones)
 #regionNames = optionsDetector.getRegionLabels(regionIds)
     
 # find text with postprocessing by standart

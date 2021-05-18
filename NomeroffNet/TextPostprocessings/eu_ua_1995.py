@@ -1,5 +1,6 @@
 from .xx_xx import xx_xx
 
+
 class eu_ua_1995(xx_xx):
     def __init__(self):
         super().__init__()
@@ -11,8 +12,8 @@ class eu_ua_1995(xx_xx):
                 "Q": "0",
                 "D": "0",
                 "I": "1",
-                "Z": "2",#7
-                "S": "5",#8
+                "Z": "2",  # 7
+                "S": "5",  # 8
                 "T": "7",
                 "B": "8"
             },

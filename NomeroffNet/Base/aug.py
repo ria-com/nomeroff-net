@@ -1,16 +1,15 @@
-import numpy as np
 
-def aug_seed(num = None):
+
+def aug_seed(num=None):
     import imgaug as ia
-    import imgaug.augmenters as iaa
 
     if num is None:
         ia.seed()
     else:
         ia.seed(num)
 
+
 def aug(imgs):
-    import imgaug as ia
     import imgaug.augmenters as iaa
 
     sometimes = lambda aug: iaa.Sometimes(0.5, aug)
@@ -22,34 +21,32 @@ def aug(imgs):
                  translate_percent={"x": (-0.01, 0.01), "y": (-0.01, 0.01)},
                  rotate=(-3, 3),
                  shear=(-3, 3),
-                 #cval=(0, 255)
              ),
-              iaa.SomeOf((0, 5),
-              [
-                      sometimes(iaa.OneOf([
-                              iaa.OneOf([
-                                  iaa.GaussianBlur((1, 1.2)),
-                                  iaa.AverageBlur(k=(1, 3)),
-                                  iaa.MedianBlur(k=(1, 3))
-                              ]),
-                              iaa.ContrastNormalization((0.5, 1.5), per_channel=0.5),
-                              iaa.Grayscale(alpha=(0.0, 1.0)),
-                              iaa.OneOf([
-                                  iaa.EdgeDetect(alpha=(0, 0.7)),
-                                  iaa.DirectedEdgeDetect(
-                                      alpha=(0, 0.7), direction=(0.0, 1.0)
-                                  ),
-                              ]),
-                      ])),
-                      sometimes(iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5))),
-                      sometimes(iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.005*255), per_channel=0.001)),
-                      sometimes(iaa.Dropout((0.001, 0.01), per_channel=0.5)),
-                      sometimes(iaa.Add((-10, 10), per_channel=0.5)),
-                      sometimes(iaa.Multiply((0.5, 1.5), per_channel=0.5)),
-                      sometimes(iaa.ElasticTransformation(alpha=(0.1, 0.2), sigma=0.05)),
-                      sometimes(iaa.PiecewiseAffine(scale=(0.001, 0.005)))
-                  ],
-                  random_order=True
+             iaa.SomeOf((0, 5), [
+                    sometimes(iaa.OneOf([
+                          iaa.OneOf([
+                              iaa.GaussianBlur((1, 1.2)),
+                              iaa.AverageBlur(k=(1, 3)),
+                              iaa.MedianBlur(k=(1, 3))
+                          ]),
+                          iaa.ContrastNormalization((0.5, 1.5), per_channel=0.5),
+                          iaa.Grayscale(alpha=(0.0, 1.0)),
+                          iaa.OneOf([
+                              iaa.EdgeDetect(alpha=(0, 0.7)),
+                              iaa.DirectedEdgeDetect(
+                                  alpha=(0, 0.7), direction=(0.0, 1.0)
+                              ),
+                          ]),
+                    ])),
+                    sometimes(iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5))),
+                    sometimes(iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.005*255), per_channel=0.001)),
+                    sometimes(iaa.Dropout((0.001, 0.01), per_channel=0.5)),
+                    sometimes(iaa.Add((-10, 10), per_channel=0.5)),
+                    sometimes(iaa.Multiply((0.5, 1.5), per_channel=0.5)),
+                    sometimes(iaa.ElasticTransformation(alpha=(0.1, 0.2), sigma=0.05)),
+                    sometimes(iaa.PiecewiseAffine(scale=(0.001, 0.005)))
+                ],
+                random_order=True
               )
          ],
         random_order=True

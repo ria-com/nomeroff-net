@@ -37,7 +37,7 @@ setup(name='nomeroff-net',
           'matplotlib',
           'torch',
           'torchvision',
-          'PyYAML==5.3',
+          'PyYAML==5.4',
       ],
       include_package_data=True,
       zip_safe=False)

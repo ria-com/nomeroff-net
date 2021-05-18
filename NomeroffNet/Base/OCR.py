@@ -1,4 +1,4 @@
-# import labaris
+# import modules
 import tensorflow as tf
 
 import os
@@ -54,7 +54,7 @@ class OCR(TextImageGenerator):
         
         # callbacks hyperparameters
         self.REDUCE_LRO_N_PLATEAU_PATIENCE = 3
-        self.REDUCE_LRO_N_PLATEAU_FACTOR   = 0.1
+        self.REDUCE_LRO_N_PLATEAU_FACTOR = 0.1
 
     def get_counter(self, dirpath, verbose=1):
         dirname = os.path.basename(dirpath)
@@ -72,9 +72,9 @@ class OCR(TextImageGenerator):
         return Counter(letters), max_plate_length
 
     def get_alphabet(self, train_path, test_path, val_path, verbose=1):
-        c_val, max_plate_length_val     = self.get_counter(val_path)
+        c_val, max_plate_length_val = self.get_counter(val_path)
         c_train, max_plate_length_train = self.get_counter(train_path)
-        c_test, max_plate_length_test   = self.get_counter(test_path)
+        c_test, max_plate_length_test = self.get_counter(test_path)
 
         letters_train = set(c_train.keys())
         letters_val = set(c_val.keys())
@@ -103,7 +103,8 @@ class OCR(TextImageGenerator):
         return self.letters, self.max_text_len
 
     def explainTextGenerator(self, train_dir, letters, max_plate_length, verbose=1):
-        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE, letters, max_plate_length, cname=type(self).__name__)
+        tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE,
+                                   letters, max_plate_length, cname=type(self).__name__)
         tiger.build_data()
 
         for inp, out in tiger.next_batch():
@@ -118,13 +119,15 @@ class OCR(TextImageGenerator):
                 import matplotlib.pyplot as plt
                 plt.imshow(img.T, cmap='gray')
                 plt.show()
-            except Exception as e:
+            except Exception:
                 print("[WARN]", "Can not display image")
             print('2) the_labels (plate number): %s is encoded as %s' %
-                  (tiger.labels_to_text(inp['the_labels_{}'.format(type(self).__name__)][0]), list(map(int, inp['the_labels_{}'.format(type(self).__name__)][0]))))
+                  (tiger.labels_to_text(inp['the_labels_{}'.format(type(self).__name__)][0]),
+                   list(map(int, inp['the_labels_{}'.format(type(self).__name__)][0]))))
             print('3) input_length (width of image that is fed to the loss function): %d == %d / 4 - 2' %
                   (inp['input_length_{}'.format(type(self).__name__)][0], tiger.img_w))
-            print('4) label_length (length of plate number): %d' % inp['label_length_{}'.format(type(self).__name__)][0])
+            print('4) label_length (length of plate number): %d' % inp['label_length_{}'
+                  .format(type(self).__name__)][0])
             break
 
     def ctc_lambda_func(self, args):
@@ -146,10 +149,15 @@ class OCR(TextImageGenerator):
             start_time = time.time()
         net_inp = self.MODEL.get_layer(name='{}'.format(self.MODEL.layers[0].name)).input
         net_out = self.MODEL.get_layer(name='{}'.format(self.MODEL.layers[-1].name)).output
+        if verbose:
+            print("[INFO] net_inp", net_inp)
+            print("[INFO] net_out", net_out)
 
         err_c = 0
         succ_c = 0
-        for inp_value, _ in self.tiger_test.next_batch(random_state, input_name=self.MODEL.layers[0].name, output_name=self.MODEL.layers[-1].name):
+        for inp_value, _ in self.tiger_test.next_batch(random_state,
+                                                       input_name=self.MODEL.layers[0].name,
+                                                       output_name=self.MODEL.layers[-1].name):
             bs = inp_value['the_input_{}'.format(type(self).__name__)].shape[0]
             X_data = inp_value['the_input_{}'.format(type(self).__name__)]
             
@@ -163,7 +171,7 @@ class OCR(TextImageGenerator):
                 texts.append(text)
 
             for i in range(bs):
-                if (pred_texts[i] != texts[i]):
+                if pred_texts[i] != texts[i]:
                     if verbose:
                         print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
                     err_c += 1
@@ -193,7 +201,7 @@ class OCR(TextImageGenerator):
             
             bs = len(labels)
             for i in range(bs):
-                if (pred_texts[i] != texts[i]):
+                if pred_texts[i] != texts[i]:
                     if verbose:
                         print('\nPredicted: \t\t %s\nTrue: \t\t\t %s' % (pred_texts[i], texts[i]))
                     err_c += 1
@@ -229,17 +237,15 @@ class OCR(TextImageGenerator):
         if bool(Xs):
             tensorX = tf.convert_to_tensor(np.array(Xs).astype(np.float32))
             net_out_value = self.PB_MODEL(tensorX)[self.OUTPUT_NODE]
-            #print(net_out_value)
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
             return pred_texts, net_out_value
         return pred_texts
 
-    def load(self, path_to_model, mode="cpu", verbose = 0):
-        if path_to_model =="latest":
+    def load(self, path_to_model, mode="cpu", verbose=0):
+        if path_to_model == "latest":
             model_info = download_latest_model("TextDetector", self.get_classname(), mode=mode)
             path_to_model = model_info["path"]
-
 
         self.MODEL = load_model(path_to_model, compile=False)
 
@@ -253,14 +259,14 @@ class OCR(TextImageGenerator):
 
         return self.MODEL
     
-    def load_pb(self, model_dir, mode="cpu", verbose = 0):
+    def load_pb(self, model_dir, mode="cpu", verbose=0):
         pb_model = tf.saved_model.load(model_dir)
         self.PB_MODEL = pb_model.signatures["serving_default"]
 
-    def prepare(self, path_to_dataset, use_aug=False, verbose=1, aug_debug=False, aug_suffix = 'aug', aug_seed_num = 42):
+    def prepare(self, path_to_dataset, use_aug=False, verbose=1, aug_debug=False, aug_suffix='aug', aug_seed_num=42):
         train_path = os.path.join(path_to_dataset, "train")
-        test_path  = os.path.join(path_to_dataset, "test")
-        val_path   = os.path.join(path_to_dataset, "val")
+        test_path = os.path.join(path_to_dataset, "test")
+        val_path = os.path.join(path_to_dataset, "val")
 
         if verbose:
             print("GET ALPHABET")
@@ -272,12 +278,35 @@ class OCR(TextImageGenerator):
 
         if verbose:
             print("START BUILD DATA")
-        self.tiger_train = TextImageGenerator(train_path, self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
-        self.tiger_train.build_data(use_aug=use_aug, aug_debug=aug_debug, aug_suffix = aug_suffix, aug_seed_num = aug_seed_num)
-        self.tiger_val = TextImageGenerator(val_path,  self.IMG_W, self.IMG_H, self.BATCH_SIZE, self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
+        self.tiger_train = TextImageGenerator(train_path,
+                                              self.IMG_W,
+                                              self.IMG_H,
+                                              self.BATCH_SIZE,
+                                              self.DOWNSAMPLE_FACROT,
+                                              self.letters,
+                                              max_plate_length,
+                                              cname=type(self).__name__)
+        self.tiger_train.build_data(use_aug=use_aug,
+                                    aug_debug=aug_debug,
+                                    aug_suffix=aug_suffix,
+                                    aug_seed_num=aug_seed_num)
+        self.tiger_val = TextImageGenerator(val_path,
+                                            self.IMG_W,
+                                            self.IMG_H,
+                                            self.BATCH_SIZE,
+                                            self.DOWNSAMPLE_FACROT,
+                                            self.letters, max_plate_length,
+                                            cname=type(self).__name__)
         self.tiger_val.build_data()
 
-        self.tiger_test = TextImageGenerator(test_path, self.IMG_W, self.IMG_H, len(os.listdir(os.path.join(test_path, "img"))), self.DOWNSAMPLE_FACROT, self.letters, max_plate_length, cname=type(self).__name__)
+        self.tiger_test = TextImageGenerator(test_path,
+                                             self.IMG_W,
+                                             self.IMG_H,
+                                             len(os.listdir(os.path.join(test_path, "img"))),
+                                             self.DOWNSAMPLE_FACROT,
+                                             self.letters,
+                                             max_plate_length,
+                                             cname=type(self).__name__)
         self.tiger_test.build_data()
         if verbose:
             print("DATA PREPARED")
@@ -294,70 +323,35 @@ class OCR(TextImageGenerator):
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
                        activation=self.ACTIVATION, kernel_initializer='he_normal',
                        name='conv1')(input_data)
-        inner = MaxPooling2D(pool_size=(self.POOL_SIZE , self.POOL_SIZE ), name='max1')(inner)
+        inner = MaxPooling2D(pool_size=(self.POOL_SIZE, self.POOL_SIZE), name='max1')(inner)
         inner = Conv2D(self.CONV_FILTERS, self.KERNEL_SIZE, padding='same',
                        activation=self.ACTIVATION, kernel_initializer='he_normal',
                        name='conv2')(inner)
-        inner = MaxPooling2D(pool_size=(self.POOL_SIZE , self.POOL_SIZE ), name='max2')(inner)
+        inner = MaxPooling2D(pool_size=(self.POOL_SIZE, self.POOL_SIZE), name='max2')(inner)
 
-        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE  * self.POOL_SIZE), (self.IMG_H // (self.POOL_SIZE * self.POOL_SIZE)) * self.CONV_FILTERS)
+        conv_to_rnn_dims = (self.IMG_W // (self.POOL_SIZE * self.POOL_SIZE),
+                            (self.IMG_H // (self.POOL_SIZE * self.POOL_SIZE)) * self.CONV_FILTERS)
         inner = Reshape(target_shape=conv_to_rnn_dims, name='reshape')(inner)
 
         # cuts down input size going into RNN:
         inner = Dense(self.TIME_DENSE_SIZE, activation=self.ACTIVATION, name='dense1')(inner)
 
         # Two layers of bidirecitonal GRUs
-        gru_1  = GRU(self.RNN_SIZE, 
-                     
-#                      # for cuDNN
-#                      activation = 'tanh',
-#                      recurrent_activation = 'sigmoid',
-#                      recurrent_dropout = 0,
-#                      unroll = False,
-#                      use_bias = True,
-#                      reset_after = True,
-
-                     return_sequences=True, 
-                     kernel_initializer='he_normal', 
-                     name='gru1')(inner)
+        gru_1 = GRU(self.RNN_SIZE,
+                    return_sequences=True,
+                    kernel_initializer='he_normal',
+                    name='gru1')(inner)
         gru_1b = GRU(self.RNN_SIZE,
-                     
-#                      # for cuDNN
-#                      activation = 'tanh',
-#                      recurrent_activation = 'sigmoid',
-#                      recurrent_dropout = 0,
-#                      unroll = False,
-#                      use_bias = True,
-#                      reset_after = True,
-                     
                      return_sequences=True, 
                      go_backwards=True, 
                      kernel_initializer='he_normal', 
                      name='gru1_b')(inner)
         gru1_merged = add([gru_1, gru_1b])
-        gru_2  = GRU(self.RNN_SIZE, 
-                     
-#                      # for cuDNN
-#                      activation = 'tanh',
-#                      recurrent_activation = 'sigmoid',
-#                      recurrent_dropout = 0,
-#                      unroll = False,
-#                      use_bias = True,
-#                      reset_after = True,
-                     
-                     return_sequences=True, 
-                     kernel_initializer='he_normal', 
-                     name='gru2')(gru1_merged)
-        gru_2b = GRU(self.RNN_SIZE, 
-                     
-#                      # for cuDNN
-#                      activation = 'tanh',
-#                      recurrent_activation = 'sigmoid',
-#                      recurrent_dropout = 0,
-#                      unroll = False,
-#                      use_bias = True,
-#                      reset_after = True,
-                     
+        gru_2 = GRU(self.RNN_SIZE,
+                    return_sequences=True,
+                    kernel_initializer='he_normal',
+                    name='gru2')(gru1_merged)
+        gru_2b = GRU(self.RNN_SIZE,
                      return_sequences=True, 
                      go_backwards=True, 
                      kernel_initializer='he_normal', 
@@ -369,19 +363,27 @@ class OCR(TextImageGenerator):
         y_pred = Activation('softmax', name='softmax_{}'.format(type(self).__name__))(inner)
         Model(inputs=input_data, outputs=y_pred).summary()
 
-        labels = Input(name='the_labels_{}'.format(type(self).__name__), shape=[self.tiger_train.max_text_len], dtype='float32')
-        input_length = Input(name='input_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
-        label_length = Input(name='label_length_{}'.format(type(self).__name__), shape=[1], dtype='int64')
+        labels = Input(name='the_labels_{}'.format(type(self).__name__),
+                       shape=[self.tiger_train.max_text_len],
+                       dtype='float32')
+        input_length = Input(name='input_length_{}'.format(type(self).__name__),
+                             shape=[1],
+                             dtype='int64')
+        label_length = Input(name='label_length_{}'.format(type(self).__name__),
+                             shape=[1],
+                             dtype='int64')
         
         # Keras doesn't currently support loss funcs with extra parameters
         # so CTC loss is implemented in a lambda layer
-        loss_out = Lambda(self.ctc_lambda_func, output_shape=(1,), name='ctc')([y_pred, labels, input_length, label_length])
+        loss_out = Lambda(self.ctc_lambda_func,
+                          output_shape=(1,),
+                          name='ctc')([y_pred, labels, input_length, label_length])
         
         # clipnorm seems to speeds up convergence
         adam = tf.keras.optimizers.Adam(lr=0.0001)
 
         if load_trained_model_path is not None:
-            model = load_model(model_path, compile=False)
+            model = load_model(load_trained_model_path, compile=False)
         else:
             model = Model(inputs=[input_data, labels, input_length, label_length], outputs=loss_out)
 
@@ -408,11 +410,15 @@ class OCR(TextImageGenerator):
         if load_last_weights:
             model.load_weights(os.path.join(log_dir, 'buff_weights.h5'))
         
-        model.fit_generator(generator=self.tiger_train.next_batch(is_random, input_name=model.layers[0].name, output_name=model.layers[-1].name),
+        model.fit_generator(generator=self.tiger_train.next_batch(is_random,
+                                                                  input_name=model.layers[0].name,
+                                                                  output_name=model.layers[-1].name),
                             steps_per_epoch=self.tiger_train.n,
                             epochs=self.EPOCHS,
                             callbacks=self.CALLBACKS_LIST,
-                            validation_data=self.tiger_val.next_batch(is_random, input_name=model.layers[0].name, output_name=model.layers[-1].name),
+                            validation_data=self.tiger_val.next_batch(is_random,
+                                                                      input_name=model.layers[0].name,
+                                                                      output_name=model.layers[-1].name),
                             validation_steps=self.tiger_val.n)
         # load best model
         model.load_weights(os.path.join(log_dir, 'buff_weights.h5'))
@@ -433,7 +439,7 @@ class OCR(TextImageGenerator):
         loss = tf.keras.backend.ctc_batch_cost(
             np.array(labels),
             np.array(predicted)[:, 2:, :],
-            np.array([[self.label_length] for label in labels]),
-            np.array([[self.max_text_len] for label in labels])
+            np.array([[self.label_length] for _ in labels]),
+            np.array([[self.max_text_len] for _ in labels])
         )
-        return  1 - tf.keras.backend.eval(loss)
+        return 1 - tf.keras.backend.eval(loss)

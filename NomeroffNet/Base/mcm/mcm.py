@@ -7,6 +7,7 @@ from .latest import latest_models
 # sys var for model storage main dir
 MODEL_STORAGE_DIR = os.environ.get("MODEL_STORAGE_DIR", os.path.dirname(os.path.realpath(__file__)))
 
+
 def show_last_models():
     print(latest_models)
 
@@ -36,7 +37,6 @@ def ls():
 
 
 def rm(model_name):
-    models_list = []
     for r, d, f in os.walk(os.path.join(MODEL_STORAGE_DIR, "./models")):
         for file in f:
             if file == model_name:
@@ -72,4 +72,3 @@ def download_latest_model(detector, model_name, ext="h5", mode = None):
         download_url(info[mode], info['path'])
 
     return info
-

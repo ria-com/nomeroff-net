@@ -2,8 +2,8 @@ latest_models = {
   "Detector": {
     "yolov5x": {
       "pt": {
-        "gpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-03-01.pt",
-        "cpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-03-01.pt"
+        "gpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt",
+        "cpu": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt"
       }
     }
   },
@@ -40,8 +40,8 @@ latest_models = {
           "su",
           "kg"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_03_14.pb",
-        "cpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_03_14.pb"
+        "gpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_17.pb",
+        "cpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_17.pb"
       }
     }
   },

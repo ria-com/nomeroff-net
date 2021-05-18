@@ -5,7 +5,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import cv2
 
@@ -19,7 +18,10 @@ from NomeroffNet.YoloV5Detector import Detector
 detector = Detector()
 detector.load()
 
-from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
+from NomeroffNet.BBoxNpPoints import (NpPointsCraft,
+                                      getCvZoneRGB,
+                                      convertCvZonesRGBtoBGR,
+                                      reshapePoints)
 npPointsCraft = NpPointsCraft()
 npPointsCraft.load()
 
@@ -35,12 +37,14 @@ textDetector = TextDetector.get_static_module("eu")()
 textDetector.load("latest")
 
 # Detect numberplate
-img_path = 'images/example2.jpeg'
+img_path = '../images/example2.jpeg'
 img = cv2.imread(img_path)
 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
 targetBoxes = detector.detect_bbox(img)
-all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
+all_points = npPointsCraft.detect(img,
+                                  targetBoxes,
+                                  [5, 2, 0])
 
 # cut zones
 zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
