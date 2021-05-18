@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:21.03-py3
+FROM nvcr.io/nvidia/tensorrt:20.12-py3
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -10,11 +10,6 @@ RUN apt-get update
 
 # For opencv
 RUN apt-get install -y libglib2.0
-
-# For Mask_RCNN
-RUN apt-get install -y libsm6
-RUN apt-get install -y libfontconfig1 libxrender1
-RUN apt-get install -y libxtst6
 RUN apt-get install -y git
 RUN apt-get install -y libgl1-mesa-glx
 

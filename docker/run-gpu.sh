@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nvidia-docker run --rm -it \
+Fixdocker run --rm -it \
 			-p 8888:8888 \
 			--privileged --gpus all \
 			-v `pwd`/..:/var/www/nomeroff-net \

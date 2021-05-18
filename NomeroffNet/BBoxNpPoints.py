@@ -269,6 +269,37 @@ def fixClockwise(targetPoints: List) -> List:
     return targetPoints
 
 
+def order_points_old(pts):
+    # initialize a list of coordinates that will be ordered
+    # such that the first entry in the list is the top-left,
+    # the second entry is the top-right, the third is the
+    # bottom-right, and the fourth is the bottom-left
+    rect = np.zeros((4, 2), dtype="float32")
+
+    # the top-left point will have the smallest sum, whereas
+    # the bottom-right point will have the largest sum
+    s = pts.sum(axis=1)
+    lp = np.argmin(s)
+    rp = np.argmax(s)
+    # fix original code by Oleg Cherniy
+    rect[0] = pts[lp]
+    rect[2] = pts[rp]
+    pts_crop = [pts[idx] for idx in filter(lambda i: (i != lp) and (i != rp), range(len(pts)))]
+
+    # now, compute the difference between the points, the
+    # top-right point will have the smallest difference,
+    # whereas the bottom-left will have the largest difference
+    diff = np.diff(pts_crop, axis=1)
+    rect[1] = pts_crop[np.argmin(diff)]
+    rect[3] = pts_crop[np.argmax(diff)]
+
+    # return the ordered coordinates
+    return rect
+
+def fixClockwise2(targetPoints):
+    return order_points_old(np.array(targetPoints))
+
+
 def addOffsetManualPercentage(targetPoints: np.ndarray, offsetLeftPercentage: float, offsetTopPercentage: float,
                               offsetRightPercentage: float, offsetBottomPercentage: float) -> np.ndarray:
     """
@@ -340,10 +371,14 @@ def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffset
         offset2 = offsets[iNext]
         points.append(
             detectIntersectionNormDD(distanses[iPrev]['matrix'], distanses[iNext]['matrix'], offset1, offset2))
+
     # Step 2
     points = reshapePoints(points, 3)
 
     distanses = findDistances(points)
+    
+    if distanses[3]['coef'][2] == 90:
+        return np.array(points)
 
     h = Bbox[0]
     w = Bbox[1]
@@ -437,6 +472,7 @@ def normalizeRect(rect: List) -> List:
     """
     TODO: describe function
     """
+    rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
     rect = fixClockwise(rect)
@@ -444,6 +480,23 @@ def normalizeRect(rect: List) -> List:
     if distanses[0]['d'] > distanses[1]['d'] or distanses[0]['matrix'][0] == 0:
         rect = reshapePoints(rect, 3)
     return rect
+
+def normalizeRect2(rect):
+    """
+    TODO: describe function
+    """
+    rect = fixClockwise2(rect)
+    minXIdx = findMinXIdx(rect)
+    rect = reshapePoints(rect, minXIdx)
+    coef_cw = fline(rect[0], rect[1])
+    coef_ccw = fline(rect[0], rect[3])
+    angle_ccw = round(coef_ccw[2], 2)
+    if angle_ccw >= 0 and angle_ccw <= 45:
+        pass
+    else:
+        rect = reshapePoints(rect, 3)
+    return rect
+
 
 
 def prepareImageText(img: np.ndarray) -> np.ndarray:
@@ -515,7 +568,13 @@ def makeRectVariants2(propablyPoints: List, h: int, w: int, qualityProfile: List
     """
     TODO: describe function
     """
+    pointsArr = []
+
     distanses = findDistances(propablyPoints)
+
+    if distanses[0]['coef'][2] == 90:
+        pointsArr.append(propablyPoints)
+        return pointsArr
 
     pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
                        propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
@@ -524,9 +583,6 @@ def makeRectVariants2(propablyPoints: List, h: int, w: int, qualityProfile: List
 
     dx = propablyPoints[0][0] - pointBottomLeft[0]
     dy = propablyPoints[0][1] - pointBottomLeft[1]
-
-    if dx == 0:
-        return [propablyPoints]
 
     steps = qualityProfile[0]
     stepsPlus = qualityProfile[1]

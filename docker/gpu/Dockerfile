@@ -12,9 +12,6 @@ RUN apt-get update
 RUN apt-get install -y libglib2.0
 
 # For Mask_RCNN
-RUN apt-get install -y libsm6
-RUN apt-get install -y libfontconfig1 libxrender1
-RUN apt-get install -y libxtst6
 RUN apt-get install -y git
 RUN apt-get install -y libgl1-mesa-glx
 

@@ -141,7 +141,6 @@ print(textArr)
 ## Hello Nomeroff Net for systems with a small GPU size.
 Note: This example disables some important Nomeroff Net features. It will recognize numbers that are photographed in a horizontal position.
 ```python
-# Specify device
 import os
 
 # Specify device
@@ -194,10 +193,6 @@ for targetBox in targetBoxes:
     image_part = img[y:y + h, x:x + w]
     zones.append(image_part)
     regionNames.append('eu')
-
-# predict zones attributes 
-#regionIds, countLines = optionsDetector.predict(zones)
-#regionNames = optionsDetector.getRegionLabels(regionIds)
     
 # find text with postprocessing by standart
 textArr = textDetector.predict(zones)
