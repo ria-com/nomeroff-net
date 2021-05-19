@@ -12,6 +12,7 @@ CRAFT_URL = "https://github.com/clovaai/CRAFT-pytorch.git"
 
 if not os.path.exists(CRAFT_DIR):
     from git import Repo
+
     Repo.clone_from(CRAFT_URL, CRAFT_DIR)
 sys.path.append(CRAFT_DIR)
 
@@ -84,8 +85,8 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
 
     # preprocessing
     x = imgproc.normalizeMeanVariance(img_resized)
-    x = torch.from_numpy(x).permute(2, 0, 1)    # [h, w, c] to [c, h, w]
-    x = Variable(x.unsqueeze(0))                # [c, h, w] to [b, c, h, w]
+    x = torch.from_numpy(x).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
+    x = Variable(x.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
     if cuda:
         x = x.cuda()
 
@@ -130,7 +131,7 @@ def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Di
     if len(bboxes):
         maxDy = max([dimension['dy'] for dimension in dimensions])
     for i, (bbox, dimension) in enumerate(zip(bboxes, dimensions)):
-        if maxDy*similarity_range <= dimension['dy']:
+        if maxDy * similarity_range <= dimension['dy']:
             np_bboxes_idx.append(i)
         else:
             garbage_bboxes_idx.append(i)
@@ -146,7 +147,7 @@ def minimum_bounding_rectangle(points: np.ndarray) -> np.ndarray:
     :param points: an nx2 matrix of coordinates
     :rval: an nx2 matrix of coordinates
     """
-    pi2 = np.pi/2.
+    pi2 = np.pi / 2.
 
     # get the convex hull for the points
     hull_points = points[ConvexHull(points).vertices]
@@ -162,8 +163,8 @@ def minimum_bounding_rectangle(points: np.ndarray) -> np.ndarray:
     # XXX both work
     rotations = np.vstack([
         np.cos(angles),
-        np.cos(angles-pi2),
-        np.cos(angles+pi2),
+        np.cos(angles - pi2),
+        np.cos(angles + pi2),
         np.cos(angles)]).T
     rotations = rotations.reshape((-1, 2, 2))
 
@@ -211,8 +212,8 @@ def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float
     TODO: describe function
     """
     X = np.array([matrix1[:2], matrix2[:2]])
-    c0 = matrix1[2]-d1*(matrix1[0]**2 + matrix1[1]**2)**0.5
-    c1 = matrix2[2]-d2*(matrix2[0]**2 + matrix2[1]**2)**0.5
+    c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
+    c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
     y = np.array([c0, c1])
     return np.linalg.solve(X, y)
 
@@ -225,11 +226,11 @@ def getYByMatrix(matrix: List[np.ndarray], x: float) -> np.ndarray:
     B = matrix[1]
     C = matrix[2]
     if B != 0:
-        return (C-A*x)/B
+        return (C - A * x) / B
 
 
 def detectDistanceFromPointToLine(matrix: List[np.ndarray],
-                                  point: List[List[float]]) -> float:
+                                  point: Union) -> float:
     """
     Определение растояния от точки к линии
     https://ru.onlinemschool.com/math/library/analytic_geometry/p_line1/
@@ -239,10 +240,10 @@ def detectDistanceFromPointToLine(matrix: List[np.ndarray],
     C = matrix[2]
     x = point[0]
     y = point[1]
-    return abs(A*x + B*y - C)/math.sqrt(A**2+B**2)
+    return abs(A * x + B * y - C) / math.sqrt(A ** 2 + B ** 2)
 
 
-def findMinXIdx(targetPoints: List) -> int:
+def findMinXIdx(targetPoints: Union) -> int:
     """
     TODO: describe function
     """
@@ -269,7 +270,7 @@ def fixClockwise(targetPoints: List) -> List:
     return targetPoints
 
 
-def order_points_old(pts: np.ndarray) -> List:
+def order_points_old(pts: np.ndarray) -> Union:
     # initialize a list of coordinates that will be ordered
     # such that the first entry in the list is the top-left,
     # the second entry is the top-right, the third is the
@@ -280,8 +281,11 @@ def order_points_old(pts: np.ndarray) -> List:
     # the bottom-right point will have the largest sum
     s = pts.sum(axis=1)
     lp = np.argmin(s)
-    rp = np.argmax(s)
+
     # fix original code by Oleg Cherniy
+    rp = lp + 2
+    if rp > 3:
+        rp = rp - 4
     rect[0] = pts[lp]
     rect[2] = pts[rp]
     pts_crop = [pts[idx] for idx in filter(lambda i: (i != lp) and (i != rp), range(len(pts)))]
@@ -296,42 +300,12 @@ def order_points_old(pts: np.ndarray) -> List:
     # return the ordered coordinates
     return rect
 
-def fixClockwise2(target_points: list) -> List:
+
+def fixClockwise2(target_points: list) -> np.ndarray:
     return order_points_old(np.array(target_points))
 
 
-def addOffsetManualPercentage(targetPoints: np.ndarray, offsetLeftPercentage: float, offsetTopPercentage: float,
-                              offsetRightPercentage: float, offsetBottomPercentage: float) -> np.ndarray:
-    """
-    TODO: describe function
-    """
-    distanses = findDistances(targetPoints)
-    points = []
-    if distanses[0]['d'] > distanses[1]['d']:
-        offsets = [offsetTopPercentage, offsetRightPercentage, offsetBottomPercentage, offsetLeftPercentage]
-    else:
-        offsets = [offsetLeftPercentage, offsetTopPercentage, offsetRightPercentage, offsetBottomPercentage]
-    cnt = len(distanses)
-
-    for i in range(cnt):
-        iNext = i + 1
-        if iNext == cnt:
-            iNext = 0
-        offsets[i] = distanses[iNext]['d'] * offsets[i] / 100
-
-    for i in range(cnt):
-        iPrev = i
-        iNext = i + 1
-        if iNext == cnt:
-            iNext = 0
-        offset1 = offsets[iPrev]
-        offset2 = offsets[iNext]
-        points.append(
-            detectIntersectionNormDD(distanses[iPrev]['matrix'], distanses[iNext]['matrix'], offset1, offset2))
-    return np.array(points)
-
-
-def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffsetLeftMaxPercentage: float,
+def addoptRectToBbox(targetPoints: List, Bbox: Tuple, distansesoffsetLeftMaxPercentage: float,
                      offsetTopMaxPercentage: float, offsetRightMaxPercentage: float,
                      offsetBottomMaxPercentage: float) -> np.ndarray:
     """
@@ -345,11 +319,11 @@ def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffset
     offsetRightPercentage = offsetRightMaxPercentage
     offsetBottomPercentage = offsetBottomMaxPercentage
 
-    k = Bbox[1]/Bbox[0]
+    k = Bbox[1] / Bbox[0]
 
     if k < 2:
-        offsetTopPercentage = offsetTopPercentage/2
-        offsetBottomPercentage = offsetBottomPercentage/2
+        offsetTopPercentage = offsetTopPercentage / 2
+        offsetBottomPercentage = offsetBottomPercentage / 2
 
     if k < 1:
         offsetTopPercentage = 0
@@ -376,7 +350,7 @@ def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffset
     points = reshapePoints(points, 3)
 
     distanses = findDistances(points)
-    
+
     if distanses[3]['coef'][2] == 90:
         return np.array(points)
 
@@ -406,7 +380,7 @@ def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffset
         else:
             points[1] = pLeftTop
             leftDistance = detectDistanceFromPointToLine(distanses[0]['matrix'], pLeftTop)
-            points[0] = detectIntersectionNormDD(distanses[3]['matrix'], distanses[0]['matrix'],  0, leftDistance)
+            points[0] = detectIntersectionNormDD(distanses[3]['matrix'], distanses[0]['matrix'], 0, leftDistance)
 
     overRightTop = points[2][0] > w
     overRightBottom = points[3][0] > w
@@ -423,49 +397,11 @@ def addoptRectToBbox(targetPoints: np.ndarray, Bbox: np.ndarray, distansesoffset
     return np.array(points)
 
 
-def fixSideFacets(targetPoints: np.ndarray, adoptToFrame: List =None) -> np.ndarray:
-    """
-    TODO: describe function
-    """
-    distanses = findDistances(targetPoints)
-    points = targetPoints.copy()
-
-    cnt = len(distanses)
-    if distanses[0]['d'] > distanses[1]['d']:
-        targetSides = [1, 3]
-    else:
-        targetSides = [0, 2]
-
-    for targetSideIdx in targetSides:
-        iPrev = targetSideIdx - 1
-        iNext = targetSideIdx + 1
-        if iNext == cnt:
-            iNext = 0
-        if iPrev < 0:
-            iPrev = 3
-
-        pointCentre = [targetPoints[targetSideIdx][0] + (targetPoints[iNext][0] - targetPoints[targetSideIdx][0]) / 2,
-                       targetPoints[targetSideIdx][1] + (targetPoints[iNext][1] - targetPoints[targetSideIdx][1]) / 2]
-
-        if adoptToFrame is not None:
-            if pointCentre[0] < 0:
-                pointCentre[0] = 0
-            if pointCentre[0] >= adoptToFrame[1]:
-                pointCentre[0] = adoptToFrame[1] - 1
-
-        pointTo = [pointCentre[0], pointCentre[1] + 1]
-        matrix = linearLineMatrix(pointCentre, pointTo)
-        points[targetSideIdx] = detectIntersection(distanses[iPrev]["matrix"], matrix)
-        points[iNext] = detectIntersection(matrix, distanses[iNext]["matrix"])
-    # linearLineMatrix(points[p0],points[p1])
-    return np.array(points)
-
-
 def addCoordinatesOffset(points: List, x: float, y: float) -> List:
     """
     TODO: describe function
     """
-    return [[point[0]+x, point[1]+y] for point in points]
+    return [[point[0] + x, point[1] + y] for point in points]
 
 
 def normalizeRect(rect: List) -> List:
@@ -475,22 +411,9 @@ def normalizeRect(rect: List) -> List:
     rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
-    rect = fixClockwise(rect)
-    distanses = findDistances(rect)
-    if distanses[0]['d'] > distanses[1]['d'] or distanses[0]['matrix'][0] == 0:
-        rect = reshapePoints(rect, 3)
-    return rect
-
-def normalizeRect2(rect: List) -> List:
-    """
-    TODO: describe function
-    """
-    rect = fixClockwise2(rect)
-    minXIdx = findMinXIdx(rect)
-    rect = reshapePoints(rect, minXIdx)
     coef_ccw = fline(rect[0], rect[3])
     angle_ccw = round(coef_ccw[2], 2)
-    if angle_ccw < 0 or angle_ccw < 45:
+    if angle_ccw < 0 or angle_ccw > 45:
         rect = reshapePoints(rect, 3)
     return rect
 
@@ -505,7 +428,7 @@ def prepareImageText(img: np.ndarray) -> np.ndarray:
     img_min = np.amin(gray_image)
     gray_image -= img_min
     img_max = np.amax(img)
-    k = 255/img_max
+    k = 255 / img_max
     gray_image = gray_image.astype(np.float64)
     gray_image *= k
     gray_image = gray_image.astype(np.uint8)
@@ -514,7 +437,7 @@ def prepareImageText(img: np.ndarray) -> np.ndarray:
     return blackAndWhiteImage
 
 
-def detectBestPerspective(bwImages: np.ndarray) -> int:
+def detectBestPerspective(bwImages: List[np.ndarray]) -> int:
     """
     TODO: describe function
     """
@@ -535,9 +458,9 @@ def detectBestPerspective(bwImages: np.ndarray) -> int:
         if minStat < diff:
             idx = i
             diff = minStat
-        if minStat == diff and maxStatCount+minStatCount > diffCnt:
+        if minStat == diff and maxStatCount + minStatCount > diffCnt:
             idx = i
-            diffCnt = maxStatCount+minStatCount
+            diffCnt = maxStatCount + minStatCount
     return idx
 
 
@@ -545,7 +468,7 @@ def addPointOffset(point: List, x: float, y: float) -> List:
     """
     TODO: describe function
     """
-    return [point[0]+x, point[1]+y]
+    return [point[0] + x, point[1] + y]
 
 
 def addPointOffsets(points: List, dx: float, dy: float) -> List:
@@ -553,14 +476,14 @@ def addPointOffsets(points: List, dx: float, dy: float) -> List:
     TODO: describe function
     """
     return [
-              addPointOffset(points[0], -dx, -dy),
-              addPointOffset(points[1],  dx,  dy),
-              addPointOffset(points[2],  dx,  dy),
-              addPointOffset(points[3], -dx, -dy),
-           ]
+        addPointOffset(points[0], -dx, -dy),
+        addPointOffset(points[1], dx, dy),
+        addPointOffset(points[2], dx, dy),
+        addPointOffset(points[3], -dx, -dy),
+    ]
 
 
-def makeRectVariants2(propablyPoints: List, h: int, w: int, qualityProfile: List = [3, 1, 0]) -> List:
+def makeRectVariants(propablyPoints: List, qualityProfile: List = [3, 1, 0]) -> List:
     """
     TODO: describe function
     """
@@ -584,60 +507,12 @@ def makeRectVariants2(propablyPoints: List, h: int, w: int, qualityProfile: List
     stepsPlus = qualityProfile[1]
     stepsMinus = qualityProfile[2]
 
-    dxStep = dx/steps
-    dyStep = dy/steps
+    dxStep = dx / steps
+    dyStep = dy / steps
 
     pointsArr = []
-    for i in range(-stepsMinus, steps+stepsPlus+1):
+    for i in range(-stepsMinus, steps + stepsPlus + 1):
         pointsArr.append(addPointOffsets(propablyPoints, i * dxStep, i * dyStep))
-    return pointsArr
-
-
-def makeRectVariants(propablyPoints: List, steps: int = 5) -> List:
-    """
-    TODO: describe function
-    """
-    distanses = findDistances(propablyPoints)
-
-    pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
-                       propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
-
-    matrixLeft = linearLineMatrix(pointCentreLeft, [pointCentreLeft[0],pointCentreLeft[1]-1])
-    pointBottomLeft = detectIntersection(distanses[3]["matrix"], matrixLeft)
-
-    dx = propablyPoints[0][0] - pointBottomLeft[0]
-    dy = propablyPoints[0][1] - pointBottomLeft[1]
-
-    if dx == 0:
-        return []
-
-    if dy/dx > 1:
-        steps = 5
-        dxStep = dx/(steps-2)
-        dyStep = dy/(steps-2)
-
-        pointsArr = []
-        for i in range(steps):
-            pointsArr.append([
-                addPointOffset(propablyPoints[0], -i*dxStep, -i*dyStep),
-                addPointOffset(propablyPoints[1], i * dxStep, i * dyStep),
-                addPointOffset(propablyPoints[2], i * dxStep, i * dyStep),
-                addPointOffset(propablyPoints[3], -i * dxStep, -i * dyStep),
-            ])
-    else:
-        steps = 5
-        dxStep = dx / steps
-        dyStep = dy / steps
-
-        pointsArr = []
-        for i in range(-2,steps+3):
-            pointsArr.append([
-                addPointOffset(propablyPoints[0], -i * dxStep, -i * dyStep),
-                addPointOffset(propablyPoints[1], i * dxStep, i * dyStep),
-                addPointOffset(propablyPoints[2], i * dxStep, i * dyStep),
-                addPointOffset(propablyPoints[3], -i * dxStep, -i * dyStep),
-            ])
-
     return pointsArr
 
 
@@ -656,12 +531,12 @@ class NpPointsCraft(object):
     NpPointsCraft Class
     git clone https://github.com/clovaai/CRAFT-pytorch.git
     """
-    
+
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
-    
-    def load(self, 
+
+    def load(self,
              mtl_model_path: str = "latest",
              refiner_model_path: str = "latest") -> None:
         """
@@ -677,8 +552,8 @@ class NpPointsCraft(object):
         if get_mode_torch() == "gpu":
             device = "cuda"
         self.loadModel(device, True, mtl_model_path, refiner_model_path)
-                  
-    def loadModel(self, 
+
+    def loadModel(self,
                   device: str = "cuda",
                   is_refine: bool = True,
                   trained_model: str = os.path.join(CRAFT_DIR, 'weights/craft_mlt_25k.pth'),
@@ -730,9 +605,9 @@ class NpPointsCraft(object):
         image = imgproc.loadImage(image_path)
         for targetBox in targetBoxes:
             x = min(targetBox['x1'], targetBox['x2'])
-            w = abs(targetBox['x2']-targetBox['x1'])
+            w = abs(targetBox['x2'] - targetBox['x1'])
             y = min(targetBox['y1'], targetBox['y2'])
-            h = abs(targetBox['y2']-targetBox['y1'])
+            h = abs(targetBox['y2'] - targetBox['y1'])
 
             image_part = image[y:y + h, x:x + w]
             points = self.detectInBbox(image_part)
@@ -740,10 +615,11 @@ class NpPointsCraft(object):
             targetBox['points'] = []
             targetBox['imgParts'] = []
             if len(propablyPoints):
-                targetPointsVariants = makeRectVariants2(propablyPoints,h,w, qualityProfile)
+                targetPointsVariants = makeRectVariants(propablyPoints, qualityProfile)
                 if len(targetPointsVariants) > 1:
-                    imgParts = [getCvZoneRGB(image, reshapePoints(rect,1)) for rect in targetPointsVariants]
-                    idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
+                    imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
+                    normalized_perspective_img = normalizePerspectiveImages(imgParts)
+                    idx = detectBestPerspective(normalized_perspective_img)
                     targetBox['points'] = targetPointsVariants[idx]
                     targetBox['imgParts'] = imgParts
                 else:
@@ -758,14 +634,14 @@ class NpPointsCraft(object):
         all_points = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))
-            w = int(abs(targetBox[2]-targetBox[0]))
+            w = int(abs(targetBox[2] - targetBox[0]))
             y = int(min(targetBox[1], targetBox[3]))
-            h = int(abs(targetBox[3]-targetBox[1]))
-            
+            h = int(abs(targetBox[3] - targetBox[1]))
+
             image_part = image[y:y + h, x:x + w]
             propablyPoints = addCoordinatesOffset(self.detectInBbox(image_part), x, y)
-            if (len(propablyPoints)):
-                targetPointsVariants = makeRectVariants2(propablyPoints, h, w, qualityProfile)
+            if len(propablyPoints):
+                targetPointsVariants = makeRectVariants(propablyPoints, qualityProfile)
                 if len(targetPointsVariants) > 1:
                     imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
                     idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
@@ -775,10 +651,10 @@ class NpPointsCraft(object):
                 all_points.append(points)
             else:
                 all_points.append([
-                    [x, y+h],
+                    [x, y + h],
                     [x, y],
-                    [x+w, y],
-                    [x+w, y+h]
+                    [x + w, y],
+                    [x + w, y + h]
                 ])
         return all_points
 
