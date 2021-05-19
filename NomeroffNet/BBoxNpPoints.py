@@ -490,7 +490,7 @@ def normalizeRect2(rect: List) -> List:
     rect = reshapePoints(rect, minXIdx)
     coef_ccw = fline(rect[0], rect[3])
     angle_ccw = round(coef_ccw[2], 2)
-    if angle_ccw < 0 or angle_ccw < 45:
+    if angle_ccw < 0 or angle_ccw > 45:
         rect = reshapePoints(rect, 3)
     return rect
 
