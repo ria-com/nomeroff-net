@@ -4,22 +4,26 @@ import numpy as np
 import asyncio
 from skimage import img_as_ubyte
 from skimage.morphology import convex_hull_image
+from typing import List, Dict, Tuple, Union
 
-def draw_box(image, boxs, color=(255,0,0), thickness=2):
-  # округление координат
-  for box in boxs:
-      box = np.int0(box)
-      cv2.drawContours(image,[box],0,color,thickness)
-  return image
 
-def gamma_lut(img, gamma = 0.5):
-    lookUpTable = np.empty((1,256), np.uint8)
+def draw_box(image: np.ndarray, boxs: List[np.ndarray],
+             color: Tuple[int] = (255, 0, 0), thickness: int = 2) -> np.ndarray:
+    for box in boxs:
+        # округление координат
+        box = np.int0(box)
+        cv2.drawContours(image, [box], 0, color, thickness)
+    return image
+
+
+def gamma_lut(img: np.ndarray, gamma: float = 0.5) -> None:
+    lookUpTable = np.empty((1, 256), np.uint8)
     for i in range(256):
-        lookUpTable[0,i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
-    res = cv2.LUT(img, lookUpTable)
+        lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+    _ = cv2.LUT(img, lookUpTable)
 
-async def cv_one_img_mask_async(nn):
-    masks = np.array(nn["masks"])
+
+async def cv_one_img_mask_async(nn: Dict) -> List[np.ndarray]:
     res = []
     masks = np.array(nn["masks"])
     for i in np.arange(masks.shape[2]):
@@ -29,7 +33,8 @@ async def cv_one_img_mask_async(nn):
         res.append(img_as_ubyte(gray))
     return res
 
-async def cv_img_mask_async(nns):
+
+async def cv_img_mask_async(nns: List[Dict]) -> List:
     loop = asyncio.get_event_loop()
     promises = [loop.create_task(cv_one_img_mask_async(nn)) for nn in nns]
     if bool(promises):
@@ -39,7 +44,8 @@ async def cv_img_mask_async(nns):
         res += promise.result()
     return res
 
-def cv_img_mask(nns):
+
+def cv_img_mask(nns: List[Dict]) -> List:
     res = []
     for nn in nns:
         masks = np.array(nn["masks"])
@@ -50,7 +56,9 @@ def cv_img_mask(nns):
             res.append(img_as_ubyte(gray))
     return res
 
-def color_splash(image, masks, color=(0, 255, 0), white_balance=200):
+
+def color_splash(image: np.ndarray, masks: List[np.ndarray],
+                 color: Tuple[int] = (0, 255, 0), white_balance: int = 200) -> List[np.ndarray]:
     res = []
     gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * white_balance
     for mask in masks:
@@ -63,7 +71,8 @@ def color_splash(image, masks, color=(0, 255, 0), white_balance=200):
         res.append(splash)
     return res
 
-def calc_normalize(hist, reverse=0, min_n = 5):
+
+def calc_normalize(hist: Union, reverse: bool = False, min_n: int = 5) -> int:
     level = 0
     iterable = hist
     if reverse:
@@ -76,9 +85,10 @@ def calc_normalize(hist, reverse=0, min_n = 5):
         level = len(hist)-level
     return level
 
-def normalize(img, max_p):
+
+def normalize(img: np.ndarray) -> None:
     cv_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    hist,bins = np.histogram(cv_img.ravel(),256,[0,255])
+    hist, bins = np.histogram(cv_img.ravel(), 256, [0, 255])
     alpha = calc_normalize(hist)
-    beta = calc_normalize(hist, reverse=1)
-    res = cv2.normalize(cv_img, None, alpha=alpha, beta=beta, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    beta = calc_normalize(hist, reverse=True)
+    _ = cv2.normalize(cv_img, None, alpha=alpha, beta=beta, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)

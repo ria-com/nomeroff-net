@@ -3,15 +3,18 @@ import json
 import cv2
 import numpy as np
 import random
+from typing import List, Tuple, Generator
 
 
 class ImgGenerator:
 
     def __init__(self,
-                 dirpath,
-                 img_w=295, img_h=64,
-                 batch_size=32,
-                 labels_counts=[14, 4], with_aug=0):
+                 dirpath: str,
+                 img_w: int = 295,
+                 img_h: int = 64,
+                 batch_size: int = 32,
+                 labels_counts: List = [14, 4],
+                 with_aug: bool = False) -> None:
 
         self.HEIGHT = img_h
         self.WEIGHT = img_w
@@ -39,11 +42,11 @@ class ImgGenerator:
         self.with_aug = with_aug
         self.rezero()
 
-    def rezero(self):
+    def rezero(self) -> None:
         self.cur_index = 0
         random.shuffle(self.indexes)
 
-    def build_data(self):
+    def build_data(self) -> None:
         self.paths = []
         self.discs = []
         for i, (img_filepath, disc) in enumerate(self.samples):
@@ -55,7 +58,7 @@ class ImgGenerator:
                 ]
             )
 
-    def normalize(self, img, with_aug=False):
+    def normalize(self, img: np.ndarray, with_aug: bool = False) -> np.ndarray:
         if with_aug:
             from .aug import aug
             imgs = aug([img])
@@ -71,17 +74,17 @@ class ImgGenerator:
         img[img == 0] = .0001
         return img
 
-    def next_sample(self):
+    def next_sample(self) -> Tuple:
         self.cur_index += 1
         if self.cur_index >= self.n:
             self.cur_index = 0
         return self.paths[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
 
-    def generator(self, with_aug=0):
-        for j in np.arange(self.batch_count):
+    def generator(self, with_aug: bool = False) -> Generator:
+        for _ in np.arange(self.batch_count):
             Ys = [[], []]
             Xs = []
-            for i in np.arange(self.batch_size):
+            for _ in np.arange(self.batch_size):
                 x, y = self.next_sample()
                 img = cv2.imread(x)
                 x = self.normalize(img, with_aug=with_aug)
@@ -92,12 +95,12 @@ class ImgGenerator:
             Ys[1] = np.array(Ys[1]).astype(np.float32)
             yield np.moveaxis(np.array(Xs), 3, 1), Ys
 
-    def pathGenerator(self):
-        for j in np.arange(self.batch_count):
+    def pathGenerator(self) -> Generator:
+        for _ in np.arange(self.batch_count):
             Ys = [[], []]
             Xs = []
             Paths = []
-            for i in np.arange(self.batch_size):
+            for _ in np.arange(self.batch_size):
                 x, y = self.next_sample()
                 Paths.append(x)
                 img = cv2.imread(x)

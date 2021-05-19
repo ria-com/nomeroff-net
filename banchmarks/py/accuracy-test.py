@@ -2,16 +2,11 @@
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # For CPU inference
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
-
+os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
-import numpy as np
 import sys
-import glob
-import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-import cv2
 from termcolor import colored
 
 # NomeroffNet path
@@ -69,9 +64,9 @@ import numpy as np
 
 async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
     nGood = 0
-    nBad  = 0
+    nBad = 0
     img_path = os.path.join(dirName, fname)
-    if verbose==1:
+    if verbose == 1:
         print(colored(f"__________ \t\t {img_path} \t\t __________", "blue"))
     img = cv2.imread(img_path)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -85,11 +80,8 @@ async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
     print('ll_points')
     print(all_points)
     # cut zones
-    toShowZones = [getCvZoneRGB(img, reshapePoints(rect,1)) for rect in all_points]
-    #toShowZones = getCvZonesRGB(img, all_points)
+    toShowZones = [getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points]
     zones = convertCvZonesRGBtoBGR(toShowZones)
-    #zones = rectDetector.get_cv_zonesBGR(img, all_points)
-    #toShowZones = rectDetector.get_cv_zonesRGB(img, all_points)
     for zone, points in zip(toShowZones, all_points):
         plt.axis("off")
         plt.imshow(zone)
@@ -105,16 +97,15 @@ async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
     textArr = textDetector.predict(zones, regionNames, countLines)
     print(textArr)
 
-     # draw rect and 4 points
+    # draw rect and 4 points
     for targetBox, points in zip(targetBoxes, all_points):
         # draw
         cv2.rectangle(img,
                       (int(targetBox[0]), int(targetBox[1])),
                       (int(targetBox[2]), int(targetBox[3])),
-                      (0,120,255),
+                      (0, 120, 255),
                       3)
-        #print(points, points.shape)
-        cv2.polylines(img, np.array([points], np.int32), True, (255,120,255),3)
+        cv2.polylines(img, np.array([points], np.int32), True, (255, 120, 255), 3)
     plt.imshow(img)
     plt.show()
 
@@ -163,9 +154,9 @@ gGood = 0
 gBad = 0
 i = 0
 for fileName in testData.keys():
-    nGood, nBad = await test(dirName, fileName, testData[fileName], verbose=1)
-    gGood += nGood
-    gBad += nBad
+    numGood, numBad = await test(dirName, fileName, testData[fileName], verbose=1)
+    gGood += numGood
+    gBad += numBad
     i += 1
 total = gGood + gBad
 print(f"TOTAL GOOD: {gGood/total}")

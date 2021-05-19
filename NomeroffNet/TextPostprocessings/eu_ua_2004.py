@@ -1,8 +1,9 @@
 from .xx_xx import xx_xx
 import operator
 
+
 class eu_ua_2004(xx_xx):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.STANDART = "@@####@@"
         self.ALLOWED_LITERS = ["A", "B", "E", "I", "K", "M", "H", "O", "P", "C", "T", "X"]
@@ -12,8 +13,8 @@ class eu_ua_2004(xx_xx):
                 "Q": "0",
                 "D": "0",
                 "I": "1",
-                "Z": "2",#7
-                "S": "5",#8
+                "Z": "2",  # 7
+                "S": "5",  # 8
                 "T": "7",
                 "B": "8"
             },
@@ -77,7 +78,7 @@ class eu_ua_2004(xx_xx):
              'KH': 0
         }
 
-    def doStatAnal(self, text):
+    def doStatAnal(self, text: str) -> str:
         if len(text) < 2 or text[:2] in self.STAT:
             return text
         v = {}
@@ -94,11 +95,10 @@ class eu_ua_2004(xx_xx):
                     v[item] = self.STAT[item]
 
         if bool(v):
-            regionKey = max(v.items(), key=operator.itemgetter(1))[0]
-            return "{}{}".format(regionKey, text[2:])
+            region_key = max(v.items(), key=operator.itemgetter(1))[0]
+            return "{}{}".format(region_key, text[2:])
         return text
 
-    def find(self, text, strong=False):
+    def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
         return self.doStatAnal(text)
-

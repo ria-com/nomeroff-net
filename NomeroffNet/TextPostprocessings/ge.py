@@ -1,8 +1,9 @@
 from .xx_xx import xx_xx
 import string
 
+
 class ge(xx_xx):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.ALLOWED_LITERS = [x for x in string.ascii_letters]
         self.ALLOWED_LITERS.append("0")
@@ -10,12 +11,11 @@ class ge(xx_xx):
         self.STANDARTS = ["@@@###", "@@###@@"]
         self.STANDART = ""
 
-
-    def find(self, text, strong=False):
+    def find(self, text: str, strong: bool = False) -> str:
         for standart in self.STANDARTS:
             self.STANDART = standart
             match = self.findFully(text)
-            if match :
+            if match:
                 text = match.group(0)
                 newtext = ""
                 for i, standart_letter in enumerate(standart):
@@ -23,9 +23,5 @@ class ge(xx_xx):
                         newtext += "O"
                     else:
                         newtext += text[i]
-
                 return newtext
         return text
-
-
-

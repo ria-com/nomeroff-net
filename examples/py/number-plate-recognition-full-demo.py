@@ -1,11 +1,10 @@
-#Specify device
+# Specify device
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # For CPU inference
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import glob
 import matplotlib.image as mpimg
@@ -22,7 +21,10 @@ from NomeroffNet.YoloV5Detector import Detector
 detector = Detector()
 detector.load()
 
-from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
+from NomeroffNet.BBoxNpPoints import (NpPointsCraft,
+                                      getCvZoneRGB,
+                                      convertCvZonesRGBtoBGR,
+                                      reshapePoints)
 
 npPointsCraft = NpPointsCraft()
 npPointsCraft.load()
@@ -77,7 +79,7 @@ for img in imgs:
     all_points = [ps for ps in all_points if len(ps)]
     print(all_points)
 
-     # cut zones
+    # cut zones
     toShowZones = [getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points]
     zones = convertCvZonesRGBtoBGR(toShowZones)
     for zone, points in zip(toShowZones, all_points):
@@ -100,7 +102,7 @@ for img in imgs:
         cv2.rectangle(img,
                       (int(targetBox[0]), int(targetBox[1])),
                       (int(targetBox[2]), int(targetBox[3])),
-                      (0,120,255),
+                      (0, 120, 255),
                       3)
     cv2.imshow("Display window", img)
     k = cv2.waitKey(0)

@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:21.03-py3
+FROM nvcr.io/nvidia/tensorrt:20.12-py3
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -33,8 +33,5 @@ RUN pip3 install tqdm
 RUN pip3 install 'https://nomeroff.net.ua/tf/packages/tensorflow-2.5.0rc1-cp38-cp38-linux_x86_64.whl'
 RUN pip3 install seaborn
 RUN pip3 install -U "git+git://github.com/lilohuang/PyTurboJPEG.git"
-
-#RUN apt-get install -y mc
-#RUN pip3 install jupyter
 
 WORKDIR /var/www/nomeroff-net

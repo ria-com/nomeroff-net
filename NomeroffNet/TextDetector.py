@@ -1,16 +1,20 @@
-import sys, os
+import sys
+import os
+from typing import List, Dict
+
+import numpy as np
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
 from tools import np_split
 
 
-class TextDetector():
+class TextDetector(object):
     @classmethod
-    def get_classname(cls):
+    def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def __init__(self, prisets={}, mode="auto"):
+    def __init__(self, prisets: Dict = {}, mode: str = "auto") -> None:
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
@@ -38,14 +42,14 @@ class TextDetector():
             self.detectors_names.append(_label)
             i += 1
 
-    def get_avalible_module():
-        pass
+    def get_avalible_module(self) -> List[str]:
+        return self.detectors_names
 
-    def predict(self, zones, labels=None, lines=None, return_acc=False):
-        if labels is None:
-            labels = []
-        if lines is None:
-            lines = []
+    def predict(self,
+                zones: List[np.ndarray],
+                labels: List[str] = [],
+                lines: List[int] = [],
+                return_acc: bool = False) -> List:
 
         while len(labels) < len(zones):
             labels.append(self.DEFAULT_LABEL)
@@ -83,14 +87,17 @@ class TextDetector():
             orderAll = orderAll + predicted[key]["order"]
 
         if return_acc:
-            return [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])], [x for _, x in sorted(zip(orderAll,scores), key=lambda pair: pair[0])]
+            return [
+                [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])],
+                [x for _, x in sorted(zip(orderAll, scores), key=lambda pair: pair[0])]
+            ]
         return [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])]
 
     @staticmethod
-    def get_static_module(name):
+    def get_static_module(name: str) -> object:
         return getattr(getattr(TextDetectors, name), name)
 
-    def get_acc(self, predicted, decode, regions):
+    def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[float]:
         acc = []
         for i, region in enumerate(regions):
             if self.detectors_map.get(region, None) is None or len(decode[i]) == 0:
@@ -101,6 +108,6 @@ class TextDetector():
                 acc.append(_acc[0])
         return acc
 
-    def get_module(self, name):
+    def get_module(self, name: str) -> object:
         ind = self.detectors_names.index(name)
         return self.detectors[ind]

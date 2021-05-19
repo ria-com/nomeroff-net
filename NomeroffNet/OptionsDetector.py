@@ -1,12 +1,11 @@
 import os
 import sys
+from typing import List, Dict, Tuple, Any
 import numpy as np
-import copy
 
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import torchvision
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
@@ -17,12 +16,13 @@ from ImgGenerator import ImgGenerator
 
 mode_torch = get_mode_torch()
 
-def imshow(img):
+
+def imshow(img: np.ndarray) -> None:
     """
     # functions to show an image
     """
     import matplotlib.pyplot as plt
-    img = img / 2 + 0.5     # unnormalize
+    img = img / 2 + 0.5  # unnormalize
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
@@ -32,13 +32,13 @@ class OptionsDetector(ImgGenerator):
     """
     TODO: describe class
     """
-    def __init__(self, options = {}):
+    def __init__(self, options: Dict = {}) -> None:
         """
         TODO: describe __init__
         """
         # input
-        self.HEIGHT         = 64
-        self.WEIGHT         = 295
+        self.HEIGHT = 64
+        self.WEIGHT = 192
         self.COLOR_CHANNELS = 3
 
         # outputs 1
@@ -71,14 +71,14 @@ class OptionsDetector(ImgGenerator):
         self.MODEL = None
 
         # train hyperparameters
-        self.BATCH_SIZE       = 32
-        self.EPOCHS           = 150
+        self.BATCH_SIZE = 64
+        self.EPOCHS = 100
 
     @classmethod
-    def get_classname(cls):
+    def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def create_model(self):
+    def create_model(self) -> NPOptionsNet:
         """
         TODO: describe method
         """
@@ -87,7 +87,7 @@ class OptionsDetector(ImgGenerator):
             self.MODEL = self.MODEL.cuda()
         return self.MODEL
 
-    def prepare(self, base_dir, verbose=1):
+    def prepare(self, base_dir: str, verbose: bool = True) -> None:
         """
         TODO: describe method
         """
@@ -99,20 +99,22 @@ class OptionsDetector(ImgGenerator):
         test_dir = os.path.join(base_dir, 'test')
 
         # compile generators
-        self.train_generator = self.compile_train_generator(train_dir,
-            (
+        self.train_generator = self.compile_train_generator(
+            train_dir, (
                 self.HEIGHT,
                 self.WEIGHT
             ),
             self.BATCH_SIZE)
-        self.validation_generator = self.compile_test_generator(validation_dir,
-            (
+
+        self.validation_generator = self.compile_test_generator(
+            validation_dir, (
                 self.HEIGHT,
                 self.WEIGHT
             ),
             self.BATCH_SIZE)
-        self.test_generator = self.compile_test_generator(test_dir,
-            (
+
+        self.test_generator = self.compile_test_generator(
+            test_dir, (
                 self.HEIGHT,
                 self.WEIGHT
             ),
@@ -121,7 +123,7 @@ class OptionsDetector(ImgGenerator):
         if verbose:
             print("DATA PREPARED")
 
-    def train(self, log_dir="./log", load_model=None, with_aug=0, verbose=1):
+    def train(self, log_dir: str = "./log", load_model: str = None, with_aug: bool = False) -> NPOptionsNet:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
@@ -137,14 +139,6 @@ class OptionsDetector(ImgGenerator):
         criterion_reg = nn.CrossEntropyLoss()
         criterion_line = nn.CrossEntropyLoss()
         optimizer = optim.Adamax(self.MODEL.parameters(), lr=0.005, betas=(0.9, 0.999), eps=1e-07)
-        history = []
-
-        loss = 0.0
-        loss_reg = 0.0
-        loss_line = 0.0
-        acc = 0
-        acc_reg = 0
-        acc_line = 0
         
         g_loss = 0.0
         g_loss_reg = 0.0
@@ -169,14 +163,10 @@ class OptionsDetector(ImgGenerator):
                 optimizer.zero_grad()
 
                 # forward + backward + optimize
-                #print("inputs", inputs)
-                #break
                 inputs = torch.from_numpy(inputs)
                 if mode_torch == "gpu":
                     inputs = inputs.cuda()
                 outputs = self.MODEL(inputs)
-                #print("outputs", outputs)
-                #print("labels", labels)
                 label_reg = torch.from_numpy(labels[0])
                 label_cnt = torch.from_numpy(labels[1])
                 if mode_torch == "gpu":
@@ -200,7 +190,7 @@ class OptionsDetector(ImgGenerator):
                 g_acc_reg += acc_reg
                 g_acc_line += acc_line
                 # print statistics
-                if i%diplay_per == 0:
+                if i % diplay_per == 0:
                     g_loss /= diplay_per
                     g_loss_reg /= diplay_per
                     g_loss_line /= diplay_per
@@ -208,7 +198,13 @@ class OptionsDetector(ImgGenerator):
                     g_acc_reg /= diplay_per
                     g_acc_line /= diplay_per
                     
-                    train_bar.set_description(f'[TRAIN {epoch + 1}, {i + 1}] loss: {g_loss} loss_reg: {g_loss_reg} loss_line: {g_loss_line} acc: {g_acc} acc_reg: {g_acc_reg} acc_line: {g_acc_line}')
+                    train_bar.set_description(f'[TRAIN {epoch + 1}, {i + 1}] '
+                                              f'loss: {g_loss} '
+                                              f'loss_reg: {g_loss_reg} '
+                                              f'loss_line: {g_loss_line} '
+                                              f'acc: {g_acc} '
+                                              f'acc_reg: {g_acc_reg} '
+                                              f'acc_line: {g_acc_line}')
                     g_loss = 0.0
                     g_loss_reg = 0.0
                     g_loss_line = 0.0
@@ -219,10 +215,9 @@ class OptionsDetector(ImgGenerator):
             val_acc, val_acc_reg, val_acc_line \
                             = self.test(testGenerator=validationGenerator, verbose=0)
             print(f'[VALIDATION {epoch + 1}]',
-                    f'val_acc: {val_acc} '
-                    f'val_acc_reg: {val_acc_reg} '
-                    f'val_acc_line: {val_acc_line} '
-                    )
+                  f'val_acc: {val_acc} '
+                  f'val_acc_reg: {val_acc_reg} '
+                  f'val_acc_line: {val_acc_line} ')
             # save after each epochs
             model_path = os.path.join(
                 log_dir,
@@ -231,17 +226,14 @@ class OptionsDetector(ImgGenerator):
             if val_acc > best_val_acc:
                 torch.save(self.MODEL.state_dict(), model_path)
         print('Finished Training')
-        return  self.MODEL
+        return self.MODEL
 
-    def test(self, testGenerator=None, verbose=1):
+    def test(self, testGenerator: ImgGenerator = None, verbose: bool = True) -> Tuple[Any]:
         """
         TODO: describe method
         """
-        if testGenerator == None:
+        if testGenerator is None:
             testGenerator = self.test_generator.generator()
-        acc = 0
-        acc_reg = 0
-        acc_line = 0
         all_acc = 0
         all_acc_reg = 0
         all_acc_line = 0
@@ -251,7 +243,6 @@ class OptionsDetector(ImgGenerator):
             inputs, labels = data
 
             # test
-            #print(i, inputs.shape)
             inputs = torch.from_numpy(inputs)
             if mode_torch == "gpu":
                 inputs = inputs.cuda()
@@ -277,34 +268,36 @@ class OptionsDetector(ImgGenerator):
         all_acc_line /= n*self.BATCH_SIZE
         return all_acc, all_acc_reg, all_acc_line
 
-    def save(self, path, verbose=1):
+    def save(self, path: str, verbose: bool = True) -> None:
         """
         TODO: describe method
         """
-        if self.MODEL != None:
+        if self.MODEL is not None:
             if bool(verbose):
                 print("model save to {}".format(path))
             torch.save(self.MODEL.state_dict(), path)
 
-    def isLoaded(self):
+    def isLoaded(self) -> bool:
         """
         TODO: describe method
         """
-        if self.MODEL == None:
+        if self.MODEL is None:
             return False
         return True
 
-    def load(self, path_to_model="latest", options={}, verbose = 0):
+    def load(self, path_to_model: str = "latest", options: Dict = {}) -> NPOptionsNet:
         """
         TODO: describe method
         """
         self.create_model()
         if path_to_model == "latest":
-            model_info   = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
-            path_to_model   = model_info["path"]
+            model_info = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
+            path_to_model = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
+        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995",
+                                                         "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr",
+                                                         "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
 
         if mode_torch == "gpu":
             self.MODEL.load_state_dict(torch.load(path_to_model))
@@ -313,7 +306,7 @@ class OptionsDetector(ImgGenerator):
         self.MODEL.eval()
     
     @torch.no_grad()
-    def predict(self, imgs, return_acc=False):
+    def predict(self, imgs: List[np.ndarray], return_acc: bool = False) -> Tuple:
         """
         TODO: describe method
         """
@@ -342,19 +335,19 @@ class OptionsDetector(ImgGenerator):
         
         return regionIds, countLines
 
-    def getRegionLabel(self, index):
+    def getRegionLabel(self, index: int) -> str:
         """
         TODO: describe method
         """
         return self.CLASS_REGION[index].replace("-", "_")
 
-    def getRegionLabels(self, indexes):
+    def getRegionLabels(self, indexes: List[int]) -> List[str]:
         """
         TODO: describe method
         """
         return [self.CLASS_REGION[index].replace("-", "_") for index in indexes]
 
-    def compile_train_generator(self, train_dir, target_size, batch_size=32):
+    def compile_train_generator(self, train_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
         """
         TODO: describe method
         """
@@ -368,9 +361,9 @@ class OptionsDetector(ImgGenerator):
         print("start train build")
         imageGenerator.build_data()
         print("end train build")
-        return  imageGenerator
+        return imageGenerator
 
-    def compile_test_generator(self, test_dir, target_size, batch_size=32):
+    def compile_test_generator(self, test_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
         """
         TODO: describe method
         """
@@ -383,4 +376,4 @@ class OptionsDetector(ImgGenerator):
         print("start test build")
         imageGenerator.build_data()
         print("end test build")
-        return  imageGenerator
+        return imageGenerator

@@ -1,15 +1,13 @@
-#Specify device
+# Specify device
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 # os.environ["CUDA_VISIBLE_DEVICES"] = ""  # For CPU inference
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import glob
 import matplotlib.image as mpimg
-import matplotlib.pyplot as plt
 import cv2
 import copy
 
@@ -35,7 +33,7 @@ for img in imgs:
         cv2.rectangle(img,
                       (int(targetBox[0]), int(targetBox[1])),
                       (int(targetBox[2]), int(targetBox[3])),
-                      (0,0,0),
+                      (0, 0, 0),
                       -1)
     cv2.imshow("Display window", img)
     k = cv2.waitKey(0)

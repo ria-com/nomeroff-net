@@ -1,7 +1,8 @@
 from .xx_xx import xx_xx
 
+
 class eu_ua_1995(xx_xx):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.STANDART = "#####@@"
         self.ALLOWED_LITERS = ["A", "B", "E", "I", "K", "M", "H", "O", "P", "C", "T", "X"]
@@ -11,8 +12,8 @@ class eu_ua_1995(xx_xx):
                 "Q": "0",
                 "D": "0",
                 "I": "1",
-                "Z": "2",#7
-                "S": "5",#8
+                "Z": "2",  # 7
+                "S": "5",  # 8
                 "T": "7",
                 "B": "8"
             },
@@ -33,6 +34,6 @@ class eu_ua_1995(xx_xx):
             }
         }
 
-    def find(self, text, strong=False):
+    def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
         return text

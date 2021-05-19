@@ -34,7 +34,7 @@ yum install gcc
 
 yum install git
 
-# Before "yum install ..." download https://libjpeg-turbo.org/pmwiki/uploads/Downloads/libjpeg-turbo.repo to /etc/yum.repos.d/ 
+# Before "yum install ..." download https://libjpeg-turbo.org/pmwiki/uploads/Downloads/libjpeg-turbo.repo to /etc/yum.repos.d/
 yum install libjpeg-turbo-official
 ```
 
@@ -77,6 +77,7 @@ Then, run `visualcppbuildtools_full.exe` and select default options:
 
 ## Hello Nomeroff Net
 ```python
+# Specify device
 import os
 
 # Specify device
@@ -192,10 +193,6 @@ for targetBox in targetBoxes:
     image_part = img[y:y + h, x:x + w]
     zones.append(image_part)
     regionNames.append('eu')
-
-# predict zones attributes 
-#regionIds, stateIds, countLines = optionsDetector.predict(zones)
-#regionNames = optionsDetector.getRegionLabels(regionIds)
     
 # find text with postprocessing by standart
 textArr = textDetector.predict(zones)

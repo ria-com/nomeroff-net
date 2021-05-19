@@ -1,15 +1,16 @@
 # load default packages
 import os
-import time
 import sys
 import pathlib
 import torch
 import numpy as np
+from typing import List
 
 # download and append to path yolo repo
 NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
-YOLOV5_DIR       = os.environ.get("YOLOV5_DIR", os.path.join(NOMEROFF_NET_DIR, 'yolov5'))
-YOLOV5_URL       = "https://github.com/ultralytics/yolov5.git"
+YOLOV5_DIR = os.environ.get("YOLOV5_DIR", os.path.join(NOMEROFF_NET_DIR, 'yolov5'))
+YOLOV5_URL = "https://github.com/ultralytics/yolov5.git"
+
 if not os.path.exists(YOLOV5_DIR):
     from git import Repo
     Repo.clone_from(YOLOV5_URL, YOLOV5_DIR)
@@ -28,38 +29,40 @@ from mcm.mcm import download_latest_model
 from mcm.mcm import get_mode_torch
 
 
-class Detector:
+class Detector(object):
     """
 
     """
     @classmethod
-    def get_classname(cls):
+    def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def loadModel(self,
-                 weights,
-                 device='cuda'):
+    def __init__(self) -> None:
+        self.model = None
+        self.device = "cpu"
+        self.half = False
+
+    def loadModel(self, weights: str, device: str = 'cuda') -> None:
         device = select_device(device)
         model = attempt_load(weights, map_location=device)  # load FP32 model
-        stride = int(model.stride.max())
         half = device.type != 'cpu'  # half precision only supported on CUDA
         if half:
             model.half()  # to FP16
         
-        self.model  = model
+        self.model = model
         self.device = device
-        self.half   = half
+        self.half = half
 
-    def load(self, path_to_model="latest"):
+    def load(self, path_to_model: str = "latest") -> None:
         if path_to_model == "latest":
-            model_info   = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
-            path_to_model   = model_info["path"]
+            model_info = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
+            path_to_model = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":
             device = "cuda"
         self.loadModel(path_to_model, device)
 
-    def detect_bbox(self, img, img_size=640, stride=32, min_accuracy=0.5):
+    def detect_bbox(self, img: np.ndarray, img_size: int = 640, stride: int = 32, min_accuracy: float = 0.5) -> List:
         """
         TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
         """
@@ -84,6 +87,6 @@ class Detector:
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], img_shape).round()
                 res.append(det.cpu().detach().numpy())
         if len(res):
-            return [[x1, y1, x2, y2, acc, b] for x1, y1, x2, y2, acc, b  in res[0] if acc > min_accuracy]
+            return [[x1, y1, x2, y2, acc, b] for x1, y1, x2, y2, acc, b in res[0] if acc > min_accuracy]
         else:
             return []

@@ -1,9 +1,12 @@
 import re
 import numpy as np
 import string
+from typing import List, Optional
 
-class xx_xx():
-    def __init__(self, standart = "", allowed_liters = string.ascii_letters, black_list=["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]):
+
+class xx_xx(object):
+    def __init__(self, standart: str = "", allowed_liters: str = string.ascii_letters,
+                 black_list: List[str] = ["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]) -> None:
         self.STANDART = self.check_pattern_standart(standart)
         self.ALLOWED_LITERS = allowed_liters
         self.BLACK_LIST = black_list
@@ -11,12 +14,12 @@ class xx_xx():
         self.REPLACEMENT = {
             "#": {
                 "I": "1",
-                "Z": "2",#7
+                "Z": "2",  # 7
                 "O": "0",
                 "Q": "0",
                 "B": "8",
                 "D": "0",
-                "S": "5",#8
+                "S": "5",  # 8
                 "T": "7"
             },
             "@": {
@@ -27,37 +30,39 @@ class xx_xx():
             }
         }
 
-    def delete_all_black_list_characters(self, text):
+    def delete_all_black_list_characters(self, text: str) -> str:
         reg = "[{}]".format("".join(self.BLACK_LIST))
-        return re.sub(re.compile(reg), "", text).replace("\\", "/").replace("\[", "|").replace("\]", "|") # replace hard
+        return re.sub(re.compile(reg), "", text)\
+                 .replace("\\", "/")\
+                 .replace("\[", "|").replace("\]", "|")
 
-    def check_pattern_standart(self, standart):
+    def check_pattern_standart(self, standart: str) -> str:
         if not re.match(r"^[#@]*$", standart):
             raise Exception("Standart {} not correct".format(standart))
         return standart
 
-    def check_is_str(self, text):
+    def check_is_str(self, text: str) -> str:
         if type(text) is not str:
             raise ValueError("{} is not str".format(text))
         return text
 
-    def findFully(self, text):
+    def findFully(self, text: str) -> Optional:
         reg = ""
         for item in self.STANDART:
             if item == "@":
-                reg = "{}[{}]".format(reg,"".join(self.ALLOWED_LITERS))
+                reg = "{}[{}]".format(reg, "".join(self.ALLOWED_LITERS))
             elif item == "#":
-                reg = "{}[{}]".format(reg,"".join(self.ALLOWED_NUMBERS))
+                reg = "{}[{}]".format(reg, "".join(self.ALLOWED_NUMBERS))
         reg_all = re.compile(reg)
         return re.search(reg_all, text)
 
-    def replace(self, text):
+    def replace(self, text: str) -> str:
         res = ""
         for i in np.arange(len(self.STANDART)):
+            l_dict = self.ALLOWED_LITERS
             if self.STANDART[i] == "#":
                 l_dict = self.ALLOWED_NUMBERS
-            elif self.STANDART[i] == "@":
-                l_dict = self.ALLOWED_LITERS
+
             if text[i] in l_dict:
                 res = "{}{}".format(res, text[i])
             else:
@@ -65,7 +70,7 @@ class xx_xx():
                 res = "{}{}".format(res, replace_l)
         return res
 
-    def findSimilary(self, text):
+    def findSimilary(self, text: str) -> str:
         vcount = len(text) - len(self.STANDART) + 1
         reg = ""
         for item in self.STANDART:
@@ -85,7 +90,7 @@ class xx_xx():
                 return self.replace(match.group(0))
         return text
 
-    def find(self, text, strong=True):
+    def find(self, text: str, strong: bool = True) -> str:
         text = self.check_is_str(text)
         text = self.delete_all_black_list_characters(text)
         text = text.upper()
@@ -95,7 +100,7 @@ class xx_xx():
 
         if len(self.STANDART):
             match = self.findFully(text)
-            if match :
+            if match:
                 return match.group(0)
 
         if not strong:

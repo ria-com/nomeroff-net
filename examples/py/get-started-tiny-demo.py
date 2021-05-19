@@ -5,7 +5,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import cv2
 
@@ -15,7 +14,6 @@ NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # Import license plate recognition tools.
-from NomeroffNet.BBoxNpPoints import getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
 from NomeroffNet.YoloV5Detector import Detector
 detector = Detector()
 detector.load()
