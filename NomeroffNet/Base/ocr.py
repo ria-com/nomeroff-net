@@ -135,7 +135,8 @@ class OCR(BaseOCR):
                   .format(type(self).__name__)][0])
             break
 
-    def ctc_lambda_func(self, y_pred: np.ndarray, labels: list, input_length: int, label_length: int) -> np.ndarray:
+    def ctc_lambda_func(self, args: list) -> np.ndarray:
+        y_pred, labels, input_length, label_length = args
         # the 2 is critical here since the first couple outputs of the RNN
         # tend to be garbage:
         y_pred = y_pred[:, 2:, :]
