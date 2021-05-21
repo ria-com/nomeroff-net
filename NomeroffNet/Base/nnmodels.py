@@ -20,13 +20,13 @@ class NPOptionsNet(nn.Module):
         self.pool = nn.MaxPool2d(2, 2)
         
         self.dropout_reg = nn.Dropout(0.2)
-        self.fc1_reg = nn.Linear(128 * 2 * 10, 512)
+        self.fc1_reg = nn.Linear(128 * 2 * 16, 512)
         self.fc2_reg = nn.Linear(512, 256)
         self.batch_norm_reg = nn.BatchNorm1d(512)
         self.fc3_reg = nn.Linear(256, 14)
         
         self.dropout_line = nn.Dropout(0.2)
-        self.fc1_line = nn.Linear(128 * 2 * 10, 512)
+        self.fc1_line = nn.Linear(128 * 2 * 16, 512)
         self.fc2_line = nn.Linear(512, 256)
         self.batch_norm_line = nn.BatchNorm1d(512)
         self.fc3_line = nn.Linear(256, 4)
