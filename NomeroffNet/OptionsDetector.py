@@ -56,7 +56,7 @@ class OptionsDetector(ImgGenerator):
         """
         # input
         self.HEIGHT = 64
-        self.WEIGHT = 192
+        self.WEIGHT = 295
         self.COLOR_CHANNELS = 3
 
         # outputs 1
@@ -80,6 +80,9 @@ class OptionsDetector(ImgGenerator):
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
+
+    def get_class_region_all():
+        return CLASS_REGION_ALL
 
     def create_model(self) -> NPOptionsNet:
         """
@@ -297,9 +300,7 @@ class OptionsDetector(ImgGenerator):
             path_to_model = model_info["path"]
             options["class_region"] = model_info["class_region"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995",
-                                                         "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr",
-                                                         "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
+        self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
         if mode_torch == "gpu":
             self.MODEL.load_state_dict(torch.load(path_to_model))
