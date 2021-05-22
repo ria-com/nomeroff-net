@@ -41,8 +41,8 @@ latest_models = {
           "kg",
           "am"
         ],
-        "gpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_22.pb",
-        "cpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_22.pb"
+        "gpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pb",
+        "cpu": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pb"
       }
     }
   },
