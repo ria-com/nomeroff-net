@@ -62,11 +62,11 @@ class OptionsDetector(ImgGenerator):
         self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
         # outputs 2
-        self.CLASS_STATE = options.get("class_state", [
-            "garbage",
-            "filled",
-            "not filled",
-            "empty"
+        self.COUNT_LINES = options.get("count_lines", [
+            0,
+            1,
+            2,
+            3
         ])
 
         # model
@@ -84,7 +84,7 @@ class OptionsDetector(ImgGenerator):
         """
         TODO: describe method
         """
-        self.MODEL = NPOptionsNet(len(self.CLASS_REGION), len(self.CLASS_STATE), self.HEIGHT, self.WEIGHT)
+        self.MODEL = NPOptionsNet(len(self.CLASS_REGION), len(self.COUNT_LINES), self.HEIGHT, self.WEIGHT)
         if mode_torch == "gpu":
             self.MODEL = self.MODEL.cuda()
         return self.MODEL
