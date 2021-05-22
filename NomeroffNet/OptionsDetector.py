@@ -82,7 +82,7 @@ class OptionsDetector(ImgGenerator):
         """
         TODO: describe method
         """
-        self.MODEL = NPOptionsNet(self.HEIGHT, self.WEIGHT)
+        self.MODEL = NPOptionsNet(len(self.CLASS_REGION), len(self.CLASS_STATE), self.HEIGHT, self.WEIGHT)
         if mode_torch == "gpu":
             self.MODEL = self.MODEL.cuda()
         return self.MODEL
