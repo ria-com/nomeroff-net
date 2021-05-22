@@ -4,6 +4,7 @@ from shutil import copyfile
 custom_options_dirs = ['train', 'val', 'test']
 custom_options_sub_dirs = ['ann', 'img']
 
+
 def make_convertor(class_region_all):
     convertor = {}
     convertor_idx = {}
@@ -11,6 +12,7 @@ def make_convertor(class_region_all):
         convertor[className] = int(i)
         convertor_idx[int(i)] = className
     return convertor, convertor_idx
+
 
 def prepare_custom_dir(dirpath_custom):
     if not os.path.exists(dirpath_custom):
@@ -69,7 +71,7 @@ class CustomOptionsMaker:
         all_region_id = jsonData['region_id']
         custom_region_id = self.converter_custom[custom_region_name]
         jsonData['region_id'] = custom_region_id
-        print('{} {} -> custom_region_id {} -> {}'.format(jsonData['name'], custom_region_name, all_region_id, custom_region_id))
+        #print('{} {} -> custom_region_id {} -> {}'.format(jsonData['name'], custom_region_name, all_region_id, custom_region_id))
 
         with open(ann_file_to, "w", encoding='utf8') as jsonWF:
             json.dump(jsonData, jsonWF, ensure_ascii=False)

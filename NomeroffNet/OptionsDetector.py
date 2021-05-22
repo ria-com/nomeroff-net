@@ -81,7 +81,7 @@ class OptionsDetector(ImgGenerator):
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def get_class_region_all():
+    def get_class_region_all() -> List:
         return CLASS_REGION_ALL
 
     def create_model(self) -> NPOptionsNet:
