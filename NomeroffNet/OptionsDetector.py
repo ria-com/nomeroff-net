@@ -34,6 +34,7 @@ CLASS_REGION_ALL = [
             "am"
         ]
 
+
 def imshow(img: np.ndarray) -> None:
     """
     # functions to show an image
@@ -214,8 +215,7 @@ class OptionsDetector(ImgGenerator):
                     g_acc_reg = 0
                     g_acc_line = 0
             # validation
-            val_acc, val_acc_reg, val_acc_line \
-                            = self.test(testGenerator=validationGenerator, verbose=0)
+            val_acc, val_acc_reg, val_acc_line = self.test(testGenerator=validationGenerator, verbose=False)
             print(f'[VALIDATION {epoch + 1}]',
                   f'val_acc: {val_acc} '
                   f'val_acc_reg: {val_acc_reg} '
@@ -230,7 +230,7 @@ class OptionsDetector(ImgGenerator):
         print('Finished Training')
         return self.MODEL
 
-    def test(self, testGenerator: ImgGenerator = None, verbose: bool = True) -> Tuple[Any]:
+    def test(self, testGenerator: ImgGenerator = None, verbose: bool = True) -> Tuple:
         """
         TODO: describe method
         """
@@ -349,7 +349,7 @@ class OptionsDetector(ImgGenerator):
         """
         return [self.CLASS_REGION[index].replace("-", "_") for index in indexes]
 
-    def compile_train_generator(self, train_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
+    def compile_train_generator(self, train_dir: str, target_size: Tuple, batch_size: int = 32) -> ImgGenerator:
         """
         TODO: describe method
         """
@@ -365,7 +365,7 @@ class OptionsDetector(ImgGenerator):
         print("end train build")
         return imageGenerator
 
-    def compile_test_generator(self, test_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
+    def compile_test_generator(self, test_dir: str, target_size: Tuple, batch_size: int = 32) -> ImgGenerator:
         """
         TODO: describe method
         """
