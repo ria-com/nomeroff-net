@@ -16,6 +16,23 @@ from ImgGenerator import ImgGenerator
 
 mode_torch = get_mode_torch()
 
+CLASS_REGION_ALL = [
+            "xx-unknown",
+            "eu-ua-2015",
+            "eu-ua-2004",
+            "eu-ua-1995",
+            "eu",
+            "xx-transit",
+            "ru",
+            "kz",
+            "eu-ua-ordlo-dpr",
+            "eu-ua-ordlo-lpr",
+            "ge",
+            "by",
+            "su",
+            "kg",
+            "am"
+        ]
 
 def imshow(img: np.ndarray) -> None:
     """
@@ -42,22 +59,7 @@ class OptionsDetector(ImgGenerator):
         self.COLOR_CHANNELS = 3
 
         # outputs 1
-        self.CLASS_REGION = options.get("class_region", [
-            "xx-unknown",
-            "eu-ua-2015",
-            "eu-ua-2004",
-            "eu-ua-1995",
-            "eu",
-            "xx-transit",
-            "ru",
-            "kz",
-            "eu-ua-ordlo-dpr",
-            "eu-ua-ordlo-lpr",
-            "ge",
-            "by",
-            "su",
-            "kg"
-        ])
+        self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
         # outputs 2
         self.CLASS_STATE = options.get("class_state", [
