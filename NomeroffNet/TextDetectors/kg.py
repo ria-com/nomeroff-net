@@ -1,7 +1,7 @@
 from Base import OCR
 
 
-class kg(OCR):
+class Kg(OCR):
     def __init__(self) -> None:
         OCR.__init__(self)
         self.letters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -11,3 +11,6 @@ class kg(OCR):
         self.max_text_len = 8
         self.letters_max = len(self.letters)+1
         self.label_length = 32 - 2
+
+
+kg = Kg()

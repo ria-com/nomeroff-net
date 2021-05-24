@@ -1,7 +1,7 @@
-from .xx_xx import xx_xx
+from .xx_xx import XxXx
 
 
-class eu_ua_1995(xx_xx):
+class EuUa1995(XxXx):
     def __init__(self) -> None:
         super().__init__()
         self.STANDART = "#####@@"
@@ -37,3 +37,6 @@ class eu_ua_1995(xx_xx):
     def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
         return text
+
+
+eu_ua_1995 = EuUa1995()

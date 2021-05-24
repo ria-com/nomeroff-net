@@ -14,7 +14,10 @@ class TextDetector(object):
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def __init__(self, prisets: Dict = {}, mode: str = "auto") -> None:
+    def __init__(self, prisets: Dict = None, mode: str = "auto") -> None:
+        if prisets is None:
+            prisets = {}
+
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
@@ -30,8 +33,7 @@ class TextDetector(object):
             _label = prisetName
             if _label not in dir(TextDetectors):
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
-            TextPostprocessing = getattr(getattr(TextDetectors, _label), _label)
-            detector = TextPostprocessing()
+            detector = getattr(getattr(TextDetectors, _label), _label)
             
             if priset['model_path'] == "latest" or priset['model_path'].split(".")[-1] == "h5":
                 detector.load(priset['model_path'], mode)

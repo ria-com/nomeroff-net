@@ -1,8 +1,8 @@
-from .xx_xx import xx_xx
+from .xx_xx import XxXx
 import string
 
 
-class ge(xx_xx):
+class Ge(XxXx):
     def __init__(self) -> None:
         super().__init__()
         self.ALLOWED_LITERS = [x for x in string.ascii_letters]
@@ -25,3 +25,6 @@ class ge(xx_xx):
                         newtext += text[i]
                 return newtext
         return text
+
+
+ge = Ge()

@@ -35,6 +35,14 @@ class OCR(BaseOCR):
     def __init__(self) -> None:
         BaseOCR.__init__(self)
 
+        # init model params
+        self.MODEL = None
+        self.PB_MODEL = None
+        self.tiger_train = None
+        self.tiger_val = None
+        self.tiger_test = None
+        self.CALLBACKS_LIST = []
+
         # Input parameters
         self.IMG_H = 64
         self.IMG_W = 128
@@ -60,7 +68,8 @@ class OCR(BaseOCR):
         self.REDUCE_LRO_N_PLATEAU_PATIENCE = 3
         self.REDUCE_LRO_N_PLATEAU_FACTOR = 0.1
 
-    def get_counter(self, dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
+    @staticmethod
+    def get_counter(dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
         dirname = os.path.basename(dirpath)
         ann_dirpath = join(dirpath, 'ann')
         letters = ''
@@ -106,8 +115,8 @@ class OCR(BaseOCR):
             print('Letters:', ' '.join(self.letters))
         return self.letters, self.max_text_len
 
-    def explainTextGenerator(self, train_dir: str, letters: list,
-                             max_plate_length: int, verbose: bool = True) -> None:
+    def explain_text_generator(self, train_dir: str, letters: list,
+                               max_plate_length: int) -> None:
         tiger = TextImageGenerator(train_dir, self.IMG_W, self.IMG_H, 1, self.POOL_SIZE * self.POOL_SIZE,
                                    letters, max_plate_length, cname=type(self).__name__)
         tiger.build_data()
@@ -119,13 +128,11 @@ class OCR(BaseOCR):
                 img = inp['the_input_{}'.format(type(self).__name__)][0, 0, :, :]
             else:
                 img = inp['the_input_{}'.format(type(self).__name__)][0, :, :, 0]
-            
-            try:
-                import matplotlib.pyplot as plt
-                plt.imshow(img.T, cmap='gray')
-                plt.show()
-            except Exception:
-                print("[WARN]", "Can not display image")
+
+            import matplotlib.pyplot as plt
+            plt.imshow(img.T, cmap='gray')
+            plt.show()
+
             print('2) the_labels (plate number): %s is encoded as %s' %
                   (tiger.labels_to_text(inp['the_labels_{}'.format(type(self).__name__)][0]),
                    list(map(int, inp['the_labels_{}'.format(type(self).__name__)][0]))))
@@ -135,7 +142,8 @@ class OCR(BaseOCR):
                   .format(type(self).__name__)][0])
             break
 
-    def ctc_lambda_func(self, args: list) -> np.ndarray:
+    @staticmethod
+    def ctc_lambda_func(args: list) -> np.ndarray:
         y_pred, labels, input_length, label_length = args
         # the 2 is critical here since the first couple outputs of the RNN
         # tend to be garbage:
@@ -164,9 +172,9 @@ class OCR(BaseOCR):
                                                        input_name=self.MODEL.layers[0].name,
                                                        output_name=self.MODEL.layers[-1].name):
             bs = inp_value['the_input_{}'.format(type(self).__name__)].shape[0]
-            X_data = inp_value['the_input_{}'.format(type(self).__name__)]
+            x_data = inp_value['the_input_{}'.format(type(self).__name__)]
             
-            net_out_value = self.MODEL.predict(np.array(X_data))
+            net_out_value = self.MODEL.predict(np.array(x_data))
             pred_texts = self.decode_batch(net_out_value)
             
             labels = inp_value['the_labels_{}'.format(type(self).__name__)]
@@ -195,8 +203,8 @@ class OCR(BaseOCR):
         err_c = 0
         succ_c = 0
         for X_data, labels in self.tiger_test.next_batch_pb(random_state):
-            tensorX = tf.convert_to_tensor(np.array(X_data).astype(np.float32))
-            net_out_value = self.PB_MODEL(tensorX)[self.OUTPUT_NODE]
+            tensor_x = tf.convert_to_tensor(np.array(X_data).astype(np.float32))
+            net_out_value = self.PB_MODEL(tensor_x)[self.OUTPUT_NODE]
             pred_texts = self.decode_batch(net_out_value)
             
             texts = []
@@ -218,32 +226,32 @@ class OCR(BaseOCR):
         print("acc: {}".format(succ_c/(err_c+succ_c)))
 
     def predict(self, imgs: List, return_acc: bool = False) -> Any:
-        Xs = []
+        xs = []
         for img in imgs:
             x = self.normalize(img)
-            Xs.append(x)
+            xs.append(x)
         pred_texts = []
         net_out_value = []
-        if bool(Xs):
-            if len(Xs) == 1:
-                net_out_value = self.MODEL.predict_on_batch(np.array(Xs))
+        if bool(xs):
+            if len(xs) == 1:
+                net_out_value = self.MODEL.predict_on_batch(np.array(xs))
             else:
-                net_out_value = self.MODEL(np.array(Xs), training=False)
+                net_out_value = self.MODEL(np.array(xs), training=False)
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
             return pred_texts, net_out_value
         return pred_texts
     
     def predict_pb(self, imgs: List, return_acc: bool = False) -> Any:
-        Xs = []
+        xs = []
         for img in imgs:
             x = self.normalize_pb(img)
-            Xs.append(x)
+            xs.append(x)
         pred_texts = []
         net_out_value = []
-        if bool(Xs):
-            tensorX = tf.convert_to_tensor(np.array(Xs).astype(np.float32))
-            net_out_value = self.PB_MODEL(tensorX)[self.OUTPUT_NODE]
+        if bool(xs):
+            tensor_x = tf.convert_to_tensor(np.array(xs).astype(np.float32))
+            net_out_value = self.PB_MODEL(tensor_x)[self.OUTPUT_NODE]
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
             return pred_texts, net_out_value
@@ -266,7 +274,7 @@ class OCR(BaseOCR):
 
         return self.MODEL
     
-    def load_pb(self, model_dir: str, mode: str = "cpu", verbose: bool = False) -> tf.Tensor:
+    def load_pb(self, model_dir: str) -> tf.Tensor:
         pb_model = tf.saved_model.load(model_dir)
         self.PB_MODEL = pb_model.signatures["serving_default"]
         return self.PB_MODEL
@@ -283,7 +291,7 @@ class OCR(BaseOCR):
 
         if verbose:
             print("\nEXPLAIN DATA TRANSFORMATIONS")
-            self.explainTextGenerator(train_path, self.letters, max_plate_length)
+            self.explain_text_generator(train_path, self.letters, max_plate_length)
 
         if verbose:
             print("START BUILD DATA")
@@ -398,10 +406,10 @@ class OCR(BaseOCR):
             model = Model(inputs=[input_data, labels, input_length, label_length], outputs=loss_out)
 
         # the loss calc occurs elsewhere, so use a dummy lambda func for the loss
-        model.compile(loss={'{}'.format(model.layers[-1].name): lambda y_true, y_pred: y_pred}, optimizer=adam)
+        model.compile(loss={'{}'.format(model.layers[-1].name): lambda y_true, y_predict: y_predict}, optimizer=adam)
 
         # captures output of softmax so we can decode the output during visualization
-        test_func = backend.function([input_data], [y_pred])
+        _ = backend.function([input_data], [y_pred])
         
         # traine callbacks
         self.CALLBACKS_LIST = [

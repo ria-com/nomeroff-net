@@ -1,8 +1,8 @@
-from .xx_xx import xx_xx
+from .xx_xx import XxXx
 import operator
 
 
-class eu_ua_2004(xx_xx):
+class EuUa2004(XxXx):
     def __init__(self) -> None:
         super().__init__()
         self.STANDART = "@@####@@"
@@ -78,7 +78,7 @@ class eu_ua_2004(xx_xx):
              'KH': 0
         }
 
-    def doStatAnal(self, text: str) -> str:
+    def do_stat_anal(self, text: str) -> str:
         if len(text) < 2 or text[:2] in self.STAT:
             return text
         v = {}
@@ -101,4 +101,7 @@ class eu_ua_2004(xx_xx):
 
     def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
-        return self.doStatAnal(text)
+        return self.do_stat_anal(text)
+
+
+eu_ua_2004 = EuUa2004()

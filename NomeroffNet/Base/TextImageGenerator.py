@@ -109,7 +109,22 @@ class TextImageGenerator(BaseOCR):
             self.cur_index = 0
             if is_random:
                 random.shuffle(self.indexes)
-        return self.imgs[self.indexes[self.cur_index]], self.texts[self.indexes[self.cur_index]]
+        img = self.imgs[self.indexes[self.cur_index]]
+        labels = self.texts[self.indexes[self.cur_index]]
+        img = img.T
+        if backend.image_data_format() == 'channels_first':
+            img = np.expand_dims(img, 0)
+        else:
+            img = np.expand_dims(img, -1)
+        return img, labels
+
+    def init_xs_ys(self):
+        if backend.image_data_format() == 'channels_first':
+            x_data = np.ones([self.batch_size, 1, self.img_w, self.img_h])
+        else:
+            x_data = np.ones([self.batch_size, self.img_w, self.img_h, 1])
+        y_data = np.ones([self.batch_size, self.max_text_len])
+        return x_data, y_data
 
     def next_batch(self, is_random: int = 1, input_name: str = None, output_name: str = "ctc") -> Tuple:
         if not input_name:
@@ -117,34 +132,21 @@ class TextImageGenerator(BaseOCR):
         while True:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
-            if backend.image_data_format() == 'channels_first':
-                x_data = np.ones([self.batch_size, 1, self.img_w, self.img_h])
-            else:
-                x_data = np.ones([self.batch_size, self.img_w, self.img_h, 1])
-
-            y_data = np.ones([self.batch_size, self.max_text_len])
+            x_data, y_data = self.init_xs_ys()
             input_length = np.ones((self.batch_size, 1)) * (self.img_w // self.downsample_factor - 2)
             label_length = np.zeros((self.batch_size, 1))
-            source_str = []
 
             for i in range(self.batch_size):
                 img, text = self.next_sample(is_random)
-                img = img.T
-                if backend.image_data_format() == 'channels_first':
-                    img = np.expand_dims(img, 0)
-                else:
-                    img = np.expand_dims(img, -1)
                 x_data[i] = img
                 y_data[i] = np.array(self.text_to_labels(text))
-                source_str.append(text)
                 label_length[i] = len(text)
 
             inputs = {
                 '{}'.format(input_name): x_data,
                 'the_labels_{}'.format(self.CNAME): y_data,
                 'input_length_{}'.format(self.CNAME): input_length,
-                'label_length_{}'.format(self.CNAME): label_length,
-                # 'source_str': source_str
+                'label_length_{}'.format(self.CNAME): label_length
             }
             outputs = {'{}'.format(output_name): np.zeros([self.batch_size])}
             yield inputs, outputs
@@ -153,28 +155,12 @@ class TextImageGenerator(BaseOCR):
         while True:
             # width and height are backwards from typical Keras convention
             # because width is the time dimension when it gets fed into the RNN
-            if backend.image_data_format() == 'channels_first':
-                x_data = np.ones([self.batch_size, 1, self.img_w, self.img_h])
-            else:
-                x_data = np.ones([self.batch_size, self.img_w, self.img_h, 1])
+            x_data, y_data = self.init_xs_ys()
 
-            y_data = np.ones([self.batch_size, self.max_text_len])
-            label_length = np.zeros((self.batch_size, 1))
-            source_str = []
-
-            labels = []
             for i in range(self.batch_size):
                 img, text = self.next_sample(is_random)
-                img = img.T
-                if backend.image_data_format() == 'channels_first':
-                    img = np.expand_dims(img, 0)
-                else:
-                    img = np.expand_dims(img, -1)
                 x_data[i] = img
                 y_data[i] = np.array(self.text_to_labels(text))
-                source_str.append(text)
-                label_length[i] = len(text)
-                labels.append(text)
 
             inputs = x_data
             outputs = y_data

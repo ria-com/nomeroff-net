@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple
 import numpy as np
 
 import torch
