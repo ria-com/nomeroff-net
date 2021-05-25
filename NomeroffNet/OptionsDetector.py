@@ -209,7 +209,7 @@ class OptionsDetector(ImgGenerator):
                     g_acc_reg = 0
                     g_acc_line = 0
             # validation
-            val_acc, val_acc_reg, val_acc_line = self.test(testGenerator=validationGenerator, verbose=False)
+            val_acc, val_acc_reg, val_acc_line = self.test(test_generator=validationGenerator, verbose=False)
             print(f'[VALIDATION {epoch + 1}]',
                   f'val_acc: {val_acc} '
                   f'val_acc_reg: {val_acc_reg} '
