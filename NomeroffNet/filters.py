@@ -17,10 +17,10 @@ def draw_box(image: np.ndarray, boxs: List[np.ndarray],
 
 
 def gamma_lut(img: np.ndarray, gamma: float = 0.5) -> None:
-    lookUpTable = np.empty((1, 256), np.uint8)
+    look_up_table = np.empty((1, 256), np.uint8)
     for i in range(256):
-        lookUpTable[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
-    _ = cv2.LUT(img, lookUpTable)
+        look_up_table[0, i] = np.clip(pow(i / 255.0, gamma) * 255.0, 0, 255)
+    _ = cv2.LUT(img, look_up_table)
 
 
 async def cv_one_img_mask_async(nn: Dict) -> List[np.ndarray]:

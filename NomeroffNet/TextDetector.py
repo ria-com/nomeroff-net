@@ -49,9 +49,13 @@ class TextDetector(object):
 
     def predict(self,
                 zones: List[np.ndarray],
-                labels: List[str] = [],
-                lines: List[int] = [],
+                labels: List[str] = None,
+                lines: List[int] = None,
                 return_acc: bool = False) -> List:
+        if labels is None:
+            labels = []
+        if lines is None:
+            lines = []
 
         while len(labels) < len(zones):
             labels.append(self.DEFAULT_LABEL)
@@ -61,8 +65,8 @@ class TextDetector(object):
         zones = np_split(zones, lines)
         predicted = {}
 
-        orderAll = []
-        resAll = []
+        order_all = []
+        res_all = []
         i = 0
         scores = []
         for zone, label in zip(zones, labels):
@@ -73,27 +77,27 @@ class TextDetector(object):
                 predicted[detector]["zones"].append(zone)
                 predicted[detector]["order"].append(i)
             else:
-                resAll.append("")
-                orderAll.append(i)
+                res_all.append("")
+                order_all.append(i)
                 scores.append([])
             i += 1
 
         for key in predicted.keys():
             if return_acc:
-                buffRes, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
-                resAll = resAll + buffRes
+                buff_res, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+                res_all = res_all + buff_res
                 scores = scores + list(acc)
             else:
                 
-                resAll = resAll + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
-            orderAll = orderAll + predicted[key]["order"]
+                res_all = res_all + self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)
+            order_all = order_all + predicted[key]["order"]
 
         if return_acc:
             return [
-                [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])],
-                [x for _, x in sorted(zip(orderAll, scores), key=lambda pair: pair[0])]
+                [x for _, x in sorted(zip(order_all, res_all), key=lambda pair: pair[0])],
+                [x for _, x in sorted(zip(order_all, scores), key=lambda pair: pair[0])]
             ]
-        return [x for _, x in sorted(zip(orderAll, resAll), key=lambda pair: pair[0])]
+        return [x for _, x in sorted(zip(order_all, res_all), key=lambda pair: pair[0])]
 
     @staticmethod
     def get_static_module(name: str) -> object:

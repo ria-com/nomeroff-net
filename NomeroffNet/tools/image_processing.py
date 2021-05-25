@@ -49,14 +49,14 @@ def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
     x2 = float(p1[0])
     y2 = float(p1[1])
 
-    A = y1 - y2
-    B = x2 - x1
-    C = x2*y1-x1*y2
+    matrix_a = y1 - y2
+    matrix_b = x2 - x1
+    matrix_c = x2*y1-x1*y2
     if verbode:
         print("Уравнение прямой, проходящей через эти точки:")
-        print("%.4f*x + %.4fy = %.4f" % (A, B, C))
-        print(A, B, C)
-    return [A, B, C]
+        print("%.4f*x + %.4fy = %.4f" % (matrix_a, matrix_b, matrix_c))
+        print(matrix_a, matrix_b, matrix_c)
+    return [matrix_a, matrix_b, matrix_c]
 
 
 def findDistances(points: List) -> List:
@@ -86,8 +86,8 @@ def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     h = int(h)
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
-    M = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, M, (w, h))
+    moment = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(img, moment, (w, h))
 
 
 def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,

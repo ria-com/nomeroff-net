@@ -483,37 +483,39 @@ def addPointOffsets(points: List, dx: float, dy: float) -> List:
     ]
 
 
-def makeRectVariants(propablyPoints: List, qualityProfile: List = [3, 1, 0]) -> List:
+def makeRectVariants(propably_points: List, quality_profile: List = None) -> List:
     """
     TODO: describe function
     """
-    pointsArr = []
+    if quality_profile is None:
+        quality_profile = [3, 1, 0]
+    points_arr = []
 
-    distanses = findDistances(propablyPoints)
+    distanses = findDistances(propably_points)
 
     if distanses[0]['coef'][2] == 90:
-        pointsArr.append(propablyPoints)
-        return pointsArr
+        points_arr.append(propably_points)
+        return points_arr
 
-    pointCentreLeft = [propablyPoints[0][0] + (propablyPoints[1][0] - propablyPoints[0][0]) / 2,
-                       propablyPoints[0][1] + (propablyPoints[1][1] - propablyPoints[0][1]) / 2]
+    point_centre_left = [propably_points[0][0] + (propably_points[1][0] - propably_points[0][0]) / 2,
+                       propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
 
-    pointBottomLeft = [pointCentreLeft[0], getYByMatrix(distanses[3]["matrix"], pointCentreLeft[0])]
+    point_bottom_left = [point_centre_left[0], getYByMatrix(distanses[3]["matrix"], point_centre_left[0])]
 
-    dx = propablyPoints[0][0] - pointBottomLeft[0]
-    dy = propablyPoints[0][1] - pointBottomLeft[1]
+    dx = propably_points[0][0] - point_bottom_left[0]
+    dy = propably_points[0][1] - point_bottom_left[1]
 
-    steps = qualityProfile[0]
-    stepsPlus = qualityProfile[1]
-    stepsMinus = qualityProfile[2]
+    steps = quality_profile[0]
+    steps_plus = quality_profile[1]
+    steps_minus = quality_profile[2]
 
-    dxStep = dx / steps
-    dyStep = dy / steps
+    dx_step = dx / steps
+    dy_step = dy / steps
 
-    pointsArr = []
-    for i in range(-stepsMinus, steps + stepsPlus + 1):
-        pointsArr.append(addPointOffsets(propablyPoints, i * dxStep, i * dyStep))
-    return pointsArr
+    points_arr = []
+    for i in range(-steps_minus, steps + steps_plus + 1):
+        points_arr.append(addPointOffsets(propably_points, i * dx_step, i * dy_step))
+    return points_arr
 
 
 def normalizePerspectiveImages(images: List[np.ndarray]) -> List[np.ndarray]:
@@ -597,13 +599,17 @@ class NpPointsCraft(object):
             self.refine_net.eval()
             self.is_poly = True
 
-    def detectByImagePath(self, image_path: str, targetBoxes: List[Dict], qualityProfile: List = [1, 0, 0],
-                          debug: bool = False) -> Tuple[List[Dict], Any]:
+    def detectByImagePath(self,
+                          image_path: str,
+                          target_boxes: List[Dict],
+                          qualityProfile: List = None) -> Tuple[List[Dict], Any]:
         """
         TODO: describe method
         """
+        if qualityProfile is None:
+            qualityProfile = [1, 0, 0]
         image = imgproc.loadImage(image_path)
-        for targetBox in targetBoxes:
+        for targetBox in target_boxes:
             x = min(targetBox['x1'], targetBox['x2'])
             w = abs(targetBox['x2'] - targetBox['x1'])
             y = min(targetBox['y1'], targetBox['y2'])
@@ -624,13 +630,14 @@ class NpPointsCraft(object):
                     targetBox['imgParts'] = imgParts
                 else:
                     targetBox['points'] = targetPointsVariants[0]
-        return targetBoxes, image
+        return target_boxes, image
 
-    def detect(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = [1, 0, 0],
-               debug: bool = False) -> List:
+    def detect(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = None) -> List:
         """
         TODO: describe method
         """
+        if qualityProfile is None:
+            qualityProfile = [1, 0, 0]
         all_points = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))

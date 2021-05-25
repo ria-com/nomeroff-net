@@ -50,10 +50,13 @@ class OptionsDetector(ImgGenerator):
     """
     TODO: describe class
     """
-    def __init__(self, options: Dict = {}) -> None:
+    def __init__(self, options: Dict = None) -> None:
         """
         TODO: describe __init__
         """
+        if options is None:
+            options = dict()
+
         # input
         self.HEIGHT = 64
         self.WEIGHT = 295
@@ -77,10 +80,15 @@ class OptionsDetector(ImgGenerator):
         self.BATCH_SIZE = 64
         self.EPOCHS = 100
 
+        self.train_generator = None
+        self.validation_generator = None
+        self.test_generator = None
+
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
 
+    @staticmethod
     def get_class_region_all() -> List:
         return CLASS_REGION_ALL
 
@@ -105,26 +113,9 @@ class OptionsDetector(ImgGenerator):
         test_dir = os.path.join(base_dir, 'test')
 
         # compile generators
-        self.train_generator = self.compile_train_generator(
-            train_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
-
-        self.validation_generator = self.compile_test_generator(
-            validation_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
-
-        self.test_generator = self.compile_test_generator(
-            test_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
+        self.train_generator = self.compile_train_generator(train_dir)
+        self.validation_generator = self.compile_test_generator(validation_dir)
+        self.test_generator = self.compile_test_generator(test_dir)
 
         if verbose:
             print("DATA PREPARED")
@@ -233,17 +224,17 @@ class OptionsDetector(ImgGenerator):
         print('Finished Training')
         return self.MODEL
 
-    def test(self, testGenerator: ImgGenerator = None, verbose: bool = True) -> Tuple:
+    def test(self, test_generator: ImgGenerator = None) -> Tuple:
         """
         TODO: describe method
         """
-        if testGenerator is None:
-            testGenerator = self.test_generator.generator()
+        if test_generator is None:
+            test_generator = self.test_generator.generator()
         all_acc = 0
         all_acc_reg = 0
         all_acc_line = 0
         n = 0
-        for i, data in enumerate(testGenerator, 0):
+        for i, data in enumerate(test_generator, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
 
@@ -290,10 +281,12 @@ class OptionsDetector(ImgGenerator):
             return False
         return True
 
-    def load(self, path_to_model: str = "latest", options: Dict = {}) -> NPOptionsNet:
+    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
         TODO: describe method
         """
+        if options is None:
+            options = dict()
         self.create_model()
         if path_to_model == "latest":
             model_info = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
@@ -350,7 +343,7 @@ class OptionsDetector(ImgGenerator):
         """
         return [self.CLASS_REGION[index].replace("-", "_") for index in indexes]
 
-    def compile_train_generator(self, train_dir: str, target_size: Tuple, batch_size: int = 32) -> ImgGenerator:
+    def compile_train_generator(self, train_dir: str) -> ImgGenerator:
         """
         TODO: describe method
         """
@@ -366,17 +359,17 @@ class OptionsDetector(ImgGenerator):
         print("end train build")
         return imageGenerator
 
-    def compile_test_generator(self, test_dir: str, target_size: Tuple, batch_size: int = 32) -> ImgGenerator:
+    def compile_test_generator(self, test_dir: str) -> ImgGenerator:
         """
         TODO: describe method
         """
-        imageGenerator = ImgGenerator(
+        image_generator = ImgGenerator(
             test_dir,
             self.WEIGHT,
             self.HEIGHT,
             self.BATCH_SIZE,
             [len(self.CLASS_REGION), len(self.CLASS_COUNT_LINE)])
         print("start test build")
-        imageGenerator.build_data()
+        image_generator.build_data()
         print("end test build")
-        return imageGenerator
+        return image_generator
