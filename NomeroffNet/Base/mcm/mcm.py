@@ -59,6 +59,17 @@ def download_url(url: str, output_path: str) -> None:
         urllib.request.urlretrieve(url, filename=output_path, reporthook=t.update_to)
 
 
+def download_model(url: str, detector: str, model_name: str) -> Dict:
+    info = dict()
+    info["path"] = os.path.join(MODEL_STORAGE_DIR, "./models", detector, model_name, os.path.basename(url))
+
+    p = pathlib.Path(os.path.dirname(info["path"]))
+    p.mkdir(parents=True, exist_ok=True)
+    if not os.path.exists(info["path"]):
+        download_url(url, info['path'])
+    return info
+
+
 def download_latest_model(detector: str, model_name: str, ext: str = "h5", mode: str = None) -> Dict:
     mode = mode or get_mode()
     if mode != "cpu" and mode != "gpu":
