@@ -9,7 +9,8 @@ import torch.nn as nn
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm.mcm import download_latest_model
+from mcm.mcm import (download_latest_model,
+                     download_model)
 from mcm.mcm import get_mode_torch
 from nnmodels import NPOptionsNet
 from ImgGenerator import ImgGenerator
@@ -292,6 +293,9 @@ class OptionsDetector(ImgGenerator):
             model_info = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
             path_to_model = model_info["path"]
             options["class_region"] = model_info["class_region"]
+        elif path_to_model.startswith("http"):
+            model_info = download_model(path_to_model, self.get_classname(), "custom")
+            path_to_model = model_info["path"]
 
         self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
