@@ -218,15 +218,6 @@ def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float
     return np.linalg.solve(X, y)
 
 
-def getYByMatrix(matrix: List[np.ndarray], x: float) -> np.ndarray:
-    """
-    TODO: describe function
-    """
-    A = matrix[0]
-    B = matrix[1]
-    C = matrix[2]
-    if B != 0:
-        return (C - A * x) / B
 
 
 def detectDistanceFromPointToLine(matrix: List[np.ndarray],
@@ -534,6 +525,19 @@ class NpPointsCraft(object):
     git clone https://github.com/clovaai/CRAFT-pytorch.git
     """
 
+    def __init__(self,
+                 low_text=0.4,
+                 link_threshold=0.7, # 0.4
+                 text_threshold=0.6,
+                 canvas_size=1280,
+                 mag_ratio=1.5
+                 ):
+        self.low_text = low_text
+        self.link_threshold = link_threshold
+        self.text_threshold = text_threshold
+        self.canvas_size = canvas_size
+        self.mag_ratio = mag_ratio
+
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
@@ -665,15 +669,15 @@ class NpPointsCraft(object):
                 ])
         return all_points
 
-    def detectInBbox(self, image: np.ndarray, debug: bool = False):
+    def detectInBbox(self, image: np.ndarray, craft_params={}, debug: bool = False):
         """
         TODO: describe method
         """
-        low_text = 0.4
-        link_threshold = 0.7  # 0.4
-        text_threshold = 0.6
-        canvas_size = 1280
-        mag_ratio = 1.5
+        low_text = craft_params.get('low_text', self.low_text)
+        link_threshold = craft_params.get('link_threshold', self.link_threshold)
+        text_threshold = craft_params.get('text_threshold', self.text_threshold)
+        canvas_size = craft_params.get('canvas_size', self.canvas_size)
+        mag_ratio = craft_params.get('mag_ratio', self.mag_ratio)
 
         t = time.time()
         bboxes, polys, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
@@ -712,3 +716,27 @@ class NpPointsCraft(object):
                 print('[INFO] image.shape', image.shape)
             targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
         return targetPoints
+
+    def detectProbablyMultilineZones(self, image, craft_params={}, debug=False):
+        """
+        TODO: describe method
+        """
+        low_text = craft_params.get('low_text', self.low_text)
+        link_threshold = craft_params.get('link_threshold', self.link_threshold)
+        text_threshold = craft_params.get('text_threshold', self.text_threshold)
+        canvas_size = craft_params.get('canvas_size', self.canvas_size)
+        mag_ratio = craft_params.get('mag_ratio', self.mag_ratio)
+
+        t = time.time()
+        bboxes, polys, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
+                                             self.is_cuda, self.is_poly, canvas_size, self.refine_net, mag_ratio)
+        if debug:
+            print("elapsed time : {}s".format(time.time() - t))
+
+        dimensions = []
+        for poly in bboxes:
+            dimensions.append({'dx': distance(poly[0], poly[1]), 'dy': distance(poly[1], poly[2])})
+
+        np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
+
+        return [bboxes[i] for i in np_bboxes_idx]

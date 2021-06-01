@@ -59,6 +59,17 @@ def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
     return [matrix_a, matrix_b, matrix_c]
 
 
+def getYByMatrix(matrix: List[np.ndarray], x: float) -> np.ndarray:
+    """
+    TODO: describe function
+    """
+    A = matrix[0]
+    B = matrix[1]
+    C = matrix[2]
+    if B != 0:
+        return (C - A * x) / B
+
+
 def findDistances(points: List) -> List:
     """
     TODO: describe function
@@ -76,6 +87,22 @@ def findDistances(points: List) -> List:
                           "matrix": linearLineMatrix(points[p0], points[p1]),
                           "coef": fline(points[p0], points[p1])})
     return distanses
+
+
+def rotate(origin, point, angle_degrees):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+
+    The angle should be given in degrees.
+    """
+    angle = math.radians(angle_degrees)
+
+    ox, oy = origin
+    px, py = point
+
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return qx, qy
 
 
 def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
