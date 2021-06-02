@@ -39,7 +39,7 @@ def distance(p0: List, p1: List) -> float:
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
-def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
+def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> np.ndarray:
     """
     Вычесление коефициентов матрицы, описывающей линию по двум точкам
     """
@@ -56,18 +56,18 @@ def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
         print("Уравнение прямой, проходящей через эти точки:")
         print("%.4f*x + %.4fy = %.4f" % (matrix_a, matrix_b, matrix_c))
         print(matrix_a, matrix_b, matrix_c)
-    return [matrix_a, matrix_b, matrix_c]
+    return np.array([matrix_a, matrix_b, matrix_c])
 
 
-def getYByMatrix(matrix: List[np.ndarray], x: float) -> np.ndarray:
+def getYByMatrix(matrix: np.ndarray, x: float) -> np.ndarray:
     """
     TODO: describe function
     """
-    A = matrix[0]
-    B = matrix[1]
-    C = matrix[2]
-    if B != 0:
-        return (C - A * x) / B
+    matrix_a = matrix[0]
+    matrix_b = matrix[1]
+    matrix_c = matrix[2]
+    if matrix_b != 0:
+        return (matrix_c - matrix_a * x) / matrix_b
 
 
 def findDistances(points: List) -> List:
@@ -148,7 +148,7 @@ def getMeanDistance(rect: List, start_idx: int, verbose: bool = False) -> np.nda
     return np.mean([distance(rect[start_idx], rect[end_idx]), distance(rect[start2_idx], rect[end2_idx])])
 
 
-def reshapePoints(target_points: List, start_idx: int) -> List:
+def reshapePoints(target_points: np.ndarray, start_idx: int) -> np.ndarray:
     """
     TODO: describe function
     """

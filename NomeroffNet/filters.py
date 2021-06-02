@@ -24,14 +24,7 @@ def gamma_lut(img: np.ndarray, gamma: float = 0.5) -> None:
 
 
 async def cv_one_img_mask_async(nn: Dict) -> List[np.ndarray]:
-    res = []
-    masks = np.array(nn["masks"])
-    for i in np.arange(masks.shape[2]):
-        mask = np.array([[w[i] for w in h] for h in nn["masks"]], dtype=np.uint8)
-        chull = np.array(convex_hull_image(mask), dtype=np.uint8)
-        gray = skimage.color.gray2rgb(chull) * 255
-        res.append(img_as_ubyte(gray))
-    return res
+    return cv_img_mask([nn])
 
 
 async def cv_img_mask_async(nns: List[Dict]) -> List:

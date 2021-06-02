@@ -204,9 +204,9 @@ def detectIntersection(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
     www.math.by/geometry/eqline.html
     xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
     """
-    X = np.array([matrix1[:2], matrix2[:2]])
+    x = np.array([matrix1[:2], matrix2[:2]])
     y = np.array([matrix1[2], matrix2[2]])
-    return np.linalg.solve(X, y)
+    return np.linalg.solve(x, y)
 
 
 def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float, d2: float) -> np.ndarray:
@@ -294,7 +294,7 @@ def order_points_old(pts: np.ndarray) -> Union:
     return rect
 
 
-def fixClockwise2(target_points: list) -> np.ndarray:
+def fixClockwise2(target_points: np.ndarray) -> np.ndarray:
     return order_points_old(np.array(target_points))
 
 
@@ -491,7 +491,7 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
         return points_arr
 
     point_centre_left = [propably_points[0][0] + (propably_points[1][0] - propably_points[0][0]) / 2,
-                       propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
+                         propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
 
     point_bottom_left = [point_centre_left[0], getYByMatrix(distanses[3]["matrix"], point_centre_left[0])]
 
@@ -529,7 +529,7 @@ class NpPointsCraft(object):
 
     def __init__(self,
                  low_text=0.4,
-                 link_threshold=0.7, # 0.4
+                 link_threshold=0.7,  # 0.4
                  text_threshold=0.6,
                  canvas_size=1280,
                  mag_ratio=1.5
@@ -719,10 +719,12 @@ class NpPointsCraft(object):
             targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
         return targetPoints
 
-    def detectProbablyMultilineZones(self, image, craft_params={}, debug=False):
+    def detectProbablyMultilineZones(self, image, craft_params=None, debug=False):
         """
         TODO: describe method
         """
+        if craft_params is None:
+            craft_params = {}
         low_text = craft_params.get('low_text', self.low_text)
         link_threshold = craft_params.get('link_threshold', self.link_threshold)
         text_threshold = craft_params.get('text_threshold', self.text_threshold)
