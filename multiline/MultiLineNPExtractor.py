@@ -201,13 +201,7 @@ def resize_coordinates(points_arr: List, scale_coef: float) -> List:
 class CCraft(object):
     def __init__(self, np_points_craft: NpPointsCraft = None) -> None:
         if np_points_craft is None:
-            self.npPointsCraft = NpPointsCraft(
-                low_text=0.38,
-                link_threshold=0.7,  # 0.4
-                text_threshold=0.6,
-                canvas_size=1280,
-                mag_ratio=1.5
-            )
+            self.npPointsCraft = NpPointsCraft()
             self.npPointsCraft.load()
         else:
             self.npPointsCraft = np_points_craft
@@ -215,25 +209,25 @@ class CCraft(object):
     def multiline_to_one_line(self,
                               image_parts: List[np.ndarray],
                               region_names: List[str],
-                              multiply_coef: float = 1.5,
+                              multiply_coef: float = 1,
                               craft_params: Dict = None,
-                              min_image_part_shape: int = 200,
-                              debug: bool = False) -> List[np.ndarray]:
-        return [self.make_one_line_from_many(image_part,
-                                             region_name,
-                                             multiply_coef,
-                                             craft_params,
-                                             min_image_part_shape,
-                                             debug)
-                for image_part, region_name in zip(image_parts, region_names)]
+                              min_image_part_shape: int = 200) -> Tuple:
+        res = [self.make_one_line_from_many(image_part,
+                                            region_name,
+                                            multiply_coef,
+                                            craft_params,
+                                            min_image_part_shape)
+               for image_part, region_name in zip(image_parts, region_names)]
+        return ([item[0] for item in res],
+                [item[1] for item in res],
+                [item[2] for item in res])
 
     def make_one_line_from_many(self,
                                 image_part: np.ndarray,
                                 region_name: str,
-                                multiply_coef: float = 1.5,
+                                multiply_coef: float = 1,
                                 craft_params: Dict = None,
-                                min_image_part_shape: int = 200,
-                                debug: bool = False) -> np.ndarray:
+                                min_image_part_shape: int = 200) -> Tuple[np.ndarray, List, List]:
         if craft_params is None:
             craft_params = dict(
                 low_text=0.38,
@@ -246,8 +240,8 @@ class CCraft(object):
             multiply_coef = min_image_part_shape / image_part.shape[0]
 
         image_part = normalize_color(image_part)
-        norm_image = copy.deepcopy(image_part)
-        image_part = resize(image_part, multiply_coef)
+        if multiply_coef != 1:
+            image_part = resize(image_part, multiply_coef)
 
         mline_boxes = self.npPointsCraft.detectProbablyMultilineZones(image_part, craft_params)
         if len(mline_boxes) > 1:
@@ -257,18 +251,9 @@ class CCraft(object):
             target_points, mline_boxes = fit_to_frame(target_points, mline_boxes, image_part.shape)
             multiline_converter = MultilineConverter(image_part, mline_boxes, target_points)
             one_line_img = multiline_converter.covert_to_1_line(region_name)
-            if debug:
-                make_boxes(norm_image, resize_coordinates([target_points], 1/multiply_coef), (0, 0, 255))
         else:
             one_line_img = image_part
-        if debug:
-            from matplotlib import pyplot as plt
-            make_boxes(norm_image, resize_coordinates(mline_boxes, 1/multiply_coef), (255, 0, 0))
-            fig, ax = plt.subplots(figsize=(15, 15))
-            ax.imshow(cv2.cvtColor(norm_image, cv2.COLOR_BGR2RGB))
-            plt.show()
-            fig, ax = plt.subplots(figsize=(15, 15))
-            ax.imshow(one_line_img)
-            plt.show()
-
-        return one_line_img
+            target_points = []
+        return (one_line_img,
+                resize_coordinates([target_points], 1 / multiply_coef),
+                resize_coordinates(mline_boxes, 1 / multiply_coef))
