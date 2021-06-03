@@ -14,7 +14,7 @@ NOMEROFF_NET_DIR = os.path.abspath('../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 from flask import Flask
-from MultiLineNPExtractor import CCraft
+from multiline.MultiLineNPExtractor import CCraft
 from flask import request
 from flask.json import jsonify
 import numpy as np
@@ -39,7 +39,8 @@ def index():
 
     img = np.array(data['img'], dtype="uint8")
     region_name = data.get('region_name', 'default')
-    img = craft.make1LineFromMany(img, region_name, False)
+    region_name = region_name.replace('-', '_')
+    img = craft.make_one_line_from_many(img, region_name, False)
     return {"img": img.tolist()}
 
 

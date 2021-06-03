@@ -154,6 +154,8 @@ class MultilineConverter:
         return len(self.probablyLines.keys()) > 1
 
     def covert_to_1_line(self, region_name: str) -> np.ndarray:
+        # Fix region_name
+        region_name = region_name.replace('-', '_')
         if self.is_multiline():
             # print('self.probablyLines')
             # print(self.probablyLines)
