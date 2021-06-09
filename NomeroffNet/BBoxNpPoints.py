@@ -481,32 +481,45 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
     TODO: describe function
     """
     if quality_profile is None:
-        quality_profile = [3, 1, 0]
-    points_arr = []
-
-    distanses = findDistances(propably_points)
-
-    if distanses[0]['coef'][2] == 90:
-        points_arr.append(propably_points)
-        return points_arr
-
-    point_centre_left = [propably_points[0][0] + (propably_points[1][0] - propably_points[0][0]) / 2,
-                         propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
-
-    point_bottom_left = [point_centre_left[0], getYByMatrix(distanses[3]["matrix"], point_centre_left[0])]
-
-    dx = propably_points[0][0] - point_bottom_left[0]
-    dy = propably_points[0][1] - point_bottom_left[1]
+        quality_profile = [3, 1, 0, 0]
 
     steps = quality_profile[0]
     steps_plus = quality_profile[1]
     steps_minus = quality_profile[2]
+    step = 1
+    if len(quality_profile) > 3:
+        step_adaptive = quality_profile[3] > 0
+    else:
+        step_adaptive = False
+
+    distanses = findDistances(propably_points)
+
+    point_centre_left = [propably_points[0][0] + (propably_points[1][0] - propably_points[0][0]) / 2,
+                         propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
+
+    if distanses[3]["matrix"][1] == 0:
+        return [propably_points]
+    point_bottom_left = [point_centre_left[0], getYByMatrix(distanses[3]["matrix"], point_centre_left[0])]
+    dx = propably_points[0][0] - point_bottom_left[0]
+    dy = propably_points[0][1] - point_bottom_left[1]
 
     dx_step = dx / steps
     dy_step = dy / steps
 
+    if step_adaptive:
+        d_max = distance(point_centre_left, propably_points[0])
+        dd = math.sqrt(dx ** 2 + dy ** 2)
+        steps_all = int(d_max / dd)
+
+        step = int((steps_all*2)/steps)
+        if step < 1:
+            step = 1
+        steps_minus = steps_all+steps_minus*step
+        steps_plus = steps_all+steps_plus*step
+        #print('dd: {}  d_max: {} steps_all {}, steps {}, step {}'.format(dd, d_max, steps_all, steps, step))
+
     points_arr = []
-    for i in range(-steps_minus, steps + steps_plus + 1):
+    for i in range(-steps_minus, steps + steps_plus + 1, step):
         points_arr.append(addPointOffsets(propably_points, i * dx_step, i * dy_step))
     return points_arr
 
@@ -613,7 +626,7 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         if qualityProfile is None:
-            qualityProfile = [1, 0, 0]
+            qualityProfile = [1, 0, 0, 0]
         image = imgproc.loadImage(image_path)
         for targetBox in target_boxes:
             x = min(targetBox['x1'], targetBox['x2'])
@@ -643,7 +656,7 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         if qualityProfile is None:
-            qualityProfile = [1, 0, 0]
+            qualityProfile = [1, 0, 0, 0]
         all_points = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))
