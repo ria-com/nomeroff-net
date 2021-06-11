@@ -406,8 +406,16 @@ def normalizeRect(rect: List) -> List:
     rect = reshapePoints(rect, minXIdx)
     coef_ccw = fline(rect[0], rect[3])
     angle_ccw = round(coef_ccw[2], 2)
-    if angle_ccw < 0 or angle_ccw > 45:
-        rect = reshapePoints(rect, 3)
+    d_bottom = distance(rect[0], rect[3])
+    d_left = distance(rect[0], rect[1])
+    k = d_bottom/d_left
+    if (d_bottom < d_left):
+        k = d_left/d_bottom
+        if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
+            rect = reshapePoints(rect, 3)
+    else:
+        if k < 1.5 and angle_ccw < 0 or angle_ccw > 45:
+            rect = reshapePoints(rect, 3)
     return rect
 
 
