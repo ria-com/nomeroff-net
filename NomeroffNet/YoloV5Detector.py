@@ -25,8 +25,8 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode_torch
+from mcm import (modelhub,
+                 get_mode_torch)
 
 
 class Detector(object):
@@ -55,7 +55,7 @@ class Detector(object):
 
     def load(self, path_to_model: str = "latest") -> None:
         if path_to_model == "latest":
-            model_info = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
+            model_info = modelhub.download_model_by_name("yolov5")
             path_to_model = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":

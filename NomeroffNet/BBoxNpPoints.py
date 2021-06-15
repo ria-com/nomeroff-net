@@ -38,8 +38,8 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
 
 from typing import List, Dict, Tuple, Any, Union
-from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode_torch
+from mcm import (modelhub,
+                 get_mode_torch)
 from tools import (fline,
                    distance,
                    linearLineMatrix,
@@ -70,6 +70,7 @@ def copyStateDict(state_dict: Dict) -> OrderedDict:
     return new_state_dict
 
 
+@torch.no_grad()
 def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
              link_threshold: float, low_text: float, cuda: bool,
              poly: bool, canvas_size: int, refine_net: RefineNet = None,
@@ -572,10 +573,10 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         if mtl_model_path == "latest":
-            model_info = download_latest_model(self.get_classname(), "mtl", ext="pth", mode=get_mode_torch())
+            model_info = modelhub.download_model_by_name("craft_mlt")
             mtl_model_path = model_info["path"]
         if refiner_model_path == "latest":
-            model_info = download_latest_model(self.get_classname(), "refiner", ext="pth", mode=get_mode_torch())
+            model_info = modelhub.download_model_by_name("craft_refiner")
             refiner_model_path = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":

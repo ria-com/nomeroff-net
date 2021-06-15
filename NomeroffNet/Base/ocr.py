@@ -20,7 +20,7 @@ from tensorflow.keras.layers import GRU
 
 from .ocr_base import BaseOCR
 from .TextImageGenerator import TextImageGenerator
-from .mcm.mcm import download_latest_model
+from .mcm.modelhub import modelhub
 
 import time
 
@@ -259,7 +259,7 @@ class OCR(BaseOCR):
 
     def load(self, path_to_model: str, mode: str = "cpu", verbose: bool = False) -> Model:
         if path_to_model == "latest":
-            model_info = download_latest_model("TextDetector", self.get_classname(), mode=mode)
+            model_info = modelhub.download_model_by_name(self.get_classname())
             path_to_model = model_info["path"]
 
         self.MODEL = load_model(path_to_model, compile=False)
