@@ -70,6 +70,7 @@ def copyStateDict(state_dict: Dict) -> OrderedDict:
     return new_state_dict
 
 
+@torch.no_grad()
 def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
              link_threshold: float, low_text: float, cuda: bool,
              poly: bool, canvas_size: int, refine_net: RefineNet = None,
