@@ -1,5 +1,4 @@
 import cv2
-import copy
 import numpy as np
 from typing import List, Dict, Tuple
 from NomeroffNet.BBoxNpPoints import (NpPointsCraft,
