@@ -264,7 +264,7 @@ def fixClockwise(targetPoints: List) -> List:
     return targetPoints
 
 
-def order_points_old(pts: np.ndarray) -> Union:
+def order_points_old(pts: np.ndarray):
     # initialize a list of coordinates that will be ordered
     # such that the first entry in the list is the top-left,
     # the second entry is the top-right, the third is the
@@ -287,9 +287,29 @@ def order_points_old(pts: np.ndarray) -> Union:
     # now, compute the difference between the points, the
     # top-right point will have the smallest difference,
     # whereas the bottom-left will have the largest difference
-    diff = np.diff(pts_crop, axis=1)
-    rect[1] = pts_crop[np.argmin(diff)]
-    rect[3] = pts_crop[np.argmax(diff)]
+
+    # diff = np.diff(pts_crop, axis=1)
+    # rect[1] = pts_crop[np.argmin(diff)]
+    # rect[3] = pts_crop[np.argmax(diff)]
+    # Определяется так. Предположим, у нас есть 3 точки: А(х1,у1), Б(х2,у2), С(х3,у3). Через точки А и Б проведена прямая. И нам надо определить, как расположена точка С относительно прямой АБ. Для этого вычисляем значение:
+    # D = (х3 - х1) * (у2 - у1) - (у3 - у1) * (х2 - х1)
+    # - Если D = 0 - значит, точка С лежит на прямой АБ.
+    # - Если D < 0 - значит, точка С лежит слева от прямой.
+    # - Если D > 0 - значит, точка С лежит справа от прямой.
+    x1 = rect[0][0]
+    y1 = rect[0][1]
+    x2 = rect[2][0]
+    y2 = rect[2][1]
+    x3 = pts_crop[0][0]
+    y3 = pts_crop[0][1]
+    d = (x3 - x1) * (y2 - y1) - (y3 - y1) * (x2 - x1)
+
+    if d > 0:
+        rect[1] = pts_crop[0]
+        rect[3] = pts_crop[1]
+    else:
+        rect[1] = pts_crop[1]
+        rect[3] = pts_crop[0]
 
     # return the ordered coordinates
     return rect
