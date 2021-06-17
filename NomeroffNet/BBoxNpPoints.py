@@ -124,7 +124,7 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
 
 
 def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
-                similarity_range: int = 0.7) -> Tuple[List[int], List[int]]:
+                similarity_range: int = 0.6) -> Tuple[List[int], List[int]]:
     """
     TODO: describe function
     """
@@ -684,9 +684,17 @@ class NpPointsCraft(object):
         """
         TODO: describe method
         """
+        all_points, all_mline_boxes = self.detect_mline(image, targetBoxes, qualityProfile)
+        return all_points
+
+    def detect_mline(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = None) -> List:
+        """
+        TODO: describe method
+        """
         if qualityProfile is None:
             qualityProfile = [1, 0, 0, 0]
         all_points = []
+        all_mline_boxes = []
         for targetBox in targetBoxes:
             x = int(min(targetBox[0], targetBox[2]))
             w = int(abs(targetBox[2] - targetBox[0]))
@@ -694,7 +702,9 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3] - targetBox[1]))
 
             image_part = image[y:y + h, x:x + w]
-            propablyPoints = addCoordinatesOffset(self.detectInBbox(image_part), x, y)
+            localPropablyPoints, mlineBoxes = self.detectInBbox(image_part)
+            all_mline_boxes.append(mlineBoxes)
+            propablyPoints = addCoordinatesOffset(localPropablyPoints, x, y)
             if len(propablyPoints):
                 targetPointsVariants = makeRectVariants(propablyPoints, qualityProfile)
                 if len(targetPointsVariants) > 1:
@@ -711,7 +721,8 @@ class NpPointsCraft(object):
                     [x + w, y],
                     [x + w, y + h]
                 ])
-        return all_points
+        return all_points, all_mline_boxes
+
 
     def detectInBbox(self, image: np.ndarray, craft_params={}, debug: bool = False):
         """
@@ -759,7 +770,7 @@ class NpPointsCraft(object):
                 print("[INFO] targetPoints", targetPoints)
                 print('[INFO] image.shape', image.shape)
             targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
-        return targetPoints
+        return targetPoints, [bboxes[i] for i in np_bboxes_idx]
 
     def detectProbablyMultilineZones(self, image, craft_params=None, debug=False):
         """
