@@ -41,6 +41,7 @@ from typing import List, Dict, Tuple, Any, Union
 from mcm import (modelhub,
                  get_mode_torch)
 from tools import (fline,
+                   normalize_color,
                    distance,
                    linearLineMatrix,
                    getYByMatrix,
@@ -687,7 +688,7 @@ class NpPointsCraft(object):
         all_points, all_mline_boxes = self.detect_mline(image, targetBoxes, qualityProfile)
         return all_points
 
-    def detect_mline(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = None) -> List:
+    def detect_mline(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = None) -> Tuple:
         """
         TODO: describe method
         """
@@ -702,6 +703,7 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3] - targetBox[1]))
 
             image_part = image[y:y + h, x:x + w]
+            # image_part = normalize_color(image_part)
             localPropablyPoints, mlineBoxes = self.detectInBbox(image_part)
             all_mline_boxes.append(mlineBoxes)
             propablyPoints = addCoordinatesOffset(localPropablyPoints, x, y)

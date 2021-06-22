@@ -199,3 +199,18 @@ def getCvZonesBGR(img: np.ndarray, rects: list, gw: float = 0, gh: float = 0,
     """
     dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height=auto_width_height)
     return convertCvZonesRGBtoBGR(dsts)
+
+
+def normalize(img: np.ndarray) -> np.ndarray:
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    return normalize_color(img)
+
+
+def normalize_color(img: np.ndarray) -> np.ndarray:
+    img = img.astype(np.float32)
+    color_min = np.amin(img)
+    img -= color_min
+    color_max = np.amax(img)
+    img *= 255/color_max
+    img = img.astype(np.uint8)
+    return img

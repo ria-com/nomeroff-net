@@ -3,6 +3,8 @@ from .splitter import (np_split,
 
 from .image_processing import (fline,
                                distance,
+                               normalize_color,
+                               normalize,
                                linearLineMatrix,
                                getYByMatrix,
                                findDistances,
