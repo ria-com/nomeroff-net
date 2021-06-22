@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='nomeroff-net',
-      version='2.0.0',
+      version='2.3.0',
       description='Automatic numberplate recognition system',
       long_description='Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional neural network on the Mask_RCNN architecture, and cusomized OCR-module powered by GRU architecture. The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.',
       classifiers=[

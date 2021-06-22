@@ -1,8 +1,18 @@
+2.3.0 / 2021-03-11
+==================
+  **updates** 
+` * Optimize multiline to one line algorithm  
+  * Have combined multiline to one line algorithm with NomeroffNet API
+  * Added tornado and flask examples
+
 2.1.0 / 2021-03-11
 ==================
   **updates**
   * Removed is filled or not is filled classification
-  * Rewritten options classification on torch 
+  * Rewritten options classification on torch
+  * Added multiline to one line algorithm
+  * Added automatic selection of bevel angle options in npPointsCraft.detect
+  * Added modelhub module
 
 2.0.0 / 2021-03-01
 ==================
