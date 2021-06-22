@@ -219,22 +219,6 @@ class CCraft(object):
                                 region_name: str,
                                 multiply_coef: float = 1) -> Tuple[np.ndarray, List, List]:
 
-        # if craft_params is None:
-        #     craft_params = dict(
-        #         low_text=0.38,
-        #         link_threshold=0.7,  # 0.4
-        #         text_threshold=0.6,
-        #         canvas_size=1280,
-        #         mag_ratio=1.5
-        #     )
-        # if image_part.shape[0] < min_image_part_shape:
-        #     multiply_coef = min_image_part_shape / image_part.shape[0]
-        #
-        # image_part = normalize_color(image_part)
-        # if multiply_coef != 1:
-        #     image_part = resize(image_part, multiply_coef)
-        #
-        # mline_boxes = self.npPointsCraft.detectProbablyMultilineZones(image_part, craft_params)
         if len(mline_boxes) > 1:
             mline_boxes, target_angle = fix_mline_boxes_angle(mline_boxes)
             target_points = minimum_bounding_rectangle(np.concatenate(mline_boxes, axis=0))
