@@ -101,11 +101,10 @@ modelhub = ModelHub(models=models,
 
 
 def get_mode() -> str:
-    from tensorflow.python.client import device_lib
-    local_device_protos = device_lib.list_local_devices()
-    for x in local_device_protos:
-        if x.device_type == 'GPU':
-            return "gpu"
+    import tensorflow as tf
+    devices = tf.config.list_physical_devices('GPU')
+    if len(devices):
+        return "gpu"
     return "cpu"
 
 
