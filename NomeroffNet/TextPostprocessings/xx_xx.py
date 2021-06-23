@@ -4,9 +4,11 @@ import string
 from typing import List, Optional
 
 
-class xx_xx(object):
+class XxXx(object):
     def __init__(self, standart: str = "", allowed_liters: str = string.ascii_letters,
-                 black_list: List[str] = ["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]) -> None:
+                 black_list: List[str] = None) -> None:
+        if black_list is None:
+            black_list = ["\s", '\*', '\,', '\.', '\-', "\'", '\"', "\’", "_", "\+"]
         self.STANDART = self.check_pattern_standart(standart)
         self.ALLOWED_LITERS = allowed_liters
         self.BLACK_LIST = black_list
@@ -36,17 +38,19 @@ class xx_xx(object):
                  .replace("\\", "/")\
                  .replace("\[", "|").replace("\]", "|")
 
-    def check_pattern_standart(self, standart: str) -> str:
+    @staticmethod
+    def check_pattern_standart(standart: str) -> str:
         if not re.match(r"^[#@]*$", standart):
             raise Exception("Standart {} not correct".format(standart))
         return standart
 
-    def check_is_str(self, text: str) -> str:
+    @staticmethod
+    def check_is_str(text: str) -> str:
         if type(text) is not str:
             raise ValueError("{} is not str".format(text))
         return text
 
-    def findFully(self, text: str) -> Optional:
+    def find_fully(self, text: str) -> Optional:
         reg = ""
         for item in self.STANDART:
             if item == "@":
@@ -70,10 +74,12 @@ class xx_xx(object):
                 res = "{}{}".format(res, replace_l)
         return res
 
-    def findSimilary(self, text: str) -> str:
+    def find_similary(self, text: str) -> str:
         vcount = len(text) - len(self.STANDART) + 1
         reg = ""
         for item in self.STANDART:
+            main = ""
+            dop = ""
             if item == "@":
                 dop = list(self.REPLACEMENT["@"].keys())
                 main = self.ALLOWED_LITERS
@@ -99,10 +105,13 @@ class xx_xx(object):
             return text
 
         if len(self.STANDART):
-            match = self.findFully(text)
+            match = self.find_fully(text)
             if match:
                 return match.group(0)
 
         if not strong:
-            return self.findSimilary(text)
+            return self.find_similary(text)
         return text
+
+
+xx_xx = XxXx()

@@ -25,8 +25,8 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode_torch
+from mcm import (modelhub,
+                 get_mode_torch)
 
 
 class Detector(object):
@@ -42,7 +42,7 @@ class Detector(object):
         self.device = "cpu"
         self.half = False
 
-    def loadModel(self, weights: str, device: str = 'cuda') -> None:
+    def load_model(self, weights: str, device: str = 'cuda') -> None:
         device = select_device(device)
         model = attempt_load(weights, map_location=device)  # load FP32 model
         half = device.type != 'cpu'  # half precision only supported on CUDA
@@ -55,12 +55,12 @@ class Detector(object):
 
     def load(self, path_to_model: str = "latest") -> None:
         if path_to_model == "latest":
-            model_info = download_latest_model(self.get_classname(), "yolov5x", ext="pt", mode=get_mode_torch())
+            model_info = modelhub.download_model_by_name("yolov5")
             path_to_model = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":
             device = "cuda"
-        self.loadModel(path_to_model, device)
+        self.load_model(path_to_model, device)
 
     def detect_bbox(self, img: np.ndarray, img_size: int = 640, stride: int = 32, min_accuracy: float = 0.5) -> List:
         """

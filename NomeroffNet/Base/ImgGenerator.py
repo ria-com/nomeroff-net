@@ -13,8 +13,12 @@ class ImgGenerator:
                  img_w: int = 295,
                  img_h: int = 64,
                  batch_size: int = 32,
-                 labels_counts: List = [14, 4],
+                 labels_counts: List = (14, 4),
                  with_aug: bool = False) -> None:
+
+        self.cur_index = 0
+        self.paths = []
+        self.discs = []
 
         self.HEIGHT = img_h
         self.WEIGHT = img_w
@@ -82,32 +86,32 @@ class ImgGenerator:
 
     def generator(self, with_aug: bool = False) -> Generator:
         for _ in np.arange(self.batch_count):
-            Ys = [[], []]
-            Xs = []
+            ys = [[], []]
+            xs = []
             for _ in np.arange(self.batch_size):
                 x, y = self.next_sample()
                 img = cv2.imread(x)
                 x = self.normalize(img, with_aug=with_aug)
-                Xs.append(x)
-                Ys[0].append(y[0])
-                Ys[1].append(y[1])
-            Ys[0] = np.array(Ys[0]).astype(np.float32)
-            Ys[1] = np.array(Ys[1]).astype(np.float32)
-            yield np.moveaxis(np.array(Xs), 3, 1), Ys
+                xs.append(x)
+                ys[0].append(y[0])
+                ys[1].append(y[1])
+            ys[0] = np.array(ys[0]).astype(np.float32)
+            ys[1] = np.array(ys[1]).astype(np.float32)
+            yield np.moveaxis(np.array(xs), 3, 1), ys
 
-    def pathGenerator(self) -> Generator:
+    def path_generator(self) -> Generator:
         for _ in np.arange(self.batch_count):
-            Ys = [[], []]
-            Xs = []
-            Paths = []
+            ys = [[], []]
+            xs = []
+            paths = []
             for _ in np.arange(self.batch_size):
                 x, y = self.next_sample()
-                Paths.append(x)
+                paths.append(x)
                 img = cv2.imread(x)
                 x = self.normalize(img)
-                Xs.append(x)
-                Ys[0].append(y[0])
-                Ys[1].append(y[1])
-            Ys[0] = np.array(Ys[0]).astype(np.float32)
-            Ys[1] = np.array(Ys[1]).astype(np.float32)
-            yield Paths, np.moveaxis(np.array(Xs), 3, 1), Ys
+                xs.append(x)
+                ys[0].append(y[0])
+                ys[1].append(y[1])
+            ys[0] = np.array(ys[0]).astype(np.float32)
+            ys[1] = np.array(ys[1]).astype(np.float32)
+            yield paths, np.moveaxis(np.array(xs), 3, 1), ys

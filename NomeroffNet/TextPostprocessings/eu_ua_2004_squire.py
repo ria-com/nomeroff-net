@@ -1,7 +1,7 @@
-from .xx_xx import xx_xx
+from .xx_xx import XxXx
 
 
-class eu_ua_2004_squire(xx_xx):
+class EuUa2004Squire(XxXx):
     def __init__(self) -> None:
         super().__init__()
         self.STANDART = "@@@@####"
@@ -39,3 +39,6 @@ class eu_ua_2004_squire(xx_xx):
         if len(text) == 6:
             text = text[:2] + text[4:8] + text[2:4]
         return text
+
+
+eu_ua_2004_squire = EuUa2004Squire()

@@ -10,6 +10,7 @@ source/*
 ./.pypirc
 
 datasets/ocr/*
+datasets/options/*
 datasets/region/*
 datasets/mrcnn/*
 tensorflow/*

@@ -12,7 +12,7 @@ module.exports = {
         regionOCRModeration: {
             base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
             options: {
-                region_id: ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"],
+                region_id: ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995", "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr", "eu-ua-ordlo-lpr", "ge", "by", "su", "kg", "am"],
                 state_id: ["garbage", "filled", "not filled", "empty"],
                 count_lines: ["0", "1", "2", "3"]
             }

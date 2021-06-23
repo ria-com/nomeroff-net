@@ -1,6 +1,6 @@
 import os
 import sys
-from typing import List, Dict, Tuple, Any
+from typing import List, Dict, Tuple
 import numpy as np
 
 import torch
@@ -9,12 +9,30 @@ import torch.nn as nn
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm.mcm import download_latest_model
-from mcm.mcm import get_mode_torch
+from mcm import (modelhub,
+                 get_mode_torch)
 from nnmodels import NPOptionsNet
 from ImgGenerator import ImgGenerator
 
 mode_torch = get_mode_torch()
+
+CLASS_REGION_ALL = [
+            "xx-unknown",
+            "eu-ua-2015",
+            "eu-ua-2004",
+            "eu-ua-1995",
+            "eu",
+            "xx-transit",
+            "ru",
+            "kz",
+            "eu-ua-ordlo-dpr",
+            "eu-ua-ordlo-lpr",
+            "ge",
+            "by",
+            "su",
+            "kg",
+            "am"
+        ]
 
 
 def imshow(img: np.ndarray) -> None:
@@ -32,39 +50,27 @@ class OptionsDetector(ImgGenerator):
     """
     TODO: describe class
     """
-    def __init__(self, options: Dict = {}) -> None:
+    def __init__(self, options: Dict = None) -> None:
         """
         TODO: describe __init__
         """
+        if options is None:
+            options = dict()
+
         # input
         self.HEIGHT = 64
-        self.WEIGHT = 192
+        self.WEIGHT = 295
         self.COLOR_CHANNELS = 3
 
         # outputs 1
-        self.CLASS_REGION = options.get("class_region", [
-            "xx-unknown",
-            "eu-ua-2015",
-            "eu-ua-2004",
-            "eu-ua-1995",
-            "eu",
-            "xx-transit",
-            "ru",
-            "kz",
-            "eu-ua-ordlo-dpr",
-            "eu-ua-ordlo-lpr",
-            "ge",
-            "by",
-            "su",
-            "kg"
-        ])
+        self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
         # outputs 2
-        self.CLASS_STATE = options.get("class_state", [
-            "garbage",
-            "filled",
-            "not filled",
-            "empty"
+        self.COUNT_LINES = options.get("count_lines", [
+            0,
+            1,
+            2,
+            3
         ])
 
         # model
@@ -74,15 +80,23 @@ class OptionsDetector(ImgGenerator):
         self.BATCH_SIZE = 64
         self.EPOCHS = 100
 
+        self.train_generator = None
+        self.validation_generator = None
+        self.test_generator = None
+
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
+
+    @staticmethod
+    def get_class_region_all() -> List:
+        return CLASS_REGION_ALL
 
     def create_model(self) -> NPOptionsNet:
         """
         TODO: describe method
         """
-        self.MODEL = NPOptionsNet()
+        self.MODEL = NPOptionsNet(len(self.CLASS_REGION), len(self.COUNT_LINES), self.HEIGHT, self.WEIGHT)
         if mode_torch == "gpu":
             self.MODEL = self.MODEL.cuda()
         return self.MODEL
@@ -99,26 +113,9 @@ class OptionsDetector(ImgGenerator):
         test_dir = os.path.join(base_dir, 'test')
 
         # compile generators
-        self.train_generator = self.compile_train_generator(
-            train_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
-
-        self.validation_generator = self.compile_test_generator(
-            validation_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
-
-        self.test_generator = self.compile_test_generator(
-            test_dir, (
-                self.HEIGHT,
-                self.WEIGHT
-            ),
-            self.BATCH_SIZE)
+        self.train_generator = self.compile_train_generator(train_dir)
+        self.validation_generator = self.compile_test_generator(validation_dir)
+        self.test_generator = self.compile_test_generator(test_dir)
 
         if verbose:
             print("DATA PREPARED")
@@ -212,8 +209,7 @@ class OptionsDetector(ImgGenerator):
                     g_acc_reg = 0
                     g_acc_line = 0
             # validation
-            val_acc, val_acc_reg, val_acc_line \
-                            = self.test(testGenerator=validationGenerator, verbose=0)
+            val_acc, val_acc_reg, val_acc_line = self.test(test_generator=validationGenerator)
             print(f'[VALIDATION {epoch + 1}]',
                   f'val_acc: {val_acc} '
                   f'val_acc_reg: {val_acc_reg} '
@@ -228,17 +224,17 @@ class OptionsDetector(ImgGenerator):
         print('Finished Training')
         return self.MODEL
 
-    def test(self, testGenerator: ImgGenerator = None, verbose: bool = True) -> Tuple[Any]:
+    def test(self, test_generator: ImgGenerator = None) -> Tuple:
         """
         TODO: describe method
         """
-        if testGenerator is None:
-            testGenerator = self.test_generator.generator()
+        if test_generator is None:
+            test_generator = self.test_generator.generator()
         all_acc = 0
         all_acc_reg = 0
         all_acc_line = 0
         n = 0
-        for i, data in enumerate(testGenerator, 0):
+        for i, data in enumerate(test_generator, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
 
@@ -285,19 +281,22 @@ class OptionsDetector(ImgGenerator):
             return False
         return True
 
-    def load(self, path_to_model: str = "latest", options: Dict = {}) -> NPOptionsNet:
+    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
         TODO: describe method
         """
+        if options is None:
+            options = dict()
         self.create_model()
         if path_to_model == "latest":
-            model_info = download_latest_model(self.get_classname(), "simple", mode=mode_torch)
+            model_info = modelhub.download_model_by_name("numberplate_options")
             path_to_model = model_info["path"]
             options["class_region"] = model_info["class_region"]
+        elif path_to_model.startswith("http"):
+            model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
+            path_to_model = model_info["path"]
 
-        self.CLASS_REGION = options.get("class_region", ["xx-unknown", "eu-ua-2015", "eu-ua-2004", "eu-ua-1995",
-                                                         "eu", "xx-transit", "ru", "kz", "eu-ua-ordlo-dpr",
-                                                         "eu-ua-ordlo-lpr", "ge", "by", "su", "kg"])
+        self.CLASS_REGION = options.get("class_region", CLASS_REGION_ALL)
 
         if mode_torch == "gpu":
             self.MODEL.load_state_dict(torch.load(path_to_model))
@@ -347,7 +346,7 @@ class OptionsDetector(ImgGenerator):
         """
         return [self.CLASS_REGION[index].replace("-", "_") for index in indexes]
 
-    def compile_train_generator(self, train_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
+    def compile_train_generator(self, train_dir: str) -> ImgGenerator:
         """
         TODO: describe method
         """
@@ -363,17 +362,17 @@ class OptionsDetector(ImgGenerator):
         print("end train build")
         return imageGenerator
 
-    def compile_test_generator(self, test_dir: str, target_size: int, batch_size: int = 32) -> ImgGenerator:
+    def compile_test_generator(self, test_dir: str) -> ImgGenerator:
         """
         TODO: describe method
         """
-        imageGenerator = ImgGenerator(
+        image_generator = ImgGenerator(
             test_dir,
             self.WEIGHT,
             self.HEIGHT,
             self.BATCH_SIZE,
             [len(self.CLASS_REGION), len(self.CLASS_COUNT_LINE)])
         print("start test build")
-        imageGenerator.build_data()
+        image_generator.build_data()
         print("end test build")
-        return imageGenerator
+        return image_generator

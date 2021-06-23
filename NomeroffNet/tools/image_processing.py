@@ -39,7 +39,7 @@ def distance(p0: List, p1: List) -> float:
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 
-def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
+def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> np.ndarray:
     """
     Вычесление коефициентов матрицы, описывающей линию по двум точкам
     """
@@ -49,14 +49,25 @@ def linearLineMatrix(p0: List, p1: List, verbode: bool = False) -> List:
     x2 = float(p1[0])
     y2 = float(p1[1])
 
-    A = y1 - y2
-    B = x2 - x1
-    C = x2*y1-x1*y2
+    matrix_a = y1 - y2
+    matrix_b = x2 - x1
+    matrix_c = x2*y1-x1*y2
     if verbode:
         print("Уравнение прямой, проходящей через эти точки:")
-        print("%.4f*x + %.4fy = %.4f" % (A, B, C))
-        print(A, B, C)
-    return [A, B, C]
+        print("%.4f*x + %.4fy = %.4f" % (matrix_a, matrix_b, matrix_c))
+        print(matrix_a, matrix_b, matrix_c)
+    return np.array([matrix_a, matrix_b, matrix_c])
+
+
+def getYByMatrix(matrix: np.ndarray, x: float) -> np.ndarray:
+    """
+    TODO: describe function
+    """
+    matrix_a = matrix[0]
+    matrix_b = matrix[1]
+    matrix_c = matrix[2]
+    if matrix_b != 0:
+        return (matrix_c - matrix_a * x) / matrix_b
 
 
 def findDistances(points: List) -> List:
@@ -78,6 +89,22 @@ def findDistances(points: List) -> List:
     return distanses
 
 
+def rotate(origin, point, angle_degrees):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+
+    The angle should be given in degrees.
+    """
+    angle = math.radians(angle_degrees)
+
+    ox, oy = origin
+    px, py = point
+
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return qx, qy
+
+
 def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     """
     TODO: describe function
@@ -86,8 +113,8 @@ def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     h = int(h)
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
-    M = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, M, (w, h))
+    moment = cv2.getPerspectiveTransform(pts1, pts2)
+    return cv2.warpPerspective(img, moment, (w, h))
 
 
 def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,
@@ -121,7 +148,7 @@ def getMeanDistance(rect: List, start_idx: int, verbose: bool = False) -> np.nda
     return np.mean([distance(rect[start_idx], rect[end_idx]), distance(rect[start2_idx], rect[end2_idx])])
 
 
-def reshapePoints(target_points: List, start_idx: int) -> List:
+def reshapePoints(target_points: np.ndarray, start_idx: int) -> np.ndarray:
     """
     TODO: describe function
     """
@@ -172,3 +199,18 @@ def getCvZonesBGR(img: np.ndarray, rects: list, gw: float = 0, gh: float = 0,
     """
     dsts = getCvZonesRGB(img, rects, gw, gh, coef, auto_width_height=auto_width_height)
     return convertCvZonesRGBtoBGR(dsts)
+
+
+def normalize(img: np.ndarray) -> np.ndarray:
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    return normalize_color(img)
+
+
+def normalize_color(img: np.ndarray) -> np.ndarray:
+    img = img.astype(np.float32)
+    color_min = np.amin(img)
+    img -= color_min
+    color_max = np.amax(img)
+    img *= 255/color_max
+    img = img.astype(np.uint8)
+    return img
