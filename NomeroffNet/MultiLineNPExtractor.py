@@ -1,18 +1,22 @@
+import os
 import cv2
+import sys
 import numpy as np
 from typing import List, Dict, Tuple
-from .BBoxNpPoints import (NpPointsCraft,
-                                      minimum_bounding_rectangle,
-                                      detectIntersection,
-                                      fixClockwise2,
-                                      findMinXIdx)
-from .tools import (fline,
-                               distance,
-                               linearLineMatrix,
-                               getYByMatrix,
-                               rotate,
-                               reshapePoints)
-from .BBoxNpMultiline import MultilineConverter
+
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+
+from BBoxNpPoints import (minimum_bounding_rectangle,
+                          detectIntersection,
+                          fixClockwise2,
+                          findMinXIdx)
+from tools import (fline,
+                   distance,
+                   linearLineMatrix,
+                   getYByMatrix,
+                   rotate,
+                   reshapePoints)
+from BBoxNpMultiline import MultilineConverter
 
 
 def normalize_multiline_rect(rect: np.ndarray, mline_boxes: List) -> np.ndarray:

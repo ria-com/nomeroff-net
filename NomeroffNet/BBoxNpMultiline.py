@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import importlib
 from typing import List, Any, Tuple, Dict
-from .NpMultiline import default
+from NpMultiline import default
 from tools import (fline,
                    distance,
                    linearLineMatrix,
@@ -67,7 +67,6 @@ def get_cv_zonesRGBLite(img: np.ndarray, rects: list) -> List:
 def target_resize(zone: np.ndarray, target_zone_value: float) -> np.ndarray:
     height = target_zone_value
     k = target_zone_value / zone.shape[0]
-    print(k)
     width = int(zone.shape[1] * k)
     dim = (width, height)
     # resize image
@@ -98,8 +97,6 @@ class MultilineConverter:
         self.probablyLines = self.detect_line_count()
 
     def detect_line_count(self) -> Dict:
-        # print('self.rects')
-        # print(self.rects)
         lines = {}
         zones_cnt = len(self.rects)
         current_line = 1
@@ -114,7 +111,6 @@ class MultilineConverter:
         ]
         if zones_cnt > 1:
             for idx in range(1, len(self.rects)):
-                print('idx {}'.format(idx))
                 rect = self.rects[idx - 1]
                 rect_next = self.rects[idx]
                 h = distance(rect[3], rect[0])
@@ -139,8 +135,6 @@ class MultilineConverter:
         # Fix region_name
         region_name = region_name.replace('-', '_')
         if self.is_multiline():
-            # print('self.probablyLines')
-            # print(self.probablyLines)
             cmd = self.load_region_plugin(region_name)
             return self.merge_lines(cmd)
         else:
@@ -166,8 +160,6 @@ class MultilineConverter:
         img_zones = cmd.prepare_multiline_rects(self.rects, img_zones, self.probablyLines)
 
         target_zone_value = max([img_zone.shape[0] for img_zone in img_zones])
-
-        print('target_zone_value {}'.format(target_zone_value))
 
         res_zone = []
         bg_fill = np.max([np.max(zone) for zone in img_zones])
