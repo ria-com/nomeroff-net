@@ -232,3 +232,32 @@ class CCraft(object):
         return (one_line_img,
                 resize_coordinates([target_points], 1 / multiply_coef),
                 resize_coordinates(mline_boxes, 1 / multiply_coef))
+
+
+def convert_multiline_to_one_line(img,
+                                  zones,
+                                  all_mline_boxes,
+                                  target_boxes,
+                                  count_lines,
+                                  region_names, ccraft=CCraft()):
+    # convert multiline to one line
+    image_parts = [img[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
+                   for box, cl in zip(target_boxes, count_lines)
+                   if cl > 1]
+    all_mline_boxes_rect = [mline_boxes
+                            for mline_boxes, cl in zip(all_mline_boxes, count_lines)
+                            if cl > 1]
+    region_names_rect = [region_name
+                         for region_name, cl in zip(region_names, count_lines)
+                         if cl > 1]
+    index_rect = [i
+                  for i, cl in enumerate(count_lines)
+                  if cl > 1]
+    (zones_rect,
+     zones_target_points,
+     zones_mline_boxes) = ccraft.multiline_to_one_line(all_mline_boxes_rect,
+                                                       image_parts,
+                                                       region_names_rect)
+    for i, zone in zip(index_rect, zones_rect):
+        zones[i] = zone
+    return zones
