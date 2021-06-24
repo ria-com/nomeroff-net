@@ -62,7 +62,8 @@ class TextDetector(object):
         while len(lines) < len(zones):
             lines.append(self.DEFAULT_LINES_COUNT)
 
-        zones = np_split(zones, lines)
+        # todo: remove this line in future and analise np_split usage
+        #zones = np_split(zones, lines)
         predicted = {}
 
         order_all = []
