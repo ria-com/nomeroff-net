@@ -506,7 +506,6 @@ class NpPointsCraft(object):
             if is_cuda:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model)))
                 self.refine_net = self.refine_net.cuda()
-                self.refine_net = torch.nn.DataParallel(self.refine_net)
             else:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model, map_location='cpu')))
 
