@@ -494,7 +494,6 @@ class NpPointsCraft(object):
 
         if is_cuda:
             self.net = self.net.cuda()
-            self.net = torch.nn.DataParallel(self.net)
             cudnn.benchmark = False
 
         self.net.eval()
