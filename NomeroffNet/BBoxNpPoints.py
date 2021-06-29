@@ -128,7 +128,7 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
 
 
 def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
-                similarity_range: int = 0.6) -> Tuple[List[int], List[int]]:
+                similarity_range: int = 0.5) -> Tuple[List[int], List[int]]:
     """
     TODO: describe function
     """
