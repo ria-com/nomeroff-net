@@ -1,0 +1,22 @@
+name: "numberplate_options"
+platform: "onnxruntime_onnx"
+max_batch_size : 1
+input [
+  {
+    name: "inp_conv"
+    data_type: TYPE_FP32
+    dims: [ 3, 64, 295 ]
+  }
+]
+output [
+  {
+    name: "fc3_reg"
+    data_type: TYPE_FP32
+    dims: [ 4 ]
+  },
+  {
+    name: "fc3_line"
+    data_type: TYPE_FP32
+    dims: [ 15 ]
+  }
+]

@@ -1,0 +1,17 @@
+name: "ru_text_detector"
+max_batch_size : 0
+platform: "tensorflow_savedmodel"
+input [
+  {
+    name: "the_input_ru"
+    data_type: TYPE_FP32
+    dims: [-1, 128, 64, 1]
+  }
+]
+output [
+  {
+    name: "softmax_ru"
+    data_type: TYPE_FP32
+    dims: [-1, 32, 23]
+  }
+]
