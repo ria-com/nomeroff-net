@@ -304,11 +304,13 @@ class OptionsDetector(ImgGenerator):
             self.MODEL.load_state_dict(torch.load(path_to_model,  map_location=torch.device('cpu')))
         self.MODEL.eval()
 
-    def predict(self, imgs: List[np.ndarray]) -> Tuple:
+    def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
         """
         TODO: describe method
         """
-        region_ids, count_lines, confidences = self.predict_with_confidence(imgs)
+        region_ids, count_lines, confidences, predicted = self.predict_with_confidence(imgs)
+        if return_acc:
+            return region_ids, count_lines, predicted
         return region_ids, count_lines
 
     @torch.no_grad()
@@ -339,8 +341,7 @@ class OptionsDetector(ImgGenerator):
             region_confidence = region[int(np.argmax(region))]
             count_lines_confidence = count_line[int(np.argmax(count_line))]
             confidences.append([region_confidence, count_lines_confidence])
-
-        return region_ids, count_lines, confidences
+        return region_ids, count_lines, confidences, predicted
 
     def getRegionLabel(self, index: int) -> str:
         """
