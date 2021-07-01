@@ -123,12 +123,11 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
     render_img = score_text.copy()
     render_img = np.hstack((render_img, score_link))
     ret_score_text = imgproc.cvt2HeatmapImg(render_img)
-
     return boxes, polys, ret_score_text
 
 
 def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
-                similarity_range: int = 0.6) -> Tuple[List[int], List[int]]:
+                similarity_range: int = 0.5) -> Tuple[List[int], List[int]]:
     """
     TODO: describe function
     """
@@ -494,7 +493,6 @@ class NpPointsCraft(object):
 
         if is_cuda:
             self.net = self.net.cuda()
-            self.net = torch.nn.DataParallel(self.net)
             cudnn.benchmark = False
 
         self.net.eval()
@@ -507,7 +505,6 @@ class NpPointsCraft(object):
             if is_cuda:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model)))
                 self.refine_net = self.refine_net.cuda()
-                self.refine_net = torch.nn.DataParallel(self.refine_net)
             else:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model, map_location='cpu')))
 

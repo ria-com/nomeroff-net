@@ -17,6 +17,7 @@ from .image_processing import (fline,
                                findMinXIdx,
                                getMeanDistance,
                                reshapePoints,
+                               generate_image_rotation_variants,
                                getCvZonesRGB,
                                convertCvZonesRGBtoBGR,
                                getCvZonesBGR)

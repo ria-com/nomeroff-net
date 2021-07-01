@@ -10,6 +10,7 @@ gitpython
 pycocotools
 tqdm
 matplotlib
+scipy
 torch>=1.8
 torchvision>=0.9
 PyYAML>=5.4
