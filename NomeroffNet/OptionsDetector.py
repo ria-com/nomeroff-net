@@ -303,36 +303,44 @@ class OptionsDetector(ImgGenerator):
         else:
             self.MODEL.load_state_dict(torch.load(path_to_model,  map_location=torch.device('cpu')))
         self.MODEL.eval()
-    
-    @torch.no_grad()
-    def predict(self, imgs: List[np.ndarray], return_acc: bool = False) -> Tuple:
+
+    def predict(self, imgs: List[np.ndarray]) -> Tuple:
         """
         TODO: describe method
         """
-        Xs = []
+        region_ids, count_lines, confidences = self.predict_with_confidence(imgs)
+        return region_ids, count_lines
+
+    @torch.no_grad()
+    def predict_with_confidence(self, imgs: List[np.ndarray]) -> Tuple:
+        """
+        TODO: describe method
+        """
+        xs = []
         for img in imgs:
-            Xs.append(self.normalize(img))
+            xs.append(self.normalize(img))
 
         predicted = [[], []]
-        if bool(Xs):
-            x = torch.tensor(np.moveaxis(np.array(Xs), 3, 1))
+        if bool(xs):
+            x = torch.tensor(np.moveaxis(np.array(xs), 3, 1))
             if mode_torch == "gpu":
                 x = x.cuda()
             predicted = self.MODEL(x)
             predicted = [p.cpu().numpy() for p in predicted]
 
-        regionIds = []
-        for region in predicted[0]:
-            regionIds.append(int(np.argmax(region)))
+        confidences = []
+        region_ids = []
+        count_lines = []
+        for region, count_line in zip(predicted[0], predicted[1]):
+            region_ids.append(int(np.argmax(region)))
+            count_lines.append(int(np.argmax(count_line)))
+            region = region.tolist()
+            count_line = count_line.tolist()
+            region_confidence = region[int(np.argmax(region))]
+            count_lines_confidence = count_line[int(np.argmax(count_line))]
+            confidences.append([region_confidence, count_lines_confidence])
 
-        countLines = []
-        for countL in predicted[1]:
-            countLines.append(int(np.argmax(countL)))
-
-        if return_acc:
-            return regionIds, countLines, predicted
-        
-        return regionIds, countLines
+        return region_ids, count_lines, confidences
 
     def getRegionLabel(self, index: int) -> str:
         """

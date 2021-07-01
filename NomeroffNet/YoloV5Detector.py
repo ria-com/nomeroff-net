@@ -48,7 +48,7 @@ class Detector(object):
         half = device.type != 'cpu'  # half precision only supported on CUDA
         if half:
             model.half()  # to FP16
-        
+
         self.model = model
         self.device = device
         self.half = half
@@ -76,12 +76,12 @@ class Detector(object):
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
-        
+
         pred = self.model(img)[0]
         # Apply NMS
         pred = non_max_suppression(pred)
         res = []
-        for i, det in enumerate(pred): 
+        for i, det in enumerate(pred):
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], img_shape).round()

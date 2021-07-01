@@ -237,6 +237,7 @@ class OCR(BaseOCR):
                 net_out_value = self.MODEL.predict_on_batch(np.array(xs))
             else:
                 net_out_value = self.MODEL(np.array(xs), training=False)
+            print("net_out_value", net_out_value.shape)
             pred_texts = self.decode_batch(net_out_value)
         if return_acc:
             return pred_texts, net_out_value

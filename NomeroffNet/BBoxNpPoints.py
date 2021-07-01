@@ -123,7 +123,6 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
     render_img = score_text.copy()
     render_img = np.hstack((render_img, score_link))
     ret_score_text = imgproc.cvt2HeatmapImg(render_img)
-
     return boxes, polys, ret_score_text
 
 
