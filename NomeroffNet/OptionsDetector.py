@@ -76,6 +76,7 @@ class OptionsDetector(object):
 
         # model
         self.model = None
+        self.trainer = None
 
         # data module
         self.dm = None
@@ -140,20 +141,19 @@ class OptionsDetector(object):
         """
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
-        trainer = pl.Trainer(max_epochs=self.epochs,
-                             gpus=self.gpus,
-                             callbacks=[checkpoint_callback])
-        trainer.fit(self.model, self.dm)
+        self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                  gpus=self.gpus,
+                                  callbacks=[checkpoint_callback])
+        self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
-        trainer.test()
+        self.trainer.test()
         return self.model
 
     def test(self) -> List:
         """
         TODO: describe method
         """
-        trainer = pl.Trainer(max_epochs=self.epochs, gpus=self.gpus)
-        return trainer.test(self.model, self.dm)
+        return self.trainer.test(self.model, self.dm)
 
     def save(self, path: str, verbose: bool = True) -> None:
         """
@@ -162,10 +162,7 @@ class OptionsDetector(object):
         if self.model is not None:
             if bool(verbose):
                 print("model save to {}".format(path))
-            torch.jit.save(self.model.to_torchscript(), path)
-            trainer = pl.Trainer()
-            trainer.fit(self.model)
-            trainer.save_checkpoint(path)
+            self.trainer.save_checkpoint(path)
 
     def is_loaded(self) -> bool:
         """
