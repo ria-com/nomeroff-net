@@ -153,7 +153,7 @@ class OptionsDetector(object):
         """
         TODO: describe method
         """
-        return self.trainer.test(self.model, self.dm)
+        return self.trainer.test()
 
     def save(self, path: str, verbose: bool = True) -> None:
         """
@@ -190,9 +190,14 @@ class OptionsDetector(object):
         self.class_region = options.get("class_region", CLASS_REGION_ALL)
 
         if mode_torch == "gpu":
-            self.model.load_from_checkpoint(path_to_model)
+            self.model.load_from_checkpoint(path_to_model,
+                                            region_output_size=len(self.class_region),
+                                            count_line_output_size=len(self.count_lines))
         else:
-            self.model.load_from_checkpoint(path_to_model,  map_location=torch.device('cpu'))
+            self.model.load_from_checkpoint(path_to_model,
+                                            map_location=torch.device('cpu'),
+                                            region_output_size=len(self.class_region),
+                                            count_line_output_size=len(self.count_lines))
         self.model.eval()
         return self.model
 
