@@ -89,13 +89,13 @@ class NPOptionsNet(pl.LightningModule):
         self.log(f'Batch {batch_idx} accuracy', acc)
         return loss
 
-    def validation_step(self, batch):
+    def validation_step(self, batch, batch_idx):
         loss, acc = self.step(batch)
         self.log('val_loss', loss)
         self.log(f'val_accuracy', acc)
         return loss
 
-    def test_step(self, batch):
+    def test_step(self, batch, batch_idx):
         loss, acc = self.step(batch)
         self.log('test_loss', loss)
         self.log(f'test_accuracy', acc)
