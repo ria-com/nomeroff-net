@@ -5,6 +5,7 @@ import numpy as np
 
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'base')))
@@ -46,7 +47,7 @@ def imshow(img: np.ndarray) -> None:
     plt.show()
 
 
-class OptionsDetector():
+class OptionsDetector(object):
     """
     TODO: describe class
     """
@@ -130,14 +131,20 @@ class OptionsDetector():
         if verbose:
             print("DATA PREPARED")
 
-    def train(self) -> NPOptionsNet:
+    def train(self,
+              log_dir=sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/options')))
+              ) -> NPOptionsNet:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
         """
         self.create_model()
-        trainer = pl.Trainer(max_epochs=self.epochs, gpus=self.gpus)
+        checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
+        trainer = pl.Trainer(max_epochs=self.epochs,
+                             gpus=self.gpus,
+                             callbacks=[checkpoint_callback])
         trainer.fit(self.model, self.dm)
+        print("[INFO] best model path", checkpoint_callback.best_model_path)
         trainer.test()
         return self.model
 
@@ -156,6 +163,9 @@ class OptionsDetector():
             if bool(verbose):
                 print("model save to {}".format(path))
             torch.jit.save(self.model.to_torchscript(), path)
+            trainer = pl.Trainer()
+            trainer.fit(self.model)
+            trainer.save_checkpoint(path)
 
     def is_loaded(self) -> bool:
         """
@@ -183,9 +193,9 @@ class OptionsDetector():
         self.class_region = options.get("class_region", CLASS_REGION_ALL)
 
         if mode_torch == "gpu":
-            self.model.load_state_dict(torch.load(path_to_model))
+            self.model.load_from_checkpoint(path_to_model)
         else:
-            self.model.load_state_dict(torch.load(path_to_model,  map_location=torch.device('cpu')))
+            self.model.load_from_checkpoint(path_to_model,  map_location=torch.device('cpu'))
         self.model.eval()
         return self.model
 
