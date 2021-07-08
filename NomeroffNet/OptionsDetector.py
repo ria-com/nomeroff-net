@@ -187,8 +187,6 @@ class OptionsDetector(object):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
             path_to_model = model_info["path"]
 
-        self.class_region = options.get("class_region", CLASS_REGION_ALL)
-
         if mode_torch == "gpu":
             self.model.load_from_checkpoint(path_to_model,
                                             region_output_size=len(self.class_region),
