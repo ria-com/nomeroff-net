@@ -77,8 +77,8 @@ class NPOptionsNet(pl.LightningModule):
         loss_line = functional.cross_entropy(outputs[1], torch.max(label_cnt, 1)[1])
         loss = (loss_reg + loss_line) / 2
 
-        acc_reg = (torch.max(outputs[0], 1)[1] == torch.max(label_reg, 1)[1]).float().sum() / self.BATCH_SIZE
-        acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.BATCH_SIZE
+        acc_reg = (torch.max(outputs[0], 1)[1] == torch.max(label_reg, 1)[1]).float().sum() / self.batch_size
+        acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.batch_size
         acc = (acc_reg + acc_line) / 2
 
         return loss, acc
