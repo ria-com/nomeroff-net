@@ -188,14 +188,14 @@ class OptionsDetector(object):
             path_to_model = model_info["path"]
 
         if mode_torch == "gpu":
-            self.model.load_from_checkpoint(path_to_model,
-                                            region_output_size=len(self.class_region),
-                                            count_line_output_size=len(self.count_lines))
+            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                           region_output_size=len(self.class_region),
+                                                           count_line_output_size=len(self.count_lines))
         else:
-            self.model.load_from_checkpoint(path_to_model,
-                                            map_location=torch.device('cpu'),
-                                            region_output_size=len(self.class_region),
-                                            count_line_output_size=len(self.count_lines))
+            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                           map_location=torch.device('cpu'),
+                                                           region_output_size=len(self.class_region),
+                                                           count_line_output_size=len(self.count_lines))
         self.model.eval()
         return self.model
 
