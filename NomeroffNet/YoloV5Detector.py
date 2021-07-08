@@ -7,26 +7,20 @@ import numpy as np
 from typing import List
 
 # download and append to path yolo repo
-NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
-YOLOV5_DIR = os.environ.get("YOLOV5_DIR", os.path.join(NOMEROFF_NET_DIR, 'yolov5'))
-YOLOV5_URL = "https://github.com/ultralytics/yolov5.git"
-
-if not os.path.exists(YOLOV5_DIR):
-    from git import Repo
-    Repo.clone_from(YOLOV5_URL, YOLOV5_DIR)
-sys.path.append(YOLOV5_DIR)
+NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "./")
+from .tools import (modelhub,
+                    get_mode_torch)
+modelhub.download_repo_for_model("yolov5")
 
 # load yolo packages
-from models.experimental import attempt_load
-from utils.datasets import letterbox
-from utils.general import non_max_suppression, scale_coords
-from utils.torch_utils import select_device, load_classifier, time_synchronized
+from yolov5.models.experimental import attempt_load
+from yolov5.utils.datasets import letterbox
+from yolov5.utils.general import non_max_suppression, scale_coords
+from yolov5.utils.torch_utils import select_device, load_classifier, time_synchronized
 
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
-from mcm import (modelhub,
-                 get_mode_torch)
 
 
 class Detector(object):

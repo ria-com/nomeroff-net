@@ -99,7 +99,7 @@ models = {
 }
 
 # initial
-local_storage = os.environ.get('LOCAL_STORAGE', os.path.join(os.path.dirname(__file__), "./data"))
+local_storage = os.environ.get('LOCAL_STORAGE', os.path.join(os.path.dirname(__file__), "../../data"))
 modelhub = ModelHub(models=models,
                     local_storage=local_storage)
 

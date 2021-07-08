@@ -1,4 +1,4 @@
-from Base import OCR
+from base import OCR
 
 
 class EuUa1995(OCR):

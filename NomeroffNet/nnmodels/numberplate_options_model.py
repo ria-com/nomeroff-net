@@ -1,10 +1,18 @@
+import torch
 import torch.nn as nn
 from torch.nn import functional
+import pytorch_lightning as pl
 
 
-class NPOptionsNet(nn.Module):
-    def __init__(self, region_output_size: int, count_line_output_size: int, img_h: int = 64, img_w: int = 295):
+class NPOptionsNet(pl.LightningModule):
+    def __init__(self,
+                 region_output_size: int,
+                 count_line_output_size: int,
+                 img_h: int = 64,
+                 img_w: int = 295,
+                 batch_size: int = 1):
         super(NPOptionsNet, self).__init__()  # activation='relu'
+        self.batch_size = batch_size
         self.inp_conv = nn.Conv2d(3, 32, (3, 3),
                                   stride=(1, 1),
                                   padding=(0, 0))
@@ -43,15 +51,38 @@ class NPOptionsNet(nn.Module):
         x1 = x.reshape(x.size(0), -1)
         x1 = self.dropout_reg(x1)
         x1 = functional.relu(self.fc1_reg(x1))
-        x1 = self.batch_norm_reg(x1)
+        if self.batch_size > 1:
+            x1 = self.batch_norm_reg(x1)
         x1 = functional.relu(self.fc2_reg(x1))
         x1 = functional.softmax(self.fc3_reg(x1))
         
         x2 = x.reshape(x.size(0), -1)
         x2 = self.dropout_line(x2)
         x2 = functional.relu(self.fc1_line(x2))
-        x2 = self.batch_norm_line(x2)
+        if self.batch_size > 1:
+            x2 = self.batch_norm_line(x2)
         x2 = functional.relu(self.fc2_line(x2))
         x2 = functional.softmax(self.fc3_line(x2))
 
         return x1, x2
+
+    def training_step(self, batch, batch_idx):
+        x, ys = batch
+
+        outputs = self.forward(x)
+        label_reg = ys[0]
+        label_cnt = ys[1]
+
+        loss_reg = functional.cross_entropy(outputs[0], torch.max(label_reg, 1)[1])
+        loss_line = functional.cross_entropy(outputs[1], torch.max(label_cnt, 1)[1])
+        loss = (loss_reg + loss_line) / 2
+
+        self.log(f'Batch {batch_idx} train_loss', loss)
+        return loss
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adamax(self.parameters(),
+                                       lr=0.005,
+                                       betas=(0.9, 0.999),
+                                       eps=1e-07)
+        return optimizer

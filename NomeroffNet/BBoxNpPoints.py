@@ -1,20 +1,12 @@
 # Import all necessary libraries.
 import os
-import sys
 import math
-import pathlib
 import collections
 
-# clone and append to path craft
-NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "../")
-CRAFT_DIR = os.environ.get("CRAFT_DIR", os.path.join(NOMEROFF_NET_DIR, 'CRAFT-pytorch'))
-CRAFT_URL = "https://github.com/clovaai/CRAFT-pytorch.git"
-
-if not os.path.exists(CRAFT_DIR):
-    from git import Repo
-
-    Repo.clone_from(CRAFT_URL, CRAFT_DIR)
-sys.path.append(CRAFT_DIR)
+from .tools.mcm import (modelhub,
+                        get_mode_torch)
+info = modelhub.download_repo_for_model("craft_mlt")
+CRAFT_DIR = info["repo_path"]
 
 import time
 from collections import OrderedDict
@@ -25,38 +17,26 @@ from torch.autograd import Variable
 
 import cv2
 import numpy as np
-import craft_utils
-import imgproc
+
 
 # load CRAFT packages
-from craft import CRAFT
-from refinenet import RefineNet
-
-# load NomerooffNet packages
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Base')))
+from craft_mlt import imgproc
+from craft_mlt import craft_utils
+from craft_mlt.craft import CRAFT
+from craft_mlt.refinenet import RefineNet
 
 from typing import List, Dict, Tuple, Any, Union
-from mcm import (modelhub,
-                 get_mode_torch)
-from tools import (fline,
-                   normalize_color,
-                   distance,
-                   linearLineMatrix,
-                   getYByMatrix,
-                   findDistances,
-                   rotate,
-                   buildPerspective,
-                   getCvZoneRGB,
-                   fixClockwise2,
-                   findMinXIdx,
-                   detectIntersection,
-                   minimum_bounding_rectangle,
-                   getMeanDistance,
-                   reshapePoints,
-                   getCvZonesRGB,
-                   convertCvZonesRGBtoBGR,
-                   getCvZonesBGR)
+from .tools import (fline,
+                    distance,
+                    linearLineMatrix,
+                    getYByMatrix,
+                    findDistances,
+                    getCvZoneRGB,
+                    fixClockwise2,
+                    findMinXIdx,
+                    detectIntersection,
+                    minimum_bounding_rectangle,
+                    reshapePoints)
 
 
 def copyStateDict(state_dict: Dict) -> OrderedDict:
@@ -153,8 +133,6 @@ def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float
     c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
     y = np.array([c0, c1])
     return np.linalg.solve(X, y)
-
-
 
 
 def detectDistanceFromPointToLine(matrix: List[np.ndarray],
@@ -288,8 +266,6 @@ def normalizeRect(rect: List) -> List:
     """
     TODO: describe function
     """
-    # print('rect')
-    # print(rect)
     rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
@@ -298,27 +274,16 @@ def normalizeRect(rect: List) -> List:
     d_bottom = distance(rect[0], rect[3])
     d_left = distance(rect[0], rect[1])
     k = d_bottom/d_left
-    # print('k = {}'.format(k))
-    # print('d_bottom = {} d_left = {}'.format(d_bottom, d_left))
-    # print('rect')
-    # print(rect)
-    # print('p0 x: {}  p1 x: {}'.format(rect[0][0], rect[1][0]))
     if round(rect[0][0], 4) == round(rect[1][0], 4):
         pass
     else:
-        if (d_bottom < d_left):
+        if d_bottom < d_left:
             k = d_left/d_bottom
-            #print('d_bottom < d_left k = {}'.format(k))
-            #print('angle_ccw = {}'.format(angle_ccw))
             if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
                 rect = reshapePoints(rect, 3)
-                #print('reshapePoints(rect, 3)')
         else:
-            #print('d_bottom >= d_left k = {}'.format(k))
-            #print('angle_ccw = {}'.format(angle_ccw))
             if k < 1.5 and (angle_ccw < 0 or angle_ccw > 45):
                 rect = reshapePoints(rect, 3)
-                #print('reshapePoints(rect, 3)')
     return rect
 
 

@@ -1,4 +1,4 @@
-from Base import OCR
+from base import OCR
 
 
 class By(OCR):

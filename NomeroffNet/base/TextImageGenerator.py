@@ -6,7 +6,6 @@ import numpy as np
 from tensorflow.keras import backend
 import random
 from typing import List, Tuple, Generator
-from .aug import aug, aug_seed
 from .ocr_base import BaseOCR
 
 

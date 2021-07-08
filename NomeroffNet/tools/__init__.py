@@ -1,6 +1,7 @@
 from .splitter import (np_split,
                        np_split_sorce)
-
+from .mcm import (modelhub,
+                  get_mode_torch)
 from .image_processing import (fline,
                                distance,
                                normalize_color,

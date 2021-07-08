@@ -20,7 +20,7 @@ from tensorflow.keras.layers import GRU
 
 from .ocr_base import BaseOCR
 from .TextImageGenerator import TextImageGenerator
-from .mcm.modelhub import modelhub
+from tools import modelhub
 
 import time
 
