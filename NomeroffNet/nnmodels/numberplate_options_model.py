@@ -66,7 +66,7 @@ class NPOptionsNet(pl.LightningModule):
 
         return x1, x2
 
-    def training_step(self, batch, batch_idx):
+    def step(self, batch):
         x, ys = batch
 
         outputs = self.forward(x)
@@ -77,7 +77,28 @@ class NPOptionsNet(pl.LightningModule):
         loss_line = functional.cross_entropy(outputs[1], torch.max(label_cnt, 1)[1])
         loss = (loss_reg + loss_line) / 2
 
+        acc_reg = (torch.max(outputs[0], 1)[1] == torch.max(label_reg, 1)[1]).float().sum() / self.BATCH_SIZE
+        acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.BATCH_SIZE
+        acc = (acc_reg + acc_line) / 2
+
+        return loss, acc
+
+    def training_step(self, batch, batch_idx):
+        loss, acc = self.step(batch)
         self.log(f'Batch {batch_idx} train_loss', loss)
+        self.log(f'Batch {batch_idx} accuracy', acc)
+        return loss
+
+    def validation_step(self, batch):
+        loss, acc = self.step(batch)
+        self.log('val_loss', loss)
+        self.log(f'val_accuracy', acc)
+        return loss
+
+    def test_step(self, batch):
+        loss, acc = self.step(batch)
+        self.log('test_loss', loss)
+        self.log(f'test_accuracy', acc)
         return loss
 
     def configure_optimizers(self):
