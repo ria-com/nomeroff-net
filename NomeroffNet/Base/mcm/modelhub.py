@@ -7,7 +7,7 @@ from modelhub_client import (ModelHub,
 models = {
     "numberplate_options": {
         "application": "OptionsDetector",
-        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pt",
+        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_07_09.pt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-05-17.zip",
         "class_region": [
             "xx_unknown",
@@ -32,10 +32,6 @@ models = {
         "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
         "repo": "https://github.com/ultralytics/yolov5.git",
-    },
-    "yolov5engine": {
-        "application": "Detector",
-        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.engine",
     },
     "craft_mlt": {
         "application": "NpPointsCraft",
@@ -94,6 +90,7 @@ models = {
     },
     "Am": {
         "application": "TextDetector",
+        "url": "https://nomeroff.net.ua/models/ocr/am/tf2/anpr_ocr_am_2021_05_21_tensorflow_v2.3.h5",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrAm-2021-05-20-all-draft.zip",
     }
 }
