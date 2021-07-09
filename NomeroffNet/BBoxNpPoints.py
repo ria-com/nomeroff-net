@@ -288,6 +288,8 @@ def normalizeRect(rect: List) -> List:
     """
     TODO: describe function
     """
+    # print('rect')
+    # print(rect)
     rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
@@ -296,13 +298,27 @@ def normalizeRect(rect: List) -> List:
     d_bottom = distance(rect[0], rect[3])
     d_left = distance(rect[0], rect[1])
     k = d_bottom/d_left
-    if (d_bottom < d_left):
-        k = d_left/d_bottom
-        if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
-            rect = reshapePoints(rect, 3)
+    # print('k = {}'.format(k))
+    # print('d_bottom = {} d_left = {}'.format(d_bottom, d_left))
+    # print('rect')
+    # print(rect)
+    # print('p0 x: {}  p1 x: {}'.format(rect[0][0], rect[1][0]))
+    if round(rect[0][0], 4) == round(rect[1][0], 4):
+        pass
     else:
-        if k < 1.5 and angle_ccw < 0 or angle_ccw > 45:
-            rect = reshapePoints(rect, 3)
+        if (d_bottom < d_left):
+            k = d_left/d_bottom
+            #print('d_bottom < d_left k = {}'.format(k))
+            #print('angle_ccw = {}'.format(angle_ccw))
+            if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
+                rect = reshapePoints(rect, 3)
+                #print('reshapePoints(rect, 3)')
+        else:
+            #print('d_bottom >= d_left k = {}'.format(k))
+            #print('angle_ccw = {}'.format(angle_ccw))
+            if k < 1.5 and (angle_ccw < 0 or angle_ccw > 45):
+                rect = reshapePoints(rect, 3)
+                #print('reshapePoints(rect, 3)')
     return rect
 
 
@@ -377,6 +393,9 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
     """
     if quality_profile is None:
         quality_profile = [3, 1, 0, 0]
+
+    print('propably_points')
+    print(propably_points)
 
     steps = quality_profile[0]
     steps_plus = quality_profile[1]
