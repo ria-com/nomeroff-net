@@ -33,6 +33,10 @@ models = {
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
         "repo": "https://github.com/ultralytics/yolov5.git",
     },
+    "yolov5engine": {
+        "application": "Detector",
+        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.engine",
+    },
     "craft_mlt": {
         "application": "NpPointsCraft",
         "url": "https://nomeroff.net.ua/models/scene_text_detection/craft_mlt_25k_2020-02-16.pth",
