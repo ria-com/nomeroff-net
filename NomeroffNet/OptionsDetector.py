@@ -13,7 +13,7 @@ from .tools import (modelhub,
                     get_mode_torch)
 from data_modules.numberplate_options_data_module import OptionsNetDataModule
 from nnmodels.numberplate_options_model import NPOptionsNet
-from data_modules.option_img_generator import normalize
+from data_modules.data_loaders import normalize
 
 mode_torch = get_mode_torch()
 
@@ -172,6 +172,19 @@ class OptionsDetector(object):
             return False
         return True
 
+    def load_model(self, path_to_model):
+        if mode_torch == "gpu":
+            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                           region_output_size=len(self.class_region),
+                                                           count_line_output_size=len(self.count_lines))
+        else:
+            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                           map_location=torch.device('cpu'),
+                                                           region_output_size=len(self.class_region),
+                                                           count_line_output_size=len(self.count_lines))
+        self.model.eval()
+        return self.model
+
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
         TODO: describe method
@@ -187,17 +200,7 @@ class OptionsDetector(object):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
             path_to_model = model_info["path"]
 
-        if mode_torch == "gpu":
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
-        else:
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           map_location=torch.device('cpu'),
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
-        self.model.eval()
-        return self.model
+        return self.load_model(path_to_model)
 
     def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
         """

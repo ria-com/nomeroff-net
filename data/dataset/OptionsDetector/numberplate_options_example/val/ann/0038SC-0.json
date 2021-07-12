@@ -14,5 +14,6 @@
   },
   "description": "0038SC",
   "name": "0038SC-0",
-  "count_lines": 2
+  "count_lines": 2,
+  "orientation": 0
 }

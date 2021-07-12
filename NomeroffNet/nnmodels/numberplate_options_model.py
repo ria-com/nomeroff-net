@@ -1,10 +1,10 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional
-import pytorch_lightning as pl
+from .classification_model import ClassificationNet
 
 
-class NPOptionsNet(pl.LightningModule):
+class NPOptionsNet(ClassificationNet):
     def __init__(self,
                  region_output_size: int,
                  count_line_output_size: int,
@@ -82,33 +82,6 @@ class NPOptionsNet(pl.LightningModule):
         acc = (acc_reg + acc_line) / 2
 
         return loss, acc
-
-    def training_step(self, batch, batch_idx):
-        loss, acc = self.step(batch)
-        self.log(f'Batch {batch_idx} train_loss', loss)
-        self.log(f'Batch {batch_idx} accuracy', acc)
-        return {
-            'loss': loss,
-            'acc': acc,
-        }
-
-    def validation_step(self, batch, batch_idx):
-        loss, acc = self.step(batch)
-        self.log('val_loss', loss)
-        self.log(f'val_accuracy', acc)
-        return {
-            'val_loss': loss,
-            'val_acc': acc,
-        }
-
-    def test_step(self, batch, batch_idx):
-        loss, acc = self.step(batch)
-        self.log('test_loss', loss)
-        self.log(f'test_accuracy', acc)
-        return {
-            'test_loss': loss,
-            'test_acc': acc,
-        }
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adamax(self.parameters(),
