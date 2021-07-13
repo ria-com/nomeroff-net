@@ -143,11 +143,10 @@ class OrientationDetector(OptionsDetector):
         confidences = []
         orientations = []
         for orientation in zip(predicted):
-            print("orientation")
-            print(int(np.argmax(orientation)))
             print(orientation)
-            orientation_confidence = orientation[int(np.argmax(orientation))]
             orientations.append(int(np.argmax(orientation)))
+            orientation = orientation.tolist()
+            orientation_confidence = orientation[int(np.argmax(orientation))]
             confidences.append(orientation_confidence)
         return orientations, confidences, predicted
 
