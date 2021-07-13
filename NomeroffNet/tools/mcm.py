@@ -9,6 +9,7 @@ models = {
         "application": "OrientationDetector",
         "url": "https://nomeroff.net.ua"
                "/models/orientation/torch/numberplate_orientations_2021_07_12_pytorch_lightning.ckpt",
+        "orientations": ["0°", "180°"]
     },
     "numberplate_options": {
         "application": "OptionsDetector",
