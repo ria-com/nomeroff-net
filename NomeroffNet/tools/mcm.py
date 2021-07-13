@@ -5,6 +5,11 @@ from modelhub_client import (ModelHub,
                              models_example)
 
 models = {
+    "numberplate_orientation": {
+        "application": "OrientationDetector",
+        "url": "https://nomeroff.net.ua"
+               "/models/orientation/torch/numberplate_orientations_2021_07_12_pytorch_lightning.ckpt",
+    },
     "numberplate_options": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pt",
