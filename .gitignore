@@ -11,6 +11,7 @@ source/*
 
 datasets/ocr/*
 datasets/options/*
+datasets/dataset/orientation/*
 datasets/region/*
 datasets/mrcnn/*
 tensorflow/*
