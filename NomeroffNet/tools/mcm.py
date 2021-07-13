@@ -8,7 +8,7 @@ models = {
     "numberplate_options": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-05-17.zip",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-07-08.zip",
         "class_region": [
             "xx_unknown",
             "eu_ua_2015",
