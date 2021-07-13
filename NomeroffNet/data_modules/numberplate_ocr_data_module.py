@@ -5,73 +5,64 @@ import pytorch_lightning as pl
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../base')))
-from .data_loaders import ImgGenerator
+from .data_loaders import TextImageGenerator
 
 
-class OptionsNetDataModule(pl.LightningDataModule):
+class OcrNetDataModule(pl.LightningDataModule):
     def __init__(self,
                  train_dir,
                  val_dir,
                  test_dir,
-                 class_region=None,
-                 class_count_line=None,
-                 orientations=None,
-                 data_loader=ImgGenerator,
-                 width=295,
+                 letters,
+                 max_text_len,
+                 width=128,
                  height=64,
                  batch_size=32,
-                 num_workers=0):
+                 num_workers=0,
+                 with_aug=False):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        if orientations is None:
-            orientations = [0, 180]
-        if class_region is None:
-            class_region = []
-        if class_count_line is None:
-            class_count_line = []
-
         # init train generator
         self.train = None
-        self.train_image_generator = data_loader(
+        self.train_image_generator = TextImageGenerator(
             train_dir,
+            letters,
+            max_text_len,
             width,
             height,
             batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+            with_aug)
 
         # init validation generator
         self.val = None
-        self.val_image_generator = data_loader(
+        self.val_image_generator = TextImageGenerator(
             val_dir,
+            letters,
+            max_text_len,
             width,
             height,
             batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+            with_aug)
 
         # init test generator
         self.test = None
-        self.test_image_generator = data_loader(
+        self.test_image_generator = (
             test_dir,
+            letters,
+            max_text_len,
             width,
             height,
             batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+            with_aug)
 
     def prepare_data(self):
-        self.train_image_generator.build_data()
-        self.val_image_generator.build_data()
-        self.test_image_generator.build_data()
+        pass
 
     def setup(self, stage=None):
-        self.train_image_generator.rezero()
         self.train = self.train_image_generator
-
-        self.val_image_generator.rezero()
         self.val = self.val_image_generator
-
-        self.test_image_generator.rezero()
         self.test = self.test_image_generator
 
     def train_dataloader(self):

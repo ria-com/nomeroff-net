@@ -6,16 +6,20 @@ import torch
 import numpy as np
 import random
 from typing import List, Tuple, Generator
+from NomeroffNet.tools.ocr_tools import is_valid_str, text_to_labels
 
 
 def normalize(img: np.ndarray,
               height: int = 64,
               width: int = 295,
+              to_gray: bool = False,
               with_aug: bool = False) -> np.ndarray:
     if with_aug:
         from .augmentations import aug
         imgs = aug([img])
         img = imgs[0]
+    if to_gray and img.shape[-1] == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     img = cv2.resize(img, (width, height))
     img = img.astype(np.float32)
 
@@ -25,6 +29,9 @@ def normalize(img: np.ndarray,
     img_max = np.amax(img)
     img /= (img_max or 1)
     img[img == 0] = .0001
+
+    if to_gray:
+        img = np.reshape(img, [*img.shape, 1])
     return img
 
 
@@ -189,3 +196,80 @@ class OrientationImgGenerator(ImgGenerator):
         ys = np.array(ys, dtype=np.float32)
         xs = np.moveaxis(np.array(xs), 3, 1)
         return paths, xs, ys
+
+
+class TextImageGenerator(object):
+    def __init__(self,
+                 dirpath: str,
+                 letters: List,
+                 max_text_len: int,
+                 img_w: int = 128,
+                 img_h: int = 64,
+                 batch_size: int = 1,
+                 with_aug: bool = False) -> None:
+
+        self.dirpath = dirpath
+        self.img_h = img_h
+        self.img_w = img_w
+        self.batch_size = batch_size
+        self.max_text_len = max_text_len
+        self.letters = letters
+
+        img_dirpath = os.path.join(dirpath, 'img')
+        ann_dirpath = os.path.join(dirpath, 'ann')
+        self.samples = []
+        for filename in os.listdir(img_dirpath):
+            name, ext = os.path.splitext(filename)
+            if ext == '.png':
+                img_filepath = os.path.join(img_dirpath, filename)
+                json_filepath = os.path.join(ann_dirpath, name + '.json')
+                description = json.load(open(json_filepath, 'r'))['description']
+                if is_valid_str(description, self.letters):
+                    self.samples.append([img_filepath, description])
+                else:
+                    raise Warning(f"Image {img_filepath} does not have a valid description!")
+            else:
+                raise Warning(f"Image {filename} is not png!")
+
+        self.n = len(self.samples)
+        self.indexes = list(range(self.n))
+        self.cur_index = 0
+        self.with_aug = with_aug
+        self.count_ep = 0
+        self.letters_max = len(letters) + 1
+        self.imgs = None
+        self.texts = None
+
+    def __len__(self):
+        """
+        Denotes the total number of samples
+        """
+        return self.n
+
+    def get_x_from_path(self, path: str) -> np.ndarray:
+        img = cv2.imread(path)
+        x = normalize(img,
+                      with_aug=self.with_aug,
+                      width=self.img_w,
+                      height=self.img_h,
+                      to_gray=True)
+        x = np.moveaxis(np.array(x), 2, 0)
+        return x
+
+    def __getitem__(self, index):
+        """
+        Generates one sample of data
+        """
+
+        img_path, text = copy.deepcopy(self.samples[index])
+        x = self.get_x_from_path(img_path)
+        y = np.array(text_to_labels(text, self.letters, self.max_text_len))
+        x = torch.from_numpy(x)
+        y = torch.from_numpy(y)
+
+        input_lengths = torch.full(size=(1,),
+                                   fill_value=self.img_w // (2 * 2) - 2,
+                                   dtype=torch.long)
+        target_lengths = np.array([len(text)])
+        target_lengths = torch.from_numpy(target_lengths)
+        return (x, input_lengths, target_lengths), y

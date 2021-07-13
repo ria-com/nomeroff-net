@@ -107,7 +107,10 @@ class OptionsDetector(object):
             self.model = self.model.cuda()
         return self.model
 
-    def prepare(self, base_dir: str, verbose: bool = True) -> None:
+    def prepare(self,
+                base_dir: str,
+                num_workers: int = 0,
+                verbose: bool = True) -> None:
         """
         TODO: describe method
         """
@@ -127,7 +130,8 @@ class OptionsDetector(object):
             self.count_lines,
             width=self.width,
             height=self.height,
-            batch_size=self.batch_size)
+            batch_size=self.batch_size,
+            num_workers=num_workers)
 
         if verbose:
             print("DATA PREPARED")
