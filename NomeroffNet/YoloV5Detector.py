@@ -20,7 +20,7 @@ sys.path.append(YOLOV5_DIR)
 from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import non_max_suppression, scale_coords
-from utils.torch_utils import select_device, load_classifier, time_synchronized
+from utils.torch_utils import select_device, load_classifier
 
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
