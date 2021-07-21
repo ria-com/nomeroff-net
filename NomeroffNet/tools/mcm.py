@@ -8,9 +8,9 @@ models = {
     "numberplate_orientation": {
         "application": "OrientationDetector",
         "url": "https://nomeroff.net.ua"
-               "/models/orientation/torch/numberplate_orientations_2021_07_12_pytorch_lightning.ckpt",
+               "/models/orientation/torch/numberplate_orientations_2021_07_21_pytorch_lightning.ckpt",
         "orientations": ["0°", "90°", "180°", "270°"],
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-07-21.zip",
     },
     "numberplate_options": {
         "application": "OptionsDetector",

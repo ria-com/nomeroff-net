@@ -354,28 +354,12 @@ def findMinXIdx(targetPoints: Union) -> int:
     return minXIdx
 
 
-def rotate_im(image, angle):
+def rotate_im(image: np.ndarray, angle: float) -> np.ndarray:
     """Rotate the image.
 
     Rotate the image such that the rotated image is enclosed inside the tightest
     rectangle. The area not occupied by the pixels of the original image is colored
     black.
-
-    Parameters
-    ----------
-
-    image : numpy.ndarray
-        numpy image
-
-    angle : float
-        angle by which the image is to be rotated
-
-    Returns
-    -------
-
-    numpy.ndarray
-        Rotated Image
-
     """
     # grab the dimensions of the image and then determine the
     # centre
@@ -528,6 +512,19 @@ def get_enclosing_box(corners):
     final = np.hstack((xmin, ymin, xmax, ymax, corners[:, 8:]))
 
     return final
+
+
+def rotate_image_and_bboxes(img, target_boxes, angle=0):
+    if angle == 0:
+        return img, target_boxes
+    w, h = img.shape[1], img.shape[0]
+    cx, cy = w // 2, h // 2
+    rotated_img = rotate_im(img, angle)
+    corners = get_corners(target_boxes)
+    corners = np.hstack((corners, target_boxes[:, 4:]))
+    corners[:, :8] = rotate_box(corners[:, :8], angle, cx, cy, h, w)
+    new_bbox = get_enclosing_box(corners)
+    return rotated_img, new_bbox
 
 
 def generate_image_rotation_variants(img, target_boxes, angles=None):

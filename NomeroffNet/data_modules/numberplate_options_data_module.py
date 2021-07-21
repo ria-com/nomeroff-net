@@ -10,9 +10,9 @@ from .data_loaders import ImgGenerator
 
 class OptionsNetDataModule(pl.LightningDataModule):
     def __init__(self,
-                 train_dir,
-                 val_dir,
-                 test_dir,
+                 train_dir=None,
+                 val_dir=None,
+                 test_dir=None,
                  class_region=None,
                  class_count_line=None,
                  orientations=None,
@@ -26,7 +26,12 @@ class OptionsNetDataModule(pl.LightningDataModule):
         self.num_workers = num_workers
 
         if orientations is None:
-            orientations = [0, 180]
+            orientations = [
+                "0°", 
+                "90°", 
+                "180°", 
+                "270°"
+            ]
         if class_region is None:
             class_region = []
         if class_count_line is None:
@@ -34,30 +39,36 @@ class OptionsNetDataModule(pl.LightningDataModule):
 
         # init train generator
         self.train = None
-        self.train_image_generator = data_loader(
-            train_dir,
-            width,
-            height,
-            batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+        self.train_image_generator = None
+        if train_dir is not None:
+            self.train_image_generator = data_loader(
+                train_dir,
+                width,
+                height,
+                batch_size,
+                [len(class_region), len(class_count_line), len(orientations)])
 
         # init validation generator
         self.val = None
-        self.val_image_generator = data_loader(
-            val_dir,
-            width,
-            height,
-            batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+        self.val_image_generator = None
+        if val_dir is not None:
+            self.val_image_generator = data_loader(
+                val_dir,
+                width,
+                height,
+                batch_size,
+                [len(class_region), len(class_count_line), len(orientations)])
 
         # init test generator
         self.test = None
-        self.test_image_generator = data_loader(
-            test_dir,
-            width,
-            height,
-            batch_size,
-            [len(class_region), len(class_count_line), len(orientations)])
+        self.test_image_generator = None
+        if test_dir is not None:
+            self.test_image_generator = data_loader(
+                test_dir,
+                width,
+                height,
+                batch_size,
+                [len(class_region), len(class_count_line), len(orientations)])
 
     def prepare_data(self):
         self.train_image_generator.build_data()

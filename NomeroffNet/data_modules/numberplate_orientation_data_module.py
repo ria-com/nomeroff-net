@@ -5,98 +5,104 @@ import torch
 import tqdm
 import cv2
 import numpy as np
+from torch.nn import functional
 import pytorch_lightning as pl
 from .data_loaders import normalize
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../base')))
 
+from NomeroffNet.tools.image_processing import generate_image_rotation_variants
+from .data_loaders import ImgOrientationGenerator
+from .numberplate_options_data_module import OptionsNetDataModule
 
-def prepare_data(json_path,
-                 img_path,
-                 w=300,
-                 h=300):
-    features = []
-    targets = []
+
+def show_data(img_path,
+              json_path,
+              max_count_image=1):
+    from matplotlib import pyplot as plt
+    
     print("Loading dataset...")
     with open(json_path) as json_file:
         data = json.load(json_file)
-        for p in tqdm.tqdm(data['_via_img_metadata']):
-            item = data['_via_img_metadata'][p]
-            filename = item["filename"]
-            image_path = os.path.join(img_path, filename)
-            img = cv2.imread(image_path)
-            for region in item['regions']:
-                if len(region['shape_attributes']['all_points_x']) != 4:
-                    continue
-                if len(region['shape_attributes']['all_points_y']) != 4:
-                    continue
-                xs = np.array(region['shape_attributes']['all_points_x'])
-                ys = np.array(region['shape_attributes']['all_points_y'])
-                min_x = min(xs)
-                max_x = max(xs)
-                min_y = min(ys)
-                max_y = max(ys)
-                img_part = img[min_y:max_y, min_x:max_x]
-                img_part = normalize(img_part, width=w, height=h)
-                features.append(img_part)
-                targets.append(0)
-    print("Prepared", len(features), "images")
-    return features, targets
+    for i, p in enumerate(data['_via_img_metadata']):
+        item = data['_via_img_metadata'][p]
+        filename = item["filename"]
+        image_path = os.path.join(img_path, filename)
+        img = cv2.imread(image_path)
+        target_boxes = [[
+                            min(np.array(region['shape_attributes']['all_points_x'])),
+                            min(np.array(region['shape_attributes']['all_points_y'])),
+                            max(np.array(region['shape_attributes']['all_points_x'])),
+                            max(np.array(region['shape_attributes']['all_points_y'])),
+                        ] for region in item['regions']
+                          if len(region['shape_attributes']['all_points_x']) == 4 
+                            and len(region['shape_attributes']['all_points_y']) == 4]
+        variant_images, variants_bboxes = generate_image_rotation_variants(img, 
+                                                                           target_boxes, 
+                                                                           angles=[90, 180, 270])
+        angles=[0, 90, 180, 270]
+        for variant_image, variant_bboxes, angle in zip(variant_images, variants_bboxes, angles):
+            for bbox in variant_bboxes:
+                min_x = bbox[0]
+                max_x = bbox[2]
+                min_y = bbox[1]
+                max_y = bbox[3]
+                img_part = variant_image[min_y:max_y, min_x:max_x]
+                
+                print("[INFO]", filename, angle, bbox, variant_image.shape)
+                plt.imshow(img_part)
+                plt.show()
+        if i+1 > max_count_image:
+            break
 
 
-class OrientationDataModule(pl.LightningDataModule):
+class OrientationDataModule(OptionsNetDataModule):
     def __init__(self,
-                 train_dir="../datasets/mask/val",
-                 train_json_path="../datasets/mask/val/via_region_data_sorted.json",
-                 validation_dir="../datasets/mask/train",
-                 validation_json_path="../datasets/mask/train/via_region_data_new7.json",
+                 train_dir="../datasets/mask/train",
+                 train_json_path="../datasets/mask/train/via_region_data_orientation.json",
+                 validation_dir="../datasets/mask/val",
+                 validation_json_path="../datasets/mask/val/via_region_data_orientation.json",
                  width=300,
                  height=300,
-                 batch_size=32):
+                 angles = None,
+                 batch_size=32,
+                 num_workers=0,
+                 with_aug=False):
         super().__init__()
         self.batch_size = batch_size
+        self.num_workers = num_workers
         self.width = width
         self.height = height
-
-        self.val_img_path = validation_dir
-        self.val_json_path = validation_json_path
-
-        self.train_img_path = train_dir
-        self.train_json_path = train_json_path
-
-        self.val_features = None
-        self.val_targets = None
-        self.train_features = None
-        self.train_targets = None
+        if angles is None:
+            angles = [0, 90, 180, 270]
+        
         self.train = None
+        self.train_image_generator = ImgOrientationGenerator(
+            train_json_path,
+            train_dir,
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            angles=angles,
+            with_aug=with_aug)
+        
         self.val = None
-
-    def prepare_data(self):
-        val_features, val_targets = prepare_data(self.val_json_path,
-                                                 self.val_img_path,
-                                                 w=self.width,
-                                                 h=self.height)
-        self.val_features = torch.Tensor(val_features)
-        self.val_targets = torch.Tensor(val_targets)
-
-        train_features, train_targets = prepare_data(self.train_json_path,
-                                                     self.train_img_path,
-                                                     w=self.width,
-                                                     h=self.height)
-        self.train_features = torch.Tensor(train_features)
-        self.train_targets = torch.Tensor(train_targets)
-
-    def setup(self, stage=None):
-        self.train = torch.utils.data.TensorDataset(self.val_features, self.val_targets)
-        self.val = torch.utils.data.TensorDataset(self.train_features, self.train_targets)
-
-    # return the dataloader for each split
-    def train_dataloader(self):
-        return torch.utils.data.DataLoader(self.train, batch_size=self.batch_size)
-
-    def val_dataloader(self):
-        return torch.utils.data.DataLoader(self.val, batch_size=self.batch_size)
-
-    def test_dataloader(self):
-        return torch.utils.data.DataLoader(self.val, batch_size=self.batch_size)
+        self.val_image_generator = ImgOrientationGenerator(
+            validation_json_path,
+            validation_dir,
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            angles=angles,
+            with_aug=with_aug)
+        
+        self.test = None
+        self.test_image_generator = ImgOrientationGenerator(
+            validation_json_path,
+            validation_dir,
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            angles=angles,
+            with_aug=with_aug)

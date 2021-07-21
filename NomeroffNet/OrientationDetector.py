@@ -4,15 +4,18 @@ from typing import List, Dict, Tuple
 import numpy as np
 
 import torch
+import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'base')))
 from .tools import (modelhub,
                     get_mode_torch)
-from data_modules.numberplate_orientation_data_module import OrientationDataModule
+from data_modules.numberplate_orientation_data_module import OrientationDataModule, show_data
 from nnmodels.numberplate_orientation_model import NPOrientationNet
 from data_modules.data_loaders import normalize
-from .OptionsDetector import OptionsDetector
+from NomeroffNet.tools.image_processing import rotate_im
+
 
 mode_torch = get_mode_torch()
 
@@ -28,7 +31,12 @@ class OrientationDetector(object):
         super().__init__()
 
         if orientations is None:
-            orientations = [0, 180]
+            orientations = [
+                0, 
+                90, 
+                180, 
+                270
+            ]
 
         # input
         self.height = 300
@@ -69,18 +77,21 @@ class OrientationDetector(object):
                 base_dir: str,
                 train_json_path=None,
                 validation_json_path=None,
+                num_workers=0,
                 verbose=False) -> None:
         """
         TODO: describe method
         """
-        # you mast split your data on 3 directory
         train_dir = os.path.join(base_dir, 'train')
         if train_json_path is None:
-            train_json_path = os.path.join(base_dir, 'train/via_region_data.json')
+            train_json_path = os.path.join(base_dir, 'train/via_region_data_orientation.json')
         validation_dir = os.path.join(base_dir, 'val')
         if validation_json_path is None:
-            validation_json_path = os.path.join(base_dir, 'val/via_region_data.json')
-
+            validation_json_path = os.path.join(base_dir, 'val/via_region_data_orientation.json')
+        
+        if verbose:
+            show_data(validation_dir, validation_json_path)
+            
         # compile generators
         self.dm = OrientationDataModule(
             train_dir,
@@ -89,6 +100,8 @@ class OrientationDetector(object):
             validation_json_path,
             width=self.width,
             height=self.height,
+            angles=self.orientations,
+            num_workers=num_workers,
             batch_size=self.batch_size)
 
     def load_model(self, path_to_model):
@@ -101,6 +114,21 @@ class OrientationDetector(object):
                                                                orientation_output_size=len(self.orientations))
         self.model.eval()
         return self.model
+    
+    def test(self) -> List:
+        """
+        TODO: describe method
+        """
+        return self.trainer.test()
+
+    def save(self, path: str, verbose: bool = True) -> None:
+        """
+        TODO: describe method
+        """
+        if self.model is not None:
+            if bool(verbose):
+                print("model save to {}".format(path))
+            self.trainer.save_checkpoint(path)
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOrientationNet:
         """
@@ -118,7 +146,36 @@ class OrientationDetector(object):
             path_to_model = model_info["path"]
 
         return self.load_model(path_to_model)
-
+    
+    def train(self,
+              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), 
+                                                   '../data/logs/options'))
+              ) -> NPOrientationNet:
+        """
+        TODO: describe method
+        TODO: add ReduceLROnPlateau callback
+        """
+        self.create_model()
+        checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
+        self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                  gpus=self.gpus,
+                                  callbacks=[checkpoint_callback])
+        self.trainer.fit(self.model, self.dm)
+        print("[INFO] best model path", checkpoint_callback.best_model_path)
+        self.trainer.test()
+        return self.model
+    
+    def tune(self) -> NPOrientationNet:
+        """
+        TODO: describe method
+        TODO: add ReduceLROnPlateau callback
+        """
+        model = self.create_model()
+        trainer = pl.Trainer(auto_lr_find=True,
+                             max_epochs=self.epochs,
+                             gpus=self.gpus)
+        return trainer.tune(model, self.dm)
+    
     def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
         """
         TODO: describe method
@@ -128,6 +185,17 @@ class OrientationDetector(object):
             return orientations, predicted
         return orientations
 
+    def fix_orientations(self, imgs: List[np.ndarray], return_acc=False) -> List:
+        predicted_orientations, acc = self.predict(imgs, return_acc=True)
+        rotated_images = []
+        for predicted_orientation, img in zip(predicted_orientations, imgs):
+            angle = self.get_orientations(predicted_orientation)
+            if angle:
+                img = rotate_im(img, angle*-1)
+            rotated_images.append(img)
+        print(acc)
+        return rotated_images
+
     @torch.no_grad()
     def predict_with_confidence(self, imgs: List[np.ndarray]) -> Tuple:
         """
@@ -135,7 +203,9 @@ class OrientationDetector(object):
         """
         xs = []
         for img in imgs:
-            xs.append(normalize(img))
+            xs.append(normalize(img,
+                                height=self.height,
+                                width=self.width))
 
         predicted = [[], []]
         if bool(xs):
