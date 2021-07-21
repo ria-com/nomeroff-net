@@ -7,8 +7,8 @@ from .classification_model import ClassificationNet
 class NPOrientationNet(ClassificationNet):
     def __init__(self,
                  orientation_output_size: int,
-                 img_h: int = 64,
-                 img_w: int = 295,
+                 img_h: int = 300,
+                 img_w: int = 300,
                  batch_size: int = 1):
         super(NPOrientationNet, self).__init__()  # activation='relu'
         self.batch_size = batch_size

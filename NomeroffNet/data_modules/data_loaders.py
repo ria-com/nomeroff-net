@@ -160,44 +160,6 @@ class ImgGenerator(torch.utils.data.Dataset):
             yield paths, xs, ys
 
 
-class OrientationImgGenerator(ImgGenerator):
-    def __getitem__(self, index):
-        """
-        Generates one sample of data
-        """
-
-        x, y = copy.deepcopy(self.paths[self.indexes[index]]), copy.deepcopy(self.discs[self.indexes[index]])
-        x = self.get_x_from_path(x)
-        x = torch.from_numpy(x)
-        y = torch.from_numpy(y)
-        return x, y
-
-    def build_data(self) -> None:
-        self.paths = []
-        self.discs = []
-        for i, (img_filepath, disc) in enumerate(self.samples):
-            if disc[2] >= 0:
-                self.paths.append(img_filepath)
-                self.discs.append(
-                    np.eye(self.labels_counts[2])[disc[2]]
-                )
-
-    def run_iteration(self, with_aug=False):
-        ys = []
-        xs = []
-        paths = []
-        for _ in np.arange(self.batch_size):
-            x, y = self.next_sample()
-            paths.append(x)
-            img = cv2.imread(x)
-            x = normalize(img, with_aug=with_aug, width=self.img_w, height=self.img_h)
-            xs.append(x)
-            ys.append(y)
-        ys = np.array(ys, dtype=np.float32)
-        xs = np.moveaxis(np.array(xs), 3, 1)
-        return paths, xs, ys
-
-
 class TextImageGenerator(object):
     def __init__(self,
                  dirpath: str,

@@ -9,16 +9,15 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'base')))
 from .tools import (modelhub,
                     get_mode_torch)
-from data_modules.numberplate_options_data_module import OptionsNetDataModule
+from data_modules.numberplate_orientation_data_module import OrientationDataModule
 from nnmodels.numberplate_orientation_model import NPOrientationNet
-from data_modules.data_loaders import OrientationImgGenerator
 from data_modules.data_loaders import normalize
 from .OptionsDetector import OptionsDetector
 
 mode_torch = get_mode_torch()
 
 
-class OrientationDetector(OptionsDetector):
+class OrientationDetector(object):
     """
     TODO: describe class
     """
@@ -32,8 +31,8 @@ class OrientationDetector(OptionsDetector):
             orientations = [0, 180]
 
         # input
-        self.height = 64
-        self.width = 295
+        self.height = 300
+        self.width = 300
         self.color_channels = 3
 
         self.orientations = orientations
@@ -54,7 +53,7 @@ class OrientationDetector(OptionsDetector):
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def create_model(self) -> OptionsNetDataModule:
+    def create_model(self) -> NPOrientationNet:
         """
         TODO: describe method
         """
@@ -66,22 +65,28 @@ class OrientationDetector(OptionsDetector):
             self.model = self.model.cuda()
         return self.model
 
-    def prepare(self, base_dir: str, verbose=False) -> None:
+    def prepare(self,
+                base_dir: str,
+                train_json_path=None,
+                validation_json_path=None,
+                verbose=False) -> None:
         """
         TODO: describe method
         """
         # you mast split your data on 3 directory
         train_dir = os.path.join(base_dir, 'train')
+        if train_json_path is None:
+            train_json_path = os.path.join(base_dir, 'train/via_region_data.json')
         validation_dir = os.path.join(base_dir, 'val')
-        test_dir = os.path.join(base_dir, 'test')
+        if validation_json_path is None:
+            validation_json_path = os.path.join(base_dir, 'val/via_region_data.json')
 
         # compile generators
-        self.dm = OptionsNetDataModule(
+        self.dm = OrientationDataModule(
             train_dir,
+            train_json_path,
             validation_dir,
-            test_dir,
-            orientations=self.orientations,
-            data_loader=OrientationImgGenerator,
+            validation_json_path,
             width=self.width,
             height=self.height,
             batch_size=self.batch_size)

@@ -56,7 +56,11 @@ class Detector(object):
             device = "cuda"
         self.load_model(path_to_model, device)
 
-    def detect_bbox(self, img: np.ndarray, img_size: int = 640, stride: int = 32, min_accuracy: float = 0.5) -> List:
+    def detect_bbox(self,
+                    img: np.ndarray,
+                    img_size: int = 640,
+                    stride: int = 32,
+                    min_accuracy: float = 0.5) -> List:
         """
         TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
         """
