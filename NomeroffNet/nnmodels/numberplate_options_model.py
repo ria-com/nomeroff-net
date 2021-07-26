@@ -10,9 +10,11 @@ class NPOptionsNet(ClassificationNet):
                  count_line_output_size: int,
                  img_h: int = 64,
                  img_w: int = 295,
-                 batch_size: int = 1):
+                 batch_size: int = 1,
+                 learning_rate: float = 0.005):
         super(NPOptionsNet, self).__init__()  # activation='relu'
         self.batch_size = batch_size
+        self.learning_rate = learning_rate
         self.inp_conv = nn.Conv2d(3, 32, (3, 3),
                                   stride=(1, 1),
                                   padding=(0, 0))
@@ -85,7 +87,7 @@ class NPOptionsNet(ClassificationNet):
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adamax(self.parameters(),
-                                       lr=0.005,
+                                       lr=self.learning_rate,
                                        betas=(0.9, 0.999),
                                        eps=1e-07)
         return optimizer

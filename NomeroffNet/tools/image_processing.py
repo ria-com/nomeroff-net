@@ -354,12 +354,28 @@ def findMinXIdx(targetPoints: Union) -> int:
     return minXIdx
 
 
-def rotate_im(image: np.ndarray, angle: float) -> np.ndarray:
+def rotate_im(image, angle):
     """Rotate the image.
 
     Rotate the image such that the rotated image is enclosed inside the tightest
     rectangle. The area not occupied by the pixels of the original image is colored
     black.
+
+    Parameters
+    ----------
+
+    image : numpy.ndarray
+        numpy image
+
+    angle : float
+        angle by which the image is to be rotated
+
+    Returns
+    -------
+
+    numpy.ndarray
+        Rotated Image
+
     """
     # grab the dimensions of the image and then determine the
     # centre

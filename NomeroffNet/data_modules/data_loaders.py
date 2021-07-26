@@ -6,9 +6,11 @@ import torch
 import numpy as np
 import random
 import tqdm
-from typing import List, Tuple, Generator
-from NomeroffNet.tools.ocr_tools import is_valid_str, text_to_labels
+from PIL import Image
+from typing import List, Tuple, Generator, Any
+from NomeroffNet.tools.ocr_tools import is_valid_str
 from NomeroffNet.tools.image_processing import rotate_image_and_bboxes
+from torchvision import transforms
 
 
 def normalize(img: np.ndarray,
@@ -292,9 +294,11 @@ class TextImageGenerator(object):
                  dirpath: str,
                  letters: List,
                  max_text_len: int,
+                 label_converter: Any = None,
                  img_w: int = 128,
                  img_h: int = 64,
                  batch_size: int = 1,
+                 max_plate_length: int = 8,
                  with_aug: bool = False) -> None:
 
         self.dirpath = dirpath
@@ -302,10 +306,15 @@ class TextImageGenerator(object):
         self.img_w = img_w
         self.batch_size = batch_size
         self.max_text_len = max_text_len
+        self.max_plate_length = max_plate_length
         self.letters = letters
-
+        
+        self.label_converter = label_converter
+        self.list_transforms = transforms.Compose([transforms.ToTensor()])
+        
         img_dirpath = os.path.join(dirpath, 'img')
         ann_dirpath = os.path.join(dirpath, 'ann')
+        self.pathes = [os.path.join(img_dirpath, filename) for filename in os.listdir(img_dirpath)]
         self.samples = []
         for filename in os.listdir(img_dirpath):
             name, ext = os.path.splitext(filename)
@@ -321,6 +330,7 @@ class TextImageGenerator(object):
                 raise Warning(f"Image {filename} is not png!")
 
         self.n = len(self.samples)
+        self.batch_count = int(self.n/batch_size)
         self.indexes = list(range(self.n))
         self.cur_index = 0
         self.with_aug = with_aug
@@ -335,15 +345,12 @@ class TextImageGenerator(object):
         """
         return self.n
 
-    def get_x_from_path(self, path: str) -> np.ndarray:
-        img = cv2.imread(path)
-        x = normalize(img,
-                      with_aug=self.with_aug,
-                      width=self.img_w,
-                      height=self.img_h,
-                      to_gray=True)
-        x = np.moveaxis(np.array(x), 2, 0)
-        return x
+    def get_x_from_path(self, img_path: str) -> np.ndarray:
+        img = Image.open(img_path).convert('RGB')
+        newsize = (200, 50)
+        img = img.resize(newsize)
+        img = self.transform(img)
+        return img
 
     def __getitem__(self, index):
         """
@@ -351,14 +358,36 @@ class TextImageGenerator(object):
         """
 
         img_path, text = copy.deepcopy(self.samples[index])
+        text = text.lower()
+        img = self.get_x_from_path(img_path)
+        return img, text
+    
+    def transform(self, img) -> torch.Tensor:
+        return self.list_transforms(img)
+    
+    def next_sample(self) -> Tuple:
+        self.cur_index += 1
+        if self.cur_index >= self.n:
+            self.cur_index = 0
+        img_path, text = copy.deepcopy(self.samples[self.cur_index])
+        text = text.lower()
         x = self.get_x_from_path(img_path)
-        y = np.array(text_to_labels(text, self.letters, self.max_text_len))
-        x = torch.from_numpy(x)
-        y = torch.from_numpy(y)
+        return img_path, x, text
 
-        input_lengths = torch.full(size=(1,),
-                                   fill_value=self.img_w // (2 * 2) - 2,
-                                   dtype=torch.long)
-        target_lengths = np.array([len(text)])
-        target_lengths = torch.from_numpy(target_lengths)
-        return (x, input_lengths, target_lengths), y
+    def run_iteration(self, with_aug=False):
+        ys = []
+        xs = []
+        paths = []
+        for _ in np.arange(self.batch_size):
+            img_path, x, y = self.next_sample()
+            paths.append(img_path)
+            x = x.reshape([1, *x.shape])
+            xs.append(x)
+            ys.append(y)
+        xs =  torch.cat(xs, dim=0)
+        return paths, xs, ys
+    
+    def path_generator(self, with_aug: bool = False) -> Generator:
+        for _ in np.arange(self.batch_count):
+            paths, xs, ys = self.run_iteration(with_aug)
+            yield paths, xs, ys

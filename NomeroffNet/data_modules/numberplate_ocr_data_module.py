@@ -18,6 +18,7 @@ class OcrNetDataModule(pl.LightningDataModule):
                  width=128,
                  height=64,
                  batch_size=32,
+                 max_plate_length=8,
                  num_workers=0,
                  with_aug=False):
         super().__init__()
@@ -33,6 +34,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             width,
             height,
             batch_size,
+            max_plate_length,
             with_aug)
 
         # init validation generator
@@ -44,17 +46,19 @@ class OcrNetDataModule(pl.LightningDataModule):
             width,
             height,
             batch_size,
+            max_plate_length,
             with_aug)
 
         # init test generator
         self.test = None
-        self.test_image_generator = (
+        self.test_image_generator = TextImageGenerator(
             test_dir,
             letters,
             max_text_len,
             width,
             height,
             batch_size,
+            max_plate_length,
             with_aug)
 
     def prepare_data(self):
@@ -68,14 +72,18 @@ class OcrNetDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         return torch.utils.data.DataLoader(self.train,
                                            batch_size=self.batch_size,
-                                           num_workers=self.num_workers)
+                                           #drop_last=True,
+                                           num_workers=self.num_workers,
+                                           shuffle=True)
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val,
                                            batch_size=self.batch_size,
+                                           #drop_last=True,
                                            num_workers=self.num_workers)
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(self.test,
                                            batch_size=self.batch_size,
+                                           #drop_last=True,
                                            num_workers=self.num_workers)

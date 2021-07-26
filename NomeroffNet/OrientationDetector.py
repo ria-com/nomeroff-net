@@ -165,7 +165,7 @@ class OrientationDetector(object):
         self.trainer.test()
         return self.model
     
-    def tune(self) -> NPOrientationNet:
+    def tune(self) -> Dict:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
