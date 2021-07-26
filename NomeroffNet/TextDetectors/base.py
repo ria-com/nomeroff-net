@@ -1,20 +1,26 @@
 # import modules
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Dict
 
 import os
 import sys
 import time
 import json
 import numpy as np
-
+import tqdm
+import torch
+import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import LearningRateMonitor
 from collections import Counter
 
 from NomeroffNet.tools import (modelhub,
                                get_mode_torch)
 from NomeroffNet.data_modules.numberplate_ocr_data_module import OcrNetDataModule
-from NomeroffNet.nnmodels.ocr_model import NPOcrNet
+from NomeroffNet.nnmodels.ocr_model import NPOcrNet, weights_init
+from NomeroffNet.data_modules.data_loaders import TextImageGenerator, normalize
+from NomeroffNet.tools.ocr_tools import strLabelConverter, decode_prediction, decode_batch, plot_loss, print_prediction
+
 
 mode_torch = get_mode_torch()
 
@@ -29,19 +35,25 @@ class OCR(object):
         self.dm = None
         self.model = None
         self.trainer = None
-        self.letters = None
+        self.letters = []
         self.max_text_len = 0
 
         # Input parameters
         self.height = 64
         self.width = 128
         self.color_channels = 1
+        self.label_length = 13
 
         # Train hyperparameters
         self.batch_size = 32
         self.epochs = 1
         self.gpus = 1
-
+        
+        self.label_converter = None
+    
+    def init_label_converter(self):
+        self.label_converter = strLabelConverter("".join(self.letters))
+        
     @staticmethod
     def get_counter(dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
         dirname = os.path.basename(dirpath)
@@ -106,16 +118,17 @@ class OCR(object):
 
         if verbose:
             print("GET ALPHABET")
-        self.letters, max_plate_length = self.get_alphabet(train_dir,
+        self.letters, self.max_plate_length = self.get_alphabet(train_dir,
                                                            test_dir,
                                                            val_dir,
                                                            verbose=verbose)
+        self.init_label_converter()
 
         if verbose:
             print("\nEXPLAIN DATA TRANSFORMATIONS")
             self.explain_text_generator(train_dir,
                                         self.letters,
-                                        max_plate_length)
+                                        self.max_plate_length)
 
         if verbose:
             print("START BUILD DATA")
@@ -129,6 +142,7 @@ class OCR(object):
             width=self.width,
             height=self.height,
             batch_size=self.batch_size,
+            max_plate_length=self.max_plate_length,
             num_workers=num_workers,
             with_aug=use_aug)
         if verbose:
@@ -138,15 +152,19 @@ class OCR(object):
         """
         TODO: describe method
         """
-        self.model = NPOcrNet(self.max_text_len,
-                              self.height,
-                              self.width)
+        self.model = NPOcrNet(self.letters,
+                              letters_max=len(self.letters) + 1,
+                              img_h=self.height,
+                              img_w=self.width,
+                              label_converter=self.label_converter,
+                              max_plate_length=self.max_plate_length)
+        self.model.apply(weights_init)
         if mode_torch == "gpu":
             self.model = self.model.cuda()
         return self.model
 
     def train(self,
-              log_dir=sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr')))
+              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr'))
               ) -> NPOcrNet:
         """
         TODO: describe method
@@ -154,17 +172,203 @@ class OCR(object):
         """
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
+        lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
                                   gpus=self.gpus,
-                                  callbacks=[checkpoint_callback],
+                                  callbacks=[checkpoint_callback, lr_monitor],
                                   weights_summary=None)
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         self.trainer.test()
         return self.model
+    
+    def validation(self, val_losses, device):
+        with torch.no_grad():
+            self.model.eval()
+            for batch_img, batch_text in self.dm.val_dataloader():
+                logits = self.model(batch_img.to(device))
+                val_loss = self.model.calculate_loss(logits, batch_text)
+                val_losses.append(val_loss.item())
+        return val_losses
 
-    def test(self) -> List:
+    def train_torch(self,
+                    log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr')),
+                    lr = 0.02,
+                    weight_decay = 1e-5,
+                    momentum = 0.9,
+                    clip_norm = 5,
+                    ) -> NPOcrNet:
+        self.create_model()
+        self.dm.setup()
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, nesterov=True, 
+                                    weight_decay=weight_decay, momentum=momentum)
+        critertion = nn.CTCLoss(blank=0)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
+        val_dataset = self.dm.val_image_generator
+        epoch = 0
+        train_losses = []
+        val_losses = []
+        val_epoch_len = len(val_dataset) // self.batch_size
+        try:
+            while epoch <= self.epochs:
+                self.model.train()
+                idx = 0
+                for batch_imgs, batch_text in tqdm.tqdm(self.dm.train_dataloader(), desc=f"EPOCH {epoch}"):
+                    optimizer.zero_grad()
+                    logits = self.model(batch_imgs.to(device))
+                    # calculate loss
+                    train_loss = self.model.calculate_loss(logits, batch_text)
+                    if np.isnan(train_loss.detach().cpu().numpy()):
+                        print("NaN loss")
+                        continue
+                    train_losses.append(train_loss.item())
+                    # make backward
+                    train_loss.backward()
+
+                    nn.utils.clip_grad_norm_(self.model.parameters(), clip_norm)
+                    optimizer.step()
+                    idx += 1
+
+                val_losses = self.validation(val_losses, device)
+
+                # printing progress
+                plot_loss(epoch, train_losses, val_losses)
+                print_prediction(self.model, val_dataset, device, self.label_converter)
+
+                scheduler.step(val_losses[-1])
+                epoch += 1
+        except KeyboardInterrupt:
+            pass
+    
+    def tune(self) -> Dict:
+        """
+        TODO: describe method
+        TODO: add ReduceLROnPlateau callback
+        """
+        trainer = pl.Trainer(auto_lr_find=True,
+                             max_epochs=self.epochs,
+                             gpus=self.gpus)
+        
+        model = self.create_model()
+        lr_finder = trainer.tuner.lr_find(model, self.dm, early_stop_threshold=None, min_lr=1e-30)
+        lr = lr_finder.suggestion()
+        print(f"Found lr: {lr}")
+        model.hparams["learning_rate"] = lr
+        
+        return lr_finder
+        #return trainer.tune(model, self.dm)
+    
+    @torch.no_grad()
+    def predict(self, imgs: List, return_acc: bool = False) -> Any:
+        xs = []
+        for img in imgs:
+            x = normalize(img,
+                          width=self.width,
+                          height=self.height,
+                          to_gray=True)
+            xs.append(x)
+        pred_texts = []
+        net_out_value = []
+        if bool(xs):
+            xs = torch.tensor(np.moveaxis(np.array(xs), 3, 1))
+            if mode_torch == "gpu":
+                xs = xs.cuda()
+                self.model = self.model.cuda()
+            net_out_value = self.model(xs)
+            net_out_value = [p.cpu().numpy() for p in net_out_value]
+            pred_texts = self.decode_batch(net_out_value)
+        if return_acc:
+            return pred_texts, net_out_value
+        return pred_texts
+        
+    def save(self, path: str, verbose: bool = True) -> None:
         """
         TODO: describe method
         """
-        return self.trainer.test()
+        if self.model is not None:
+            if bool(verbose):
+                print("model save to {}".format(path))
+            self.trainer.save_checkpoint(path)
+   
+    def save_torch(self, path: str, verbose: bool = True) -> None:
+        torch.save(self.model.state_dict(), path)
+        
+    def load_torch(self, path: str) -> None:
+        self.create_model()
+        self.model.load_state_dict(torch.load(path))
+
+    def is_loaded(self) -> bool:
+        """
+        TODO: describe method
+        """
+        if self.model is None:
+            return False
+        return True
+
+    def load_model(self, path_to_model):
+        if mode_torch == "gpu":
+            self.model = NPOcrNet.load_from_checkpoint(path_to_model,
+                                                       map_location=torch.device('cuda'),
+                                                       letters=self.letters,
+                                                       letters_max=len(self.letters) + 1,
+                                                       img_h=self.height,
+                                                       img_w=self.width,
+                                                       label_converter=self.label_converter,
+                                                       max_plate_length=self.max_plate_length)
+        else:
+            self.model = NPOcrNet.load_from_checkpoint(path_to_model,
+                                                       map_location=torch.device('cpu'),
+                                                       letters=self.letters,
+                                                       letters_max=len(self.letters) + 1,
+                                                       img_h=self.height,
+                                                       img_w=self.width,
+                                                       label_converter=self.label_converter,
+                                                       max_plate_length=self.max_plate_length)
+        self.model.eval()
+        return self.model
+
+    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOcrNet:
+        """
+        TODO: describe method
+        """
+        if options is None:
+            options = dict()
+        self.create_model()
+        if path_to_model == "latest":
+            model_info = modelhub.download_model_by_name(self.get_classname())
+            path_to_model = model_info["path"]
+        elif path_to_model.startswith("http"):
+            model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), self.get_classname())
+            path_to_model = model_info["path"]
+
+        return self.load_model(path_to_model)
+    
+    def acc_calc(self, dataset, verbose = False) -> float:
+        acc = 0
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        with torch.no_grad():
+            self.model.eval()
+            for idx in range(len(dataset)):
+                img, text = dataset[idx]
+                logits = self.model(img.unsqueeze(0))
+                pred_text = decode_prediction(logits.cpu(), self.label_converter)
+
+                if pred_text == text:
+                    acc += 1
+                elif verbose:
+                    print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
+                   
+        return acc / len(dataset)
+    
+    def val_acc(self, verbose=False) -> float:
+        acc = self.acc_calc(self.dm.val_image_generator, verbose=verbose)
+        print('Validaton Accuracy: ', acc)
+        
+    def test_acc(self, verbose=True) -> float:
+        acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose)
+        print('Testing Accuracy: ', acc)
+        
+    def train_acc(self, verbose=False) -> float:
+        acc = self.acc_calc(self.dm.train_image_generator, verbose=verbose)
+        print('Training Accuracy: ', acc)
