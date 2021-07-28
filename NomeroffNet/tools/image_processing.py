@@ -107,10 +107,13 @@ def rotate(origin, point, angle_degrees):
 
 def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     """
-    TODO: describe function
+    image perspective transformation
     """
-    w = int(w)
-    h = int(h)
+    img_h, img_w, img_c = img.shape
+    if img_h < h:
+        h = img_h
+    if img_w < w:
+        w = img_w
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
     moment = cv2.getPerspectiveTransform(pts1, pts2)
@@ -131,7 +134,7 @@ def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,
             w = (distanses[1]['d'] + distanses[3]['d']) / 2
     else:
         w, h = gw, gh
-    return buildPerspective(img, rect, w, h)
+    return buildPerspective(img, rect, int(w), int(h))
 
 
 def getMeanDistance(rect: List, start_idx: int, verbose: bool = False) -> np.ndarray:
@@ -176,7 +179,7 @@ def getCvZonesRGB(img: np.ndarray, rects: list, gw: float = 0, gh: float = 0,
             w, h = int(h*coef), int(h)
         else:
             w, h = gw, gh
-        dst = buildPerspective(img, rect, w, h)
+        dst = buildPerspective(img, rect, int(w), int(h))
         dsts.append(dst)
     return dsts
 
