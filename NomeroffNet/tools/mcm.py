@@ -36,7 +36,7 @@ models = {
     },
     "yolov5": {
         "application": "Detector",
-        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.pt",
+        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-07-28.pt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
         "repo": "https://github.com/ultralytics/yolov5.git",
     },
