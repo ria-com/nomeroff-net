@@ -20,7 +20,7 @@ sys.path.append(YOLOV5_DIR)
 from models.experimental import attempt_load
 from utils.datasets import letterbox
 from utils.general import non_max_suppression, scale_coords
-from utils.torch_utils import select_device, load_classifier, time_synchronized
+from utils.torch_utils import select_device, load_classifier
 
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
@@ -48,7 +48,7 @@ class Detector(object):
         half = device.type != 'cpu'  # half precision only supported on CUDA
         if half:
             model.half()  # to FP16
-        
+
         self.model = model
         self.device = device
         self.half = half
@@ -76,12 +76,12 @@ class Detector(object):
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
         if img.ndimension() == 3:
             img = img.unsqueeze(0)
-        
+
         pred = self.model(img)[0]
         # Apply NMS
         pred = non_max_suppression(pred)
         res = []
-        for i, det in enumerate(pred): 
+        for i, det in enumerate(pred):
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], img_shape).round()

@@ -6,7 +6,6 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import TextDetectors
-from tools import np_split
 
 
 class TextDetector(object):
@@ -62,7 +61,6 @@ class TextDetector(object):
         while len(lines) < len(zones):
             lines.append(self.DEFAULT_LINES_COUNT)
 
-        zones = np_split(zones, lines)
         predicted = {}
 
         order_all = []

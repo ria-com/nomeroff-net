@@ -6,9 +6,10 @@ def prepare_multiline_rects(rects, zones, lines):
     :param rects: rectangles with CRAFT-matched letters zones
     :param zones: normalized image parts
     :param lines: spetial dict with stucture
-    :return: updated rectangles for joining
+    :return: updated rectangles for joining, oneline numberplate builder configuration
     """
     new_zones = []
+    np_config = {}
     lines_count = len(lines.keys())
     for idx in lines.keys():
         if len(lines[idx]) > 1:
@@ -32,4 +33,4 @@ def prepare_multiline_rects(rects, zones, lines):
                 new_zones.append(zones[line['idx']])
     if lines_count == 2:
         new_zones.append(right_zone)
-    return new_zones
+    return new_zones, np_config

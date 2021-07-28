@@ -27,7 +27,6 @@ import cv2
 import numpy as np
 import craft_utils
 import imgproc
-from scipy.spatial import ConvexHull
 
 # load CRAFT packages
 from craft import CRAFT
@@ -49,6 +48,10 @@ from tools import (fline,
                    rotate,
                    buildPerspective,
                    getCvZoneRGB,
+                   fixClockwise2,
+                   findMinXIdx,
+                   detectIntersection,
+                   minimum_bounding_rectangle,
                    getMeanDistance,
                    reshapePoints,
                    getCvZonesRGB,
@@ -120,12 +123,11 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
     render_img = score_text.copy()
     render_img = np.hstack((render_img, score_link))
     ret_score_text = imgproc.cvt2HeatmapImg(render_img)
-
     return boxes, polys, ret_score_text
 
 
 def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
-                similarity_range: int = 0.6) -> Tuple[List[int], List[int]]:
+                similarity_range: int = 0.5) -> Tuple[List[int], List[int]]:
     """
     TODO: describe function
     """
@@ -140,75 +142,6 @@ def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Di
         else:
             garbage_bboxes_idx.append(i)
     return np_bboxes_idx, garbage_bboxes_idx
-
-
-def minimum_bounding_rectangle(points: np.ndarray) -> np.ndarray:
-    """
-    Find the smallest bounding rectangle for a set of points.
-    detail: https://gis.stackexchange.com/questions/22895/finding-minimum-area-rectangle-for-given-points
-    Returns a set of points representing the corners of the bounding box.
-
-    :param points: an nx2 matrix of coordinates
-    :rval: an nx2 matrix of coordinates
-    """
-    pi2 = np.pi / 2.
-
-    # get the convex hull for the points
-    hull_points = points[ConvexHull(points).vertices]
-
-    # calculate edge angles
-    edges = hull_points[1:] - hull_points[:-1]
-    angles = np.arctan2(edges[:, 1], edges[:, 0])
-
-    angles = np.abs(np.mod(angles, pi2))
-    angles = np.unique(angles)
-
-    # find rotation matrices
-    # XXX both work
-    rotations = np.vstack([
-        np.cos(angles),
-        np.cos(angles - pi2),
-        np.cos(angles + pi2),
-        np.cos(angles)]).T
-    rotations = rotations.reshape((-1, 2, 2))
-
-    # apply rotations to the hull
-    rot_points = np.dot(rotations, hull_points.T)
-
-    # find the bounding points
-    min_x = np.nanmin(rot_points[:, 0], axis=1)
-    max_x = np.nanmax(rot_points[:, 0], axis=1)
-    min_y = np.nanmin(rot_points[:, 1], axis=1)
-    max_y = np.nanmax(rot_points[:, 1], axis=1)
-
-    # find the box with the best area
-    areas = (max_x - min_x) * (max_y - min_y)
-    best_idx = np.argmin(areas)
-
-    # return the best box
-    x1 = max_x[best_idx]
-    x2 = min_x[best_idx]
-    y1 = max_y[best_idx]
-    y2 = min_y[best_idx]
-    r = rotations[best_idx]
-
-    rval = np.zeros((4, 2))
-    rval[0] = np.dot([x1, y2], r)
-    rval[1] = np.dot([x2, y2], r)
-    rval[2] = np.dot([x2, y1], r)
-    rval[3] = np.dot([x1, y1], r)
-
-    return rval
-
-
-def detectIntersection(matrix1: np.ndarray, matrix2: np.ndarray) -> np.ndarray:
-    """
-    www.math.by/geometry/eqline.html
-    xn--80ahcjeib4ac4d.xn--p1ai/information/solving_systems_of_linear_equations_in_python/
-    """
-    x = np.array([matrix1[:2], matrix2[:2]])
-    y = np.array([matrix1[2], matrix2[2]])
-    return np.linalg.solve(x, y)
 
 
 def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float, d2: float) -> np.ndarray:
@@ -238,19 +171,6 @@ def detectDistanceFromPointToLine(matrix: List[np.ndarray],
     return abs(A * x + B * y - C) / math.sqrt(A ** 2 + B ** 2)
 
 
-def findMinXIdx(targetPoints: Union) -> int:
-    """
-    TODO: describe function
-    """
-    minXIdx = 3
-    for i in range(0, len(targetPoints)):
-        if targetPoints[i][0] < targetPoints[minXIdx][0]:
-            minXIdx = i
-        if targetPoints[i][0] == targetPoints[minXIdx][0] and targetPoints[i][1] < targetPoints[minXIdx][1]:
-            minXIdx = i
-    return minXIdx
-
-
 def fixClockwise(targetPoints: List) -> List:
     """
     TODO: describe function
@@ -263,61 +183,6 @@ def fixClockwise(targetPoints: List) -> List:
     if stat2[2] < stat1[2]:
         targetPoints = np.array([targetPoints[0], targetPoints[3], targetPoints[2], targetPoints[1]])
     return targetPoints
-
-
-def order_points_old(pts: np.ndarray):
-    # initialize a list of coordinates that will be ordered
-    # such that the first entry in the list is the top-left,
-    # the second entry is the top-right, the third is the
-    # bottom-right, and the fourth is the bottom-left
-    rect = np.zeros((4, 2), dtype="float32")
-
-    # the top-left point will have the smallest sum, whereas
-    # the bottom-right point will have the largest sum
-    s = pts.sum(axis=1)
-    lp = np.argmin(s)
-
-    # fix original code by Oleg Cherniy
-    rp = lp + 2
-    if rp > 3:
-        rp = rp - 4
-    rect[0] = pts[lp]
-    rect[2] = pts[rp]
-    pts_crop = [pts[idx] for idx in filter(lambda i: (i != lp) and (i != rp), range(len(pts)))]
-
-    # now, compute the difference between the points, the
-    # top-right point will have the smallest difference,
-    # whereas the bottom-left will have the largest difference
-
-    # diff = np.diff(pts_crop, axis=1)
-    # rect[1] = pts_crop[np.argmin(diff)]
-    # rect[3] = pts_crop[np.argmax(diff)]
-    # Определяется так. Предположим, у нас есть 3 точки: А(х1,у1), Б(х2,у2), С(х3,у3). Через точки А и Б проведена прямая. И нам надо определить, как расположена точка С относительно прямой АБ. Для этого вычисляем значение:
-    # D = (х3 - х1) * (у2 - у1) - (у3 - у1) * (х2 - х1)
-    # - Если D = 0 - значит, точка С лежит на прямой АБ.
-    # - Если D < 0 - значит, точка С лежит слева от прямой.
-    # - Если D > 0 - значит, точка С лежит справа от прямой.
-    x1 = rect[0][0]
-    y1 = rect[0][1]
-    x2 = rect[2][0]
-    y2 = rect[2][1]
-    x3 = pts_crop[0][0]
-    y3 = pts_crop[0][1]
-    d = (x3 - x1) * (y2 - y1) - (y3 - y1) * (x2 - x1)
-
-    if d > 0:
-        rect[1] = pts_crop[0]
-        rect[3] = pts_crop[1]
-    else:
-        rect[1] = pts_crop[1]
-        rect[3] = pts_crop[0]
-
-    # return the ordered coordinates
-    return rect
-
-
-def fixClockwise2(target_points: np.ndarray) -> np.ndarray:
-    return order_points_old(np.array(target_points))
 
 
 def addoptRectToBbox(targetPoints: List, Bbox: Tuple, distansesoffsetLeftMaxPercentage: float,
@@ -423,6 +288,8 @@ def normalizeRect(rect: List) -> List:
     """
     TODO: describe function
     """
+    # print('rect')
+    # print(rect)
     rect = fixClockwise2(rect)
     minXIdx = findMinXIdx(rect)
     rect = reshapePoints(rect, minXIdx)
@@ -431,13 +298,27 @@ def normalizeRect(rect: List) -> List:
     d_bottom = distance(rect[0], rect[3])
     d_left = distance(rect[0], rect[1])
     k = d_bottom/d_left
-    if (d_bottom < d_left):
-        k = d_left/d_bottom
-        if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
-            rect = reshapePoints(rect, 3)
+    # print('k = {}'.format(k))
+    # print('d_bottom = {} d_left = {}'.format(d_bottom, d_left))
+    # print('rect')
+    # print(rect)
+    # print('p0 x: {}  p1 x: {}'.format(rect[0][0], rect[1][0]))
+    if round(rect[0][0], 4) == round(rect[1][0], 4):
+        pass
     else:
-        if k < 1.5 and angle_ccw < 0 or angle_ccw > 45:
-            rect = reshapePoints(rect, 3)
+        if (d_bottom < d_left):
+            k = d_left/d_bottom
+            #print('d_bottom < d_left k = {}'.format(k))
+            #print('angle_ccw = {}'.format(angle_ccw))
+            if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
+                rect = reshapePoints(rect, 3)
+                #print('reshapePoints(rect, 3)')
+        else:
+            #print('d_bottom >= d_left k = {}'.format(k))
+            #print('angle_ccw = {}'.format(angle_ccw))
+            if k < 1.5 and (angle_ccw < 0 or angle_ccw > 45):
+                rect = reshapePoints(rect, 3)
+                #print('reshapePoints(rect, 3)')
     return rect
 
 
@@ -512,6 +393,9 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
     """
     if quality_profile is None:
         quality_profile = [3, 1, 0, 0]
+
+    print('propably_points')
+    print(propably_points)
 
     steps = quality_profile[0]
     steps_plus = quality_profile[1]
@@ -628,7 +512,6 @@ class NpPointsCraft(object):
 
         if is_cuda:
             self.net = self.net.cuda()
-            self.net = torch.nn.DataParallel(self.net)
             cudnn.benchmark = False
 
         self.net.eval()
@@ -641,7 +524,6 @@ class NpPointsCraft(object):
             if is_cuda:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model)))
                 self.refine_net = self.refine_net.cuda()
-                self.refine_net = torch.nn.DataParallel(self.refine_net)
             else:
                 self.refine_net.load_state_dict(copyStateDict(torch.load(refiner_model, map_location='cpu')))
 

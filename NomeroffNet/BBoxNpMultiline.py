@@ -155,9 +155,31 @@ class MultilineConverter:
         return mod
 
     def merge_lines(self, cmd: Any) -> np.ndarray:
+        # NP config
+        np_config_default = {
+            "padding-left-coef": 1.5,
+            "padding-right-coef": 6,
+            "padding-zones-coef": 4,
+            "padding-top-coef": 8,
+            "padding-bottom-coef": 8,
+        }
+
         # Detect zones
         img_zones = get_cv_zonesRGBLite(self.imagePart, self.rects)
-        img_zones = cmd.prepare_multiline_rects(self.rects, img_zones, self.probablyLines)
+        img_zones, np_config = cmd.prepare_multiline_rects(self.rects, img_zones, self.probablyLines)
+
+        print('np_config')
+        print(np_config)
+        if np_config is None:
+            np_config = {}
+        padding_left_coef = np_config.get('padding-left-coef', np_config_default["padding-left-coef"])
+        padding_right_coef = np_config.get('padding-right-coef', np_config_default["padding-right-coef"])
+        padding_zones_coef = np_config.get('padding-zones-coef', np_config_default["padding-zones-coef"])
+        padding_top_coef = np_config.get('padding-top-coef', np_config_default["padding-top-coef"])
+        padding_bottom_coef = np_config.get('padding-bottom-coef', np_config_default["padding-bottom-coef"])
+
+        print('padding_left_coef')
+        print(padding_left_coef)
 
         target_zone_value = max([img_zone.shape[0] for img_zone in img_zones])
 
@@ -169,22 +191,22 @@ class MultilineConverter:
                 zone = target_resize(zone, target_zone_value)
             res_zone.append(zone)
             if idx < cnt-1:
-                res_zone.append(np.ones((target_zone_value, int(target_zone_value / 4), 3), dtype="uint8") * bg_fill)
+                res_zone.append(np.ones((target_zone_value, int(target_zone_value / padding_zones_coef), 3), dtype="uint8") * bg_fill)
 
         # Show result
         temp = np.hstack(res_zone)
         temp = normalize(temp)
 
         res_zone = [
-            np.ones((target_zone_value, int(target_zone_value / 1.5)), dtype="uint8") * self.bg_fill,
+            np.ones((target_zone_value, int(target_zone_value / padding_left_coef)), dtype="uint8") * self.bg_fill,
             temp,
-            np.ones((target_zone_value, int(target_zone_value / 6)), dtype="uint8") * self.bg_fill
+            np.ones((target_zone_value, int(target_zone_value / padding_right_coef)), dtype="uint8") * self.bg_fill
         ]
         temp = np.hstack(res_zone)
 
         res_zone = [
-            np.ones((int(target_zone_value / 8), temp.shape[1]), dtype="uint8") * self.bg_fill,
+            np.ones((int(target_zone_value / padding_top_coef), temp.shape[1]), dtype="uint8") * self.bg_fill,
             temp,
-            np.ones((int(target_zone_value / 8), temp.shape[1]), dtype="uint8") * self.bg_fill
+            np.ones((int(target_zone_value / padding_bottom_coef), temp.shape[1]), dtype="uint8") * self.bg_fill
         ]
         return np.vstack(res_zone)

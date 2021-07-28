@@ -6,15 +6,15 @@ from typing import List, Dict, Tuple
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
-from BBoxNpPoints import (minimum_bounding_rectangle,
-                          detectIntersection,
-                          fixClockwise2,
-                          findMinXIdx)
 from tools import (fline,
                    distance,
+                   minimum_bounding_rectangle,
+                   fixClockwise2,
                    linearLineMatrix,
                    getYByMatrix,
                    rotate,
+                   detectIntersection,
+                   findMinXIdx,
                    reshapePoints)
 from BBoxNpMultiline import MultilineConverter
 
