@@ -5,16 +5,15 @@ from typing import List
 import numpy as np
 import pytorch_lightning as pl
 from NomeroffNet.tools import get_mode_torch
+from NomeroffNet.tools.ocr_tools import plot_loss, print_prediction
 from torchvision.models import resnet18
 import torch
 
 
 def weights_init(m):
     classname = m.__class__.__name__
-    if type(m) in [nn.Linear, nn.Conv2d, nn.Conv1d]:
-        torch.nn.init.xavier_uniform_(m.weight)
-        if m.bias is not None:
-            m.bias.data.fill_(0.01)
+    if classname.find('Conv') != -1:
+        m.weight.data.normal_(0.0, 0.02)
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
@@ -49,9 +48,9 @@ class blockCNN(nn.Module):
             batch = functional.relu(batch)
         if use_maxpool:
             assert maxpool_kernelsize is not None
-            batch = functional.max_pool2d(batch, kernel_size=maxpool_kernelsize, stride=2)
+            batch = functional.max_pool2d(batch, kernel_size=maxpool_kernelsize, stride=1)
         return batch
-
+    
     
 class blockRNN(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, bidirectional, dropout=0):
@@ -61,7 +60,7 @@ class blockRNN(nn.Module):
         self.out_size = out_size
         self.bidirectional = bidirectional
         # layers
-        self.gru = nn.GRU(in_size, hidden_size, bidirectional=bidirectional)
+        self.gru = nn.LSTM(in_size, hidden_size, bidirectional=bidirectional, batch_first=True)
         
     def forward(self, batch, add_output=False):
         """
@@ -86,14 +85,17 @@ class NPOcrNet(pl.LightningModule):
                  img_w: int = 128,
                  max_plate_length: int = 8,
                  learning_rate: float = 0.02,
-                 hidden_size = 256,
+                 hidden_size = 32,
                  bidirectional = True,
                  dropout = 0.1,
                  label_converter = None,
+                 val_dataset = None,
                  weight_decay = 1e-5,
                  momentum = 0.9,
                  clip_norm = 5):
         super().__init__()
+        self.save_hyperparameters()
+        
         self.letters = letters
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -112,10 +114,11 @@ class NPOcrNet(pl.LightningModule):
         modules = list(resnet.children())[:-3]
         self.resnet = nn.Sequential(*modules)
 
-        self.cn6 = blockCNN(256, 256, kernel_size=3, padding=1)
+        self.cnn = blockCNN(256, 256, kernel_size=3, padding=1)
+        
         # RNN + Linear
-        self.linear1 = nn.Linear(1024, 256)
-        self.gru1 = blockRNN(256, hidden_size, hidden_size,
+        self.linear1 = nn.Linear(1024, 512)
+        self.gru1 = blockRNN(512, hidden_size, hidden_size,
                              dropout=dropout, 
                              bidirectional=bidirectional)
         self.gru2 = blockRNN(hidden_size, hidden_size, letters_max,
@@ -123,39 +126,56 @@ class NPOcrNet(pl.LightningModule):
                              bidirectional=bidirectional)
         self.linear2 = nn.Linear(hidden_size * 2, letters_max)
         
+        self.automatic_optimization = True
         self.criterion = None
+        self.val_dataset = val_dataset
+        self.train_losses = []
+        self.val_losses = []
+        
 
     def forward(self, batch: torch.Tensor):
         """
         ------:size sequence:------
-        torch.Size([batch_size, 3, 50, 200]) -- IN:
-        torch.Size([batch_size, 256, 4, 13]) -- CNN blocks ended
-        torch.Size([batch_size, 13, 256, 4]) -- permuted 
-        torch.Size([batch_size, 13, 1024]) -- Linear #1
-        torch.Size([batch_size, 13, 256]) -- IN GRU 
-        torch.Size([batch_size, 13, 256]) -- OUT GRU 
-        torch.Size([batch_size, 13, vocab_size]) -- Linear #2
-        torch.Size([13, batch_size, vocab_size]) -- :OUT
+        torch.Size([batch_size, 3, 64, 128]) -- IN:
+        torch.Size([batch_size, 16, 16, 32]) -- CNN blocks ended
+        torch.Size([batch_size, 32, 256]) -- permuted 
+        torch.Size([batch_size, 32, 32]) -- Linear #1
+        torch.Size([batch_size, 32, 512]) -- IN GRU 
+        torch.Size([batch_size, 512, 512]) -- OUT GRU 
+        torch.Size([batch_size, 32, vocab_size]) -- Linear #2
+        torch.Size([32, batch_size, vocab_size]) -- :OUT
         """
         batch_size = batch.size(0)
+        #print("batch", batch.shape)
+        
         # convolutions
         batch = self.resnet(batch)
-        batch = self.cn6(batch, use_relu=True, use_bn=True)
+        #batch = self.cnn(batch, use_relu=True, use_bn=True)
+        #print("batch", batch.shape)
+        
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
         n_channels = batch.size(1)
         batch = batch.view(batch_size, n_channels, -1)
+        #print("permute", batch.shape)
+        
         batch = self.linear1(batch)
+        #print("linear1", batch.shape)
+        
         # rnn layers
         batch = self.gru1(batch, add_output=True)
+        #print("gru1", batch.shape)
         batch = self.gru2(batch)
+        #print("gru2", batch.shape)
         # output
         batch = self.linear2(batch)
+        #print("linear2", batch.shape)
         batch = batch.permute(1, 0, 2)
+        #logits = batch[1:, :, :]
         return batch
 
     def init_loss(self):
-        self.criterion = nn.CTCLoss(blank=0)
+        self.criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction='mean')
         
     def calculate_loss(self, logits, texts):
         if self.criterion is None:
@@ -185,7 +205,16 @@ class NPOcrNet(pl.LightningModule):
         loss = self.calculate_loss(output, texts)
         return loss
     
-    
+    def on_save_checkpoint(self, _):
+        # printing progress
+        try:
+            if self.current_epoch and self.val_dataset:
+                device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+                print_prediction(self, self.val_dataset, device, self.label_converter)
+                plot_loss(self.current_epoch, self.train_losses, self.val_losses)
+        except Exception:
+            pass
+        
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
             self.parameters(), 
@@ -193,22 +222,31 @@ class NPOcrNet(pl.LightningModule):
             nesterov=True, 
             weight_decay=self.weight_decay, 
             momentum=self.momentum)
+#         optimizer = torch.optim.RMSprop(
+#             self.parameters(), 
+#             lr=self.learning_rate,
+#             )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
-#         return {"optimizer": optimizer,
-#                 "lr_scheduler": scheduler}
-        return optimizer
+        lr_schedulers = {'scheduler': scheduler, 'monitor': 'val_loss'}
+        return [optimizer], [lr_schedulers]
     
     def training_step(self, batch, batch_idx):
         loss = self.step(batch)
-        self.log(f'Batch {batch_idx} train_loss', loss)
+        self.log(f'train_loss', loss)
+        self.train_losses.append(loss.cpu().detach().numpy())
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self.step(batch)
         self.log('val_loss', loss)
+        self.val_losses.append(loss.cpu().detach().numpy())
         return loss
 
     def test_step(self, batch, batch_idx):
         loss = self.step(batch)
         self.log('test_loss', loss)
         return loss
+    
+    def backward_hook(self, module, grad_input, grad_output):
+        for g in grad_input:
+            g[g != g] = 0   # replace all nan/inf in gradients to zero

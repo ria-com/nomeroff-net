@@ -310,7 +310,9 @@ class TextImageGenerator(object):
         self.letters = letters
         
         self.label_converter = label_converter
-        self.list_transforms = transforms.Compose([transforms.ToTensor()])
+        self.list_transforms = transforms.Compose([
+            transforms.ToTensor()
+        ])
         
         img_dirpath = os.path.join(dirpath, 'img')
         ann_dirpath = os.path.join(dirpath, 'ann')
@@ -345,10 +347,16 @@ class TextImageGenerator(object):
         """
         return self.n
 
-    def get_x_from_path(self, img_path: str) -> np.ndarray:
+    def get_x_from_path(self, img_path: str, newsize = None) -> np.ndarray:
+        if newsize is None:
+            newsize = (200, 50)
         img = Image.open(img_path).convert('RGB')
-        newsize = (200, 50)
         img = img.resize(newsize)
+        if self.with_aug:
+            from .augmentations import aug
+            img = np.array(img)
+            imgs = aug([img])
+            img = Image.fromarray(imgs[0])
         img = self.transform(img)
         return img
 

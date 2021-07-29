@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from numpy import mean
-from PIL import Image
+from PIL import Image, ImageDraw
 from typing import List
 
 
@@ -128,11 +128,8 @@ def plot_loss(epoch: int,
     """
     Plots train and validation losses 
     """
-    from IPython.display import clear_output
     import matplotlib.pyplot as plt
     
-    # clear previous graph
-    clear_output(True)
     # making titles
     train_title = f'Epoch:{epoch} | Train Loss:{mean(train_losses[-n_steps:]):.6f}'
     val_title = f'Epoch:{epoch} | Val Loss:{mean(val_losses[-n_steps:]):.6f}'
@@ -146,7 +143,13 @@ def plot_loss(epoch: int,
 
     plt.show()
 
-def print_prediction(model, dataset, device, label_converter):
+def print_prediction(model, 
+                     dataset, 
+                     device, 
+                     label_converter,
+                     w=200,
+                     h=50,
+                     count_zones=16):
     import matplotlib.pyplot as plt
     
     idx = np.random.randint(len(dataset))
@@ -159,9 +162,16 @@ def print_prediction(model, dataset, device, label_converter):
         logits = model(img.to(device))
         
     pred_text = decode_prediction(logits.cpu(), label_converter)
-
-    img = np.asarray(Image.open(path).convert('L'))
+    img = Image.open(path).convert('L')
+    img = img.resize((w, h))
+    draw = ImageDraw.Draw(img)
+    for i in np.arange(0, w, w/count_zones):
+        if 1 > i or i > w:
+            continue
+        draw.line((i, 0, i, img.size[0]), fill=256)
+    img = np.asarray(img)
     title = f'Truth: {target_text} | Pred: {pred_text}'
     plt.imshow(img)
     plt.title(title)
     plt.axis('off');
+    plt.show()

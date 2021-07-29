@@ -14,7 +14,7 @@ from .tools import (modelhub,
 from data_modules.numberplate_orientation_data_module import OrientationDataModule, show_data
 from nnmodels.numberplate_orientation_model import NPOrientationNet
 from data_modules.data_loaders import normalize
-from NomeroffNet.tools.image_processing import rotate_im
+from .OptionsDetector import OptionsDetector
 
 
 mode_torch = get_mode_torch()
@@ -31,7 +31,7 @@ class OrientationDetector(object):
         super().__init__()
 
         if orientations is None:
-            orientations = [
+            self.orientations = [
                 0, 
                 90, 
                 180, 
@@ -165,7 +165,7 @@ class OrientationDetector(object):
         self.trainer.test()
         return self.model
     
-    def tune(self) -> Dict:
+    def tune(self) -> NPOrientationNet:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
@@ -185,17 +185,6 @@ class OrientationDetector(object):
             return orientations, predicted
         return orientations
 
-    def fix_orientations(self, imgs: List[np.ndarray], return_acc=False) -> List:
-        predicted_orientations, acc = self.predict(imgs, return_acc=True)
-        rotated_images = []
-        for predicted_orientation, img in zip(predicted_orientations, imgs):
-            angle = self.get_orientations(predicted_orientation)
-            if angle:
-                img = rotate_im(img, angle*-1)
-            rotated_images.append(img)
-        print(acc)
-        return rotated_images
-
     @torch.no_grad()
     def predict_with_confidence(self, imgs: List[np.ndarray]) -> Tuple:
         """
@@ -203,9 +192,7 @@ class OrientationDetector(object):
         """
         xs = []
         for img in imgs:
-            xs.append(normalize(img,
-                                height=self.height,
-                                width=self.width))
+            xs.append(normalize(img))
 
         predicted = [[], []]
         if bool(xs):

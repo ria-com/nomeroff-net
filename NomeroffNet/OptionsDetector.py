@@ -152,6 +152,17 @@ class OptionsDetector(object):
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         self.trainer.test()
         return self.model
+    
+    def tune(self) -> Dict:
+        """
+        TODO: describe method
+        TODO: add ReduceLROnPlateau callback
+        """
+        model = self.create_model()
+        trainer = pl.Trainer(auto_lr_find=True,
+                             max_epochs=self.epochs,
+                             gpus=self.gpus)
+        return trainer.tune(model, self.dm)
 
     def test(self) -> List:
         """

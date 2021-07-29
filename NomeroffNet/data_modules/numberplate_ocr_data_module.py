@@ -31,11 +31,11 @@ class OcrNetDataModule(pl.LightningDataModule):
             train_dir,
             letters,
             max_text_len,
-            width,
-            height,
-            batch_size,
-            max_plate_length,
-            with_aug)
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            max_plate_length=max_plate_length,
+            with_aug=with_aug)
 
         # init validation generator
         self.val = None
@@ -46,8 +46,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             width,
             height,
             batch_size,
-            max_plate_length,
-            with_aug)
+            max_plate_length)
 
         # init test generator
         self.test = None
@@ -58,8 +57,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             width,
             height,
             batch_size,
-            max_plate_length,
-            with_aug)
+            max_plate_length)
 
     def prepare_data(self):
         pass
@@ -72,18 +70,15 @@ class OcrNetDataModule(pl.LightningDataModule):
     def train_dataloader(self):
         return torch.utils.data.DataLoader(self.train,
                                            batch_size=self.batch_size,
-                                           #drop_last=True,
                                            num_workers=self.num_workers,
                                            shuffle=True)
 
     def val_dataloader(self):
         return torch.utils.data.DataLoader(self.val,
                                            batch_size=self.batch_size,
-                                           #drop_last=True,
                                            num_workers=self.num_workers)
 
     def test_dataloader(self):
         return torch.utils.data.DataLoader(self.test,
                                            batch_size=self.batch_size,
-                                           #drop_last=True,
                                            num_workers=self.num_workers)
