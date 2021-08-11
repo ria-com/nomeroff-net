@@ -63,4 +63,4 @@ class NPOrientationNet(ClassificationNet):
         return loss, acc
     
     def configure_optimizers(self):
-        return torch.optim.Adamax(self.parameters(), lr=(self.learning_rate))
+        return torch.optim.Adamax(self.parameters(), lr=self.learning_rate)

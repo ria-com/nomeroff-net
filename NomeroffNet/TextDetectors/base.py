@@ -2,13 +2,9 @@
 from typing import List, Tuple, Any, Dict
 
 import os
-import sys
-import time
 import json
 import numpy as np
-import tqdm
 import torch
-import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -18,8 +14,10 @@ from NomeroffNet.tools import (modelhub,
                                get_mode_torch)
 from NomeroffNet.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from NomeroffNet.nnmodels.ocr_model import NPOcrNet, weights_init
-from NomeroffNet.data_modules.data_loaders import TextImageGenerator, normalize
-from NomeroffNet.tools.ocr_tools import strLabelConverter, decode_prediction, decode_batch, plot_loss, print_prediction
+from NomeroffNet.data_modules.data_loaders import normalize
+from NomeroffNet.tools.ocr_tools import (strLabelConverter,
+                                         decode_prediction,
+                                         decode_batch)
 
 
 mode_torch = get_mode_torch()
@@ -39,6 +37,7 @@ class OCR(object):
         self.max_text_len = 0
 
         # Input parameters
+        self.max_plate_length = 0
         self.height = 64
         self.width = 128
         self.color_channels = 1
@@ -52,7 +51,7 @@ class OCR(object):
         self.label_converter = None
     
     def init_label_converter(self):
-        self.label_converter = strLabelConverter("".join(self.letters))
+        self.label_converter = strLabelConverter("".join(self.letters), self.max_text_len)
         
     @staticmethod
     def get_counter(dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
@@ -118,10 +117,11 @@ class OCR(object):
 
         if verbose:
             print("GET ALPHABET")
-        self.letters, self.max_plate_length = self.get_alphabet(train_dir,
-                                                           test_dir,
-                                                           val_dir,
-                                                           verbose=verbose)
+        self.letters, self.max_plate_length = self.get_alphabet(
+            train_dir,
+            test_dir,
+            val_dir,
+            verbose=verbose)
         self.init_label_converter()
 
         if verbose:
@@ -190,56 +190,6 @@ class OCR(object):
                 val_loss = self.model.calculate_loss(logits, batch_text)
                 val_losses.append(val_loss.item())
         return val_losses
-
-    def train_torch(self,
-                    log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr')),
-                    lr = 0.02,
-                    weight_decay = 1e-5,
-                    momentum = 0.9,
-                    clip_norm = 5,
-                    ) -> NPOcrNet:
-        self.create_model()
-        self.dm.setup()
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, nesterov=True, 
-                                    weight_decay=weight_decay, momentum=momentum)
-        critertion = nn.CTCLoss(blank=0)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
-        val_dataset = self.dm.val_image_generator
-        epoch = 0
-        train_losses = []
-        val_losses = []
-        val_epoch_len = len(val_dataset) // self.batch_size
-        try:
-            while epoch <= self.epochs:
-                self.model.train()
-                idx = 0
-                for batch_imgs, batch_text in tqdm.tqdm(self.dm.train_dataloader(), desc=f"EPOCH {epoch}"):
-                    optimizer.zero_grad()
-                    logits = self.model(batch_imgs.to(device))
-                    # calculate loss
-                    train_loss = self.model.calculate_loss(logits, batch_text)
-                    if np.isnan(train_loss.detach().cpu().numpy()):
-                        print("NaN loss")
-                        continue
-                    train_losses.append(train_loss.item())
-                    # make backward
-                    train_loss.backward()
-
-                    nn.utils.clip_grad_norm_(self.model.parameters(), clip_norm)
-                    optimizer.step()
-                    idx += 1
-
-                val_losses = self.validation(val_losses, device)
-
-                # printing progress
-                plot_loss(epoch, train_losses, val_losses)
-                print_prediction(self.model, val_dataset, device, self.label_converter)
-
-                scheduler.step(val_losses[-1])
-                epoch += 1
-        except KeyboardInterrupt:
-            pass
     
     def tune(self) -> Dict:
         """
@@ -257,7 +207,6 @@ class OCR(object):
         model.hparams["learning_rate"] = lr
         
         return lr_finder
-        #return trainer.tune(model, self.dm)
     
     @torch.no_grad()
     def predict(self, imgs: List, return_acc: bool = False) -> Any:
@@ -276,8 +225,8 @@ class OCR(object):
                 xs = xs.cuda()
                 self.model = self.model.cuda()
             net_out_value = self.model(xs)
-            net_out_value = [p.cpu().numpy() for p in net_out_value]
-            pred_texts = self.decode_batch(net_out_value)
+            # net_out_value = [p.cpu().numpy() for p in net_out_value]
+            pred_texts = decode_batch(net_out_value, self.label_converter)
         if return_acc:
             return pred_texts, net_out_value
         return pred_texts
@@ -290,13 +239,6 @@ class OCR(object):
             if bool(verbose):
                 print("model save to {}".format(path))
             self.trainer.save_checkpoint(path)
-   
-    def save_torch(self, path: str, verbose: bool = True) -> None:
-        torch.save(self.model.state_dict(), path)
-        
-    def load_torch(self, path: str) -> None:
-        self.create_model()
-        self.model.load_state_dict(torch.load(path))
 
     def is_loaded(self) -> bool:
         """
@@ -328,12 +270,10 @@ class OCR(object):
         self.model.eval()
         return self.model
 
-    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOcrNet:
+    def load(self, path_to_model: str = "latest") -> NPOcrNet:
         """
         TODO: describe method
         """
-        if options is None:
-            options = dict()
         self.create_model()
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name(self.get_classname())
@@ -344,9 +284,8 @@ class OCR(object):
 
         return self.load_model(path_to_model)
     
-    def acc_calc(self, dataset, verbose = False) -> float:
+    def acc_calc(self, dataset, verbose: bool = False) -> float:
         acc = 0
-        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         with torch.no_grad():
             self.model.eval()
             for idx in range(len(dataset)):
@@ -358,17 +297,19 @@ class OCR(object):
                     acc += 1
                 elif verbose:
                     print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
-                   
         return acc / len(dataset)
     
     def val_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.val_image_generator, verbose=verbose)
         print('Validaton Accuracy: ', acc)
+        return acc
         
     def test_acc(self, verbose=True) -> float:
         acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose)
         print('Testing Accuracy: ', acc)
+        return acc
         
     def train_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.train_image_generator, verbose=verbose)
         print('Training Accuracy: ', acc)
+        return acc

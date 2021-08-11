@@ -1,31 +1,37 @@
 import collections
+import itertools
 import torch
-import torch.nn as nn
 import numpy as np
 from numpy import mean
 from PIL import Image, ImageDraw
 from typing import List
 
 
-class strLabelConverter(object):
+class StrLabelConverter(object):
     """Convert between str and label.
         Insert `blank` to the alphabet for CTC.
     Args:
-        alphabet (str): set of the possible characters.
+        letters (str): set of the possible characters.
         ignore_case (bool, default=True): whether or not to ignore all of the case.
     """
 
-    def __init__(self, alphabet: str, ignore_case: bool = True):
+    def __init__(self, letters: str,
+                 max_text_len: int,
+                 ignore_case: bool = True):
         self._ignore_case = ignore_case
         if self._ignore_case:
-            alphabet = alphabet.lower()
-        self.alphabet = alphabet + '-'  # for `-1` index
+            letters = letters.lower()
+        self.letters = letters
+        self.letters_max = len(self.letters) + 1
+        self.max_text_len = max_text_len
 
-        self.char2idx = {}
-        for i, char in enumerate(alphabet):
-            # NOTE: 0 is reserved for 'blank' required by wrap_ctc
-            self.char2idx[char] = i + 1
-        self.idx2char = {idx: char for char, idx in self.char2idx.items()}
+    def labels_to_text(self, labels: List) -> str:
+        out_best = [k for k, g in itertools.groupby(labels)]
+        outstr = ''
+        for c in out_best:
+            if c != 0:
+                outstr += self.letters[c - 1]
+        return outstr
 
     def encode(self, text):
         """Support batch or single str.
@@ -35,19 +41,19 @@ class strLabelConverter(object):
             torch.IntTensor [length_0 + length_1 + ... length_{n - 1}]: encoded texts.
             torch.IntTensor [n]: length of each text.
         """
+        length = []
         if isinstance(text, str):
-            text = [
-                self.char2idx[char.lower() if self._ignore_case else char]
-                for char in text
-            ]
+            text = list(map(lambda x: self.letters.index(x) + 1, text))
+            while len(text) < self.max_text_len:
+                text.append(0)
             length = [len(text)]
         elif isinstance(text, collections.Iterable):
             length = [len(s) for s in text]
             text = ''.join(text)
             text, _ = self.encode(text)
-        return (torch.IntTensor(text), torch.IntTensor(length))
+        return torch.IntTensor(text), torch.IntTensor(length)
 
-    def decode(self, t, length, raw=False):
+    def decode(self, t, length):
         """Decode encoded texts back into strs.
         Args:
             torch.IntTensor [length_0 + length_1 + ... length_{n - 1}]: encoded texts.
@@ -59,51 +65,40 @@ class strLabelConverter(object):
         """
         if length.numel() == 1:
             length = length[0]
-            assert t.numel() == length, "text with length: {} does not match declared length: {}".format(t.numel(), length)
-            if raw:
-                return ''.join([self.alphabet[i - 1] for i in t])
-            else:
-                char_list = []
-                for i in range(length):
-                    if t[i] != 0 and (not (i > 0 and t[i - 1] == t[i])):
-                        char_list.append(self.alphabet[t[i] - 1])
-                return ''.join(char_list)
+            assert t.numel() == length, "text with length: {} does not match declared length: {}".format(t.numel(),
+                                                                                                         length)
+            out_best = list(np.argmax(t[0, :], 1))
+            out_best = [k for k, g in itertools.groupby(out_best)]
+            outstr = ''
+            for c in out_best:
+                if c != 0:
+                    outstr += self.letters[c - 1]
+            return outstr
         else:
             # batch mode
-            assert t.numel() == length.sum(), "texts with length: {} does not match declared length: {}".format(t.numel(), length.sum())
+            assert t.numel() == length.sum(), "texts with length: {} does not match declared length: {}".format(
+                t.numel(), length.sum())
             texts = []
             index = 0
             for i in range(length.numel()):
-                l = length[i]
                 texts.append(
                     self.decode(
-                        t[index:index + l], torch.IntTensor([l]), raw=raw))
-                index += l
+                        t[index:index + length[i]], torch.IntTensor([length[i]])))
+                index += length[i]
         return texts
 
 
-def decode_prediction(logits: torch.Tensor, 
-                      label_converter: strLabelConverter) -> str:
+def decode_prediction(logits: torch.Tensor,
+                      label_converter: StrLabelConverter) -> str:
     tokens = logits.softmax(2).argmax(2)
     tokens = tokens.squeeze(1).numpy()
-    
-    # convert tor stings tokens
-    tokens = ''.join([label_converter.idx2char[token] 
-                      if token != 0  else '-' 
-                      for token in tokens])
-    tokens = tokens.split('-')
-    
-    # remove duplicates
-    text = [char 
-            for batch_token in tokens 
-            for idx, char in enumerate(batch_token)
-            if char != batch_token[idx-1] or len(batch_token) == 1]
-    text = ''.join(text)
+
+    text = label_converter.labels_to_text(tokens)
     return text
 
 
-def decode_batch(net_out_value: torch.Tensor, 
-                 label_converter: strLabelConverter) -> str:
+def decode_batch(net_out_value: torch.Tensor,
+                 label_converter: StrLabelConverter) -> str or List:
     position_size, batch_size, char_size = net_out_value.shape
     net_out_value = net_out_value.reshape([batch_size, position_size, char_size])
 
@@ -121,15 +116,16 @@ def is_valid_str(s: str, letters: List) -> bool:
             return False
     return True
 
-def plot_loss(epoch: int, 
-              train_losses: list, 
-              val_losses: list, 
+
+def plot_loss(epoch: int,
+              train_losses: list,
+              val_losses: list,
               n_steps: int = 100):
     """
-    Plots train and validation losses 
+    Plots train and validation losses
     """
     import matplotlib.pyplot as plt
-    
+
     # making titles
     train_title = f'Epoch:{epoch} | Train Loss:{mean(train_losses[-n_steps:]):.6f}'
     val_title = f'Epoch:{epoch} | Val Loss:{mean(val_losses[-n_steps:]):.6f}'
@@ -143,29 +139,30 @@ def plot_loss(epoch: int,
 
     plt.show()
 
-def print_prediction(model, 
-                     dataset, 
-                     device, 
+
+def print_prediction(model,
+                     dataset,
+                     device,
                      label_converter,
                      w=200,
                      h=50,
                      count_zones=16):
     import matplotlib.pyplot as plt
-    
+
     idx = np.random.randint(len(dataset))
     path = dataset.pathes[idx]
-    
+
     with torch.no_grad():
         model.eval()
         img, target_text = dataset[idx]
         img = img.unsqueeze(0)
         logits = model(img.to(device))
-        
+
     pred_text = decode_prediction(logits.cpu(), label_converter)
     img = Image.open(path).convert('L')
     img = img.resize((w, h))
     draw = ImageDraw.Draw(img)
-    for i in np.arange(0, w, w/count_zones):
+    for i in np.arange(0, w, w / count_zones):
         if 1 > i or i > w:
             continue
         draw.line((i, 0, i, img.size[0]), fill=256)
@@ -173,5 +170,5 @@ def print_prediction(model,
     title = f'Truth: {target_text} | Pred: {pred_text}'
     plt.imshow(img)
     plt.title(title)
-    plt.axis('off');
+    plt.axis('off')
     plt.show()

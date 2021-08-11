@@ -164,7 +164,6 @@ class ImgGenerator(torch.utils.data.Dataset):
             yield paths, xs, ys
 
 
-            
 class ImgOrientationGenerator(torch.utils.data.Dataset):
 
     def __init__(self,
@@ -173,9 +172,10 @@ class ImgOrientationGenerator(torch.utils.data.Dataset):
                  img_w: int = 295,
                  img_h: int = 64,
                  batch_size: int = 32,
-                 angles = [0, 90, 180, 270],
+                 angles: List = None,
                  with_aug: bool = False) -> None:
-
+        if angles is None:
+            angles = [0, 90, 180, 270]
         self.cur_index = 0
         self.paths = []
         self.discs = []
@@ -192,14 +192,16 @@ class ImgOrientationGenerator(torch.utils.data.Dataset):
             item = data['_via_img_metadata'][p]
             filename = item["filename"]
             image_path = os.path.join(img_path, filename)
-            target_boxes = [[
-                                min(np.array(region['shape_attributes']['all_points_x'])),
-                                min(np.array(region['shape_attributes']['all_points_y'])),
-                                max(np.array(region['shape_attributes']['all_points_x'])),
-                                max(np.array(region['shape_attributes']['all_points_y'])),
-                            ] for region in item['regions']
-                              if len(region['shape_attributes']['all_points_x']) == 4 
-                                and len(region['shape_attributes']['all_points_y']) == 4]
+            target_boxes = [
+                [
+                    min(np.array(region['shape_attributes']['all_points_x'])),
+                    min(np.array(region['shape_attributes']['all_points_y'])),
+                    max(np.array(region['shape_attributes']['all_points_x'])),
+                    max(np.array(region['shape_attributes']['all_points_y'])),
+                ] for region in item['regions']
+                if len(region['shape_attributes']['all_points_x']) == 4
+                and len(region['shape_attributes']['all_points_y']) == 4
+            ]
             if not len(target_boxes):
                 continue
             
@@ -236,7 +238,6 @@ class ImgOrientationGenerator(torch.utils.data.Dataset):
                         angle: int) -> np.ndarray:
         img = cv2.imread(path)
         rotated_img, rotated_bbox = rotate_image_and_bboxes(img, np.array([bbox]), int(angle))
-        #print(path, rotated_bbox, angle)
         rotated_bbox = rotated_bbox[0]
         rotated_bbox[0] = rotated_bbox[0] if rotated_bbox[0] > 0 else 0
         rotated_bbox[1] = rotated_bbox[1] if rotated_bbox[1] > 0 else 0
@@ -270,7 +271,7 @@ class ImgOrientationGenerator(torch.utils.data.Dataset):
         x = self.get_x_from_path(img_path, bbox, angle)
         return img_path, x, y
 
-    def run_iteration(self, with_aug=False):
+    def run_iteration(self):
         ys = []
         xs = []
         paths = []
@@ -283,9 +284,9 @@ class ImgOrientationGenerator(torch.utils.data.Dataset):
         xs = np.array(xs, dtype=np.float32)
         return paths, xs, ys
 
-    def path_generator(self, with_aug: bool = False) -> Generator:
+    def path_generator(self) -> Generator:
         for _ in np.arange(self.batch_count):
-            paths, xs, ys = self.run_iteration(with_aug)
+            paths, xs, ys = self.run_iteration()
             yield paths, xs, ys
 
 
@@ -347,7 +348,7 @@ class TextImageGenerator(object):
         """
         return self.n
 
-    def get_x_from_path(self, img_path: str, newsize = None) -> np.ndarray:
+    def get_x_from_path(self, img_path: str, newsize: Tuple = None) -> torch.Tensor:
         if newsize is None:
             newsize = (200, 50)
         img = Image.open(img_path).convert('RGB')
@@ -382,7 +383,7 @@ class TextImageGenerator(object):
         x = self.get_x_from_path(img_path)
         return img_path, x, text
 
-    def run_iteration(self, with_aug=False):
+    def run_iteration(self):
         ys = []
         xs = []
         paths = []
@@ -392,10 +393,10 @@ class TextImageGenerator(object):
             x = x.reshape([1, *x.shape])
             xs.append(x)
             ys.append(y)
-        xs =  torch.cat(xs, dim=0)
+        xs = torch.cat(xs, dim=0)
         return paths, xs, ys
     
-    def path_generator(self, with_aug: bool = False) -> Generator:
+    def path_generator(self) -> Generator:
         for _ in np.arange(self.batch_count):
-            paths, xs, ys = self.run_iteration(with_aug)
+            paths, xs, ys = self.run_iteration()
             yield paths, xs, ys

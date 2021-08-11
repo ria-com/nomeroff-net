@@ -1,10 +1,8 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional
-from typing import List
-import numpy as np
+from typing import List, Any
 import pytorch_lightning as pl
-from NomeroffNet.tools import get_mode_torch
 from NomeroffNet.tools.ocr_tools import plot_loss, print_prediction
 from torchvision.models import resnet18
 import torch
@@ -19,9 +17,9 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 
-class blockCNN(nn.Module):
+class BlockCNN(nn.Module):
     def __init__(self, in_nc, out_nc, kernel_size, padding, stride=1):
-        super(blockCNN, self).__init__()
+        super(BlockCNN, self).__init__()
         self.in_nc = in_nc
         self.out_nc = out_nc
         self.kernel_size = kernel_size
@@ -52,9 +50,9 @@ class blockCNN(nn.Module):
         return batch
     
     
-class blockRNN(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size, bidirectional, dropout=0):
-        super(blockRNN, self).__init__()
+class BlockRNN(nn.Module):
+    def __init__(self, in_size, hidden_size, out_size, bidirectional):
+        super(BlockRNN, self).__init__()
         self.in_size = in_size
         self.hidden_size = hidden_size
         self.out_size = out_size
@@ -85,14 +83,14 @@ class NPOcrNet(pl.LightningModule):
                  img_w: int = 128,
                  max_plate_length: int = 8,
                  learning_rate: float = 0.02,
-                 hidden_size = 32,
-                 bidirectional = True,
-                 dropout = 0.1,
-                 label_converter = None,
-                 val_dataset = None,
-                 weight_decay = 1e-5,
-                 momentum = 0.9,
-                 clip_norm = 5):
+                 hidden_size: int = 32,
+                 bidirectional: bool = True,
+                 dropout: float = 0.1,
+                 label_converter: Any = None,
+                 val_dataset: Any = None,
+                 weight_decay: float = 1e-5,
+                 momentum: float = 0.9,
+                 clip_norm: int = 5):
         super().__init__()
         self.save_hyperparameters()
         
@@ -114,15 +112,13 @@ class NPOcrNet(pl.LightningModule):
         modules = list(resnet.children())[:-3]
         self.resnet = nn.Sequential(*modules)
 
-        self.cnn = blockCNN(256, 256, kernel_size=3, padding=1)
+        self.cnn = BlockCNN(256, 256, kernel_size=3, padding=1)
         
         # RNN + Linear
         self.linear1 = nn.Linear(1024, 512)
-        self.gru1 = blockRNN(512, hidden_size, hidden_size,
-                             dropout=dropout, 
+        self.gru1 = BlockRNN(512, hidden_size, hidden_size,
                              bidirectional=bidirectional)
-        self.gru2 = blockRNN(hidden_size, hidden_size, letters_max,
-                             dropout=dropout,
+        self.gru2 = BlockRNN(hidden_size, hidden_size, letters_max,
                              bidirectional=bidirectional)
         self.linear2 = nn.Linear(hidden_size * 2, letters_max)
         
@@ -131,7 +127,6 @@ class NPOcrNet(pl.LightningModule):
         self.val_dataset = val_dataset
         self.train_losses = []
         self.val_losses = []
-        
 
     def forward(self, batch: torch.Tensor):
         """
@@ -146,32 +141,23 @@ class NPOcrNet(pl.LightningModule):
         torch.Size([32, batch_size, vocab_size]) -- :OUT
         """
         batch_size = batch.size(0)
-        #print("batch", batch.shape)
         
         # convolutions
         batch = self.resnet(batch)
-        #batch = self.cnn(batch, use_relu=True, use_bn=True)
-        #print("batch", batch.shape)
         
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
         n_channels = batch.size(1)
         batch = batch.view(batch_size, n_channels, -1)
-        #print("permute", batch.shape)
         
         batch = self.linear1(batch)
-        #print("linear1", batch.shape)
         
         # rnn layers
         batch = self.gru1(batch, add_output=True)
-        #print("gru1", batch.shape)
         batch = self.gru2(batch)
-        #print("gru2", batch.shape)
         # output
         batch = self.linear2(batch)
-        #print("linear2", batch.shape)
         batch = batch.permute(1, 0, 2)
-        #logits = batch[1:, :, :]
         return batch
 
     def init_loss(self):
@@ -222,10 +208,6 @@ class NPOcrNet(pl.LightningModule):
             nesterov=True, 
             weight_decay=self.weight_decay, 
             momentum=self.momentum)
-#         optimizer = torch.optim.RMSprop(
-#             self.parameters(), 
-#             lr=self.learning_rate,
-#             )
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
         lr_schedulers = {'scheduler': scheduler, 'monitor': 'val_loss'}
         return [optimizer], [lr_schedulers]
@@ -246,7 +228,8 @@ class NPOcrNet(pl.LightningModule):
         loss = self.step(batch)
         self.log('test_loss', loss)
         return loss
-    
-    def backward_hook(self, module, grad_input, grad_output):
+
+    @staticmethod
+    def backward_hook(module, grad_input, grad_output):
         for g in grad_input:
-            g[g != g] = 0   # replace all nan/inf in gradients to zero
+            g[g != g] = 0

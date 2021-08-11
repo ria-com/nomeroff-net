@@ -10,5 +10,7 @@ class By(OCR):
         self.letters_max = len(self.letters)+1
         self.label_length = 32 - 2
 
+        self.init_label_converter()
+
 
 by = By()

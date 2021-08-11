@@ -1,13 +1,9 @@
 import os
 import sys
 import json
-import torch
-import tqdm
 import cv2
 import numpy as np
-from torch.nn import functional
-import pytorch_lightning as pl
-from .data_loaders import normalize
+from typing import List
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../base')))
@@ -30,18 +26,19 @@ def show_data(img_path,
         filename = item["filename"]
         image_path = os.path.join(img_path, filename)
         img = cv2.imread(image_path)
-        target_boxes = [[
-                            min(np.array(region['shape_attributes']['all_points_x'])),
-                            min(np.array(region['shape_attributes']['all_points_y'])),
-                            max(np.array(region['shape_attributes']['all_points_x'])),
-                            max(np.array(region['shape_attributes']['all_points_y'])),
-                        ] for region in item['regions']
-                          if len(region['shape_attributes']['all_points_x']) == 4 
-                            and len(region['shape_attributes']['all_points_y']) == 4]
+        target_boxes = [
+            [
+                min(np.array(region['shape_attributes']['all_points_x'])),
+                min(np.array(region['shape_attributes']['all_points_y'])),
+                max(np.array(region['shape_attributes']['all_points_x'])),
+                max(np.array(region['shape_attributes']['all_points_y'])),
+            ] for region in item['regions']
+            if len(region['shape_attributes']['all_points_x']) == 4
+            and len(region['shape_attributes']['all_points_y']) == 4]
         variant_images, variants_bboxes = generate_image_rotation_variants(img, 
                                                                            target_boxes, 
                                                                            angles=[90, 180, 270])
-        angles=[0, 90, 180, 270]
+        angles = [0, 90, 180, 270]
         for variant_image, variant_bboxes, angle in zip(variant_images, variants_bboxes, angles):
             for bbox in variant_bboxes:
                 min_x = bbox[0]
@@ -65,7 +62,7 @@ class OrientationDataModule(OptionsNetDataModule):
                  validation_json_path="../datasets/mask/val/via_region_data_orientation.json",
                  width=300,
                  height=300,
-                 angles = None,
+                 angles: List = None,
                  batch_size=32,
                  num_workers=0,
                  with_aug=False):
