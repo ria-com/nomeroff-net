@@ -225,12 +225,14 @@ class OCR(object):
                 xs = xs.cuda()
                 self.model = self.model.cuda()
             net_out_value = self.model(xs)
-            net_out_value = net_out_value.reshape(net_out_value.shape[1],
-                                                  net_out_value.shape[0],
-                                                  net_out_value.shape[2])
             net_out_value = [p.cpu().numpy() for p in net_out_value]
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         if return_acc:
+            if len(net_out_value):
+                net_out_value = np.array(net_out_value)
+                net_out_value = net_out_value.reshape(net_out_value.shape[1],
+                                                      net_out_value.shape[0],
+                                                      net_out_value.shape[2])
             return pred_texts, net_out_value
         return pred_texts
         
@@ -290,24 +292,25 @@ class OCR(object):
     def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
         self.init_label_converter()
 
-        targets = []
-        target_lengths = []
-        for text in decode:
-            target, input_length = self.label_converter.encode(text.lower())
-            targets.append(target.cpu().numpy())
-            target_lengths.append(input_length)
-
         logits = torch.tensor(predicted)
         logits = logits.reshape(logits.shape[1],
                                 logits.shape[0],
                                 logits.shape[2])
         input_len, batch_size, vocab_size = logits.size()
+        device = logits.device
+
+        logits = logits.log_softmax(2)
+
+        encoded_texts, text_lens = self.label_converter.encode(decode)
+        text_lens = torch.tensor([self.max_text_len for _ in range(batch_size)])
         logits_lens = torch.full(size=(batch_size,), fill_value=input_len, dtype=torch.int32)
 
-        acc = functional.ctc_loss(logits,
-                                  torch.tensor(targets),
-                                  logits_lens,
-                                  torch.tensor(target_lengths))
+        acc = functional.ctc_loss(
+            logits,
+            encoded_texts,
+            logits_lens.to(device),
+            text_lens,
+            reduction='mean')
         return acc
 
     def acc_calc(self, dataset, verbose: bool = False) -> float:
