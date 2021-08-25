@@ -16,7 +16,7 @@ modelhub.download_repo_for_model("yolov5")
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.datasets import letterbox
 from yolov5.utils.general import non_max_suppression, scale_coords
-from yolov5.utils.torch_utils import select_device, load_classifier, time_synchronized
+from yolov5.utils.torch_utils import select_device, load_classifier
 
 # load NomerooffNet packages
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))

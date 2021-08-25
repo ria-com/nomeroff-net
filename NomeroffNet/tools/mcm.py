@@ -57,7 +57,7 @@ models = {
     "EuUaFrom2004": {
         "application": "TextDetector",
         "url": "https://nomeroff.net.ua/models/ocr/ua/torch/anpr_ocr_eu_2004_20015_2021_07_27_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-12-21.zip",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2021-08-25.zip",
     },
     "EuUa1995": {
         "application": "TextDetector",
