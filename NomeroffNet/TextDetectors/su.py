@@ -9,6 +9,7 @@ class Su(OCR):
                         'К', 'Л', 'М', 'Н', 'О', 'П', 'Р', 'С', 'Т', 'У',
                         'Ф', 'Х', 'Ц', 'Ч', 'Ш', 'Щ', 'Э', 'Ю', 'Я']
         self.max_text_len = 7
+        self.max_plate_length = 7
         self.letters_max = len(self.letters)+1
         self.label_length = 32 - 2
         self.init_label_converter()

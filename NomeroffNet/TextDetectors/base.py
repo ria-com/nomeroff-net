@@ -5,6 +5,7 @@ import os
 import json
 import numpy as np
 import torch
+from torch.nn import functional
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -15,7 +16,7 @@ from NomeroffNet.tools import (modelhub,
 from NomeroffNet.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from NomeroffNet.nnmodels.ocr_model import NPOcrNet, weights_init
 from NomeroffNet.data_modules.data_loaders import normalize
-from NomeroffNet.tools.ocr_tools import (strLabelConverter,
+from NomeroffNet.tools.ocr_tools import (StrLabelConverter,
                                          decode_prediction,
                                          decode_batch)
 
@@ -38,8 +39,8 @@ class OCR(object):
 
         # Input parameters
         self.max_plate_length = 0
-        self.height = 64
-        self.width = 128
+        self.height = 50
+        self.width = 200
         self.color_channels = 1
         self.label_length = 13
 
@@ -51,7 +52,7 @@ class OCR(object):
         self.label_converter = None
     
     def init_label_converter(self):
-        self.label_converter = strLabelConverter("".join(self.letters), self.max_text_len)
+        self.label_converter = StrLabelConverter("".join(self.letters), self.max_text_len)
         
     @staticmethod
     def get_counter(dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
@@ -168,7 +169,6 @@ class OCR(object):
               ) -> NPOcrNet:
         """
         TODO: describe method
-        TODO: add ReduceLROnPlateau callback
         """
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
@@ -214,19 +214,22 @@ class OCR(object):
         for img in imgs:
             x = normalize(img,
                           width=self.width,
-                          height=self.height,
-                          to_gray=True)
+                          height=self.height)
             xs.append(x)
         pred_texts = []
         net_out_value = []
         if bool(xs):
-            xs = torch.tensor(np.moveaxis(np.array(xs), 3, 1))
+            xs = np.moveaxis(np.array(xs), 3, 1)
+            xs = torch.tensor(xs)
             if mode_torch == "gpu":
                 xs = xs.cuda()
                 self.model = self.model.cuda()
             net_out_value = self.model(xs)
-            # net_out_value = [p.cpu().numpy() for p in net_out_value]
-            pred_texts = decode_batch(net_out_value, self.label_converter)
+            net_out_value = net_out_value.reshape(net_out_value.shape[1],
+                                                  net_out_value.shape[0],
+                                                  net_out_value.shape[2])
+            net_out_value = [p.cpu().numpy() for p in net_out_value]
+            pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         if return_acc:
             return pred_texts, net_out_value
         return pred_texts
@@ -283,7 +286,30 @@ class OCR(object):
             path_to_model = model_info["path"]
 
         return self.load_model(path_to_model)
-    
+
+    def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
+        self.init_label_converter()
+
+        targets = []
+        target_lengths = []
+        for text in decode:
+            target, input_length = self.label_converter.encode(text.lower())
+            targets.append(target.cpu().numpy())
+            target_lengths.append(input_length)
+
+        logits = torch.tensor(predicted)
+        logits = logits.reshape(logits.shape[1],
+                                logits.shape[0],
+                                logits.shape[2])
+        input_len, batch_size, vocab_size = logits.size()
+        logits_lens = torch.full(size=(batch_size,), fill_value=input_len, dtype=torch.int32)
+
+        acc = functional.ctc_loss(logits,
+                                  torch.tensor(targets),
+                                  logits_lens,
+                                  torch.tensor(target_lengths))
+        return acc
+
     def acc_calc(self, dataset, verbose: bool = False) -> float:
         acc = 0
         with torch.no_grad():

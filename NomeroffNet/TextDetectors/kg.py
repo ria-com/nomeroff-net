@@ -9,6 +9,7 @@ class Kg(OCR):
                         "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
                         "U", "V", "W", "X", "Y", "Z"]
         self.max_text_len = 8
+        self.max_plate_length = 8
         self.letters_max = len(self.letters)+1
         self.label_length = 32 - 2
         self.init_label_converter()

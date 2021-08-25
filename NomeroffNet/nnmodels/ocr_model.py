@@ -148,7 +148,7 @@ class NPOcrNet(pl.LightningModule):
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
         n_channels = batch.size(1)
-        batch = batch.view(batch_size, n_channels, -1)
+        batch = batch.reshape(batch_size, n_channels, -1)
         
         batch = self.linear1(batch)
         

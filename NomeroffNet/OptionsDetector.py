@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import LearningRateMonitor
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'base')))
@@ -32,7 +33,9 @@ CLASS_REGION_ALL = [
             "by",
             "su",
             "kg",
-            "am"
+            "am",
+            "military-ua",
+            "military-ru",
         ]
 
 
@@ -98,13 +101,14 @@ class OptionsDetector(object):
         """
         TODO: describe method
         """
-        self.model = NPOptionsNet(len(self.class_region),
-                                  len(self.count_lines),
-                                  self.height,
-                                  self.width,
-                                  self.batch_size)
-        if mode_torch == "gpu":
-            self.model = self.model.cuda()
+        if self.model is None:
+            self.model = NPOptionsNet(len(self.class_region),
+                                      len(self.count_lines),
+                                      self.height,
+                                      self.width,
+                                      self.batch_size)
+            if mode_torch == "gpu":
+                self.model = self.model.cuda()
         return self.model
 
     def prepare(self,
@@ -145,9 +149,10 @@ class OptionsDetector(object):
         """
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
+        lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
                                   gpus=self.gpus,
-                                  callbacks=[checkpoint_callback])
+                                  callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         self.trainer.test()

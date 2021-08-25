@@ -14,7 +14,7 @@ models = {
     },
     "numberplate_options": {
         "application": "OptionsDetector",
-        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_05_23.pt",
+        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_08_13_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-07-08.zip",
         "class_region": [
             "xx_unknown",
@@ -56,7 +56,7 @@ models = {
     },
     "EuUaFrom2004": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/ua/tf2/anpr_ocr_ua_2021_01_15_tensorflow_v2.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/ua/torch/anpr_ocr_eu_2004_20015_2021_07_27_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-12-21.zip",
     },
     "EuUa1995": {
@@ -72,7 +72,7 @@ models = {
     "Ru": {
         "application": "TextDetector",
         "url": "https://nomeroff.net.ua/models/ocr/ru/tf2/anpr_ocr_ru_2020_10_12_tensorflow_v2.3.h5",
-        "datasets": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip",
     },
     "Kz": {
         "application": "TextDetector",
@@ -86,13 +86,13 @@ models = {
     },
     "By": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/by/tf2/anpr_ocr_by_2020_10_09_tensorflow_v2.3.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/by/torch/anpr_ocr_by_2021_07_13_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip",
     },
     "Su": {
         "application": "TextDetector",
         "url": "https://nomeroff.net.ua/models/ocr/su/anpr_ocr_su_2020_11_27_tensorflow_v2.3.h5",
-        "datasets": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2020-11-27.zip"
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2020-11-27.zip"
     },
     "Kg": {
         "application": "TextDetector",
