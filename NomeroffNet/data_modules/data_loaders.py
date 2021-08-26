@@ -13,6 +13,15 @@ from NomeroffNet.tools.image_processing import rotate_image_and_bboxes
 from torchvision import transforms
 
 
+def aug_seed(num: int = None) -> None:
+    import imgaug as ia
+
+    if num is None:
+        ia.seed()
+    else:
+        ia.seed(num)
+
+
 def normalize(img: np.ndarray,
               height: int = 64,
               width: int = 295,
