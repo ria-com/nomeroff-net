@@ -15,7 +15,7 @@ from NomeroffNet.tools import (modelhub,
                                get_mode_torch)
 from NomeroffNet.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from NomeroffNet.nnmodels.ocr_model import NPOcrNet, weights_init
-from NomeroffNet.data_modules.data_loaders import normalize
+from NomeroffNet.data_modules.data_loaders import (normalize, aug_seed)
 from NomeroffNet.tools.ocr_tools import (StrLabelConverter,
                                          decode_prediction,
                                          decode_batch)
@@ -165,11 +165,15 @@ class OCR(object):
         return self.model
 
     def train(self,
-              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr'))
+              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr')),
+              seed: int = None
               ) -> NPOcrNet:
         """
         TODO: describe method
         """
+        if seed is not None:
+            aug_seed(seed)
+            pl.seed_everything(seed)
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
