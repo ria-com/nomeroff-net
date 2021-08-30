@@ -66,7 +66,7 @@ models = {
     },
     "Eu": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/eu/tf2/anpr_ocr_eu_2020_10_08_tensorflow_v2.3.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_08_30_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip"
     },
     "Ru": {
