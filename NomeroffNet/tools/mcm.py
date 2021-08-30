@@ -56,13 +56,13 @@ models = {
     },
     "EuUaFrom2004": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/ua/torch/anpr_ocr_eu_2004_20015_2021_07_27_pytorch_lightning.ckpt",
+        "url": "https://nomeroff.net.ua/models/ocr/ua/torch/anpr_ocr_eu_2004_2015_2021_08_25_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2021-08-25.zip",
     },
     "EuUa1995": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/ua-1995/tf2/anpr_ocr_ua-1995_2021_01_12_tensorflow_v2.h5",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2021-01-12.zip"
+        "url": "https://nomeroff.net.ua/models/ocr/ua-1995/torch/anpr_ocr_eu_1995_2021_08_25_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2021-08-25.zip",
     },
     "Eu": {
         "application": "TextDetector",
@@ -86,13 +86,13 @@ models = {
     },
     "By": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/by/torch/anpr_ocr_by_2021_07_13_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip",
+        "url": "https://nomeroff.net.ua/models/ocr/by/torch/anpr_ocr_by_2021_08_29_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2021-08-27.zip",
     },
     "Su": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/su/anpr_ocr_su_2020_11_27_tensorflow_v2.3.h5",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2020-11-27.zip"
+        "url": "https://nomeroff.net.ua/models/ocr/su/torch/anpr_ocr_su_2021_08_30_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2021-08-27.zip"
     },
     "Kg": {
         "application": "TextDetector",
