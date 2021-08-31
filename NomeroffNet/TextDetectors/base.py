@@ -293,6 +293,7 @@ class OCR(object):
 
         return self.load_model(path_to_model)
 
+    @torch.no_grad()
     def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
         self.init_label_converter()
 
@@ -313,9 +314,9 @@ class OCR(object):
             logits,
             encoded_texts,
             logits_lens.to(device),
-            text_lens,
-            reduction='mean')
-        return acc
+            text_lens
+            )
+        return 1 - acc/len(self.letters)
 
     def acc_calc(self, dataset, verbose: bool = False) -> float:
         acc = 0
