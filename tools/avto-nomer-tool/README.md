@@ -33,6 +33,10 @@ npm install
 ./console.js --section=default --action=moveChecked  --opt.srcDir=../../datasets/ocr/kz/draft --opt.targetDir=../../datasets/ocr/kz/checked  
 ```
 
+#### Перенести в одельную папку из OCR-датасета дубликаты (определенные по фото)
+```bash
+./console.js --section=default --action=moveDupes --opt.srcDir=../../datasets/ocr/train --opt.targetDir=../../datasets/ocr/dupes  
+```
 
 #### Поделить датасет на 2 части в заданой пропорции
 Перед разделением данные будут рамдомно перемешаны

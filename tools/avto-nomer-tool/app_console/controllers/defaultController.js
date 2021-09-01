@@ -224,7 +224,8 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 // Условие
-                if (data.description.length < 6) {
+                //if (data.description.length < 6) {
+                if (data.description.length > 8) {
                 // if (data.region_id != undefined && data.region_id == 8) {
                 //if (data.count_lines != undefined && data.count_lines == 2) {
                     checkedAnn.push(annName);
@@ -237,6 +238,76 @@ async function moveSomething (options) {
     });
 }
 
+
+/**
+ * Перенести дубликаты записай (по фото) в отдельную папку
+ *
+ * @param options
+ * @example ./console.js --section=default --action=moveDupes --opt.srcDir=../../datasets/ocr/train --opt.targetDir=../../datasets/ocr/dupes
+ */
+async function moveDupes (options) {
+    const srcDir = options.srcDir || './draft',
+        targetDir = options.targetDir || './checked',
+        annExt = '.'+config.dataset.ann.ext,
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
+        target = { annPath: path.join(targetDir, config.dataset.ann.dir) },
+        imgPath = path.join(srcDir, config.dataset.img.dir)
+    ;
+    let checkedAnn = [],
+        checkedImg = []
+    ;
+    let checkSum = {}, checklogs = {};
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    fs.readdir(src.annPath, async function(err, items) {
+        for (var i=0; i<items.length; i++) {
+            const  filename = items[i],
+                fileObj = path.parse(filename);
+            //console.log(fileObj)
+            if (fileObj.ext == annExt) {
+                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                    annFilename = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    imgName = `${data.name}.${config.dataset.img.ext}`
+                ;
+                let imgFullFile = path.join(imgPath, imgName),
+                    imgSize = sizeOf(imgFullFile),
+                    imgSizeStat = fs.statSync(imgFullFile),
+                    imgMd5 = await md5File(imgFullFile)
+                    imgSizeHash = `${imgMd5}-${imgSize.width}x${imgSize.height}`;
+                
+                // Условие
+                // if (data.description == "JDE801") {
+                //if (/[IІ]/.test(data.description)) {
+                //    data.description = data.description.replace('I','І')
+                // if (/(PMF0)/.test(data.description)) {
+                // if (/(L0S|K0S|L0P|0ST|P0S)/.test(data.description)) {
+                // if (/[АБГДЗМОПРСХЧ]/.test(data.description)) {
+                // if (data.region_id == 3) {
+                // if (data.region_id == 10 && data.count_lines == 1) {
+                // if (data.size.height > 80) {
+                //if (Number(data.moderation.isModerated) ==  0) {
+                // if (data.description.length > 9) {
+                // if (data.region_id != undefined && data.region_id == 8) {
+                // if (data.count_lines != undefined && data.count_lines == 2) {
+                //if (data.count_lines != undefined && data.count_lines == 1) {
+                //if (data.size != undefined && data.size.width == 131 && data.size.height == 91) {        //img/12811954f458a7.png "size": {"width": 131, "height": 91}
+                if (checkSum[imgSizeHash] != undefined) {
+                    checkedAnn.push(annName);
+                    checkedImg.push(imgName);
+                    if (checklogs[checkSum[imgSizeHash]] == undefined) { checklogs[checkSum[imgSizeHash]] = [] };
+                    checklogs[checkSum[imgSizeHash]].push(imgName)
+                } else {
+                    checkSum[imgSizeHash] = imgName;
+                }
+            }
+        }
+        console.log(`Garbage: ${checkedAnn.length}`);
+        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+        fs.writeFileSync('./logs.json', JSON.stringify(checklogs,null,2));
+    });
+}
 
 
 
@@ -301,6 +372,7 @@ module.exports = {
     moveGarbage,
     dataJoin,
     moveSomething,
+    moveDupes,
 };
 
 
