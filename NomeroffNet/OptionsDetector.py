@@ -211,15 +211,15 @@ class OptionsDetector(object):
         """
         if options is None:
             options = dict()
-        self.create_model()
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_options")
             path_to_model = model_info["path"]
-            options["class_region"] = model_info["class_region"]
+            self.class_region = model_info["class_region"]
+            self.count_lines = model_info["count_lines"]
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
             path_to_model = model_info["path"]
-
+        self.create_model()
         return self.load_model(path_to_model)
 
     def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
