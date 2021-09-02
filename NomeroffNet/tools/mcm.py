@@ -76,17 +76,17 @@ models = {
     },
     "Ru": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/ru/tf2/anpr_ocr_ru_2020_10_12_tensorflow_v2.3.h5",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip",
+        "url": "https://nomeroff.net.ua/models/ocr/ru/torch/anpr_ocr_ru_2021_09_01_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2021-09-01.zip",
     },
     "Kz": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/kz/tf2/anpr_ocr_kz_2020_08_26_tensorflow_v2.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/kz/torch/anpr_ocr_kz_2021_09_01_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip"
     },
     "Ge": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/ge/tf2/anpr_ocr_ge_2020_08_21_tensorflow_v2.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/ge/torch/anpr_ocr_ge_2021_08_30_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip"
     },
     "By": {
@@ -101,11 +101,12 @@ models = {
     },
     "Kg": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/kg/tf2/anpr_ocr_kg_2020_12_31_tensorflow_v2.3.h5",
+        "url": "https://nomeroff.net.ua/models/ocr/kg/torch/anpr_ocr_kg_2021_08_30_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKg-2020-12-31.zip",
     },
     "Am": {
         "application": "TextDetector",
+        "url": "https://nomeroff.net.ua/models/ocr/am/torch/anpr_ocr_am_2021_08_30_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrAm-2021-05-20-all-draft.zip",
     }
 }
