@@ -13,7 +13,7 @@ class TextDetector(object):
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def __init__(self, prisets: Dict = None, mode: str = "auto") -> None:
+    def __init__(self, prisets: Dict = None) -> None:
         if prisets is None:
             prisets = {}
 
@@ -34,11 +34,8 @@ class TextDetector(object):
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
             detector = getattr(getattr(TextDetectors, _label), _label)
             
-            if priset['model_path'] == "latest" or priset['model_path'].split(".")[-1] == "h5":
-                detector.load(priset['model_path'], mode)
-            else:
-                detector.load_pb(priset['model_path'], mode)
-                detector.predict = detector.predict_pb
+            if priset['model_path'] == "latest":
+                detector.load(priset['model_path'])
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
