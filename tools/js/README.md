@@ -9,7 +9,7 @@ Avto-nomer annotation tool
 Установите последнюю версию nodejs, загрузите модули для работы:
 ```bash
 yum install nodejs
-cd tools/avto-nomer-tool
+cd tools/js
 npm install
 ```
 
