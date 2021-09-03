@@ -22,7 +22,7 @@ from NomeroffNet.TextDetector import TextDetector
 from NomeroffNet.TextPostprocessing import textPostprocessing
 
 # load models
-textDetector = TextDetector.get_static_module("eu")()
+textDetector = TextDetector.get_static_module("eu")
 textDetector.load("latest")
 
 # Detect numberplate
