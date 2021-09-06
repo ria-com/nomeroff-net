@@ -106,7 +106,7 @@ class TextDetector(object):
             else:
                 detector = self.detectors[int(self.detectors_map[region])]
                 _acc = detector.get_acc([predicted[i]], [decode[i]])
-                acc.append(_acc[0])
+                acc.append([float(_acc)])
         return acc
 
     def get_module(self, name: str) -> object:
