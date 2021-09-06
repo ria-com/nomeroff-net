@@ -9,6 +9,7 @@ neural network and cusomized OCR-module powered by RNN architecture.
 The project is now at the stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
 Version 2.4 is completely rewritten to PyTorch.
+[Change History](https://github.com/ria-com/nomeroff-net/blob/master/History.md).
 
 ## Installation
 
