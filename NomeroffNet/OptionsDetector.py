@@ -216,17 +216,17 @@ class OptionsDetector(object):
         """
         return [self.class_region[index].replace("-", "_") for index in indexes]
 
-    def getCountLinesLabel(self, index: int) -> str:
+    def getCountLinesLabel(self, index: int) -> int:
         """
         TODO: describe method
         """
-        return self.class_region[index]
+        return self.count_lines[index]
 
-    def getCountLinesLabels(self, indexes: List[int]) -> List[str]:
+    def getCountLinesLabels(self, indexes: List[int]) -> List[int]:
         """
         TODO: describe method
         """
-        return [self.class_region[index] for index in indexes]
+        return [self.count_lines[index] for index in indexes]
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
