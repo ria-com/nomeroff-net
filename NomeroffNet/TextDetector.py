@@ -21,8 +21,8 @@ class TextDetector(object):
         self.detectors = []
         self.detectors_names = []
 
-        self.DEFAULT_LABEL = "eu_ua_2015"
-        self.DEFAULT_LINES_COUNT = 1
+        self.default_label = "eu_ua_2015"
+        self.default_lines_count = 1
 
         i = 0
         for prisetName in prisets:
@@ -54,9 +54,9 @@ class TextDetector(object):
             lines = []
 
         while len(labels) < len(zones):
-            labels.append(self.DEFAULT_LABEL)
+            labels.append(self.default_label)
         while len(lines) < len(zones):
-            lines.append(self.DEFAULT_LINES_COUNT)
+            lines.append(self.default_lines_count)
 
         predicted = {}
 
