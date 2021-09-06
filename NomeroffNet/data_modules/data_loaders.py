@@ -33,7 +33,7 @@ def normalize(img: np.ndarray,
         img = imgs[0]
     if to_gray and img.shape[-1] == 3:
         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    if not to_gray and img.shape[-1] == 1:
+    if not to_gray and  len(img.shape) == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     img = cv2.resize(img, (width, height))
     img = img.astype(np.float32)
