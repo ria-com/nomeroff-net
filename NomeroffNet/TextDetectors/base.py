@@ -237,8 +237,8 @@ class OCR(object):
                 net_out_value = net_out_value.reshape(net_out_value.shape[1],
                                                       net_out_value.shape[0],
                                                       net_out_value.shape[2])
-            return pred_texts, net_out_value
-        return pred_texts
+            return pred_texts.upper(), net_out_value
+        return pred_texts.upper()
         
     def save(self, path: str, verbose: bool = True) -> None:
         """
