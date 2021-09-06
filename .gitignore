@@ -9,11 +9,11 @@ cofig/*.json
 source/*
 ./.pypirc
 
-datasets/ocr/*
-datasets/options/*
-datasets/dataset/orientation/*
-datasets/region/*
-datasets/mrcnn/*
+datasets/*
+data/datasets/*
+data/logs/*
+data/models/*
+data/repos/*
 tensorflow/*
 
 public/npdetect.php
