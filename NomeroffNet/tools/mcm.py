@@ -72,7 +72,7 @@ models = {
     "Eu": {
         "application": "TextDetector",
         "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_08_30_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip"
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-02.zip"
     },
     "Ru": {
         "application": "TextDetector",
