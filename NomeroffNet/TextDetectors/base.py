@@ -296,6 +296,7 @@ class OCR(object):
 
     @torch.no_grad()
     def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
+        decode = [pred_text.lower() for pred_text in decode]
         self.init_label_converter()
 
         logits = torch.tensor(predicted)
