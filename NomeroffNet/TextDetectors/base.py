@@ -231,6 +231,7 @@ class OCR(object):
             net_out_value = self.model(xs)
             net_out_value = [p.cpu().numpy() for p in net_out_value]
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
+        pred_texts = [pred_text.upper() for pred_text in pred_texts]
         if return_acc:
             if len(net_out_value):
                 net_out_value = np.array(net_out_value)
@@ -295,6 +296,7 @@ class OCR(object):
 
     @torch.no_grad()
     def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
+        decode = [pred_text.lower() for pred_text in decode]
         self.init_label_converter()
 
         logits = torch.tensor(predicted)

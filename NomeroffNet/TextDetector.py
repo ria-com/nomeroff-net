@@ -21,8 +21,8 @@ class TextDetector(object):
         self.detectors = []
         self.detectors_names = []
 
-        self.DEFAULT_LABEL = "eu_ua_2015"
-        self.DEFAULT_LINES_COUNT = 1
+        self.default_label = "eu_ua_2015"
+        self.default_lines_count = 1
 
         i = 0
         for prisetName in prisets:
@@ -54,9 +54,9 @@ class TextDetector(object):
             lines = []
 
         while len(labels) < len(zones):
-            labels.append(self.DEFAULT_LABEL)
+            labels.append(self.default_label)
         while len(lines) < len(zones):
-            lines.append(self.DEFAULT_LINES_COUNT)
+            lines.append(self.default_lines_count)
 
         predicted = {}
 
@@ -98,15 +98,15 @@ class TextDetector(object):
     def get_static_module(name: str) -> object:
         return getattr(getattr(TextDetectors, name), name)
 
-    def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[float]:
+    def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[List[float]]:
         acc = []
         for i, region in enumerate(regions):
             if self.detectors_map.get(region, None) is None or len(decode[i]) == 0:
-                acc.append([0])
+                acc.append([0.])
             else:
                 detector = self.detectors[int(self.detectors_map[region])]
                 _acc = detector.get_acc([predicted[i]], [decode[i]])
-                acc.append(_acc[0])
+                acc.append([float(_acc)])
         return acc
 
     def get_module(self, name: str) -> object:

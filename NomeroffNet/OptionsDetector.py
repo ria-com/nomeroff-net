@@ -19,24 +19,31 @@ from data_modules.data_loaders import normalize
 mode_torch = get_mode_torch()
 
 CLASS_REGION_ALL = [
-            "xx-unknown",
-            "eu-ua-2015",
-            "eu-ua-2004",
-            "eu-ua-1995",
-            "eu",
-            "xx-transit",
-            "ru",
-            "kz",
-            "eu-ua-ordlo-dpr",
-            "eu-ua-ordlo-lpr",
-            "ge",
-            "by",
-            "su",
-            "kg",
-            "am",
-            "military-ua",
-            "military-ru",
-        ]
+    "xx-unknown",
+    "eu-ua-2015",
+    "eu-ua-2004",
+    "eu-ua-1995",
+    "eu",
+    "xx-transit",
+    "ru",
+    "kz",
+    "eu-ua-ordlo-dpr",
+    "eu-ua-ordlo-lpr",
+    "ge",
+    "by",
+    "su",
+    "kg",
+    "am",
+    "military-ua",
+    "military-ru",
+]
+
+CLASS_LINES_ALL = [
+    0,  # garbage
+    1,  # one line
+    2,  # two line
+    3,  # three line
+]
 
 
 def imshow(img: np.ndarray) -> None:
@@ -70,12 +77,7 @@ class OptionsDetector(object):
         self.class_region = options.get("class_region", CLASS_REGION_ALL)
 
         # outputs 2
-        self.count_lines = options.get("count_lines", [
-            0,
-            1,
-            2,
-            3
-        ])
+        self.count_lines = options.get("count_lines", CLASS_LINES_ALL)
 
         # model
         self.model = None
@@ -193,17 +195,38 @@ class OptionsDetector(object):
         return True
 
     def load_model(self, path_to_model):
+        self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                       map_location=torch.device('cpu'),
+                                                       region_output_size=len(self.class_region),
+                                                       count_line_output_size=len(self.count_lines))
         if mode_torch == "gpu":
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
-        else:
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           map_location=torch.device('cpu'),
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
+            self.model = self.model.cuda()
         self.model.eval()
         return self.model
+
+    def getRegionLabel(self, index: int) -> str:
+        """
+        TODO: describe method
+        """
+        return self.class_region[index].replace("-", "_")
+
+    def getRegionLabels(self, indexes: List[int]) -> List[str]:
+        """
+        TODO: describe method
+        """
+        return [self.class_region[index].replace("-", "_") for index in indexes]
+
+    def getCountLinesLabel(self, index: int) -> int:
+        """
+        TODO: describe method
+        """
+        return self.count_lines[index]
+
+    def getCountLinesLabels(self, indexes: List[int]) -> List[int]:
+        """
+        TODO: describe method
+        """
+        return [self.count_lines[index] for index in indexes]
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
@@ -211,6 +234,8 @@ class OptionsDetector(object):
         """
         if options is None:
             options = dict()
+        self.__dict__.update(options)
+
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_options")
             path_to_model = model_info["path"]
@@ -222,9 +247,9 @@ class OptionsDetector(object):
         self.create_model()
         return self.load_model(path_to_model)
 
-    def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
+    def predict(self, imgs: List[np.ndarray], return_acc: bool = False) -> Tuple:
         """
-        TODO: describe method
+        Predict options(region, count lines) by numberplate images
         """
         region_ids, count_lines, confidences, predicted = self.predict_with_confidence(imgs)
         if return_acc:
@@ -234,7 +259,7 @@ class OptionsDetector(object):
     @torch.no_grad()
     def predict_with_confidence(self, imgs: List[np.ndarray]) -> Tuple:
         """
-        TODO: describe method
+        Predict options(region, count lines) with confidence by numberplate images
         """
         xs = []
         for img in imgs:
@@ -259,16 +284,6 @@ class OptionsDetector(object):
             region_confidence = region[int(np.argmax(region))]
             count_lines_confidence = count_line[int(np.argmax(count_line))]
             confidences.append([region_confidence, count_lines_confidence])
+        count_lines = self.getCountLinesLabels(count_lines)
         return region_ids, count_lines, confidences, predicted
 
-    def get_region_label(self, index: int) -> str:
-        """
-        TODO: describe method
-        """
-        return self.class_region[index].replace("-", "_")
-
-    def get_region_labels(self, indexes: List[int]) -> List[str]:
-        """
-        TODO: describe method
-        """
-        return [self.class_region[index].replace("-", "_") for index in indexes]

@@ -360,9 +360,6 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
     if quality_profile is None:
         quality_profile = [3, 1, 0, 0]
 
-    print('propably_points')
-    print(propably_points)
-
     steps = quality_profile[0]
     steps_plus = quality_profile[1]
     steps_minus = quality_profile[2]
@@ -551,7 +548,6 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3] - targetBox[1]))
 
             image_part = image[y:y + h, x:x + w]
-            print("rotate", h/w)
             if h/w > 3.5:
                 image_part = cv2.rotate(image_part, cv2.cv2.ROTATE_90_CLOCKWISE)
             # image_part = normalize_color(image_part)

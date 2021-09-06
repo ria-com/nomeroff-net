@@ -97,18 +97,7 @@ class YoloV5GRPCDetector(object):
         self.outputs.append(grpcclient.InferRequestedOutput('output'))
         self.outputs[-1].set_shared_memory("output", output_byte_size)
         
-#         self.outputs.append(grpcclient.InferRequestedOutput('output_397'))
-#         self.outputs[-1].set_shared_memory("output_397", output_byte_size)
-        
-#         self.outputs.append(grpcclient.InferRequestedOutput('output_458'))
-#         self.outputs[-1].set_shared_memory("output_458", output_byte_size)
-        
-#         self.outputs.append(grpcclient.InferRequestedOutput('output_519'))
-#         self.outputs[-1].set_shared_memory("output_519", output_byte_size)
-        
         self.predict(input_images)
-        # registr at exit memory cleanup callback
-        #atexit.register(self.cleanup)
         
     def cleanup(self):
         self.triton_client.unregister_system_shared_memory()
@@ -141,21 +130,6 @@ class YoloV5GRPCDetector(object):
             output.shape)
         
         return output_data
-#         print(output_data)
-#         output_397 = results.get_output("output_397")
-#         output_397_data = shm.get_contents_as_numpy(
-#             self.output_397_handle, utils.triton_to_np_dtype(output_397.datatype),
-#             output_397.shape)
-        
-#         output_458 = results.get_output("output_458")
-#         output_458_data = shm.get_contents_as_numpy(
-#             self.output_458_handle, utils.triton_to_np_dtype(output_458.datatype),
-#             output_458.shape)
-        
-#         output_519 = results.get_output("output_519")
-#         output_519_data = shm.get_contents_as_numpy(
-#             self.output_519_handle, utils.triton_to_np_dtype(output_519.datatype),
-#             output_519.shape)
 
     def grpc_detect(self, img: np.ndarray, img_size: int = 640, stride: int = 32, min_accuracy: float = 0.5) -> List:
         """
@@ -166,15 +140,11 @@ class YoloV5GRPCDetector(object):
         img = letterbox(img, img_size, stride=stride)[0]
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
-        #img = torch.from_numpy(img).to(self.device)
-        #img = img.half() if self.half else img.float()  # uint8 to fp16/32
         img = img.astype(np.float32)
         img = img/255.0  # 0 - 255 to 0.0 - 1.0
         img = img.reshape([1, *img.shape])
 
         pred = self.predict(img)
-        #print("p", pred.shape)
-        #print(pred)
         # Apply NMS
         pred = non_max_suppression(torch.from_numpy(pred))
         res = []
