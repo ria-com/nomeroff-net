@@ -98,11 +98,11 @@ class TextDetector(object):
     def get_static_module(name: str) -> object:
         return getattr(getattr(TextDetectors, name), name)
 
-    def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[float]:
+    def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[List[float]]:
         acc = []
         for i, region in enumerate(regions):
             if self.detectors_map.get(region, None) is None or len(decode[i]) == 0:
-                acc.append([0])
+                acc.append([0.])
             else:
                 detector = self.detectors[int(self.detectors_map[region])]
                 _acc = detector.get_acc([predicted[i]], [decode[i]])
