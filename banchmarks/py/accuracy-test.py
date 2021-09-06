@@ -1,13 +1,13 @@
 # Specify device
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ""  # For CPU inference
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # CPU
 
 # Import all necessary libraries.
 import sys
 import matplotlib.pyplot as plt
 from termcolor import colored
+import cv2
+import numpy as np
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../../')
@@ -59,10 +59,8 @@ textDetector = TextDetector({
     }
 })
 
-import cv2
-import numpy as np
 
-async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
+def test(dirName, fname, y, min_bbox_acc=0.5, verbose=0):
     nGood = 0
     nBad = 0
     img_path = os.path.join(dirName, fname)
@@ -73,7 +71,7 @@ async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
 
     targetBoxes = detector.detect_bbox(img)
 
-    all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
+    all_points = npPointsCraft.detect(img, targetBoxes, [5, 2, 0])
     # for  images/14.jpeg bug
     all_points = [ps for ps in all_points if len(ps)]
 
@@ -118,48 +116,53 @@ async def test(dirName, fname, y, min_bbox_acc = 0.5, verbose=0):
             nBad += 1
     return nGood, nBad
 
-dirName = "./images"
 
-testData = {
-    "0.jpeg": ["AI5255EI"],
-    "1.jpeg": ["AT6883CM"],
-    "2.jpeg": ["AT1515CK"],
-    "3.jpeg": ["BX0578CE"],
-    "4.jpeg": ["AC4249CB"],
-    "5.jpeg": ["BC3496HC"],
-    "6.jpeg": ["BC3496HC"],
-    "7.jpeg": ["AO1306CH"],
-    "8.jpeg": ["AE1077CO"],
-    "9.jpeg": ["AB3391AK"],
-    "10.jpeg": ["BE7425CB"],
-    "11.jpeg": ["BE7425CB"],
-    "12.jpeg": ["AB0680EA"],
-    "13.jpeg": ["AB0680EA"],
-    "14.jpeg": ["BM1930BM"],
-    "15.jpeg": ["AI1382HB"],
-    "16.jpeg": ["AB7333BH"],
-    "17.jpeg": ["AB7642CT"],
-    "18.jpeg": ["AC4921CB"],
-    "19.jpeg": ["BC9911BK"],
-    "20.jpeg": ["BC7007AK"],
-    "21.jpeg": ["AB5649CI"],
-    "22.jpeg": ["AX2756EK"],
-    "23.jpeg": ["AA7564MX"],
-    "24.jpeg": ["AM5696CK"],
-    "25.jpeg": ["AM5696CK"],
-}
+def main():
+    dirName = "../images"
+
+    testData = {
+        "0.jpeg": ["AI5255EI"],
+        "1.jpeg": ["AT6883CM"],
+        "2.jpeg": ["AT1515CK"],
+        "3.jpeg": ["BX0578CE"],
+        "4.jpeg": ["AC4249CB"],
+        "5.jpeg": ["BC3496HC"],
+        "6.jpeg": ["BC3496HC"],
+        "7.jpeg": ["AO1306CH"],
+        "8.jpeg": ["AE1077CO"],
+        "9.jpeg": ["AB3391AK"],
+        "10.jpeg": ["BE7425CB"],
+        "11.jpeg": ["BE7425CB"],
+        "12.jpeg": ["AB0680EA"],
+        "13.jpeg": ["AB0680EA"],
+        "14.jpeg": ["BM1930BM"],
+        "15.jpeg": ["AI1382HB"],
+        "16.jpeg": ["AB7333BH"],
+        "17.jpeg": ["AB7642CT"],
+        "18.jpeg": ["AC4921CB"],
+        "19.jpeg": ["BC9911BK"],
+        "20.jpeg": ["BC7007AK"],
+        "21.jpeg": ["AB5649CI"],
+        "22.jpeg": ["AX2756EK"],
+        "23.jpeg": ["AA7564MX"],
+        "24.jpeg": ["AM5696CK"],
+        "25.jpeg": ["AM5696CK"],
+    }
 
 
-gGood = 0
-gBad = 0
-i = 0
-for fileName in testData.keys():
-    numGood, numBad = await test(dirName, fileName, testData[fileName], verbose=1)
-    gGood += numGood
-    gBad += numBad
-    i += 1
-total = gGood + gBad
-print(f"TOTAL GOOD: {gGood/total}")
-print(f"TOTAL BED: {gBad/total}")
+    gGood = 0
+    gBad = 0
+    i = 0
+    for fileName in testData.keys():
+        numGood, numBad = test(dirName, fileName, testData[fileName], verbose=1)
+        gGood += numGood
+        gBad += numBad
+        i += 1
+    total = gGood + gBad
+    print(f"TOTAL GOOD: {gGood/total}")
+    print(f"TOTAL BED: {gBad/total}")
 
+
+if __name__ == "__main__":
+    main()
 
