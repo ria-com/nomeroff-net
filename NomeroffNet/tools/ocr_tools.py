@@ -99,12 +99,9 @@ def decode_prediction(logits: torch.Tensor,
 
 def decode_batch(net_out_value: torch.Tensor,
                  label_converter: StrLabelConverter) -> str or List:
-    position_size, batch_size, char_size = net_out_value.shape
-    net_out_value = net_out_value.reshape([batch_size, position_size, char_size])
-
     texts = []
-    for logits in net_out_value:
-        logits = logits.reshape([position_size, 1, char_size])
+    for i in range(net_out_value.shape[1]):
+        logits = net_out_value[:, i:i+1, :]
         pred_texts = decode_prediction(logits, label_converter)
         texts.append(pred_texts)
     return texts
