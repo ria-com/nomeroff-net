@@ -4,24 +4,25 @@ Nomeroff Net. Automatic numberplate recognition system. Version 2.4
 
 ## Introduction
 Nomeroff Net is an opensource python license plate recognition framework based on the application of a segmentation 
-neural network and cusomized OCR-module powered by [GRU architecture](https://github.com/ria-com/nomeroff-net/blob/master/docs/OCR.md).
+neural network and cusomized OCR-module powered by RNN architecture.
 
-The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
+The project is now at the stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 2.1 2.5x faster Nomeroff Net [1.0.x](https://github.com/ria-com/nomeroff-net/tree/v1.0)! This improvement was achieved by replacing segmentation model [CenterMask2](https://github.com/youngwanLEE/centermask2) with a [Object Detection YoloV5](https://github.com/ultralytics/yolov5) and [Scene Text Detection CRAFT](https://github.com/clovaai/CRAFT-pytorch) models.
+Version 2.4 is completely rewritten to PyTorch.
+
 ## Installation
 
 ### Installation from Source (Linux)
 
-Nomeroff Net requires Python >= 3.6 and [opencv 3.4 or latest](https://opencv.org/) 
+Nomeroff Net requires Python >= 3.6 
 
-Clone Project and clone related projects
+Clone Project
 ```bash
 git clone https://github.com/ria-com/nomeroff-net.git
-cd nomeroff-ne
+cd nomeroff-net
 ```
 
-##### For Centos, Fedora and other RedHat-like OS:
+### For Centos, Fedora and other RedHat-like OS:
 ```bash
 # for Opencv
 yum install libSM
@@ -38,7 +39,12 @@ yum install git
 yum install libjpeg-turbo-official
 ```
 
-##### For Ubuntu and other Debian-like OS:
+install requirements:
+```bash
+pip3 install -r requirements.txt 
+```
+
+### For Ubuntu and other Debian-like OS:
 ```bash
 # ensure that you have installed gcc compiler
 apt-get install gcc
@@ -55,25 +61,13 @@ apt-get install -y git
 apt-get install -y libturbojpeg
 ```
 
-##### install python requirments
+install requirements:
 ```bash
-pip3 install "torch>=1.8"
-pip3 install "PyYAML>=5.4"
-pip3 install "torchvision>=0.9"
-pip3 install Cython
-pip3 install numpy
-pip3 install -r requirements.txt
+pip3 install -r requirements.txt 
 ```
 
 ### Installation from Source (Windows)
-On Windows, you must have the Visual C++ 2015 build tools on your path. If you don't, make sure to install them from [here](https://go.microsoft.com/fwlink/?LinkId=691126):
-
-<img src="https://github.com/philferriere/cocoapi/raw/master/img/download.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
-Then, run `visualcppbuildtools_full.exe` and select default options:
-
-<img src="https://github.com/philferriere/cocoapi/raw/master/img/install.png" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
+TODO: Add Installation from Source (Windows)
 
 ## Hello Nomeroff Net
 ```python
@@ -82,10 +76,8 @@ import os
 
 # Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import cv2
 
@@ -104,16 +96,15 @@ npPointsCraft = NpPointsCraft()
 npPointsCraft.load()
 
 from NomeroffNet.OptionsDetector import OptionsDetector
-from NomeroffNet.TextDetector import TextDetector
 
-from NomeroffNet import TextDetector
+from NomeroffNet.TextDetectors.eu import eu
 from NomeroffNet import textPostprocessing
 
 # load models
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-textDetector = TextDetector.get_static_module("eu")
+textDetector = eu
 textDetector.load("latest")
 
 # Detect numberplate
@@ -145,10 +136,8 @@ import os
 
 # Specify device
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
-import numpy as np
 import sys
 import cv2
 
@@ -162,17 +151,10 @@ from NomeroffNet.YoloV5Detector import Detector
 detector = Detector()
 detector.load()
 
-#from NomeroffNet.OptionsDetector import OptionsDetector
-from NomeroffNet.TextDetector import TextDetector
-
-from NomeroffNet import TextDetector
+from NomeroffNet.TextDetectors.eu import eu
 from NomeroffNet import textPostprocessing
 
-# load models
-#optionsDetector = OptionsDetector()
-#optionsDetector.load("latest")
-
-textDetector = TextDetector.get_static_module("eu")
+textDetector = eu
 textDetector.load("latest")
 
 # Detect numberplate
@@ -202,13 +184,14 @@ print(textArr)
 ```
 
 
-<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo0.ipynb">Hello Jupyter Nomeroff Net</a>
+<br><a href="https://github.com/ria-com/nomeroff-net/tree/master/examples">More Examples</a>
 
 ## Online Demo
 In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the [recognition result online](https://nomeroff.net.ua/onlinedemo.html)
 
 ## AUTO.RIA Numberplate Dataset
-All data on the basis of which the training was conducted is provided by RIA.com. In the following, we will call this data the [AUTO.RIA Numberplate Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2020-12-17.zip).
+All data on the basis of which the training was conducted is provided by RIA.com. 
+In the following, we will call this data the [AUTO.RIA Numberplate Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-07-21.zip).
 
 We will be grateful for your help in the formation and layout of the dataset with the image of the license plates of your country. For markup, we recommend using [VGG Image Annotator (VIA)](http://www.robots.ox.ac.uk/~vgg/software/via/)
 
@@ -217,7 +200,7 @@ Dataset Example:
 
 ## AUTO.RIA Numberplate Options Dataset
 The system uses several neural networks. One of them is the classifier of numbers at the post-processing stage. It uses dataset
-[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptions3Dataset-2021-03-05.zip).
+[AUTO.RIA Numberplate Options Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-09-03.zip).
 
 The categorizer accurately **(99%)** determines the country and the type of license plate. Please note that now the classifier is configured
 mainly for the definition of Ukrainian numbers, for other countries it will be necessary to train the classifier with new data.
@@ -225,24 +208,26 @@ mainly for the definition of Ukrainian numbers, for other countries it will be n
 <img src="https://nomeroff.net.ua/images/nn/clfctr_example.png" alt="Nomeroff-Net OCR Example"/>
 
 ## AUTO.RIA Numberplate OCR Datasets
-As OCR, we use a [specialized implementation of a neural network with GRU layers](https://github.com/ria-com/nomeroff-net/docs/OCR.md),
+As OCR, we use a specialized implementation of a neural network with RNN layers,
 for which we have created several datasets:
-  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2020-12-21.zip)
-  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian) with old design Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2021-01-12.zip)
-  * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2020-10-09.zip)
-  * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2020-10-12.zip)
+  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-2021-08-25.zip)
+  * [AUTO.RIA Numberplate OCR UA Dataset (Ukrainian) with old design Dataset](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrUa-1995-2021-09-03.zip)
+  * [AUTO.RIA Numberplate OCR EU Dataset (European)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-02.zip)
+  * [AUTO.RIA Numberplate OCR RU Dataset (Russian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2021-09-01.zip)
   * [AUTO.RIA Numberplate OCR KZ Dataset (Kazakh)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKz-2019-04-26.zip)
   * [AUTO.RIA Numberplate OCR GE Dataset (Georgian)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrGe-2019-07-06.zip)
-  * [AUTO.RIA Numberplate OCR BY Dataset (Belarus)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2020-10-09.zip)
-  * [AUTO.RIA Numberplate OCR SU Dataset (exUSSR)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2020-11-27.zip)
+  * [AUTO.RIA Numberplate OCR BY Dataset (Belarus)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrBy-2021-08-27.zip)
+  * [AUTO.RIA Numberplate OCR SU Dataset (exUSSR)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrSu-2021-09-03.zip)
   * [AUTO.RIA Numberplate OCR KG Dataset (Kyrgyzstan)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrKg-2020-12-31.zip)
+  * [AUTO.RIA Numberplate OCR AM Dataset (Armenia)](https://nomeroff.net.ua/datasets/autoriaNumberplateOcrAm-2021-05-20-all-draft.zip)
 
-If we did not manage to update the link on dataset you can find the latest version [here](https://nomeroff.net.ua/datasets/)
+If we did not manage to update the link on dataset you can find the latest version 
+[here](https://nomeroff.net.ua/datasets/)
 
-This gives you the opportunity to get **99% accuracy** on photos that are uploaded to [AUTO.RIA](https://auto.ria.com) project
+This gives you the opportunity to get **99% accuracy**on photos that are uploaded to 
+[AUTO.RIA](https://auto.ria.com) project
 
 <img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
-<br><a href="https://github.com/ria-com/nomeroff-net/blob/master/examples/demo3.ipynb">Number plate recognition example</a>
 
 ## Contributing
 Contributions to this repository are welcome. Examples of things you can contribute:
