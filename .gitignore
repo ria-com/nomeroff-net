@@ -9,12 +9,10 @@ cofig/*.json
 source/*
 ./.pypirc
 
-datasets/ocr/*
-datasets/options/*
-datasets/dataset/orientation/*
-datasets/region/*
-datasets/mrcnn/*
-tensorflow/*
+data/dataset/*
+data/logs/*.log
+data/models/*
+data/repos/*
 
 public/npdetect.php
 Mask_RCNN/*
