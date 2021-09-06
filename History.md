@@ -1,7 +1,18 @@
+2.4.0 / 2021-09-06
+==================
+  **updates** 
+  * Rewrote OCR to PyTorch  
+  * Restructured project folders and files
+  * Added autoloading of datasets and dependent repositories
+  * Optimized training options and OCR with [PyTorch Lightning](https://www.pytorchlightning.ai/)
+  * Added new [dataset tools](https://github.com/ria-com/nomeroff-net/tree/master/tools)
+  * Updated [datasets](https://nomeroff.net.ua/datasets/) and [models](https://nomeroff.net.ua/models/)
+  * Added experimental feature Orientation Detector
+
 2.3.0 / 2021-03-11
 ==================
   **updates** 
-` * Optimize multiline to one line algorithm  
+  * Optimize multiline to one line algorithm  
   * Have combined multiline to one line algorithm with NomeroffNet API
   * Added tornado and flask examples
 
