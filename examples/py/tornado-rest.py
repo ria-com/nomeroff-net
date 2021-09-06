@@ -1,13 +1,22 @@
+"""
+Tornado REST API
+
+RUN: python3 ./tornado-rest.py
+
+REQUEST '/version' location: curl 127.0.0.1:8888/version
+REQUEST '/detect' location: curl --header "Content-Type: application/json" \
+                                 --request POST --data '{"path": "../images/example1.jpeg"}' 127.0.0.1:8888/detect
+"""
+
 # Specify device
 import os
 
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 import tornado.ioloop
 import tornado.web
-from tornado.web import Application, RequestHandler
+from tornado.web import Application
 import tornado.web
 
 # Import all necessary libraries.
@@ -85,7 +94,7 @@ class GetVersion(tornado.web.RequestHandler):
         self.thread = None
 
     def get(self):
-        version = "v2.0"
+        version = "v2.4"
         self.write(json.dumps(version))
 
 

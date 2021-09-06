@@ -2,7 +2,6 @@
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
 import sys
@@ -26,14 +25,13 @@ npPointsCraft = NpPointsCraft()
 npPointsCraft.load()
 
 from NomeroffNet.OptionsDetector import OptionsDetector
-from NomeroffNet.TextDetector import TextDetector
-from NomeroffNet.TextPostprocessing import textPostprocessing
+from NomeroffNet.TextDetectors.eu import eu
 
 # load models
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-textDetector = TextDetector.get_static_module("eu")()
+textDetector = eu
 textDetector.load("latest")
 
 # Detect numberplate
@@ -55,5 +53,4 @@ regionNames = optionsDetector.getRegionLabels(regionIds)
 
 # find text with postprocessing by standart
 textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
 print(textArr)

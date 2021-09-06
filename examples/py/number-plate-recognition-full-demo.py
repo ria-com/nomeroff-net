@@ -1,8 +1,6 @@
 # Specify device
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
-# os.environ["CUDA_VISIBLE_DEVICES"] = ""  # For CPU inference
 
 # Import all necessary libraries.
 import sys

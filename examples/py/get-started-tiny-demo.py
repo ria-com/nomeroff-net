@@ -2,7 +2,6 @@
 import os
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 # Import all necessary libraries.
 import sys
@@ -18,11 +17,11 @@ from NomeroffNet.YoloV5Detector import Detector
 detector = Detector()
 detector.load()
 
-from NomeroffNet.TextDetector import TextDetector
+from NomeroffNet.TextDetectors.eu import eu
 from NomeroffNet.TextPostprocessing import textPostprocessing
 
 # load models
-textDetector = TextDetector.get_static_module("eu")()
+textDetector = eu
 textDetector.load("latest")
 
 # Detect numberplate

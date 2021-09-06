@@ -1,9 +1,18 @@
+"""
+Flask REST API
+
+RUN: python3 ./flask-rest.py
+
+REQUEST '/version' location: curl 127.0.0.1:8888/version
+REQUEST '/detect' location: curl --header "Content-Type: application/json" \
+                                 --request POST --data '{"path": "../images/example1.jpeg"}' 127.0.0.1:8888/detect
+"""
+
 # Specify device
 import os
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-os.environ["TF_FORCE_GPU_ALLOW_GROWTH"] = "true"
 
 from flask import Flask
 from flask import request
@@ -75,7 +84,7 @@ app = Flask(__name__)
 
 @app.route('/version', methods=['GET'])
 def version():
-    return "v2.0"
+    return "v2.4"
 
 
 @app.route('/detect', methods=['POST'])
