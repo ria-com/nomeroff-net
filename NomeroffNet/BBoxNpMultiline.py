@@ -168,8 +168,6 @@ class MultilineConverter:
         img_zones = get_cv_zonesRGBLite(self.imagePart, self.rects)
         img_zones, np_config = cmd.prepare_multiline_rects(self.rects, img_zones, self.probablyLines)
 
-        print('np_config')
-        print(np_config)
         if np_config is None:
             np_config = {}
         padding_left_coef = np_config.get('padding-left-coef', np_config_default["padding-left-coef"])
@@ -177,9 +175,6 @@ class MultilineConverter:
         padding_zones_coef = np_config.get('padding-zones-coef', np_config_default["padding-zones-coef"])
         padding_top_coef = np_config.get('padding-top-coef', np_config_default["padding-top-coef"])
         padding_bottom_coef = np_config.get('padding-bottom-coef', np_config_default["padding-bottom-coef"])
-
-        print('padding_left_coef')
-        print(padding_left_coef)
 
         target_zone_value = max([img_zone.shape[0] for img_zone in img_zones])
 
