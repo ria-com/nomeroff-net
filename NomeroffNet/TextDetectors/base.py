@@ -231,14 +231,15 @@ class OCR(object):
             net_out_value = self.model(xs)
             net_out_value = [p.cpu().numpy() for p in net_out_value]
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
+        pred_texts = [pred_text.upper() for pred_text in pred_texts]
         if return_acc:
             if len(net_out_value):
                 net_out_value = np.array(net_out_value)
                 net_out_value = net_out_value.reshape(net_out_value.shape[1],
                                                       net_out_value.shape[0],
                                                       net_out_value.shape[2])
-            return pred_texts.upper(), net_out_value
-        return pred_texts.upper()
+            return pred_texts, net_out_value
+        return pred_texts
         
     def save(self, path: str, verbose: bool = True) -> None:
         """
