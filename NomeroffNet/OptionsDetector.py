@@ -193,17 +193,26 @@ class OptionsDetector(object):
         return True
 
     def load_model(self, path_to_model):
+        self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+                                                       map_location=torch.device('cpu'),
+                                                       region_output_size=len(self.class_region),
+                                                       count_line_output_size=len(self.count_lines))
         if mode_torch == "gpu":
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
-        else:
-            self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
-                                                           map_location=torch.device('cpu'),
-                                                           region_output_size=len(self.class_region),
-                                                           count_line_output_size=len(self.count_lines))
+            self.model = self.model.cuda()
         self.model.eval()
         return self.model
+
+    def getRegionLabel(self, index: int) -> str:
+        """
+        TODO: describe method
+        """
+        return self.class_region[index].replace("-", "_")
+
+    def getRegionLabels(self, indexes: List[int]) -> List[str]:
+        """
+        TODO: describe method
+        """
+        return [self.class_region[index].replace("-", "_") for index in indexes]
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
