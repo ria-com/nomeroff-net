@@ -5,7 +5,6 @@ import numpy as np
 from typing import List, Dict, Tuple
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__)))
-
 from tools import (fline,
                    distance,
                    minimum_bounding_rectangle,
