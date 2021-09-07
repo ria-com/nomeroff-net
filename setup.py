@@ -1,43 +1,48 @@
 from setuptools import setup, find_packages
+import os
+import re
+
+
+def read_version():
+    # importing gpustat causes an ImportError :-)
+    __PATH__ = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(__PATH__, 'modelhub_client/__init__.py')) as f:
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                                  f.read(), re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find __version__ string")
+
+
+# get project version
+__version__ = read_version()
+
+# get project long description
+with open("README.md", "r", encoding="utf-8") as fh:
+    long_description = fh.read()
+
+# get project requirements list
+with open("requirements.txt", "r", encoding="utf-8") as fh:
+    packages = fh.read().split("/n")
 
 setup(name='nomeroff-net',
-      version='2.3.0',
+      version=__version__,
       description='Automatic numberplate recognition system',
-      long_description='Nomeroff Net is a opensource python license plate recognition framework based on the application of a convolutional neural network on the Mask_RCNN architecture, and cusomized OCR-module powered by GRU architecture. The project is now at the initial stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
       classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Programming Language :: Python :: 3',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Programming Language :: Python :: 3.7',
+        "Operating System :: OS Independent",
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
       ],
-      keywords='Nomeroff Net ai centermask2 OCR GRU opensource license number plate recognition licenseplate numberplate license-plate number-plate ria-com RIA.com ria',
+      keywords='ai nomeroffnet yolov5 craft ocr rnn opensource license number plate recognition '
+               'licenseplate numberplate license-plate number-plate ria-com ria.com ria',
       url='https://github.com/ria-com/nomeroff-net',
       author='Dmytro Probachay, Oleg Cherniy',
       author_email='dimabendera@gmail.com, oleg.cherniy@ria.com',
       license='MIT',
       packages=find_packages(),
-      install_requires=[
-          'cython',
-          'setuptools',
-          'numpy',
-          'imgaug',
-          'tensorflow',
-          'matplotlib',
-          'seaborn',
-          'Cython',
-          'pycocotools',
-          'matplotlib',
-          'tensorflow>=2.3.*',
-          'opencv_python',
-          'scikit_image',
-          'asyncio',
-          'GitPython',
-          'pycocotools',
-          'tqdm',
-          'matplotlib',
-          'torch',
-          'torchvision',
-          'PyYAML==5.4',
-      ],
+      install_requires=packages,
       include_package_data=True,
       zip_safe=False)
