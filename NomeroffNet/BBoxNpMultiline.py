@@ -59,7 +59,7 @@ def get_cv_zonesRGBLite(img: np.ndarray, rects: list) -> List:
     dsts = []
     for rect in rects:
         rect, w, h = rotate_to_pretty(rect)
-        dst = buildPerspective(img, rect, w, h)
+        dst = buildPerspective(img, rect, int(w), int(h))
         dsts.append(dst)
     return dsts
 
