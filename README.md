@@ -68,9 +68,6 @@ install requirements:
 pip3 install -r requirements.txt 
 ```
 
-### Installation from Source (Windows)
-TODO: Add Installation from Source (Windows)
-
 ## Hello Nomeroff Net
 ```python
 # Specify device
