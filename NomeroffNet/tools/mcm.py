@@ -46,7 +46,7 @@ models = {
     },
     "yolov5engine": {
         "application": "Detector",
-        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-05-14.engine",
+        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-07-28.engine",
     },
     "craft_mlt": {
         "application": "NpPointsCraft",

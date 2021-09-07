@@ -28,7 +28,7 @@ CONF_THRESH = 0.5
 IOU_THRESHOLD = 0.4
 
 sys.path.append(os.path.join(pathlib.Path().resolve(), "../../NomeroffNet"))
-sys.path.append(os.path.join(pathlib.Path().resolve(), "../../NomeroffNet/Base"))
+sys.path.append(os.path.join(pathlib.Path().resolve(), "../../NomeroffNet/tools"))
 from mcm import (modelhub,
                  get_mode_torch)
 
