@@ -1,8 +1,11 @@
+import sys
 import cv2
 import numpy as np
 import importlib
 from typing import List, Any, Tuple, Dict
 from NpMultiline import default
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from tools import (fline,
                    distance,
                    linearLineMatrix,

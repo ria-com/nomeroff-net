@@ -8,8 +8,8 @@ from typing import List
 
 # download and append to path yolo repo
 NOMEROFF_NET_DIR = os.path.join(pathlib.Path(__file__).parent.absolute(), "./")
-from .tools import (modelhub,
-                    get_mode_torch)
+from tools import (modelhub,
+                   get_mode_torch)
 modelhub.download_repo_for_model("yolov5")
 
 # load yolo packages

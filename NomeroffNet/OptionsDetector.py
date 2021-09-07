@@ -9,9 +9,8 @@ from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'base')))
-from .tools import (modelhub,
-                    get_mode_torch)
+from tools import (modelhub,
+                   get_mode_torch)
 from data_modules.numberplate_options_data_module import OptionsNetDataModule
 from nnmodels.numberplate_options_model import NPOptionsNet
 from data_modules.data_loaders import normalize

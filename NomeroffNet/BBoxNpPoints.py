@@ -1,9 +1,11 @@
 # Import all necessary libraries.
 import os
+import sys
 import math
 import collections
 
-from .tools.mcm import (modelhub,
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from tools.mcm import (modelhub,
                         get_mode_torch)
 info = modelhub.download_repo_for_model("craft_mlt")
 CRAFT_DIR = info["repo_path"]
@@ -26,18 +28,18 @@ from craft_mlt.craft import CRAFT
 from craft_mlt.refinenet import RefineNet
 
 from typing import List, Dict, Tuple, Any, Union
-from .tools import (fline,
-                    distance,
-                    linearLineMatrix,
-                    getYByMatrix,
-                    findDistances,
-                    getCvZoneRGB,
-                    convertCvZonesRGBtoBGR,
-                    fixClockwise2,
-                    findMinXIdx,
-                    detectIntersection,
-                    minimum_bounding_rectangle,
-                    reshapePoints)
+from tools import (fline,
+                   distance,
+                   linearLineMatrix,
+                   getYByMatrix,
+                   findDistances,
+                   getCvZoneRGB,
+                   convertCvZonesRGBtoBGR,
+                   fixClockwise2,
+                   findMinXIdx,
+                   detectIntersection,
+                   minimum_bounding_rectangle,
+                   reshapePoints)
 
 
 def copyStateDict(state_dict: Dict) -> OrderedDict:
