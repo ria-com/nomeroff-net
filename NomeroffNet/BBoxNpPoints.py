@@ -114,11 +114,11 @@ def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Di
     """
     np_bboxes_idx = []
     garbage_bboxes_idx = []
-    maxDy = 0
+    max_dy = 0
     if len(bboxes):
-        maxDy = max([dimension['dy'] for dimension in dimensions])
+        max_dy = max([dimension['dy'] for dimension in dimensions])
     for i, (bbox, dimension) in enumerate(zip(bboxes, dimensions)):
-        if maxDy * similarity_range <= dimension['dy']:
+        if max_dy * similarity_range <= dimension['dy']:
             np_bboxes_idx.append(i)
         else:
             garbage_bboxes_idx.append(i)
@@ -129,11 +129,11 @@ def detectIntersectionNormDD(matrix1: np.ndarray, matrix2: np.ndarray, d1: float
     """
     TODO: describe function
     """
-    X = np.array([matrix1[:2], matrix2[:2]])
+    x = np.array([matrix1[:2], matrix2[:2]])
     c0 = matrix1[2] - d1 * (matrix1[0] ** 2 + matrix1[1] ** 2) ** 0.5
     c1 = matrix2[2] - d2 * (matrix2[0] ** 2 + matrix2[1] ** 2) ** 0.5
     y = np.array([c0, c1])
-    return np.linalg.solve(X, y)
+    return np.linalg.solve(x, y)
 
 
 def detectDistanceFromPointToLine(matrix: List[np.ndarray],
@@ -142,26 +142,26 @@ def detectDistanceFromPointToLine(matrix: List[np.ndarray],
     Определение растояния от точки к линии
     https://ru.onlinemschool.com/math/library/analytic_geometry/p_line1/
     """
-    A = matrix[0]
-    B = matrix[1]
-    C = matrix[2]
+    a = matrix[0]
+    b = matrix[1]
+    c = matrix[2]
     x = point[0]
     y = point[1]
-    return abs(A * x + B * y - C) / math.sqrt(A ** 2 + B ** 2)
+    return abs(a * x + b * y - c) / math.sqrt(a ** 2 + b ** 2)
 
 
-def fixClockwise(targetPoints: List) -> List:
+def fixClockwise(target_points: List) -> List:
     """
     TODO: describe function
     """
-    stat1 = fline(targetPoints[0], targetPoints[1])
-    stat2 = fline(targetPoints[0], targetPoints[2])
-    if targetPoints[0][0] == targetPoints[1][0] and (targetPoints[0][1] > targetPoints[1][1]):
+    stat1 = fline(target_points[0], target_points[1])
+    stat2 = fline(target_points[0], target_points[2])
+    if target_points[0][0] == target_points[1][0] and (target_points[0][1] > target_points[1][1]):
         stat1[2] = -stat1[2]
 
     if stat2[2] < stat1[2]:
-        targetPoints = np.array([targetPoints[0], targetPoints[3], targetPoints[2], targetPoints[1]])
-    return targetPoints
+        target_points = np.array([target_points[0], target_points[3], target_points[2], target_points[1]])
+    return target_points
 
 
 def addoptRectToBbox(targetPoints: List, Bbox: Tuple, distansesoffsetLeftMaxPercentage: float,
@@ -256,14 +256,14 @@ def addoptRectToBbox(targetPoints: List, Bbox: Tuple, distansesoffsetLeftMaxPerc
     return np.array(points)
 
 
-def addCoordinatesOffset(points: List, x: float, y: float) -> List:
+def addCoordinatesOffset(points: List or np.ndarray, x: float, y: float) -> List:
     """
     TODO: describe function
     """
     return [[point[0] + x, point[1] + y] for point in points]
 
 
-def normalizeRect(rect: List) -> List:
+def normalizeRect(rect: List) -> np.ndarray or List:
     """
     TODO: describe function
     """
@@ -393,7 +393,6 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
             step = 1
         steps_minus = steps_all+steps_minus*step
         steps_plus = steps_all+steps_plus*step
-        #print('dd: {}  d_max: {} steps_all {}, steps {}, step {}'.format(dd, d_max, steps_all, steps, step))
 
     points_arr = []
     for i in range(-steps_minus, steps + steps_plus + 1, step):
@@ -401,7 +400,7 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
     return points_arr
 
 
-def normalizePerspectiveImages(images: List[np.ndarray]) -> List[np.ndarray]:
+def normalizePerspectiveImages(images: List or np.ndarray) -> List[np.ndarray]:
     """
     TODO: describe function
     """
@@ -429,6 +428,10 @@ class NpPointsCraft(object):
         self.text_threshold = text_threshold
         self.canvas_size = canvas_size
         self.mag_ratio = mag_ratio
+        self.is_cuda = False
+        self.is_poly = False
+        self.net = None
+        self.refine_net = None
 
     @classmethod
     def get_classname(cls: object) -> str:
@@ -515,15 +518,15 @@ class NpPointsCraft(object):
             targetBox['points'] = []
             targetBox['imgParts'] = []
             if len(propablyPoints):
-                targetPointsVariants = makeRectVariants(propablyPoints, qualityProfile)
-                if len(targetPointsVariants) > 1:
-                    imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
+                target_points_variants = makeRectVariants(propablyPoints, qualityProfile)
+                if len(target_points_variants) > 1:
+                    imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in target_points_variants]
                     normalized_perspective_img = normalizePerspectiveImages(imgParts)
                     idx = detectBestPerspective(normalized_perspective_img)
-                    targetBox['points'] = targetPointsVariants[idx]
+                    targetBox['points'] = target_points_variants[idx]
                     targetBox['imgParts'] = imgParts
                 else:
-                    targetBox['points'] = targetPointsVariants[0]
+                    targetBox['points'] = target_points_variants[0]
         return target_boxes, image
 
     def detect(self, image: np.ndarray, targetBoxes: List, qualityProfile: List = None) -> List:
@@ -551,17 +554,17 @@ class NpPointsCraft(object):
             if h/w > 3.5:
                 image_part = cv2.rotate(image_part, cv2.cv2.ROTATE_90_CLOCKWISE)
             # image_part = normalize_color(image_part)
-            localPropablyPoints, mlineBoxes = self.detectInBbox(image_part)
-            all_mline_boxes.append(mlineBoxes)
-            propablyPoints = addCoordinatesOffset(localPropablyPoints, x, y)
-            if len(propablyPoints):
-                targetPointsVariants = makeRectVariants(propablyPoints, qualityProfile)
-                if len(targetPointsVariants) > 1:
-                    imgParts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in targetPointsVariants]
-                    idx = detectBestPerspective(normalizePerspectiveImages(imgParts))
-                    points = targetPointsVariants[idx]
+            local_propably_points, mline_boxes = self.detectInBbox(image_part)
+            all_mline_boxes.append(mline_boxes)
+            propably_points = addCoordinatesOffset(local_propably_points, x, y)
+            if len(propably_points):
+                target_points_variants = makeRectVariants(propably_points, qualityProfile)
+                if len(target_points_variants) > 1:
+                    img_parts = [getCvZoneRGB(image, reshapePoints(rect, 1)) for rect in target_points_variants]
+                    idx = detectBestPerspective(normalizePerspectiveImages(img_parts))
+                    points = target_points_variants[idx]
                 else:
-                    points = targetPointsVariants[0]
+                    points = target_points_variants[0]
                 all_points.append(points)
             else:
                 all_points.append([
@@ -572,11 +575,15 @@ class NpPointsCraft(object):
                 ])
         return all_points, all_mline_boxes
 
-
-    def detectInBbox(self, image: np.ndarray, craft_params={}, debug: bool = False):
+    def detectInBbox(self,
+                     image: np.ndarray,
+                     craft_params: Dict = None,
+                     debug: bool = False):
         """
         TODO: describe method
         """
+        if craft_params is None:
+            craft_params = {}
         low_text = craft_params.get('low_text', self.low_text)
         link_threshold = craft_params.get('link_threshold', self.link_threshold)
         text_threshold = craft_params.get('text_threshold', self.text_threshold)
@@ -600,7 +607,7 @@ class NpPointsCraft(object):
 
         np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
 
-        targetPoints = []
+        target_points = []
         if debug:
             print('np_bboxes_idx')
             print(np_bboxes_idx)
@@ -608,18 +615,18 @@ class NpPointsCraft(object):
             print(garbage_bboxes_idx)
 
         if len(np_bboxes_idx) == 1:
-            targetPoints = bboxes[np_bboxes_idx[0]]
+            target_points = bboxes[np_bboxes_idx[0]]
 
         if len(np_bboxes_idx) > 1:
-            targetPoints = minimum_bounding_rectangle(np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0))
+            target_points = minimum_bounding_rectangle(np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0))
 
         if len(np_bboxes_idx) > 0:
-            targetPoints = normalizeRect(targetPoints)
+            target_points = normalizeRect(target_points)
             if debug:
-                print("[INFO] targetPoints", targetPoints)
+                print("[INFO] target_points", target_points)
                 print('[INFO] image.shape', image.shape)
-            targetPoints = addoptRectToBbox(targetPoints, image.shape, 7, 12, 0, 12)
-        return targetPoints, [bboxes[i] for i in np_bboxes_idx]
+            target_points = addoptRectToBbox(target_points, image.shape, 7, 12, 0, 12)
+        return target_points, [bboxes[i] for i in np_bboxes_idx]
 
     def detectProbablyMultilineZones(self, image, craft_params=None, debug=False):
         """

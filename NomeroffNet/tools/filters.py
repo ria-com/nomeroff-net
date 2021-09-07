@@ -51,7 +51,7 @@ def cv_img_mask(nns: List[Dict]) -> List:
 
 
 def color_splash(image: np.ndarray, masks: List[np.ndarray],
-                 color: Tuple[int] = (0, 255, 0), white_balance: int = 200) -> List[np.ndarray]:
+                 color: Union = (0, 255, 0), white_balance: int = 200) -> List[np.ndarray]:
     res = []
     gray = skimage.color.gray2rgb(skimage.color.rgb2gray(image)) * white_balance
     for mask in masks:

@@ -235,9 +235,9 @@ class OCR(object):
         if return_acc:
             if len(net_out_value):
                 net_out_value = np.array(net_out_value)
-                net_out_value = net_out_value.reshape(net_out_value.shape[1],
-                                                      net_out_value.shape[0],
-                                                      net_out_value.shape[2])
+                net_out_value = net_out_value.reshape((net_out_value.shape[1],
+                                                       net_out_value.shape[0],
+                                                       net_out_value.shape[2]))
             return pred_texts, net_out_value
         return pred_texts
         

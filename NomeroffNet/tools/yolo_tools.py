@@ -1,11 +1,8 @@
-import sys
 import os
 import json
-import glob
 import cv2
 import tqdm
 from PIL import Image
-from PIL import ExifTags
 import numpy as np
 from PIL import ImageOps
 
@@ -60,9 +57,9 @@ def save_in_yolo_format(image,
         # class x_center y_center width height
         yolo_bbox = [label_id, mx/width, my/height, w/width, h/height]
         if yolo_bbox[1] >= 1 \
-            or yolo_bbox[2] >= 1 \
-            or yolo_bbox[3] >= 1 \
-            or yolo_bbox[4] >= 1:
+                or yolo_bbox[2] >= 1 \
+                or yolo_bbox[3] >= 1 \
+                or yolo_bbox[4] >= 1:
             print("[corrupted]", os.path.join(path_to_res_images, image_id), width, height)
             print("bbox", bbox)
             print("yolo_bbox", yolo_bbox)
@@ -71,11 +68,11 @@ def save_in_yolo_format(image,
         to_txt_data.append(yolo_bbox)
         if debug or is_corrupted:
             cv2.rectangle(image, 
-                (int(bbox[0]), int(bbox[1])), 
-                (int(bbox[2]), int(bbox[3])), 
-                (0,120,255), 
-                3)
-    res_path =  f'{path_to_res_ann}/{".".join(image_id.split(".")[:-1])}{suffix}.txt'
+                          (int(bbox[0]), int(bbox[1])),
+                          (int(bbox[2]), int(bbox[3])),
+                          (0, 120, 255),
+                          3)
+    res_path = f'{path_to_res_ann}/{".".join(image_id.split(".")[:-1])}{suffix}.txt'
     if debug or is_corrupted:
         import matplotlib.pyplot as plt
         
@@ -99,9 +96,10 @@ def rotation_augumentation(image,
                            path_to_res_images,
                            image_id, 
                            labels,
-                           angles=[90, 180, 270],
+                           angles=None,
                            debug=False):
-    
+    if angles is None:
+        angles = [90, 180, 270]
     variant_images, variants_bboxes = generate_image_rotation_variants(image, 
                                                                        target_boxes, 
                                                                        angles=angles)
@@ -121,13 +119,15 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
                                    path_to_res_images, 
                                    path_to_images, 
                                    path_to_json, 
-                                   classes = ['numberplate'], 
+                                   classes=None,
                                    debug=True,
                                    is_generate_image_rotation_variants=False):
+    if classes is None:
+        classes = ['numberplate']
     with open(path_to_json) as ann:
-        annData = json.load(ann)
+        ann_data = json.load(ann)
     cat2label = {k: i for i, k in enumerate(classes)}
-    image_list = annData
+    image_list = ann_data
     
     for _id in tqdm.tqdm(image_list["_via_img_metadata"]):
         image_id = image_list["_via_img_metadata"][_id]["filename"]
@@ -138,7 +138,7 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         target_boxes = []
         labels = []
         for region in image_list["_via_img_metadata"][_id]["regions"]:
-            label_id  = 0
+            label_id = 0
             
             if region["shape_attributes"].get("all_points_x", None) is None:
                 continue

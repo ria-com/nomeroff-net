@@ -66,7 +66,6 @@ class BlockRNN(nn.Module):
         out array:
             out - [seq_len , batch_size, out_size]
         """
-        batch_size = batch.size(1)
         outputs, hidden = self.gru(batch)
         out_size = int(outputs.size(2) / 2)
         if add_output:

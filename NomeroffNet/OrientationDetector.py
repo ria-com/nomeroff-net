@@ -14,7 +14,6 @@ from .tools import (modelhub,
 from data_modules.numberplate_orientation_data_module import OrientationDataModule, show_data
 from nnmodels.numberplate_orientation_model import NPOrientationNet
 from data_modules.data_loaders import normalize
-from .OptionsDetector import OptionsDetector
 
 
 mode_torch = get_mode_torch()
@@ -165,7 +164,7 @@ class OrientationDetector(object):
         self.trainer.test()
         return self.model
     
-    def tune(self) -> NPOrientationNet:
+    def tune(self) -> Dict:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
@@ -205,9 +204,9 @@ class OrientationDetector(object):
         confidences = []
         orientations = []
         for orientation in predicted:
-            orientations.append(int(np.argmax(orientation)))
-            orientation = orientation.tolist()
-            orientation_confidence = orientation[int(np.argmax(orientation))]
+            orientation_index = int(np.argmax(orientation))
+            orientations.append(orientation_index)
+            orientation_confidence = orientation[orientation_index].tolist()
             confidences.append(orientation_confidence)
         return orientations, confidences, predicted
 

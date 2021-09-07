@@ -1,5 +1,4 @@
-from .splitter import (np_split,
-                       np_split_sorce)
+from .splitter import np_split
 from .mcm import (modelhub,
                   get_mode_torch)
 from .image_processing import (fline,

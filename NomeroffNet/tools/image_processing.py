@@ -33,7 +33,7 @@ def fline(p0: List, p1: List, debug: bool = False) -> List:
     return [k, b, a, a180, r]
 
 
-def distance(p0: List, p1: List) -> float:
+def distance(p0: List, p1: List or np.ndarray) -> float:
     """
     distance between two points p0 and p1
     """
@@ -71,7 +71,7 @@ def getYByMatrix(matrix: np.ndarray, x: float) -> np.ndarray:
         return (matrix_c - matrix_a * x) / matrix_b
 
 
-def findDistances(points: List) -> List:
+def findDistances(points: np.ndarray or List) -> List:
     """
     TODO: describe function
     """
@@ -149,7 +149,7 @@ def getMeanDistance(rect: List, start_idx: int, verbose: bool = False) -> np.nda
     return np.mean([distance(rect[start_idx], rect[end_idx]), distance(rect[start2_idx], rect[end2_idx])])
 
 
-def reshapePoints(target_points: np.ndarray, start_idx: int) -> np.ndarray:
+def reshapePoints(target_points: List or np.ndarray, start_idx: int) -> List:
     """
     TODO: describe function
     """
@@ -244,7 +244,11 @@ def order_points_old(pts: np.ndarray):
     # diff = np.diff(pts_crop, axis=1)
     # rect[1] = pts_crop[np.argmin(diff)]
     # rect[3] = pts_crop[np.argmax(diff)]
-    # Определяется так. Предположим, у нас есть 3 точки: А(х1,у1), Б(х2,у2), С(х3,у3). Через точки А и Б проведена прямая. И нам надо определить, как расположена точка С относительно прямой АБ. Для этого вычисляем значение:
+
+    # Определяется так.
+    # Предположим, у нас есть 3 точки: А(х1,у1), Б(х2,у2), С(х3,у3).
+    # Через точки А и Б проведена прямая. И нам надо определить, как расположена точка С относительно прямой АБ.
+    # Для этого вычисляем значение:
     # D = (х3 - х1) * (у2 - у1) - (у3 - у1) * (х2 - х1)
     # - Если D = 0 - значит, точка С лежит на прямой АБ.
     # - Если D < 0 - значит, точка С лежит слева от прямой.
@@ -268,7 +272,7 @@ def order_points_old(pts: np.ndarray):
     return rect
 
 
-def fixClockwise2(target_points: np.ndarray) -> np.ndarray:
+def fixClockwise2(target_points: np.ndarray or List) -> np.ndarray:
     return order_points_old(np.array(target_points))
 
 
@@ -498,7 +502,7 @@ def rotate_box(corners, angle, cx, cy, h, w):
     return calculated
 
 
-def get_enclosing_box(corners):
+def get_enclosing_box(corners: np.ndarray):
     """Get an enclosing box for ratated corners of a bounding box
 
     Parameters

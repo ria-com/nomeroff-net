@@ -1,8 +1,7 @@
 # import python modules
 import os
 
-from modelhub_client import (ModelHub,
-                             models_example)
+from modelhub_client import ModelHub
 
 models = {
     "numberplate_orientation": {
@@ -115,14 +114,6 @@ models = {
 local_storage = os.environ.get('LOCAL_STORAGE', os.path.join(os.path.dirname(__file__), "../../data"))
 modelhub = ModelHub(models=models,
                     local_storage=local_storage)
-
-
-def get_mode() -> str:
-    import tensorflow as tf
-    devices = tf.config.list_physical_devices('GPU')
-    if len(devices):
-        return "gpu"
-    return "cpu"
 
 
 def get_mode_torch() -> str:

@@ -1,5 +1,6 @@
 from .default import prepare_multiline_rects as prepare_multiline_rects_parent
 
+
 def prepare_multiline_rects(rects, zones, lines):
     """
     :param rects: rectangles with CRAFT-matched letters zones

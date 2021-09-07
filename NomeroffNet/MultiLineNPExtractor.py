@@ -217,8 +217,8 @@ class CCraft(object):
                 [item[1] for item in res],
                 [item[2] for item in res])
 
-    def make_one_line_from_many(self,
-                                mline_boxes: List,
+    @staticmethod
+    def make_one_line_from_many(mline_boxes: List,
                                 image_part: np.ndarray,
                                 region_name: str,
                                 multiply_coef: float = 1) -> Tuple[np.ndarray, List, List]:

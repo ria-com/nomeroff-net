@@ -261,10 +261,7 @@ class OptionsDetector(object):
         """
         Predict options(region, count lines) with confidence by numberplate images
         """
-        xs = []
-        for img in imgs:
-            xs.append(normalize(img))
-
+        xs = [normalize(img) for img in imgs]
         predicted = [[], []]
         if bool(xs):
             x = torch.tensor(np.moveaxis(np.array(xs), 3, 1))
@@ -286,4 +283,3 @@ class OptionsDetector(object):
             confidences.append([region_confidence, count_lines_confidence])
         count_lines = self.getCountLinesLabels(count_lines)
         return region_ids, count_lines, confidences, predicted
-

@@ -14,7 +14,7 @@ class Ge(XxXx):
     def find(self, text: str, strong: bool = False) -> str:
         for standart in self.STANDARTS:
             self.STANDART = standart
-            match = self.findFully(text)
+            match = self.find_fully(text)
             if match:
                 text = match.group(0)
                 newtext = ""

@@ -186,7 +186,9 @@ class MultilineConverter:
                 zone = target_resize(zone, target_zone_value)
             res_zone.append(zone)
             if idx < cnt-1:
-                res_zone.append(np.ones((target_zone_value, int(target_zone_value / padding_zones_coef), 3), dtype="uint8") * bg_fill)
+                res_zone.append(np.ones((target_zone_value,
+                                         int(target_zone_value / padding_zones_coef),
+                                         3), dtype="uint8") * bg_fill)
 
         # Show result
         temp = np.hstack(res_zone)
