@@ -33,6 +33,7 @@ RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip
 RUN wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/master.zip
 RUN unzip opencv.zip; unzip opencv_contrib.zip
 RUN mkdir -p build && cd build; cmake -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib-master/modules ../opencv-master; make -j8; make install
+RUN rm -rf /var/www/build /var/www/opencv-master /var/www/opencv.zip /var/www/opencv_contrib-master /var/www/opencv_contrib.zip
 
 RUN pip3 install "numpy>=1.16.*"
 RUN pip3 install imgaug
