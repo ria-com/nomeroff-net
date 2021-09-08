@@ -33,7 +33,6 @@ RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip
 RUN wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/master.zip
 RUN unzip opencv.zip; unzip opencv_contrib.zip
 RUN mkdir -p build && cd build; cmake -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib-master/modules ../opencv-master; make -j8; make install
-RUN rm -rf /var/www/build /var/www/opencv-master /var/www/opencv.zip /var/www/opencv_contrib-master /var/www/opencv_contrib.zip
 
 RUN pip3 install "numpy>=1.16.*"
 RUN pip3 install imgaug
@@ -47,5 +46,7 @@ RUN pip3 install pytorch_lightning
 RUN pip3 install ipywidgets
 RUN pip3 install -U "git+git://github.com/lilohuang/PyTurboJPEG.git"
 RUN pip3 install -U "git+https://github.com/ria-com/modelhub-client.git"
+
+RUN rm /var/www/opencv.zip; rm /var/www/opencv_contrib.zip; rm -rf /var/www/opencv-master; rm -rf /var/www/opencv_contrib-master; rm -rf /var/www/build
 
 WORKDIR /var/www/nomeroff-net
