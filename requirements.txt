@@ -7,7 +7,7 @@ scikit_image
 asyncio
 gitpython
 pycocotools
-pillow==8.2.0
+pillow==8.3.2
 tqdm
 matplotlib
 scipy
