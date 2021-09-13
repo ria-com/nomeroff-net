@@ -5,7 +5,7 @@ import pytorch_lightning as pl
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../base')))
-from .data_loaders_simple import ImgGenerator
+from .data_loaders import InverseImgGenerator as ImgGenerator
 
 
 class InverseNetDataModule(pl.LightningDataModule):
