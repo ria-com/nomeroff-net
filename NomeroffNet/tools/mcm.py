@@ -11,6 +11,15 @@ models = {
         "orientations": ["0°", "90°", "180°", "270°"],
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
     },
+    "numberplate_orientations": {
+        "application": "InverseDetector",
+        "url": "https://nomeroff.net.ua/models/inverse/torch/numberplate_inverse_2021_09_12_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOrientationDataset-2021-09-12.zip",
+        "orientations": [
+            "0",
+            "180"
+        ],
+    },
     "numberplate_options": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_08_13_pytorch_lightning.ckpt",
@@ -70,8 +79,8 @@ models = {
     },
     "Eu": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_08_30_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-02.zip"
+        "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_09_16_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-16.zip"
     },
     "Ru": {
         "application": "TextDetector",

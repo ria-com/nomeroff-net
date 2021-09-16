@@ -51,7 +51,6 @@ def normalize(img: np.ndarray,
 
 
 class ImgGenerator(torch.utils.data.Dataset):
-
     def __init__(self,
                  dirpath: str,
                  img_w: int = 295,
@@ -81,8 +80,8 @@ class ImgGenerator(torch.utils.data.Dataset):
                 if os.path.exists(json_filepath):
                     description = json.load(open(json_filepath, 'r'))
                     self.samples.append([img_filepath, [
-                        int(description["region_id"]),
-                        int(description["count_lines"]),
+                        int(description.get("region_id", -1)),
+                        int(description.get("count_lines", -1)),
                         int(description.get("orientation", -1))]])
 
         self.n = len(self.samples)
@@ -173,6 +172,78 @@ class ImgGenerator(torch.utils.data.Dataset):
         for _ in np.arange(self.batch_count):
             paths, xs, ys = self.run_iteration(with_aug)
             yield paths, xs, ys
+
+
+class InverseImgGenerator(ImgGenerator):
+    def __init__(self,
+                 dirpath: str,
+                 img_w: int = 295,
+                 img_h: int = 64,
+                 batch_size: int = 32,
+                 labels_counts: int = 2,
+                 with_aug: bool = False) -> None:
+
+        self.cur_index = 0
+        self.paths = []
+        self.discs = []
+
+        self.img_h = img_h
+        self.img_w = img_w
+        self.batch_size = batch_size
+
+        self.labels_counts = labels_counts
+
+        img_dirpath = os.path.join(dirpath, 'img')
+        ann_dirpath = os.path.join(dirpath, 'ann')
+        self.samples = []
+        for filename in os.listdir(img_dirpath):
+            name, ext = os.path.splitext(filename)
+            if ext == '.png':
+                img_filepath = os.path.join(img_dirpath, filename)
+                json_filepath = os.path.join(ann_dirpath, name + '.json')
+                if os.path.exists(json_filepath):
+                    description = json.load(open(json_filepath, 'r'))
+                    self.samples.append([img_filepath, int(description.get("orientation", -1))])
+
+        self.n = len(self.samples)
+        self.indexes = list(range(self.n))
+        self.batch_count = int(self.n/batch_size)
+        self.with_aug = with_aug
+        self.rezero()
+
+    def __getitem__(self, index):
+        """
+        Generates one sample of data
+        """
+
+        x, y = copy.deepcopy(self.paths[self.indexes[index]]), copy.deepcopy(self.discs[self.indexes[index]])
+        x = self.get_x_from_path(x)
+        x = torch.from_numpy(x)
+        y = torch.from_numpy(y)
+        return x, y
+
+    def build_data(self) -> None:
+        self.paths = []
+        self.discs = []
+        for i, (img_filepath, disc) in enumerate(self.samples):
+            self.paths.append(img_filepath)
+            self.discs.append(
+                np.eye(self.labels_counts)[disc],
+            )
+
+    def run_iteration(self, with_aug=False):
+        ys = []
+        xs = []
+        paths = []
+        for _ in np.arange(self.batch_size):
+            x, y = self.next_sample()
+            paths.append(x)
+            img = cv2.imread(x)
+            x = normalize(img, with_aug=with_aug, width=self.img_w, height=self.img_h)
+            xs.append(x)
+            ys.append(y)
+        xs = np.moveaxis(np.array(xs), 3, 1)
+        return paths, xs, ys
 
 
 class ImgOrientationGenerator(torch.utils.data.Dataset):
