@@ -79,8 +79,8 @@ models = {
     },
     "Eu": {
         "application": "TextDetector",
-        "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_09_16_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-16.zip"
+        "url": "https://nomeroff.net.ua/models/ocr/eu/torch/anpr_ocr_eu_2021_09_27_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrEu-2021-09-27.zip"
     },
     "Ru": {
         "application": "TextDetector",
