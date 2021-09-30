@@ -6,9 +6,7 @@ const config = require('config'),
       checkDirStructure = require('../../app/helpers/checkDirStructure'),
       moveDatasetFiles = require('../../app/helpers/moveDatasetFiles'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
-      sizeOf = require('image-size'),
-      md5File = require('md5-file')
-
+      sizeOf = require('image-size')
 ;
 
 /**

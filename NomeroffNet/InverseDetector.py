@@ -199,7 +199,7 @@ class InverseDetector(object):
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_orientations")
             path_to_model = model_info["path"]
-            self.orientations = model_info["orientations"]
+            self.orientation = model_info["orientation"]
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_orientations")
             path_to_model = model_info["path"]
