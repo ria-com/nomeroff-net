@@ -41,7 +41,7 @@ class OCR(object):
         self.max_plate_length = 0
         self.height = 50
         self.width = 200
-        self.color_channels = 1
+        self.color_channels = 3
         self.label_length = 13
 
         # Train hyperparameters
