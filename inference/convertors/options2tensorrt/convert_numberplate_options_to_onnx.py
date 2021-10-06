@@ -41,11 +41,13 @@ def main():
 
     options_detector = OptionsDetector()
     options_detector.load("latest")
+    print(f"[INFO] torch model", options_detector.model)
 
-    print(options_detector.model)
+    # get device
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"[INFO] device", device)
 
     # get model and model inputs
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = options_detector.model
     model = model.to(device)
     x = torch.randn(batch_size,
