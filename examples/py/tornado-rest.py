@@ -1,7 +1,7 @@
 """
 Tornado REST API
 
-RUN: python3 ./tornado-rest.py
+RUN: python3 ./server.py
 
 REQUEST '/version' location: curl 127.0.0.1:8888/version
 REQUEST '/detect' location: curl --header "Content-Type: application/json" \
