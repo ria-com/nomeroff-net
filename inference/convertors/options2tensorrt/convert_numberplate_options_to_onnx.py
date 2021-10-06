@@ -82,6 +82,7 @@ def main():
     }
 
     # run onnx model
+    print(f"[INFO] available_providers", onnxruntime.get_available_providers())
     ort_outs = ort_session.run(None, ort_inputs)
     start_time = time.time()
     for _ in range(n):
