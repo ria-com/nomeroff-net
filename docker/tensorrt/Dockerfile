@@ -13,7 +13,8 @@ ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
 ARG ONNXRUNTIME_BRANCH=master
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80
 
-RUN apt-get install -y sudo git bash unattended-upgrades
+RUN apt-get update &&\
+    apt-get install -y sudo git bash unattended-upgrades
 RUN unattended-upgrade
 
 WORKDIR /code
