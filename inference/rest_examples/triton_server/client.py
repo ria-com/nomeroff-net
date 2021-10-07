@@ -8,7 +8,7 @@ yoloV5GRPCDetector = YoloV5GRPCDetector()
 i = 0
 start_time = time.time()
 
-glob_path = "../images/*"
+glob_path = "../../examples/images/*"
 
 for _ in range(1):
     for img_path in glob.glob(glob_path):
