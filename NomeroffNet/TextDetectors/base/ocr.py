@@ -289,7 +289,9 @@ class OCR(object):
             model_info = modelhub.download_model_by_name(self.get_classname())
             path_to_model = model_info["path"]
         elif path_to_model.startswith("http"):
-            model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), self.get_classname())
+            model_info = modelhub.download_model_by_url(path_to_model,
+                                                        self.get_classname(),
+                                                        self.get_classname())
             path_to_model = model_info["path"]
 
         return self.load_model(path_to_model)

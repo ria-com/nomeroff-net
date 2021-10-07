@@ -13,32 +13,38 @@ class TextDetector(object):
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def __init__(self, prisets: Dict = None) -> None:
+    def __init__(self,
+                 prisets: Dict = None,
+                 default_label: str = "eu_ua_2015",
+                 default_lines_count: int = 1) -> None:
         if prisets is None:
-            prisets = {}
+            self.prisets = {}
 
         self.detectors_map = {}
         self.detectors = []
         self.detectors_names = []
 
-        self.default_label = "eu_ua_2015"
-        self.default_lines_count = 1
+        self.default_label = default_label
+        self.default_lines_count = default_lines_count
 
         i = 0
-        for prisetName in prisets:
-            priset = prisets[prisetName]
+        for priset_name in self.prisets:
+            priset = self.prisets[priset_name]
             for region in priset["for_regions"]:
                 self.detectors_map[region] = i
-            _label = prisetName
+            _label = priset_name
             if _label not in dir(TextDetectors):
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
             detector = getattr(getattr(TextDetectors, _label), _label)
-            
-            if priset['model_path'] == "latest":
-                detector.load(priset['model_path'])
+
             self.detectors.append(detector)
             self.detectors_names.append(_label)
             i += 1
+        self.load()
+
+    def load(self):
+        for detector, detector_name in zip(self.detectors, self.detectors_names):
+            detector.load(self.prisets[detector_name]['model_path'])
 
     def get_avalible_module(self) -> List[str]:
         return self.detectors_names

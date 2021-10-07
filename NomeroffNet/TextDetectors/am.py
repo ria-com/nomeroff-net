@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Am(OCR):
