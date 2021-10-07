@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/tensorrt:21.07-py3
+FROM nvcr.io/nvidia/tensorrt:21.06-py3
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
