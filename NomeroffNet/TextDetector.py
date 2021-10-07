@@ -18,7 +18,8 @@ class TextDetector(object):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1) -> None:
         if prisets is None:
-            self.prisets = {}
+            prisets = {}
+        self.prisets = prisets
 
         self.detectors_map = {}
         self.detectors = []
