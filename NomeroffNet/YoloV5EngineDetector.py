@@ -23,9 +23,8 @@ IOU_THRESHOLD = 0.4
 
 sys.path.append(os.path.join(pathlib.Path().resolve(), ""))
 sys.path.append(os.path.join(pathlib.Path().resolve(), "tools"))
-from mcm import (modelhub,
-                 get_mode_torch)
-
+from tools import (modelhub,
+                   get_mode_torch)
 
 
 def get_img_path_batches(batch_size, img_dir):
