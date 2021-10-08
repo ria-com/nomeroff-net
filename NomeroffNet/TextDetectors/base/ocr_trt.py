@@ -5,14 +5,10 @@ import onnxruntime
 import numpy as np
 import torch
 
-from NomeroffNet.tools import (modelhub,
-                               get_mode_torch)
+from NomeroffNet.tools import modelhub
 from NomeroffNet.data_modules.data_loaders import normalize
 from NomeroffNet.tools.ocr_tools import decode_batch
 from .ocr import OCR
-
-
-mode_torch = get_mode_torch()
 
 
 class OcrTrt(OCR):
@@ -61,7 +57,7 @@ class OcrTrt(OCR):
         net_out_value = []
         if bool(xs):
             xs = np.moveaxis(np.array(xs), 3, 1)
-            ort_inputs = {self.input_name: len(xs)}
+            ort_inputs = {self.input_name: xs}
             net_out_value = self.ort_session.run(None, ort_inputs)
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         pred_texts = [pred_text.upper() for pred_text in pred_texts]

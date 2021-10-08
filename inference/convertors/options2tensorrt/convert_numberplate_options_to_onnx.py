@@ -62,7 +62,17 @@ def main():
     p.mkdir(parents=True, exist_ok=True)
 
     # Export the model
-    model.to_onnx(filepath, x, export_params=True)
+    model.to_onnx(filepath, x,
+                  export_params=True,  # store the trained parameter weights inside the model file
+                  opset_version=10,  # the ONNX version to export the model to
+                  do_constant_folding=True,  # whether to execute constant folding for optimization
+                  input_names=['inp_conv'],  # the model's input names
+                  output_names=['fc3_line', 'fc3_reg'],  # the model's output names
+                  dynamic_axes={
+                      'inp_conv': {0: 'batch_size'},  # variable length axes
+                      'fc3_line': {0: 'batch_size'},
+                      'fc3_reg': {0: 'batch_size'}
+                  })
 
     # Test torch model
     outs = model(x)

@@ -68,13 +68,12 @@ class OptionsDetectorOnnx(OptionsDetector):
         predicted = [[], []]
         if bool(xs):
             xs = np.moveaxis(np.array(xs), 3, 1)
-            predicted = [self.ort_session.run(None, {self.input_name: [x]}) for x in xs]
+            predicted = self.ort_session.run(None, {self.input_name: xs})
 
         confidences = []
         region_ids = []
         count_lines = []
-        for region, count_line in predicted:
-            region, count_line = region[0], count_line[0]
+        for region, count_line in zip(predicted[0], predicted[1]):
             region_ids.append(int(np.argmax(region)))
             count_lines.append(int(np.argmax(count_line)))
             region = region.tolist()
