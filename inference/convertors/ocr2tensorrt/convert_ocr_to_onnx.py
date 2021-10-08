@@ -132,7 +132,7 @@ def main():
         start_time = time.time()
         for _ in range(n):
             ort_outs = ort_session.run(None, ort_inputs)
-        print(f"[INFO] tensorrt time {(time.time() - start_time)/n * 1000}ms tensorrt")
+        print(f"[INFO] onnx time {(time.time() - start_time)/n * 1000}ms tensorrt")
 
 
 if __name__ == "__main__":
