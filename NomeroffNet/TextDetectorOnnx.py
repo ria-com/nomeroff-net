@@ -14,7 +14,7 @@ class TextDetectorOnnx(TextDetector):
                  default_lines_count: int = 1) -> None:
         TextDetector.__init__(self, prisets, default_label, default_lines_count)
         for i, detector in enumerate(self.detectors):
-            onnx_detector_class = type(f"detector.__class__.get_classname()_onnx",
+            onnx_detector_class = type(f"{detector.__class__.get_classname()}_onnx",
                                        (OcrTrt, detector.__class__),
                                        dict())
             self.detectors[i] = onnx_detector_class()
@@ -23,3 +23,11 @@ class TextDetectorOnnx(TextDetector):
 
     def load(self):
         pass
+
+    @staticmethod
+    def get_static_module(name: str) -> object:
+        detector = TextDetector.get_static_module(name)
+        onnx_detector_class = type(f"{detector.__class__.get_classname()}_onnx",
+                                   (OcrTrt, detector.__class__),
+                                   dict())
+        return onnx_detector_class()
