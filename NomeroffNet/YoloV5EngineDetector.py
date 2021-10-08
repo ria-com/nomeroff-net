@@ -13,6 +13,7 @@ import threading
 import time
 import cv2
 import numpy as np
+import pycuda.autoinit
 import pycuda.driver as cuda
 import tensorrt as trt
 import torch

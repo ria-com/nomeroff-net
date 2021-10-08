@@ -68,14 +68,7 @@ class OptionsDetectorOnnx(OptionsDetector):
         predicted = [[], []]
         if bool(xs):
             xs = np.moveaxis(np.array(xs), 3, 1)
-            ort_inputs = {
-                self.input_name: np.random.randn(
-                    len(xs),
-                    self.color_channels,
-                    self.height,
-                    self.width
-                ).astype(np.float32)
-            }
+            ort_inputs = {self.input_name: len(xs)}
             predicted = self.ort_session.run(None, ort_inputs)
 
         confidences = []

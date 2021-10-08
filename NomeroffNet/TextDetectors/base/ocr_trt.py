@@ -61,12 +61,7 @@ class OcrTrt(OCR):
         net_out_value = []
         if bool(xs):
             xs = np.moveaxis(np.array(xs), 3, 1)
-            ort_inputs = {
-                self.input_name: np.random.randn(
-                    len(xs), self.color_channels,
-                    self.height, self.width
-                ).astype(np.float32)
-            }
+            ort_inputs = {self.input_name: len(xs)}
             net_out_value = self.ort_session.run(None, ort_inputs)
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         pred_texts = [pred_text.upper() for pred_text in pred_texts]
