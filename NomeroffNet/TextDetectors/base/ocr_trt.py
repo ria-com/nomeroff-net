@@ -59,7 +59,7 @@ class OcrTrt(OCR):
         if bool(xs):
             xs = np.moveaxis(np.array(xs), 3, 1)
             ort_inputs = {self.input_name: xs}
-            net_out_value = self.ort_session.run(None, ort_inputs)
+            net_out_value = self.ort_session.run(None, ort_inputs)[0]
             pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         pred_texts = [pred_text.upper() for pred_text in pred_texts]
         if return_acc:
