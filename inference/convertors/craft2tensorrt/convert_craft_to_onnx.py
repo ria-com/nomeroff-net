@@ -136,10 +136,12 @@ def main():
     print(f"[INFO] torch time {(time.time() - start_time) / n * 1000}ms")
 
     # Load onnx model
-    ort_session_craft = onnxruntime.InferenceSession(res_model)
+    ort_session_craft = onnxruntime.InferenceSession(res_model, providers=['CUDAExecutionProvider',
+                                                                           'CPUExecutionProvider'])
     input_name = ort_session_craft.get_inputs()[0].name
 
-    ort_session_craft_refine = onnxruntime.InferenceSession(res_refine_model)
+    ort_session_craft_refine = onnxruntime.InferenceSession(res_refine_model, providers=['CUDAExecutionProvider',
+                                                                                         'CPUExecutionProvider'])
     input_name_refine = "refine_input"
     input_feather_name_refine = "refine_feature"
     ort_inputs = {
