@@ -21,6 +21,7 @@ WORKDIR /code
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.14.3-linux-x86_64/bin:${PATH}
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
+# for Jetson you may use https://elinux.org/Jetson_Zoo#ONNX_Runtime
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
     cp onnxruntime/docs/Privacy.md /code/Privacy.md &&\
