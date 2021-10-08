@@ -18,6 +18,7 @@ class TextDetectorOnnx(TextDetector):
                                        (OcrTrt, detector.__class__),
                                        dict())
             self.detectors[i] = onnx_detector_class()
+            detector.__class__.__init__(self.detectors[i])
         for detector, detector_name in zip(self.detectors, self.detectors_names):
             detector.load(self.prisets[detector_name]['model_path'])
 
@@ -30,4 +31,6 @@ class TextDetectorOnnx(TextDetector):
         onnx_detector_class = type(f"{detector.__class__.get_classname()}_onnx",
                                    (OcrTrt, detector.__class__),
                                    dict())
-        return onnx_detector_class()
+        onnx_detector = onnx_detector_class()
+        detector.__class__.__init__(onnx_detector)
+        return onnx_detector

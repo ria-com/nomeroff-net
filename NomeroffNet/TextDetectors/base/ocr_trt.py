@@ -46,6 +46,7 @@ class OcrTrt(OCR):
         self.create_model()
         return self.load_model(path_to_model)
 
+    @torch.no_grad()
     def predict(self, imgs: List, return_acc: bool = False) -> Any:
         xs = []
         for img in imgs:
