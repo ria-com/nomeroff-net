@@ -14,4 +14,4 @@ class Am(OCR):
         self.init_label_converter()
 
 
-am = Am()
+am = Am

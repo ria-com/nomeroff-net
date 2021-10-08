@@ -13,4 +13,4 @@ class Ru(OCR):
         self.init_label_converter()
 
 
-ru = Ru()
+ru = Ru

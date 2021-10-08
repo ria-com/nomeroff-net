@@ -13,4 +13,4 @@ class Kz(OCR):
         self.init_label_converter()
 
 
-kz = Kz()
+kz = Kz

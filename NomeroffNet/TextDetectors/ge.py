@@ -13,4 +13,4 @@ class Ge(OCR):
         self.init_label_converter()
 
 
-ge = Ge()
+ge = Ge

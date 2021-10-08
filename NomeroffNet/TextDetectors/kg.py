@@ -15,4 +15,4 @@ class Kg(OCR):
         self.init_label_converter()
 
 
-kg = Kg()
+kg = Kg

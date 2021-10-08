@@ -13,4 +13,4 @@ class EuUaFrom2004(OCR):
         self.init_label_converter()
 
 
-eu_ua_2004_2015 = EuUaFrom2004()
+eu_ua_2004_2015 = EuUaFrom2004

@@ -14,4 +14,4 @@ class EuUa1995(OCR):
         self.init_label_converter()
 
 
-eu_ua_1995 = EuUa1995()
+eu_ua_1995 = EuUa1995

@@ -15,4 +15,4 @@ class Su(OCR):
         self.init_label_converter()
 
 
-su = Su()
+su = Su

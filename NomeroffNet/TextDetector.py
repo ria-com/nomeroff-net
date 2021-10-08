@@ -36,16 +36,17 @@ class TextDetector(object):
             _label = priset_name
             if _label not in dir(TextDetectors):
                 raise Exception("Text detector {} not in Text Detectors".format(_label))
-            detector = getattr(getattr(TextDetectors, _label), _label)
-
-            self.detectors.append(detector)
+            detector_class = getattr(getattr(TextDetectors, _label), _label)
+            self.detectors.append(detector_class)
             self.detectors_names.append(_label)
             i += 1
         self.load()
 
     def load(self):
-        for detector, detector_name in zip(self.detectors, self.detectors_names):
+        for i, (detector_class, detector_name) in enumerate(zip(self.detectors, self.detectors_names)):
+            detector = detector_class()
             detector.load(self.prisets[detector_name]['model_path'])
+            self.detectors[i] = detector
 
     def get_avalible_module(self) -> List[str]:
         return self.detectors_names
@@ -103,7 +104,7 @@ class TextDetector(object):
 
     @staticmethod
     def get_static_module(name: str) -> object:
-        return getattr(getattr(TextDetectors, name), name)
+        return getattr(getattr(TextDetectors, name), name)()
 
     def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[List[float]]:
         acc = []

@@ -13,12 +13,12 @@ class TextDetectorOnnx(TextDetector):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1) -> None:
         TextDetector.__init__(self, prisets, default_label, default_lines_count)
-        for i, detector in enumerate(self.detectors):
-            onnx_detector_class = type(f"{detector.__class__.get_classname()}_onnx",
-                                       (OcrTrt, detector.__class__),
+        for i, detector_class in enumerate(self.detectors):
+            onnx_detector_class = type(f"{detector_class.get_classname()}_onnx",
+                                       (OcrTrt, detector_class),
                                        dict())
             self.detectors[i] = onnx_detector_class()
-            detector.__class__.__init__(self.detectors[i])
+            detector_class.__init__(self.detectors[i])
         for detector, detector_name in zip(self.detectors, self.detectors_names):
             detector.load(self.prisets[detector_name]['model_path'])
 

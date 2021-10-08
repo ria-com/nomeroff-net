@@ -43,7 +43,6 @@ class OcrTrt(OCR):
                                                         self.get_classname(),
                                                         self.get_classname())
             path_to_model = model_info["path"]
-        self.create_model()
         return self.load_model(path_to_model)
 
     @torch.no_grad()

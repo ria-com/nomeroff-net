@@ -14,4 +14,4 @@ class By(OCR):
         self.init_label_converter()
 
 
-by = By()
+by = By
