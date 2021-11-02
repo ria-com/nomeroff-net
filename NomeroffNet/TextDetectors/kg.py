@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Kg(OCR):
@@ -15,4 +15,4 @@ class Kg(OCR):
         self.init_label_converter()
 
 
-kg = Kg()
+kg = Kg

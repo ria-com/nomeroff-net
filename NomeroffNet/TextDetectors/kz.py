@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Kz(OCR):
@@ -13,4 +13,4 @@ class Kz(OCR):
         self.init_label_converter()
 
 
-kz = Kz()
+kz = Kz

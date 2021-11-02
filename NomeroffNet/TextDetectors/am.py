@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Am(OCR):
@@ -14,4 +14,4 @@ class Am(OCR):
         self.init_label_converter()
 
 
-am = Am()
+am = Am

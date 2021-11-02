@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Su(OCR):
@@ -15,4 +15,4 @@ class Su(OCR):
         self.init_label_converter()
 
 
-su = Su()
+su = Su

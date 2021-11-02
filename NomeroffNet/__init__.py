@@ -7,4 +7,4 @@ from .InverseDetector import InverseDetector
 from .OrientationDetector import OrientationDetector
 from .YoloV5Detector import Detector
 
-__version__ = "2.4.0"
+__version__ = "2.4.1"

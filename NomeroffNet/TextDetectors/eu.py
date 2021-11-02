@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Eu(OCR):
@@ -14,4 +14,4 @@ class Eu(OCR):
         self.init_label_converter()
 
 
-eu = Eu()
+eu = Eu

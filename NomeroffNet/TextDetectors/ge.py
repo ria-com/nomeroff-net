@@ -1,4 +1,4 @@
-from .base import OCR
+from .base.ocr import OCR
 
 
 class Ge(OCR):
@@ -13,4 +13,4 @@ class Ge(OCR):
         self.init_label_converter()
 
 
-ge = Ge()
+ge = Ge
