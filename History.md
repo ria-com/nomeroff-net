@@ -1,3 +1,8 @@
+2.4.1 / 2021-11-01
+==================
+  **updates** 
+  * Added tensorrt support for OCRs, YOLO and Options Classification models 
+
 2.4.0 / 2021-09-06
 ==================
   **updates** 
