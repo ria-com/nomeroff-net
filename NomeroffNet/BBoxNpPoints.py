@@ -554,7 +554,7 @@ class NpPointsCraft(object):
 
             image_part = image[y:y + h, x:x + w]
             if h/w > 3.5:
-                image_part = cv2.rotate(image_part, cv2.cv2.ROTATE_90_CLOCKWISE)
+                image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
             # image_part = normalize_color(image_part)
             local_propably_points, mline_boxes = self.detectInBbox(image_part)
             all_mline_boxes.append(mline_boxes)
