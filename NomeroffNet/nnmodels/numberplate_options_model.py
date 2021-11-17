@@ -86,8 +86,12 @@ class NPOptionsNet(ClassificationNet):
         return loss, acc
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adamax(self.parameters(),
-                                       lr=self.learning_rate,
-                                       betas=(0.9, 0.999),
-                                       eps=1e-07)
+        # optimizer = torch.optim.Adamax(self.parameters(),
+        #                                lr=self.learning_rate,
+        #                                betas=(0.9, 0.999),
+        #                                eps=1e-07)
+        # optimizer = torch.optim.SGD(self.parameters(),
+        #                                lr=self.learning_rate,
+        #                                momentum=0.9)
+        optimizer = torch.optim.ASGD(self.parameters(), lr=self.learning_rate, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0)
         return optimizer

@@ -38,10 +38,10 @@ CLASS_REGION_ALL = [
 ]
 
 CLASS_LINES_ALL = [
-    0,  # garbage
-    1,  # one line
-    2,  # two line
-    3,  # three line
+    "0",  # garbage
+    "1",  # one line
+    "2",  # two line
+    "3",  # three line
 ]
 
 
@@ -97,6 +97,10 @@ class OptionsDetector(object):
     @staticmethod
     def get_class_region_all() -> List:
         return CLASS_REGION_ALL
+
+    @staticmethod
+    def get_class_count_lines_all() -> List:
+        return CLASS_LINES_ALL
 
     def create_model(self) -> NPOptionsNet:
         """
