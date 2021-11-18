@@ -44,27 +44,38 @@ class NPOptionsNet(ClassificationNet):
         self.batch_norm_line = nn.BatchNorm1d(512)
         self.fc3_line = nn.Linear(256, count_line_output_size)
 
-
     def training_step(self, batch, batch_idx):
-        loss, acc, acc_reg, acc_line  = self.step(batch)
-        self.log(f'Batch {batch_idx} train_loss', loss)
-        self.log(f'Batch {batch_idx} accuracy', acc)
-        return {
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('test_loss', loss)
+        self.log(f'test_accuracy', acc)
+        tqdm_dict = {
             'loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
-            'acc_line': acc_line
+            'acc_line': acc_line,
+        }
+        return {
+            'loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+
         }
 
     def validation_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
-        self.log('val_loss', loss)
-        self.log(f'val_accuracy', acc)
-        return {
+        self.log('test_loss', loss)
+        self.log(f'test_accuracy', acc)
+        tqdm_dict = {
             'loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
-            'acc_line': acc_line
+            'acc_line': acc_line,
+        }
+        return {
+            'loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+
         }
 
     def test_step(self, batch, batch_idx):
