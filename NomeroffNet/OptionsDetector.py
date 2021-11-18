@@ -169,6 +169,7 @@ class OptionsDetector(object):
         lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
                                   gpus=self.gpus,
+                                  show_progress_bar=True,
                                   callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
@@ -183,6 +184,7 @@ class OptionsDetector(object):
         model = self.create_model()
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
+                             show_progress_bar=True,
                              gpus=self.gpus)
         return trainer.tune(model, self.dm)
 

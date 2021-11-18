@@ -49,7 +49,7 @@ class NPOptionsNet(ClassificationNet):
         self.log('test_loss', loss)
         self.log(f'test_accuracy', acc)
         tqdm_dict = {
-            'loss': loss,
+            'train_loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
             'acc_line': acc_line,
@@ -58,7 +58,6 @@ class NPOptionsNet(ClassificationNet):
             'loss': loss,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
-
         }
 
     def validation_step(self, batch, batch_idx):
@@ -66,7 +65,7 @@ class NPOptionsNet(ClassificationNet):
         self.log('test_loss', loss)
         self.log(f'test_accuracy', acc)
         tqdm_dict = {
-            'loss': loss,
+            'val_loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
             'acc_line': acc_line,
@@ -75,7 +74,6 @@ class NPOptionsNet(ClassificationNet):
             'loss': loss,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
-
         }
 
     def test_step(self, batch, batch_idx):
@@ -83,7 +81,7 @@ class NPOptionsNet(ClassificationNet):
         self.log('test_loss', loss)
         self.log(f'test_accuracy', acc)
         tqdm_dict = {
-            'loss': loss,
+            'test_loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
             'acc_line': acc_line,
