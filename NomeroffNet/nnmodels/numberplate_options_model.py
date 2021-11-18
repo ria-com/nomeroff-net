@@ -46,8 +46,10 @@ class NPOptionsNet(ClassificationNet):
 
     def training_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
-        self.log('test_loss', loss)
-        self.log(f'test_accuracy', acc)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'train_loss': loss,
             'acc': acc,
@@ -62,8 +64,10 @@ class NPOptionsNet(ClassificationNet):
 
     def validation_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
-        self.log('test_loss', loss)
-        self.log(f'test_accuracy', acc)
+        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'val_loss': loss,
             'acc': acc,
@@ -71,15 +75,17 @@ class NPOptionsNet(ClassificationNet):
             'acc_line': acc_line,
         }
         return {
-            'loss': loss,
+            'val_loss': loss,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
         }
 
     def test_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
-        self.log('test_loss', loss)
-        self.log(f'test_accuracy', acc)
+        self.log('test_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'test_loss': loss,
             'acc': acc,
@@ -87,10 +93,9 @@ class NPOptionsNet(ClassificationNet):
             'acc_line': acc_line,
         }
         return {
-            'loss': loss,
+            'test_loss': loss,
             'progress_bar': tqdm_dict,
             'log': tqdm_dict
-
         }
 
     def forward(self, x):
