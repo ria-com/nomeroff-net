@@ -71,13 +71,18 @@ class NPOptionsNet(ClassificationNet):
         loss, acc, acc_reg, acc_line = self.step(batch)
         self.log('test_loss', loss)
         self.log(f'test_accuracy', acc)
-        return {
+        tqdm_dict = {
             'loss': loss,
             'acc': acc,
             'acc_reg': acc_reg,
-            'acc_line': acc_line
+            'acc_line': acc_line,
         }
+        return {
+            'loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
 
+        }
 
     def forward(self, x):
         x = self.pool(functional.relu(self.inp_conv(x)))

@@ -7,7 +7,6 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
-from pl_bolts.callbacks import PrintTableMetricsCallback
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from tools import (modelhub,
@@ -168,10 +167,9 @@ class OptionsDetector(object):
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
-        print_table_metrics = PrintTableMetricsCallback()
         self.trainer = pl.Trainer(max_epochs=self.epochs,
                                   gpus=self.gpus,
-                                  callbacks=[checkpoint_callback, lr_monitor, print_table_metrics])
+                                  callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         self.trainer.test()
