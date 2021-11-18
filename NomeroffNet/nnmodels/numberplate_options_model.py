@@ -46,10 +46,11 @@ class NPOptionsNet(ClassificationNet):
 
     def training_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'train_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'train_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'train_loss': loss,
             'acc': acc,
@@ -65,9 +66,9 @@ class NPOptionsNet(ClassificationNet):
     def validation_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
         self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'val_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'val_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'val_loss': loss,
             'acc': acc,
@@ -84,8 +85,8 @@ class NPOptionsNet(ClassificationNet):
         loss, acc, acc_reg, acc_line = self.step(batch)
         self.log('test_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log('acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log(f'acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('test_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         tqdm_dict = {
             'test_loss': loss,
             'acc': acc,
