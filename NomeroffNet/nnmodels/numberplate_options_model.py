@@ -44,6 +44,41 @@ class NPOptionsNet(ClassificationNet):
         self.batch_norm_line = nn.BatchNorm1d(512)
         self.fc3_line = nn.Linear(256, count_line_output_size)
 
+
+    def training_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line  = self.step(batch)
+        self.log(f'Batch {batch_idx} train_loss', loss)
+        self.log(f'Batch {batch_idx} accuracy', acc)
+        return {
+            'loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line
+        }
+
+    def validation_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('val_loss', loss)
+        self.log(f'val_accuracy', acc)
+        return {
+            'loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line
+        }
+
+    def test_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('test_loss', loss)
+        self.log(f'test_accuracy', acc)
+        return {
+            'loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line
+        }
+
+
     def forward(self, x):
         x = self.pool(functional.relu(self.inp_conv(x)))
         x = self.pool(functional.relu(self.conv1(x)))
@@ -83,7 +118,7 @@ class NPOptionsNet(ClassificationNet):
         acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.batch_size
         acc = (acc_reg + acc_line) / 2
 
-        return loss, acc
+        return loss, acc, acc_reg, acc_line
 
     def configure_optimizers(self):
         # optimizer = torch.optim.Adamax(self.parameters(),

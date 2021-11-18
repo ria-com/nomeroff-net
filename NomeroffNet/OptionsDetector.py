@@ -102,6 +102,18 @@ class OptionsDetector(object):
     def get_class_count_lines_all() -> List:
         return CLASS_LINES_ALL
 
+    def get_class_region_for_report(self) -> List:
+        """
+        TODO: Get class_region list for classification_report routine
+        """
+        class_regions = []
+        for region in self.class_region:
+            region_item = region
+            if type(region) == list:
+                region_item = ','.join(region_item)
+            class_regions.append(region_item)
+        return class_regions
+
     def create_model(self) -> NPOptionsNet:
         """
         TODO: describe method
