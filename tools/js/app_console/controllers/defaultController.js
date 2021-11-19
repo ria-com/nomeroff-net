@@ -227,7 +227,8 @@ async function moveSomething (options) {
                 ;
                 // Условие
                 //if (data.description.length < 6) {
-                if (data.description.length > 8) {
+                //if (data.description.length > 8) {
+                if (data.size.height >= 32) {
                 // if (data.region_id != undefined && data.region_id == 8) {
                 //if (data.count_lines != undefined && data.count_lines == 2) {
                     checkedAnn.push(annName);
