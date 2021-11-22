@@ -40,7 +40,7 @@ RUN apt-get install -y libgl1-mesa-glx
 # turbojpeg
 RUN apt-get install -y libturbojpeg
 
-RUN pip3 install torch==1.9.0+cu111 torchvision==0.10.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install torch==1.10.0+cu111 torchvision==0.11.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip3 install setuptools
 RUN pip3 install "PyYAML>=5.3"
 RUN pip3 install scikit_image
