@@ -44,6 +44,61 @@ class NPOptionsNet(ClassificationNet):
         self.batch_norm_line = nn.BatchNorm1d(512)
         self.fc3_line = nn.Linear(256, count_line_output_size)
 
+    def training_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'train_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'train_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'train_loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line,
+        }
+        return {
+            'loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
+
+    def validation_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('val_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'val_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'val_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'val_loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line,
+        }
+        return {
+            'val_loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
+
+    def test_step(self, batch, batch_idx):
+        loss, acc, acc_reg, acc_line = self.step(batch)
+        self.log('test_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_accuracy', acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('test_acc_reg', acc_reg, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log(f'test_acc_line', acc_line, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'test_loss': loss,
+            'acc': acc,
+            'acc_reg': acc_reg,
+            'acc_line': acc_line,
+        }
+        return {
+            'test_loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
+
     def forward(self, x):
         x = self.pool(functional.relu(self.inp_conv(x)))
         x = self.pool(functional.relu(self.conv1(x)))
@@ -83,11 +138,15 @@ class NPOptionsNet(ClassificationNet):
         acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.batch_size
         acc = (acc_reg + acc_line) / 2
 
-        return loss, acc
+        return loss, acc, acc_reg, acc_line
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adamax(self.parameters(),
-                                       lr=self.learning_rate,
-                                       betas=(0.9, 0.999),
-                                       eps=1e-07)
+        # optimizer = torch.optim.Adamax(self.parameters(),
+        #                                lr=self.learning_rate,
+        #                                betas=(0.9, 0.999),
+        #                                eps=1e-07)
+        # optimizer = torch.optim.SGD(self.parameters(),
+        #                                lr=self.learning_rate,
+        #                                momentum=0.9)
+        optimizer = torch.optim.ASGD(self.parameters(), lr=self.learning_rate, lambd=0.0001, alpha=0.75, t0=1000000.0, weight_decay=0)
         return optimizer

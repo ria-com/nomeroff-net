@@ -22,8 +22,8 @@ models = {
     },
     "numberplate_options": {
         "application": "OptionsDetector",
-        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_08_13_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-07-08.zip",
+        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_11_19_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-09-03.zip",
         "class_region": [
             "military",
             "eu_ua_2015",
