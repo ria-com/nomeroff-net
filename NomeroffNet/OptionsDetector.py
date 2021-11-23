@@ -90,6 +90,12 @@ class OptionsDetector(object):
         self.epochs = 100
         self.gpus = 1
 
+        self.class_region_indexes = None
+        self.class_region_indexes_global = None
+
+        self.class_lines_indexes = None
+        self.class_lines_indexes_global = None
+
     @classmethod
     def get_classname(cls: object) -> str:
         return cls.__name__
@@ -231,17 +237,86 @@ class OptionsDetector(object):
         """
         return [self.class_region[index].replace("-", "_") for index in indexes]
 
+    def custom_regions_id_to_all_regions(self, indexes: List[int]) -> List[int]:
+        """
+        TODO: describe method
+        """
+        return [CLASS_REGION_ALL.index(str(self.class_region[index].replace("_", "-"))) for index in indexes]
+
+    @staticmethod
+    def get_regions_label_global(indexes: List[int]) -> List[str]:
+        """
+        TODO: describe method
+        """
+        return [CLASS_REGION_ALL[index].replace("-", "_") for index in indexes]
+
     def getCountLinesLabel(self, index: int) -> int:
         """
         TODO: describe method
         """
-        return self.count_lines[index]
+        return int(self.count_lines[index])
+
+    def custom_regions_id_to_all_regions_with_confidences(self,
+                                                          indexes: List[int],
+                                                          confidences: List) -> Tuple[List[int],
+                                                                                      List]:
+        """
+        TODO: describe method
+        """
+        global_indexes = self.custom_regions_id_to_all_regions(indexes)
+        self.class_region_indexes = [i for i, _ in enumerate(self.class_region)]
+        self.class_region_indexes_global = self.custom_regions_id_to_all_regions(
+            self.class_region_indexes)
+        global_confidences = [[confidence[self.class_region_indexes.index(self.class_region_indexes_global.index(i))]
+                               if i in self.class_region_indexes_global
+                               else 0
+                               for i, _
+                               in enumerate(CLASS_REGION_ALL)]
+                              for confidence in confidences]
+        return global_indexes, global_confidences
+
+    def custom_count_lines_id_to_all_count_lines(self, indexes: List[int]) -> List[int]:
+        """
+        TODO: describe method
+        """
+        return [CLASS_LINES_ALL.index(str(self.count_lines[index])) for index in indexes]
+
+    def custom_count_lines_id_to_all_count_lines(self, indexes: List[int]) -> List[int]:
+        """
+        TODO: describe method
+        """
+        return [CLASS_LINES_ALL.index(str(self.count_lines[index])) for index in indexes]
+
+    def custom_count_lines_id_to_all_count_lines_with_confidences(self,
+                                                                  global_indexes: List[int],
+                                                                  confidences: List) -> Tuple[List[int],
+                                                                                              List]:
+        """
+        TODO: describe method
+        """
+        self.class_lines_indexes = [i for i, _ in enumerate(self.count_lines)]
+        self.class_lines_indexes_global = self.custom_count_lines_id_to_all_count_lines(
+            self.class_lines_indexes)
+        global_confidences = [[confidence[self.class_lines_indexes.index(self.class_lines_indexes_global.index(i))]
+                               if i in self.class_lines_indexes_global
+                               else 0
+                               for i, _
+                               in enumerate(CLASS_LINES_ALL)]
+                              for confidence in confidences]
+        return global_indexes, global_confidences
+
+    @staticmethod
+    def get_count_lines_labels_global(indexes: List[int]) -> List[int]:
+        """
+        TODO: describe method
+        """
+        return [int(CLASS_LINES_ALL[index]) for index in indexes]
 
     def getCountLinesLabels(self, indexes: List[int]) -> List[int]:
         """
         TODO: describe method
         """
-        return [self.count_lines[index] for index in indexes]
+        return [int(self.count_lines[index]) for index in indexes]
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         """
@@ -259,6 +334,12 @@ class OptionsDetector(object):
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
             path_to_model = model_info["path"]
+        elif path_to_model.startswith("modelhub://"):
+            path_to_model = path_to_model.split("modelhub://")[1]
+            model_info = modelhub.download_model_by_name(path_to_model)
+            path_to_model = model_info["path"]
+            self.class_region = model_info["class_region"]
+            self.count_lines = model_info["count_lines"]
         self.create_model()
         return self.load_model(path_to_model)
 
@@ -296,5 +377,5 @@ class OptionsDetector(object):
             region_confidence = region[int(np.argmax(region))]
             count_lines_confidence = count_line[int(np.argmax(count_line))]
             confidences.append([region_confidence, count_lines_confidence])
-        count_lines = self.getCountLinesLabels(count_lines)
+        count_lines = self.custom_count_lines_id_to_all_count_lines(count_lines)
         return region_ids, count_lines, confidences, predicted
