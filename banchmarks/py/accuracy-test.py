@@ -42,7 +42,7 @@ textDetector = TextDetector({
         "model_path": "latest"
     },
     "ru": {
-        "for_regions": ["ru", "eu-ua-fake-lnr", "eu-ua-fake-dnr"],
+        "for_regions": ["ru", "eu-ua-ordlo-lpr", "eu-ua-ordlo-dpr"],
         "model_path": "latest"
     },
     "kz": {
