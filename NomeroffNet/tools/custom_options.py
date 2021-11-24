@@ -22,9 +22,13 @@ class CustomOptionsMaker:
                  dataset_count_line_classes: List = None,
                  custom_count_line_classes: List = None,
 
+                 state_ids_all_labels: List = None,
+                 state_ids_only_labels: List = None,
+
                  custom_options_dirs: List = None,
                  custom_options_sub_dirs: List = None,
-                 items_per_class: int =  2000,
+
+                 items_per_class: int = 2000,
                  rebalance_suffix: str = 'rebalance'
                  ) -> None:
         """
@@ -60,6 +64,12 @@ class CustomOptionsMaker:
             _, self.region_converter_all_idx = self.make_convertor(dataset_region_classes)
         if custom_region_classes is not None:
             self.region_converter_custom, _ = self.make_convertor(custom_region_classes)
+
+        self.state_ids = []
+        if state_ids_only_labels is not None:
+            for state_label in state_ids_only_labels:
+                state_id = state_ids_all_labels.index(state_label)
+                self.state_ids.append(state_id)
 
     @staticmethod
     def make_convertor(class_region: List) -> Tuple:
@@ -117,13 +127,32 @@ class CustomOptionsMaker:
         ann_dir = os.path.join(self.dirpath, option_dir, self.custom_options_sub_dirs[0])
         _ = self.calc_labels_stat(ann_dir)
         cnt = 0
+        filtered_cnt = 0
+        print('self.state_ids')
+        print(self.state_ids)
         for dirName, subdirList, fileList in os.walk(ann_dir):
             for fname in fileList:
                 fname = os.path.join(ann_dir, fname)
                 with open(fname) as jsonF:
                     json_data = json.load(jsonF)
-                cnt += self.make_custom_record(option_dir, json_data, verbose)
+                if self.filter_by_state_id(json_data):
+                    cnt += self.make_custom_record(option_dir, json_data, verbose)
+                else:
+                    filtered_cnt += 1
         print("In {} prepared {} records".format(option_dir, cnt))
+        print("In {} filtered by state_id {} records".format(option_dir, filtered_cnt))
+
+    def filter_by_state_id(self, json_data):
+        if len(self.state_ids):
+            # if json_data["name"] == '260595195':
+            #     print('"state_id" in json_data')
+            #     print("state_id" in json_data)
+            #     print('int(json_data["state_id"]) in self.state_ids')
+            #     print(int(json_data["state_id"]) in self.state_ids)
+            return "state_id" in json_data and int(json_data["state_id"]) in self.state_ids
+        else:
+            return True
+
 
     def make_custom_record(self, option_dir: str, json_data: Dict, verbose: bool = False) -> int:
         ann_file_to = os.path.join(self.dirpath_custom,
@@ -201,7 +230,7 @@ class CustomOptionsMaker:
             img_file_to = os.path.join(dirpath_custom_options_dir_img, fname_img_to)
             if with_aug:
                 if self.verbose:
-                    print('Make augmentation for file "{}" -> "{}"'.format(img_file_from, img_file_to))
+                    print('Make augmented file: "{}"'.format(img_file_to))
                 img = cv2.imread(img_file_from)
                 imgs = aug([img])
                 img = imgs[0]
