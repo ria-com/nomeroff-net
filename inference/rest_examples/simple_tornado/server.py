@@ -25,13 +25,14 @@ import traceback
 import torch
 import logging
 import cv2
-import json
+import ujson
 import copy
 
 # NomeroffNet path
 NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
+from NomeroffNet import __version__
 from NomeroffNet.YoloV5Detector import Detector
 
 detector = Detector()
@@ -94,8 +95,7 @@ class GetVersion(tornado.web.RequestHandler):
         self.thread = None
 
     def get(self):
-        version = "v2.4"
-        self.write(json.dumps(version))
+        self.write(__version__)
 
 
 class GetMask(tornado.web.RequestHandler):
@@ -120,13 +120,13 @@ class GetMask(tornado.web.RequestHandler):
             region_names = optionsDetector.getRegionLabels(region_ids)
             # find text with postprocessing by standart
             text_arr = textDetector.predict(zones, region_names, count_lines)
-            res = json.dumps(dict(res=text_arr, img_path=img_path))
-            self.write(json.dumps(res))
+            res = ujson.dumps(dict(res=text_arr, img_path=img_path))
+            self.write(res)
         except Exception as e:
             exc_type, exc_value, exc_tb = sys.exc_info()
             traceback.print_exception(exc_type, exc_value, exc_tb)
-            res = json.dumps(dict(error=str(e), img_path=img_path))
-            self.write(json.dumps(res))
+            res = ujson.dumps(dict(error=str(e), img_path=img_path))
+            self.write(res)
 
 
 if __name__ == '__main__':

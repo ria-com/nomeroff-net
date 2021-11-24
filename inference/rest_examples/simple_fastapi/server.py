@@ -14,14 +14,17 @@ import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-from flask import Flask
-from flask import request
+import uvicorn
+import ujson
+from fastapi import FastAPI
+from starlette_prometheus import PrometheusMiddleware
+from starlette_prometheus import metrics
+from typing import Dict
 
 # Import all necessary libraries.
 import sys
 import traceback
 import cv2
-import ujson
 import copy
 
 # NomeroffNet path
@@ -80,17 +83,18 @@ textDetector = TextDetector({
     }
 })
 
-app = Flask(__name__)
+app = FastAPI()
+app.add_middleware(PrometheusMiddleware)
+app.add_route("/metrics", metrics)
 
 
-@app.route('/version', methods=['GET'])
+@app.get('/version')
 def version():
     return __version__
 
 
-@app.route('/detect', methods=['POST'])
-def detect():
-    data = request.get_json()
+@app.post('/detect')
+def detect(data: Dict):
     img_path = data['path']
     try:
         img = cv2.imread(img_path)
@@ -119,8 +123,7 @@ def detect():
 
 
 if __name__ == '__main__':
-    app.run(debug=False,
-            port=os.environ.get("PORT", 8888),
-            host='0.0.0.0',
-            threaded=False,
-            processes=1)
+    uvicorn.run("server:app",
+                host='0.0.0.0',
+                port=os.environ.get("PORT", 8888),
+                reload=False)
