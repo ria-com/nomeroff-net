@@ -44,6 +44,13 @@ CLASS_LINES_ALL = [
     "3",  # three line
 ]
 
+CLASS_STATE_ALL = [
+    "garbage",    # garbage
+    "filled",     # manual filled number
+    "not filled", # two line
+    "empty"       # deprecated
+]
+
 
 def imshow(img: np.ndarray) -> None:
     """
@@ -107,6 +114,10 @@ class OptionsDetector(object):
     @staticmethod
     def get_class_count_lines_all() -> List:
         return CLASS_LINES_ALL
+
+    @staticmethod
+    def get_class_state_all() -> List:
+        return CLASS_STATE_ALL
 
     def get_class_region_for_report(self) -> List:
         """

@@ -1,9 +1,11 @@
-2.4.1 / 2021-11-01
+2.5.0 / 2021-11-24
 ==================
   **updates** 
-  * Added tensorrt support for OCRs, YOLO and Options Classification models 
+  * Replaced custom cnn on resnet in option detector model
+  * Added fastapi examle
+   
 
-2.4.0 / 2021-09-06
+2.4.0 / 2021-11-01
 ==================
   **updates** 
   * Rewrote OCR to PyTorch  
@@ -13,6 +15,7 @@
   * Added new [dataset tools](https://github.com/ria-com/nomeroff-net/tree/master/tools)
   * Updated [datasets](https://nomeroff.net.ua/datasets/) and [models](https://nomeroff.net.ua/models/)
   * Added experimental feature Orientation Detector
+  * Added tensorrt support for OCRs, YOLO and Options Classification models
 
 2.3.0 / 2021-03-11
 ==================
