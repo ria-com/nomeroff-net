@@ -128,8 +128,8 @@ class CustomOptionsMaker:
         _ = self.calc_labels_stat(ann_dir)
         cnt = 0
         filtered_cnt = 0
-        print('self.state_ids')
-        print(self.state_ids)
+        # print('self.state_ids')
+        # print(self.state_ids)
         for dirName, subdirList, fileList in os.walk(ann_dir):
             for fname in fileList:
                 fname = os.path.join(ann_dir, fname)
