@@ -25,7 +25,7 @@ models = {
         "url": "https://nomeroff.net.ua/models/options/torch/resnet18/numberplate_options_2021_11_25_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-11-25.zip",
         "class_region": [
-            "military",
+            "military-ua",
             "eu-ua-2015",
             "eu-ua-2004",
             "eu-ua-1995",
