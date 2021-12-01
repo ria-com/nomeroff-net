@@ -107,7 +107,7 @@ class GetMask(tornado.web.RequestHandler):
         img_path = data['path']
         try:
             img = cv2.imread(img_path)
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = img[..., ::-1]
             print("img", img_path, img.shape)
             target_boxes = detector.detect_bbox(copy.deepcopy(img))
             with torch.no_grad():

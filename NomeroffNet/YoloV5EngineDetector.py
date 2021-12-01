@@ -220,7 +220,7 @@ class YoLov5TRT(object):
         """
         image_raw = raw_bgr_image
         h, w, c = image_raw.shape
-        image = cv2.cvtColor(image_raw, cv2.COLOR_BGR2RGB)
+        image = image_raw[..., ::-1]
         # Calculate widht and height and paddings
         r_w = self.input_w / w
         r_h = self.input_h / h

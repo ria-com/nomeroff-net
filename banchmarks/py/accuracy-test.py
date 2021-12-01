@@ -67,7 +67,7 @@ def test(dirName, fname, y, min_bbox_acc=0.5, verbose=0):
     if verbose == 1:
         print(colored(f"__________ \t\t {img_path} \t\t __________", "blue"))
     img = cv2.imread(img_path)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = img[..., ::-1]
 
     targetBoxes = detector.detect_bbox(img)
 

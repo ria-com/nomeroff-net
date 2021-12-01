@@ -118,7 +118,7 @@ def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
     moment = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, moment, (w, h))
+    return cv2.warpPerspective(img, moment, (w, h), flags=cv2.WARP_FILL_OUTLIERS)
 
 
 def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,
@@ -211,12 +211,8 @@ def normalize(img: np.ndarray) -> np.ndarray:
 
 
 def normalize_color(img: np.ndarray) -> np.ndarray:
-    img = img.astype(np.float32)
-    color_min = np.amin(img)
-    img -= color_min
-    color_max = np.amax(img)
-    img *= 255/color_max
-    img = img.astype(np.uint8)
+    img = cv2.normalize(img, None, alpha=0, beta=255,
+                        norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
     return img
 
 

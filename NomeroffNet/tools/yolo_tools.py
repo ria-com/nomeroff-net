@@ -87,7 +87,7 @@ def save_in_yolo_format(image,
             wFile.write("\n".join(to_txt_data))
         cv2.imwrite(os.path.join(path_to_res_images, 
                                  f"{'.'.join(image_id.split('.')[:-1])}{suffix}.{image_id.split('.')[-1]}"), 
-                    cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+                    image[..., ::-1])
 
         
 def rotation_augumentation(image,
