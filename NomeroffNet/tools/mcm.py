@@ -71,10 +71,10 @@ models = {
     },
     "yolov5": {
         "application": "Detector",
-        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-07-28.pt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
+        "url": "https://nomeroff.net.ua/models/object_detection/yolov5s-2021-12-11.pt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-12-11.zip",
         "repo": "https://github.com/ultralytics/yolov5.git",
-        "commit_id": "27bf4282d3d5879f0f4f7492400675ba93a3db1b",
+        #"commit_id": "27bf4282d3d5879f0f4f7492400675ba93a3db1b",
     },
     "yolov5engine": {
         "application": "Detector",
