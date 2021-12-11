@@ -118,7 +118,8 @@ def buildPerspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
     moment = cv2.getPerspectiveTransform(pts1, pts2)
-    return cv2.warpPerspective(img, moment, (w, h), flags=cv2.WARP_FILL_OUTLIERS)
+    #return cv2.warpPerspective(img, moment, (w, h), flags=cv2.WARP_FILL_OUTLIERS)
+    return cv2.warpPerspective(img, moment, (w, h))
 
 
 def getCvZoneRGB(img: np.ndarray, rect: list, gw: float = 0, gh: float = 0,
