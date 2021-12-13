@@ -292,12 +292,6 @@ class OptionsDetector(object):
         """
         return [CLASS_LINES_ALL.index(str(self.count_lines[index])) for index in indexes]
 
-    def custom_count_lines_id_to_all_count_lines(self, indexes: List[int]) -> List[int]:
-        """
-        TODO: describe method
-        """
-        return [CLASS_LINES_ALL.index(str(self.count_lines[index])) for index in indexes]
-
     def custom_count_lines_id_to_all_count_lines_with_confidences(self,
                                                                   global_indexes: List[int],
                                                                   confidences: List) -> Tuple[List[int],
