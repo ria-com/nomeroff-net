@@ -1,4 +1,4 @@
-yolov5s_name="yolov5s-2021-12-11"
+yolov5s_name="yolov5s-2021-12-12"
 pt_ext="pt"
 wts_ext="wts"
 engine_ext="engine"
@@ -40,13 +40,13 @@ cd ./yolov5
 if [ -f ${yolov5s_wts} ]; then
   echo "${yolov5s_wts} detected"
 else
-  echo "python3.8 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}"
+  echo "python3 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}"
   python3.8 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}
 fi
 
 cd ../tensorrtx/yolov5/
 echo "Apply patch for ${class_num_file}"
-#perl -e 's/CLASS_NUM = 80/CLASS_NUM = 1/g' -pi ${class_num_file} 
+perl -e 's/CLASS_NUM = 80/CLASS_NUM = 1/g' -pi ${class_num_file}
 
 mkdir build
 cd build
