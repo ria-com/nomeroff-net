@@ -210,6 +210,19 @@ class CustomOptionsMaker:
                 options_stats[json_data["region_id"]][fname] = json_data
         return options_stats
 
+    def get_count_lines_stats(self, custom_options_dir):
+        ann_dir = os.path.join(self.dirpath_custom, custom_options_dir,self.custom_options_sub_dirs[0])
+        options_stats = {}
+        for dirName, subdirList, fileList in os.walk(ann_dir):
+            for fname in fileList:
+                fname_full = os.path.join(ann_dir, fname)
+                with open(fname_full) as jsonF:
+                    json_data = json.load(jsonF)
+                if not (str(json_data["count_lines"]) in options_stats):
+                    options_stats[str(json_data["count_lines"])] = {}
+                options_stats[str(json_data["count_lines"])][fname] = json_data
+        return options_stats
+
     def duplicate_class_items(self, options_stat: List, idx: int, custom_options_dir: str, with_aug: bool = False):
         dirpath_custom_options_dir = os.path.join(self.dirpath_custom, custom_options_dir)
         dirpath_custom_options_dir_ann = os.path.join(dirpath_custom_options_dir, self.custom_options_sub_dirs[0])
@@ -308,6 +321,20 @@ class CustomOptionsMaker:
                 print('Increase class region_id {} from {} to {}'.format(region_id, len(options_stat.keys()), items_per_class))
             self.add_class_entries(options_stat, custom_options_dir, with_aug)
 
+    def rebalance_count_lines_item(self, rebalance_options_stats: List, count_lines: int, custom_options_dir: str, with_aug: bool = False):
+        options_stat = rebalance_options_stats[count_lines]
+        count_lines_cnt = len(options_stat.keys())
+        items_per_class = self.items_per_class
+        if items_per_class < count_lines_cnt:
+            balanced_region_items = random.sample(list(options_stat.keys()), items_per_class)
+            if self.verbose:
+                print('Crop class count_lines {} to {}'.format(count_lines, len(balanced_region_items)))
+            self.move_unused_items_to_rebalance_dir(rebalance_options_stats, count_lines,  balanced_region_items, custom_options_dir)
+        else:
+            if self.verbose:
+                print('Increase class region_id {} from {} to {}'.format(count_lines, len(options_stat.keys()), items_per_class))
+            self.add_class_entries(options_stat, custom_options_dir, with_aug)
+
 
     def rebalance_regions(self, custom_options_dir: str = 'train', with_aug: bool = False, verbose: bool = False) -> int:
         self.verbose = verbose
@@ -332,3 +359,27 @@ class CustomOptionsMaker:
             print('Rebalancing is possible only after calling the make method for custom dir: "{}"!'.format(self.dirpath_custom))
         return 1
 
+
+    def rebalance_count_lines(self, custom_options_dir: str = 'train', with_aug: bool = False, verbose: bool = False) -> int:
+        self.verbose = verbose
+        if os.path.exists(self.dirpath_custom):
+            if not os.path.exists(self.dirpath_custom_rebalance):
+                os.mkdir(self.dirpath_custom_rebalance)
+            dirpath_custom_rebalance_options_dir = os.path.join(self.dirpath_custom_rebalance, custom_options_dir)
+            if not os.path.exists(dirpath_custom_rebalance_options_dir):
+                os.mkdir(dirpath_custom_rebalance_options_dir)
+                for sub_dir in self.custom_options_sub_dirs:
+                    os.mkdir(os.path.join(dirpath_custom_rebalance_options_dir, sub_dir))
+                # if with_aug:
+                #     from NomeroffNet.data_modules.augmentations import aug
+                rebalance_options_stats = self.get_count_lines_stats(custom_options_dir)
+                print(rebalance_options_stats)
+                for count_lines in rebalance_options_stats:
+                    if self.verbose:
+                        print('Prepare data for count_lines: {}'.format(count_lines))
+                    self.rebalance_count_lines_item(rebalance_options_stats, count_lines, custom_options_dir, with_aug)
+            else:
+                print('Rebalancing is possible only once!')
+        else:
+            print('Rebalancing is possible only after calling the make method for custom dir: "{}"!'.format(self.dirpath_custom))
+        return 1
