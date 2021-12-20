@@ -1,3 +1,9 @@
+3.0.0 / 2021-11-24
+==================
+  **updates** 
+  * Refactored code with Sonarqube 
+  * Added Pipelines
+
 2.5.0 / 2021-11-24
 ==================
   **updates** 
@@ -21,7 +27,7 @@
 ==================
   **updates** 
   * Optimize multiline to one line algorithm  
-  * Have combined multiline to one line algorithm with NomeroffNet API
+  * Have combined multiline to one line algorithm with nomeroff_net API
   * Added tornado and flask examples
 
 2.1.0 / 2021-03-11
@@ -30,7 +36,7 @@
   * Removed is filled or not is filled classification
   * Rewritten options classification on torch
   * Added multiline to one line algorithm
-  * Added automatic selection of bevel angle options in npPointsCraft.detect
+  * Added automatic selection of bevel angle options in np_points_craft.detect
   * Added modelhub module
 
 2.0.0 / 2021-03-01
@@ -94,7 +100,7 @@ Centermask2 / 2020-07-15
 0.3.3 / 2019-07-06
 ==================
   **model control manager**
-  * Added mcm to NomeroffNet 
+  * Added mcm to nomeroff_net 
 
 0.3.1 / 2019-07-06
 ==================

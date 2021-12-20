@@ -8,7 +8,7 @@ import numpy as np
 import onnxruntime
 
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../"))
-from NomeroffNet.OptionsDetector import OptionsDetector
+from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 
 
 def parse_args():

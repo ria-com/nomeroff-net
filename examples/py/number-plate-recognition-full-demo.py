@@ -10,31 +10,31 @@ import matplotlib.pyplot as plt
 import cv2
 import copy
 
-# NomeroffNet path
+# nomeroff_net path
 NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet.YoloV5Detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 
 detector = Detector()
 detector.load()
 
-from NomeroffNet.BBoxNpPoints import (NpPointsCraft,
-                                      getCvZoneRGB,
-                                      convertCvZonesRGBtoBGR,
-                                      reshapePoints)
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import (np_points_craft,
+                                                                                get_cv_zone_rgb,
+                                                                                convert_cv_zones_rgb_to_bgr,
+                                                                                reshape_points)
 
-npPointsCraft = NpPointsCraft()
-npPointsCraft.load()
+np_points_craft = np_points_craft()
+np_points_craft.load()
 
-from NomeroffNet.OptionsDetector import OptionsDetector
-from NomeroffNet.TextDetector import TextDetector
+from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
+from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
 # Initialize text detector.
-textDetector = TextDetector({
+text_detector = TextDetector({
     "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": "latest"
@@ -65,41 +65,40 @@ textDetector = TextDetector({
     }
 })
 
-rootDir = '../images/*'
+root_dir = '../images/*'
 
-imgs = [mpimg.imread(img_path) for img_path in glob.glob(rootDir)]
+imgs = [mpimg.imread(img_path) for img_path in glob.glob(root_dir)]
 
 for img in imgs:
-    targetBoxes = detector.detect_bbox(copy.deepcopy(img))
-    targetBoxes = targetBoxes
+    target_boxes = detector.detect_bbox(copy.deepcopy(img))
 
-    all_points = npPointsCraft.detect(img, targetBoxes)
+    all_points = np_points_craft.detect(img, target_boxes)
     all_points = [ps for ps in all_points if len(ps)]
     print(all_points)
 
     # cut zones
-    toShowZones = [getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points]
-    zones = convertCvZonesRGBtoBGR(toShowZones)
-    for zone, points in zip(toShowZones, all_points):
+    to_show_zones = [get_cv_zone_rgb(img, reshape_points(rect, 1)) for rect in all_points]
+    zones = convert_cv_zones_rgb_to_bgr(to_show_zones)
+    for zone, points in zip(to_show_zones, all_points):
         plt.axis("off")
         plt.imshow(zone)
         plt.show()
 
     # find standart
-    regionIds, countLines = optionsDetector.predict(zones)
-    regionNames = optionsDetector.getRegionLabels(regionIds)
-    print(regionNames)
-    print(countLines)
+    region_ids, count_lines = optionsDetector.predict(zones)
+    region_names = optionsDetector.get_region_labels(region_ids)
+    print(region_names)
+    print(count_lines)
 
     # find text with postprocessing by standart
-    textArr = textDetector.predict(zones, regionNames, countLines)
-    print(textArr)
+    text_arr = text_detector.predict(zones, region_names, count_lines)
+    print(text_arr)
 
     # draw rect and 4 points
-    for targetBox, points in zip(targetBoxes, all_points):
+    for target_box, points in zip(target_boxes, all_points):
         cv2.rectangle(img,
-                      (int(targetBox[0]), int(targetBox[1])),
-                      (int(targetBox[2]), int(targetBox[3])),
+                      (int(target_box[0]), int(target_box[1])),
+                      (int(target_box[2]), int(target_box[3])),
                       (0, 120, 255),
                       3)
     cv2.imshow("Display window", img)

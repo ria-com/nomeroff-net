@@ -8,7 +8,7 @@ import numpy as np
 import onnxruntime
 
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../"))
-from NomeroffNet.TextDetector import TextDetector
+from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 
 
 def parse_args():
@@ -41,7 +41,7 @@ def main():
 
     # get models
     # Initialize text detector.
-    textDetector = TextDetector({
+    text_detector = TextDetector({
         "eu_ua_2004_2015": {
             "for_regions": ["eu_ua_2015", "eu_ua_2004"],
             "model_path": "latest"
@@ -76,8 +76,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"[INFO] device", device)
 
-    model_repository_dir = "./model_repository"
-    for detector, name in zip(textDetector.detectors, textDetector.detectors_names):
+    for detector, name in zip(text_detector.detectors, text_detector.detectors_names):
         print(f"\n\n[INFO] detector name", name)
         model_filepath = filepath.replace("{ocr_name}", name)
 
@@ -108,10 +107,10 @@ def main():
                       })
 
         # Test torch model
-        outs = model(x)
+        _ = model(x)
         start_time = time.time()
         for _ in range(n):
-            outs = model(x)
+            _ = model(x)
         print(f"[INFO] torch time {(time.time() - start_time)/n * 1000}ms torch")
 
         # Load onnx model
@@ -128,10 +127,10 @@ def main():
 
         # run onnx model
         print(f"[INFO] available_providers", onnxruntime.get_available_providers())
-        ort_outs = ort_session.run(None, ort_inputs)
+        _ = ort_session.run(None, ort_inputs)
         start_time = time.time()
         for _ in range(n):
-            ort_outs = ort_session.run(None, ort_inputs)
+            _ = ort_session.run(None, ort_inputs)
         print(f"[INFO] onnx time {(time.time() - start_time)/n * 1000}ms tensorrt")
 
 

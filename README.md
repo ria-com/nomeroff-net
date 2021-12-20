@@ -69,117 +69,38 @@ pip3 install -r requirements.txt
 ```
 
 ## Hello Nomeroff Net
+
 ```python
-# Specify device
-import os
+from nomeroff_net import pipeline
 
-# Specify device
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", 
+                                              image_loader="opencv")
 
-# Import all necessary libraries.
-import sys
-import cv2
-
-# NomeroffNet path
-NOMEROFF_NET_DIR = os.path.abspath('../')
-
-sys.path.append(NOMEROFF_NET_DIR)
-
-# Import license plate recognition tools.
-from NomeroffNet.YoloV5Detector import Detector
-detector = Detector()
-detector.load()
-
-from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
-npPointsCraft = NpPointsCraft()
-npPointsCraft.load()
-
-from NomeroffNet.OptionsDetector import OptionsDetector
-
-from NomeroffNet.TextDetectors.eu import eu
-from NomeroffNet import textPostprocessing
-
-# load models
-optionsDetector = OptionsDetector()
-optionsDetector.load("latest")
-
-textDetector = eu
-textDetector.load("latest")
-
-# Detect numberplate
-img_path = 'images/example2.jpeg'
-img = cv2.imread(img_path)
-img = img[..., ::-1]
-
-targetBoxes = detector.detect_bbox(img)
-all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
-
-# cut zones
-zones = convertCvZonesRGBtoBGR([getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points])
-
-# predict zones attributes 
-regionIds, countLines = optionsDetector.predict(zones)
-regionNames = optionsDetector.getRegionLabels(regionIds)
-
-# find text with postprocessing by standart
-textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
-print(textArr)
-# ['JJF509', 'RP70012']
+(images, images_bboxs, 
+ images_points, images_zones, region_ids, 
+ region_names, count_lines, 
+ confidences, texts) = number_plate_detection_and_reading(['./images/example1.jpeg', 
+                                                           './images/example2.jpeg'])
+ 
+print(texts)
 ```
 
 ## Hello Nomeroff Net for systems with a small GPU size.
 Note: This example disables some important Nomeroff Net features. It will recognize numbers that are photographed in a horizontal position.
+
 ```python
-import os
+from nomeroff_net import pipeline
 
-# Specify device
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading_tiny", 
+                                              image_loader="opencv")
 
-# Import all necessary libraries.
-import sys
-import cv2
-
-# NomeroffNet path
-NOMEROFF_NET_DIR = os.path.abspath('../')
-
-sys.path.append(NOMEROFF_NET_DIR)
-
-# Import license plate recognition tools.
-from NomeroffNet.YoloV5Detector import Detector
-detector = Detector()
-detector.load()
-
-from NomeroffNet.TextDetectors.eu import eu
-from NomeroffNet import textPostprocessing
-
-textDetector = eu
-textDetector.load("latest")
-
-# Detect numberplate
-img_path = 'images/example2.jpeg'
-img = cv2.imread(img_path)
-img = img[..., ::-1]
-
-targetBoxes = detector.detect_bbox(img)
-
-zones = []
-regionNames = []
-for targetBox in targetBoxes:
-    x = int(min(targetBox[0], targetBox[2]))
-    w = int(abs(targetBox[2]-targetBox[0]))
-    y = int(min(targetBox[1], targetBox[3]))
-    h = int(abs(targetBox[3]-targetBox[1]))
-    
-    image_part = img[y:y + h, x:x + w]
-    zones.append(image_part)
-    regionNames.append('eu')
-    
-# find text with postprocessing by standart
-textArr = textDetector.predict(zones)
-textArr = textPostprocessing(textArr, regionNames)
-print(textArr)
-# ['RP70012', 'JJF509']
+(images, images_bboxs, 
+ images_points, images_zones, region_ids, 
+ region_names, count_lines, 
+ confidences, texts) = number_plate_detection_and_reading(['./images/example1.jpeg', 
+                                                           './images/example2.jpeg'])
+ 
+print(texts)
 ```
 
 

@@ -4,11 +4,9 @@ function makeGroups(arr) {
     let groupHash = {};
     for(let nameIdx in arr) {
         let name = arr[nameIdx];
-        //console.log('name: ${name}');
         let result = name.match(groupMask);
         if (result !=undefined && result.length) {
             let group = result[1];
-            //console.log('group: ${group}');
             if (groupHash[group] == undefined) {
                 groupHash[group] = []
             }

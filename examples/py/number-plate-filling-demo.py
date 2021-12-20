@@ -9,28 +9,27 @@ import matplotlib.image as mpimg
 import cv2
 import copy
 
-# NomeroffNet path
+# nomeroff_net path
 NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet.YoloV5Detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 
 detector = Detector()
 detector.load()
 
-rootDir = '../images/*'
+root_dir = '../images/*'
 
-imgs = [mpimg.imread(img_path) for img_path in glob.glob(rootDir)]
+imgs = [mpimg.imread(img_path) for img_path in glob.glob(root_dir)]
 
 for img in imgs:
-    targetBoxes = detector.detect_bbox(copy.deepcopy(img))
-    targetBoxes = targetBoxes
+    target_boxes = detector.detect_bbox(copy.deepcopy(img))
 
     # draw rect and 4 points
-    for targetBox in targetBoxes:
+    for target_box in target_boxes:
         cv2.rectangle(img,
-                      (int(targetBox[0]), int(targetBox[1])),
-                      (int(targetBox[2]), int(targetBox[3])),
+                      (int(target_box[0]), int(target_box[1])),
+                      (int(target_box[2]), int(target_box[3])),
                       (0, 0, 0),
                       -1)
     cv2.imshow("Display window", img)

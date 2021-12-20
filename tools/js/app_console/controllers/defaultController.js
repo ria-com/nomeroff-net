@@ -5,18 +5,21 @@ const config = require('config'),
       checkDir = require('../../app/helpers/checkDir'),
       checkDirStructure = require('../../app/helpers/checkDirStructure'),
       moveDatasetFiles = require('../../app/helpers/moveDatasetFiles'),
+      joinAnnotationOcrDataset = require('../../app/helpers/joinAnnotationOcrDataset'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
       sizeOf = require('image-size'),
       md5File = require('md5-file')
 
+
 ;
+
 
 /**
  * @module controllers/defaultController
  */
 async function index (options) {
     console.log('Hello world defaultController & index action with options: ' +JSON.stringify(options));
-};
+}
 
 
 /**
@@ -39,15 +42,14 @@ async function createAnnotations (options) {
 
         console.log(imgPath);
         fs.readdir(imgPath, async function(err, items) {
-                for (let i=0; i<items.length; i++) {
-                        const  filename = items[i],
-                               fileObj = path.parse(filename);
+                for (let file_name of items) {
+                        const fileObj = path.parse(file_name);
                         if (fileObj.ext == imgExt) {
                                 const annFile = path.join(annPath, `${fileObj.name}.${config.dataset.ann.ext}`),
-                                      imgFile = path.join(imgPath, filename),
+                                      imgFile = path.join(imgPath, file_name),
                                       imgSize = sizeOf(imgFile);
                                 let data = Object.assign(annTrmplate,{
-                                        description: fileObj.name, // fileObj.name.split('_')[1]
+                                        description: fileObj.name,
                                         name: fileObj.name,
                                         size: {
                                                 width: imgSize.width,
@@ -56,13 +58,10 @@ async function createAnnotations (options) {
                                 });
                                 console.log(`Store ${annFile}`);
                                 await jsonStore(annFile, data);
-                                // if (data.description.length > 8) {
-                                //         console.log(`File: ${filename} [${data.description}]`);
-                                // }
                         }
                 }
         });
-};
+}
 
 /**
  * Перенести в одельную папку из OCR-датасета промодеированные данные
@@ -74,8 +73,7 @@ async function moveChecked (options) {
         const srcDir = options.srcDir || './draft',
               targetDir = options.targetDir || './checked',
               annExt = '.'+config.dataset.ann.ext,
-              src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
-              target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+              src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
         ;
         let checkedAnn = [],
             checkedImg = []
@@ -84,17 +82,17 @@ async function moveChecked (options) {
         checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
         fs.readdir(src.annPath, async function(err, items) {
-                for (var i=0; i<items.length; i++) {
-                        const  filename = items[i],
-                            fileObj = path.parse(filename);
-                        //console.log(fileObj)
-                        if (fileObj.ext == annExt) {
+                for (let file_name of items) {
+                        const fileObj = path.parse(file_name);
+                        if (fileObj.ext === annExt) {
                                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                      annFilename = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                                      annfile_name = path.join( src.annPath, annName);
+                                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
                                       imgName = `${data.name}.${config.dataset.img.ext}`
                                 ;
-                                if (data.moderation != undefined && data.moderation.isModerated != undefined && data.moderation.isModerated) {
+                                if (data.moderation !== undefined
+                                    && data.moderation.isModerated !== undefined
+                                    && data.moderation.isModerated) {
                                         checkedAnn.push(annName);
                                         checkedImg.push(imgName);
                                 }
@@ -118,8 +116,7 @@ async function dataSplit (options) {
             splitRate = options.rate || 0.2,
             testMode = options.test || false,
             annExt = '.'+config.dataset.ann.ext,
-            src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
-            target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+            src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
         ;
         let checkedAnn = [],
             checkedImg = []
@@ -134,13 +131,13 @@ async function dataSplit (options) {
                     itemsTest = sItems.slice(0,cnt);
 
                 for (var i=0; i<itemsTest.length; i++) {
-                        const  filename = items[i],
-                               fileObj = path.parse(filename);
+                        const  file_name = items[i],
+                               fileObj = path.parse(file_name);
                         //console.log(fileObj)
                         if (fileObj.ext == annExt) {
                                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                    annFilename = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                                    annfile_name = path.join( src.annPath, annName);
+                                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
                                     imgName = `${data.name}.${config.dataset.img.ext}`
                                 ;
                                 checkedAnn.push(annName);
@@ -164,8 +161,7 @@ async function moveGarbage (options) {
     const srcDir = options.srcDir || './draft',
         targetDir = options.targetDir || './checked',
         annExt = '.'+config.dataset.ann.ext,
-        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
-        target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
     ;
     let checkedAnn = [],
         checkedImg = []
@@ -174,14 +170,12 @@ async function moveGarbage (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (var i=0; i<items.length; i++) {
-            const  filename = items[i],
-                fileObj = path.parse(filename);
-            //console.log(fileObj)
+        for (let file_name of items) {
+            const fileObj = path.parse(file_name);
             if (fileObj.ext == annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annFilename = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    annfile_name = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 if (data.region_id != undefined && data.region_id == 0) {
@@ -205,8 +199,7 @@ async function moveSomething (options) {
     const srcDir = options.srcDir || './draft',
         targetDir = options.targetDir || './checked',
         annExt = '.'+config.dataset.ann.ext,
-        src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
-        target = { annPath: path.join(targetDir, config.dataset.ann.dir) }
+        src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
     ;
     let checkedAnn = [],
         checkedImg = []
@@ -215,22 +208,16 @@ async function moveSomething (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (var i=0; i<items.length; i++) {
-            const  filename = items[i],
-                fileObj = path.parse(filename);
-            //console.log(fileObj)
+        for (let file_name of items) {
+            const fileObj = path.parse(file_name);
             if (fileObj.ext == annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annFilename = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    annfile_name = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
-                // Условие
-                //if (data.description.length < 6) {
-                //if (data.description.length > 8) {
+
                 if (data.size.height >= 32) {
-                // if (data.region_id != undefined && data.region_id == 8) {
-                //if (data.count_lines != undefined && data.count_lines == 2) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
@@ -253,7 +240,6 @@ async function moveDupes (options) {
         targetDir = options.targetDir || './checked',
         annExt = '.'+config.dataset.ann.ext,
         src = { annPath: path.join(srcDir, config.dataset.ann.dir) },
-        target = { annPath: path.join(targetDir, config.dataset.ann.dir) },
         imgPath = path.join(srcDir, config.dataset.img.dir)
     ;
     let checkedAnn = [],
@@ -264,42 +250,26 @@ async function moveDupes (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (var i=0; i<items.length; i++) {
-            const  filename = items[i],
-                fileObj = path.parse(filename);
-            //console.log(fileObj)
-            if (fileObj.ext == annExt) {
+        for (let file_name of items) {
+            const  file_name = items,
+                fileObj = path.parse(file_name);
+            if (fileObj.ext === annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annFilename = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
+                    annfile_name = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 let imgFullFile = path.join(imgPath, imgName),
                     imgSize = sizeOf(imgFullFile),
-                    imgSizeStat = fs.statSync(imgFullFile),
-                    imgMd5 = await md5File(imgFullFile)
+                    imgMd5 = await md5File(imgFullFile),
                     imgSizeHash = `${imgMd5}-${imgSize.width}x${imgSize.height}`;
-                
-                // Условие
-                // if (data.description == "JDE801") {
-                //if (/[IІ]/.test(data.description)) {
-                //    data.description = data.description.replace('I','І')
-                // if (/(PMF0)/.test(data.description)) {
-                // if (/(L0S|K0S|L0P|0ST|P0S)/.test(data.description)) {
-                // if (/[АБГДЗМОПРСХЧ]/.test(data.description)) {
-                // if (data.region_id == 3) {
-                // if (data.region_id == 10 && data.count_lines == 1) {
-                // if (data.size.height > 80) {
-                //if (Number(data.moderation.isModerated) ==  0) {
-                // if (data.description.length > 9) {
-                // if (data.region_id != undefined && data.region_id == 8) {
-                // if (data.count_lines != undefined && data.count_lines == 2) {
-                //if (data.count_lines != undefined && data.count_lines == 1) {
-                //if (data.size != undefined && data.size.width == 131 && data.size.height == 91) {        //img/12811954f458a7.png "size": {"width": 131, "height": 91}
-                if (checkSum[imgSizeHash] != undefined) {
+
+                if (checkSum[imgSizeHash] !== undefined) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
-                    if (checklogs[checkSum[imgSizeHash]] == undefined) { checklogs[checkSum[imgSizeHash]] = [] };
+                    if (checklogs[checkSum[imgSizeHash]] === undefined) {
+                        checklogs[checkSum[imgSizeHash]] = []
+                    }
                     checklogs[checkSum[imgSizeHash]].push(imgName)
                 } else {
                     checkSum[imgSizeHash] = imgName;
@@ -313,8 +283,6 @@ async function moveDupes (options) {
 }
 
 
-
-
 /**
  * Склеить несколько папок в одну только для незакрашеных номеров
  *
@@ -322,47 +290,18 @@ async function moveDupes (options) {
  * @example ./console.js --section=default --action=dataJoin --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok --opt.targetDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/target
  */
 async function dataJoin (options) {
-    if (options.srcDir!=undefined && Array.isArray(options.srcDir)) { // --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok
-        new Error('"opt.srcJson" must be array for 2 (min) elements!')
+    if (options.srcDir !== undefined && Array.isArray(options.srcDir)) {
+        throw new Error('"opt.srcJson" must be array for 2 (min) elements!')
     }
     const srcDir = options.srcDir,
-        targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'), // --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target
+        targetDir = options.targetDir || throw new Error('"opt.targetDir" is not defined!'),
         annExt = '.'+config.dataset.ann.ext
     ;
     for (let dir of srcDir) {
         checkDirStructure(dir,[config.dataset.img.dir,config.dataset.ann.dir]);
     }
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
-
-    let data;
-
-    for (let dir of srcDir) {
-        let annDir = path.join(dir, config.dataset.ann.dir),
-            imgDir = path.join(dir, config.dataset.img.dir),
-            Anns = [],
-            Imgs = []
-        ;
-
-        fs.readdir(annDir, async function(err, items) {
-            for (let filename of items) {
-                //console.log(`filename: ${filename}`);
-                let fileObj = path.parse(filename);
-                if (fileObj.ext == annExt) {
-                    let annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                        annFilename = path.join( annDir, annName);
-                    let data = require(path.isAbsolute(annFilename)?annFilename:path.join(process.cwd(), annFilename)),
-                        imgName = `${data.name}.${config.dataset.img.ext}`
-                    ;
-                    if (data.state_id != undefined && data.state_id == 2) {
-                        Anns.push(annName);
-                        Imgs.push(imgName);
-                    }
-                }
-            }
-            console.log(`Anns: ${Anns.length}`);
-            moveDatasetFiles({srcDir:dir, targetDir, Anns, Imgs, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
-        })
-    }
+    joinAnnotationOcrDataset(srcDir, annExt)
 }
 
 
@@ -377,5 +316,3 @@ module.exports = {
     moveSomething,
     moveDupes,
 };
-
-

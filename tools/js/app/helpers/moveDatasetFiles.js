@@ -4,15 +4,15 @@ const fs = require('fs'),
 
 module.exports = function moveFiles({srcDir, targetDir, Anns, Imgs, annDir, imgDir, test = false}) {
     for(let i in Anns) {
-        let imgFilename = path.join(imgDir,Imgs[i]);
-        let annFilename = path.join(annDir,Anns[i]);
+        let imgfile_name = path.join(imgDir,Imgs[i]);
+        let annfile_name = path.join(annDir,Anns[i]);
 
         if (test) {
-            console.log(`Rename ${path.join(srcDir,annFilename)} - ${path.join(targetDir, annFilename)}`)
-            console.log(`Rename ${path.join(srcDir,imgFilename)} - ${path.join(targetDir, imgFilename)}`);
+            console.log(`Rename ${path.join(srcDir,annfile_name)} - ${path.join(targetDir, annfile_name)}`)
+            console.log(`Rename ${path.join(srcDir,imgfile_name)} - ${path.join(targetDir, imgfile_name)}`);
         } else {
-            fs.renameSync(path.join(srcDir,annFilename), path.join(targetDir, annFilename));
-            fs.renameSync(path.join(srcDir,imgFilename), path.join(targetDir, imgFilename));
+            fs.renameSync(path.join(srcDir,annfile_name), path.join(targetDir, annfile_name));
+            fs.renameSync(path.join(srcDir,imgfile_name), path.join(targetDir, imgfile_name));
         }
     }
 }

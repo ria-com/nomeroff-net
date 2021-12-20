@@ -13,7 +13,7 @@ RESULT_MODEL_PATH = os.path.join(NOMEROFF_NET_DIR, "models/", 'anpr_ocr_{}_{}.h5
 
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet.Base import OCR
+from nomeroff_net.Base import OCR
 
 class Test(OCR):
     def __init__(self):

@@ -15,7 +15,7 @@ RESULT_PATH = os.path.join(NOMEROFF_NET_DIR, "models/", 'numberplate_{}_{}.h5'.f
 
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet import OptionsDetector
+from nomeroff_net import OptionsDetector
 
 # definde your parameters
 class MyNpClassificator(OptionsDetector):

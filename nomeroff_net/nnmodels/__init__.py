@@ -1,0 +1,4 @@
+from .numberplate_classification_model import ClassificationNet
+from .numberplate_orientation_model import NPOrientationNet
+from .numberplate_inverse_model import NPInverseNet
+from .numberplate_options_model import NPOptionsNet

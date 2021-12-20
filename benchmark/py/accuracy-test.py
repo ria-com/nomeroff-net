@@ -9,26 +9,29 @@ from termcolor import colored
 import cv2
 import numpy as np
 
-# NomeroffNet path
+# nomeroff_net path
 NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
-from NomeroffNet.BBoxNpPoints import NpPointsCraft, getCvZoneRGB, convertCvZonesRGBtoBGR, reshapePoints
-npPointsCraft = NpPointsCraft()
-npPointsCraft.load()
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import (np_points_craft,
+                                                                                get_cv_zone_rgb,
+                                                                                convert_cv_zones_rgb_to_bgr,
+                                                                                reshape_points)
+np_points_craft = np_points_craft()
+np_points_craft.load()
 
-from NomeroffNet.YoloV5Detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 detector = Detector()
 detector.load()
 
-from NomeroffNet.OptionsDetector import OptionsDetector
-from NomeroffNet.TextDetector import TextDetector
+from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
+from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
 # Initialize text detector.
-textDetector = TextDetector({
+text_detector = TextDetector({
     "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": "latest"
@@ -60,67 +63,67 @@ textDetector = TextDetector({
 })
 
 
-def test(dirName, fname, y, min_bbox_acc=0.5, verbose=0):
-    nGood = 0
-    nBad = 0
-    img_path = os.path.join(dirName, fname)
+def test(dir_name, fname, y, min_bbox_acc=0.5, verbose=0):
+    n_good = 0
+    n_bad = 0
+    img_path = os.path.join(dir_name, fname)
     if verbose == 1:
         print(colored(f"__________ \t\t {img_path} \t\t __________", "blue"))
     img = cv2.imread(img_path)
     img = img[..., ::-1]
 
-    targetBoxes = detector.detect_bbox(img)
+    target_boxes = detector.detect_bbox(img)
 
-    all_points = npPointsCraft.detect(img, targetBoxes, [5, 2, 0])
+    all_points = np_points_craft.detect(img, target_boxes, [5, 2, 0])
     # for  images/14.jpeg bug
     all_points = [ps for ps in all_points if len(ps)]
 
     print('ll_points')
     print(all_points)
     # cut zones
-    toShowZones = [getCvZoneRGB(img, reshapePoints(rect, 1)) for rect in all_points]
-    zones = convertCvZonesRGBtoBGR(toShowZones)
-    for zone, points in zip(toShowZones, all_points):
+    to_show_zones = [get_cv_zone_rgb(img, reshape_points(rect, 1)) for rect in all_points]
+    zones = convert_cv_zones_rgb_to_bgr(to_show_zones)
+    for zone, points in zip(to_show_zones, all_points):
         plt.axis("off")
         plt.imshow(zone)
         plt.show()
 
     # find standart
-    regionIds, countLines = optionsDetector.predict(zones)
-    regionNames = optionsDetector.getRegionLabels(regionIds)
-    print(regionNames)
-    print(countLines)
+    region_ids, count_lines = optionsDetector.predict(zones)
+    region_names = optionsDetector.get_region_labels(region_ids)
+    print(region_names)
+    print(count_lines)
 
     # find text with postprocessing by standart
-    textArr = textDetector.predict(zones, regionNames, countLines)
-    print(textArr)
+    text_arr = text_detector.predict(zones, region_names, count_lines)
+    print(text_arr)
 
     # draw rect and 4 points
-    for targetBox, points in zip(targetBoxes, all_points):
+    for target_box, points in zip(target_boxes, all_points):
         # draw
         cv2.rectangle(img,
-                      (int(targetBox[0]), int(targetBox[1])),
-                      (int(targetBox[2]), int(targetBox[3])),
+                      (int(target_box[0]), int(target_box[1])),
+                      (int(target_box[2]), int(target_box[3])),
                       (0, 120, 255),
                       3)
         cv2.polylines(img, np.array([points], np.int32), True, (255, 120, 255), 3)
     plt.imshow(img)
     plt.show()
 
-    for yText in y:
-        if yText in textArr:
-            print(colored(f"OK: TEXT:{yText} \t\t\t RESULTS:{textArr} \n\t\t\t\t\t in PATH:{img_path}", 'green'))
-            nGood += 1
+    for y_text in y:
+        if y_text in text_arr:
+            print(colored(f"OK: TEXT:{y_text} \t\t\t RESULTS:{text_arr} \n\t\t\t\t\t in PATH:{img_path}", 'green'))
+            n_good += 1
         else:
-            print(colored(f"NOT OK: TEXT:{yText} \t\t\t RESULTS:{textArr} \n\t\t\t\t\t in PATH:{img_path} ", 'red'))
-            nBad += 1
-    return nGood, nBad
+            print(colored(f"NOT OK: TEXT:{y_text} \t\t\t RESULTS:{text_arr} \n\t\t\t\t\t in PATH:{img_path} ", 'red'))
+            n_bad += 1
+    return n_good, n_bad
 
 
 def main():
-    dirName = "../images"
+    dir_name = "../images"
 
-    testData = {
+    test_data = {
         "0.jpeg": ["AI5255EI"],
         "1.jpeg": ["AT6883CM"],
         "2.jpeg": ["AT1515CK"],
@@ -150,17 +153,15 @@ def main():
     }
 
 
-    gGood = 0
-    gBad = 0
-    i = 0
-    for fileName in testData.keys():
-        numGood, numBad = test(dirName, fileName, testData[fileName], verbose=1)
-        gGood += numGood
-        gBad += numBad
-        i += 1
-    total = gGood + gBad
-    print(f"TOTAL GOOD: {gGood/total}")
-    print(f"TOTAL BED: {gBad/total}")
+    g_good = 0
+    g_bad = 0
+    for file_name in test_data.keys():
+        num_good, num_bad = test(dir_name, file_name, test_data[file_name], verbose=1)
+        g_good += num_good
+        g_bad += num_bad
+    total = g_good + g_bad
+    print(f"TOTAL GOOD: {g_good/total}")
+    print(f"TOTAL BED: {g_bad/total}")
 
 
 if __name__ == "__main__":

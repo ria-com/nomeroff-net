@@ -13,8 +13,6 @@ import onnxruntime
 
 sys.path.append("../../../")
 
-from NomeroffNet.BBoxNpPoints import NpPointsCraft
-
 
 def parse_args():
     ap = argparse.ArgumentParser()
@@ -52,10 +50,10 @@ def main():
     n = args["number_tests"]
 
     # get models
-    npPointsCraft = NpPointsCraft()
-    npPointsCraft.load()
-    net = npPointsCraft.net
-    refine_net = npPointsCraft.refine_net
+    np_points_craft = np_points_craft()
+    np_points_craft.load()
+    net = np_points_craft.net
+    refine_net = np_points_craft.refine_net
     print(net)
     print(refine_net)
 

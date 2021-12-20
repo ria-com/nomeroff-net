@@ -1,7 +1,7 @@
 import cv2
 import glob
 import time
-from NomeroffNet.YoloV5GRPCDetector import YoloV5GRPCDetector
+from nomeroff_net.pipes.number_plate_localizators.yolo_v5_grpc_detector import YoloV5GRPCDetector
 
 yoloV5GRPCDetector = YoloV5GRPCDetector()
 
@@ -16,7 +16,7 @@ for _ in range(1):
         img = cv2.imread(img_path)
         img = img[..., ::-1]
     
-        targetBoxes = yoloV5GRPCDetector.grpc_detect(img)
+        target_boxes = yoloV5GRPCDetector.grpc_detect(img)
         i += 1
 
 print("END", (time.time() - start_time)/i)
