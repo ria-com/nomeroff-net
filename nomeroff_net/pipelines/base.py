@@ -141,6 +141,10 @@ class RuntimePipeline(object):
             return timed
         return wrapper
 
+    def clear_stat(self):
+        self.time_stat = Counter()
+        self.count_stat = Counter()
+
     def get_timer_stat(self, batch=1):
         timer_stat = {}
         for key in self.count_stat:
