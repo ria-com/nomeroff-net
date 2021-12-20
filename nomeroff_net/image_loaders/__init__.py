@@ -7,6 +7,6 @@ from .dumpy_loader import DumpyImageLoader
 image_loaders_map = {
     "opencv": OpencvImageLoader,
     "cv2": OpencvImageLoader,
-    "pillow": OpencvImageLoader,
-    "turbo": OpencvImageLoader,
+    "pillow": PillowImageLoader,
+    "turbo": TurboImageLoader,
 }

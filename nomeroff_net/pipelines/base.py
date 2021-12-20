@@ -128,6 +128,9 @@ class RuntimePipeline(object):
         self.call = self.timeit(self.__class__.__name__)(self.call)
         for pipeline in self.pipelines:
             pipeline.call = self.timeit(pipeline.__class__.__name__)(pipeline.call)
+            pipeline.preprocess = self.timeit(pipeline.__class__.__name__)(pipeline.preprocess)
+            pipeline.forward = self.timeit(pipeline.__class__.__name__)(pipeline.forward)
+            pipeline.postprocess = self.timeit(pipeline.__class__.__name__)(pipeline.postprocess)
 
     def timeit(self, tag):
         def wrapper(method):
