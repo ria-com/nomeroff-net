@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from typing import Any, Dict
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
+from nomeroff_net.tools import unzip
 
 
 class NumberPlateBboxFilling(NumberPlateLocalization):
@@ -10,7 +11,9 @@ class NumberPlateBboxFilling(NumberPlateLocalization):
     """
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        images_target_boxes, images = NumberPlateLocalization.postprocess(self, inputs, **postprocess_parameters)
+        images_target_boxes, images = unzip(NumberPlateLocalization.postprocess(self,
+                                                                                inputs,
+                                                                                **postprocess_parameters))
         filled_number_plate = []
         for image_target_boxes, img in zip(images_target_boxes, images):
             img = img.astype(np.uint8)

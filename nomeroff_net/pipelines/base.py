@@ -2,6 +2,8 @@ import time
 from abc import abstractmethod
 from typing import Any, Dict
 from collections import Counter
+from nomeroff_net.tools import promise_all
+from nomeroff_net.tools import chunked_iterable
 from nomeroff_net.image_loaders import BaseImageLoader, DumpyImageLoader, image_loaders_map
 
 
@@ -77,7 +79,7 @@ class Pipeline(object):
     @abstractmethod
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         """
-        Postprocess will receive the raw outputs of the `_forward` method, generally tensors, and reformat them into
+        Postprocess will receive the raw outputs of the `forward` method, generally tensors, and reformat them into
         something more friendly. Generally it will output a list or a dict or results (containing just strings and
         numbers).
         """
@@ -86,11 +88,12 @@ class Pipeline(object):
     def __call__(self, inputs, **kwargs):
         return self.call(inputs, **kwargs)
 
-    def call(self, inputs, **kwargs):
+    def call(self, inputs, batch_size=1, num_workers=1, **kwargs):
         """
         TODO: speed up using num_workers and batch_size
         """
-
+        kwargs["batch_size"] = batch_size
+        kwargs["num_workers"] = num_workers
         preprocess_params, forward_params, postprocess_params = self.sanitize_parameters(**kwargs)
 
         # Fuse __init__ params and __call__ params without modifying the __init__ ones.
@@ -98,19 +101,47 @@ class Pipeline(object):
         forward_params = {**self._forward_params, **forward_params}
         postprocess_params = {**self._postprocess_params, **postprocess_params}
 
-        return self.run_single(inputs, preprocess_params, forward_params, postprocess_params)
-
-    def run_single(self, inputs, preprocess_params, forward_params, postprocess_params):
-        model_inputs = self.preprocess(inputs, **preprocess_params)
-        model_outputs = self.forward(model_inputs, **forward_params)
-        outputs = self.postprocess(model_outputs, **postprocess_params)
+        if num_workers < 0 or num_workers > batch_size:
+            raise ValueError("num_workers must by grater 0 and less or equal batch_size")
+        outputs = self.run_multi(inputs, batch_size, num_workers,
+                                 preprocess_params, forward_params, postprocess_params)
         return outputs
 
-    def iterate(self, inputs, preprocess_params, forward_params, postprocess_params):
-        # This function should become `get_iterator` again, this is a temporary
-        # easy solution.
-        for input_ in inputs:
-            yield self.run_single(input_, preprocess_params, forward_params, postprocess_params)
+    @staticmethod
+    def process_worker(func, inputs, params, num_workers=1):
+        if num_workers == 1:
+            return func(inputs, **params)
+        promise_all_args = []
+        for chunk_inputs in chunked_iterable(inputs, num_workers):
+            promise_all_args.append(
+                {
+                    "function": func,
+                    "args": [chunk_inputs],
+                    "kwargs": params
+                }
+            )
+        promise_outputs = promise_all(promise_all_args)
+
+        outputs = []
+        for promise_output in promise_outputs:
+            for item in promise_output:
+                outputs.append(item)
+        return outputs
+
+    def run_multi(self, inputs, batch_size, num_workers, preprocess_params, forward_params, postprocess_params):
+        outputs = []
+        for chunk_inputs in chunked_iterable(inputs, batch_size):
+            chunk_outputs = self.run_single(chunk_inputs, num_workers,
+                                            preprocess_params, forward_params, postprocess_params)
+            for output in chunk_outputs:
+                outputs.append(output)
+        return outputs
+
+    def run_single(self, inputs, num_workers, preprocess_params, forward_params, postprocess_params):
+        model_inputs = self.process_worker(self.preprocess, inputs, preprocess_params, num_workers)
+        model_outputs = self.forward(model_inputs, **forward_params)
+        outputs = self.process_worker(self.postprocess, model_outputs, postprocess_params, num_workers)
+        return outputs
 
 
 class RuntimePipeline(object):
@@ -125,9 +156,9 @@ class RuntimePipeline(object):
         self.time_stat = Counter()
         self.count_stat = Counter()
 
-        self.call = self.timeit(self.__class__.__name__)(self.call)
+        self.run_single = self.timeit(self.__class__.__name__)(self.run_single)
         for pipeline in self.pipelines:
-            pipeline.call = self.timeit(pipeline.__class__.__name__)(pipeline.call)
+            pipeline.run_single = self.timeit(pipeline.__class__.__name__)(pipeline.run_single)
             pipeline.preprocess = self.timeit(pipeline.__class__.__name__)(pipeline.preprocess)
             pipeline.forward = self.timeit(pipeline.__class__.__name__)(pipeline.forward)
             pipeline.postprocess = self.timeit(pipeline.__class__.__name__)(pipeline.postprocess)

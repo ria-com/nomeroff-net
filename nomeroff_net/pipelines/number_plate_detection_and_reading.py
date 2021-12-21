@@ -6,6 +6,7 @@ from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlate
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
 from nomeroff_net.pipelines.number_plate_classification import NumberPlateClassification
 from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
+from nomeroff_net.tools import unzip
 
 
 class NumberPlateDetectionAndReading(Pipeline):
@@ -54,8 +55,13 @@ class NumberPlateDetectionAndReading(Pipeline):
         ]
         super().__init__(task, image_loader, **kwargs)
 
-    def sanitize_parameters(self, **kwargs):
+    def sanitize_parameters(self,  **kwargs):
         forward_parameters = {}
+        for key in kwargs:
+            if key == "batch_size":
+                forward_parameters["batch_size"] = kwargs["batch_size"]
+            if key == "num_workers":
+                forward_parameters["num_workers"] = kwargs["num_workers"]
         for pipeline in self.pipelines:
             for dict_params in pipeline.sanitize_parameters(**kwargs):
                 forward_parameters.update(dict_params)
@@ -68,19 +74,21 @@ class NumberPlateDetectionAndReading(Pipeline):
         return inputs
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images_bboxs, images = self.number_plate_localization(inputs, **forward_parameters)
-        images_points, _ = self.number_plate_key_points_detection([images, images_bboxs], **forward_parameters)
+        images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
+        images_points, _ = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
+                                                                        **forward_parameters))
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
-        region_ids, region_names, count_lines, confidences, predicted, _ = self.number_plate_classification(zones)
-        texts, _ = self.number_plate_text_reading([zones, region_names, count_lines])
-        [region_ids, region_names, count_lines, confidences, texts, zones] = \
-            group_by_image_ids(image_ids, [region_ids, region_names, count_lines, confidences, texts, zones])
-        return (images, images_bboxs,
-                images_points, zones,
-                region_ids, region_names, count_lines, confidences, texts)
+        (region_ids, region_names, count_lines,
+         confidences, predicted) = unzip(self.number_plate_classification(zones))
+        texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
+                                                               region_names,
+                                                               count_lines])))
+        (region_ids, region_names, count_lines, confidences, texts, zones) = \
+            group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))
+        return unzip([images, images_bboxs,
+                      images_points, zones,
+                      region_ids, region_names,
+                      count_lines, confidences, texts])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs
-
-    def run_single(self, inputs, preprocess_params, forward_params, postprocess_params):
-        return self.forward(inputs, **forward_params)

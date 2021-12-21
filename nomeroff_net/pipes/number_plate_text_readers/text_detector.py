@@ -68,25 +68,19 @@ class TextDetector(object):
     def define_order_detector(
             self,
             zones: List[np.ndarray],
-            labels: List[int] = None) -> Tuple:
+            labels: List[int] = None) -> Dict:
         predicted = {}
-        order_all = []
-        res_all = []
         i = 0
-        scores = []
         for zone, label in zip(zones, labels):
-            if label in self.detectors_map.keys():
-                detector = self.detectors_map[label]
-                if detector not in predicted.keys():
-                    predicted[detector] = {"zones": [], "order": []}
-                predicted[detector]["zones"].append(zone)
-                predicted[detector]["order"].append(i)
-            else:
-                res_all.append("")
-                order_all.append(i)
-                scores.append([])
+            if label not in self.detectors_map.keys():
+                raise ValueError(f"Label {label} not in {self.detectors_map.keys()}")
+            detector = self.detectors_map[label]
+            if detector not in predicted.keys():
+                predicted[detector] = {"zones": [], "order": []}
+            predicted[detector]["zones"].append(zone)
+            predicted[detector]["order"].append(i)
             i += 1
-        return predicted, res_all, scores, order_all
+        return predicted
 
     def get_avalible_module(self) -> List[str]:
         return self.detectors_names
@@ -97,17 +91,18 @@ class TextDetector(object):
                    lines: List[int] = None,):
         zones = convert_cv_zones_rgb_to_bgr(zones)
         labels, lines = self.define_predict_classes(zones, labels, lines)
-        predicted, res_all, scores, order_all = self.define_order_detector(zones, labels)
+        predicted = self.define_order_detector(zones, labels)
         for key in predicted.keys():
             predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"])
-        return predicted, res_all, order_all
+        return predicted
 
     def forward(self, predicted):
         for key in predicted.keys():
             predicted[key]["ys"] = self.detectors[int(key)].forward(predicted[key]["xs"])
         return predicted
 
-    def postprocess(self, predicted, res_all, order_all):
+    def postprocess(self, predicted):
+        res_all, order_all = [], []
         for key in predicted.keys():
             predicted[key]["ys"] = self.detectors[int(key)].postprocess(predicted[key]["ys"])
             res_all = res_all + predicted[key]["ys"]
@@ -121,8 +116,9 @@ class TextDetector(object):
                 return_acc: bool = False) -> List:
 
         labels, lines = self.define_predict_classes(zones, labels, lines)
-        predicted, res_all, scores, order_all = self.define_order_detector(zones, labels)
+        predicted = self.define_order_detector(zones, labels)
 
+        res_all, scores, order_all = [], [], []
         for key in predicted.keys():
             if return_acc:
                 buff_res, acc = self.detectors[int(key)].predict(predicted[key]["zones"], return_acc=return_acc)

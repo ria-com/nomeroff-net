@@ -3,6 +3,7 @@ import numpy as np
 from typing import Any, Dict, Optional
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
+from nomeroff_net.tools import unzip
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
 from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
 
@@ -48,8 +49,9 @@ class NumberPlateKeyPointsFilling(Pipeline):
         return inputs
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images_bboxs, images = self.number_plate_localization(inputs, **forward_parameters)
-        images_points, _ = self.number_plate_key_points_detection([images, images_bboxs], **forward_parameters)
+        images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
+        images_points, _ = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
+                                                                        **forward_parameters))
         filled_images = []
         for key_ponts, image in zip(images_points, images):
             image = image.astype(np.uint8)
@@ -61,9 +63,3 @@ class NumberPlateKeyPointsFilling(Pipeline):
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs
-
-    def run_single(self, inputs, preprocess_params, forward_params, postprocess_params):
-        outputs = self.preprocess(inputs, **preprocess_params)
-        outputs = self.forward(outputs, **forward_params)
-        outputs = self.postprocess(outputs, **postprocess_params)
-        return outputs

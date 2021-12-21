@@ -19,3 +19,4 @@ git+git://github.com/lilohuang/PyTurboJPEG.git
 git+https://github.com/ria-com/modelhub-client.git
 pytorch_lightning
 ipywidgets
+gevent

@@ -2,6 +2,7 @@ from torch import no_grad
 from typing import Any, Dict, Optional
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
+from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 
@@ -66,31 +67,26 @@ class NumberPlateTextReading(Pipeline):
         super().__init__(task, image_loader, **kwargs)
         self.detector = TextDetector(prisets, default_label, default_lines_count)
 
-    def sanitize_parameters(self):
+    def sanitize_parameters(self, **kwargs):
         return {}, {}, {}
 
     def __call__(self, images: Any, **kwargs):
         return super().__call__(images, **kwargs)
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
-        images, labels, lines = inputs
+        images, labels, lines = unzip(inputs)
         images = [self.image_loader.load(item) for item in images]
-        predicted, res_all, order_all = self.detector.preprocess(images, labels, lines)
-        return predicted, res_all, order_all, images
+        return unzip([images, labels, lines])
 
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        return self.detector.forward(inputs)
+        images, labels, lines = unzip(inputs)
+        model_inputs = self.detector.preprocess(images, labels, lines)
+        model_outputs = self.detector.forward(model_inputs)
+        model_outputs = self.detector.postprocess(model_outputs)
+        return unzip([images, model_outputs, labels])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        model_outputs, labels, res_all, order_all = inputs
-        outputs = self.detector.postprocess(model_outputs, res_all, order_all)
-        outputs = text_postprocessing(outputs, labels)
-        return outputs
-
-    def run_single(self, inputs, preprocess_params, forward_params, postprocess_params):
-        images, labels, lines = inputs
-        model_inputs, res_all, order_all, images = self.preprocess([images, labels, lines], **preprocess_params)
-        model_outputs = self.forward(model_inputs, **forward_params)
-        outputs = self.postprocess([model_outputs, labels, res_all, order_all], **postprocess_params)
-        return outputs, images
+        images, model_outputs, labels = unzip(inputs)
+        outputs = text_postprocessing(model_outputs, labels)
+        return unzip([outputs, images])
