@@ -79,10 +79,10 @@ class NumberPlateDetectionAndReading(Pipeline):
                                                                         **forward_parameters))
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
         (region_ids, region_names, count_lines,
-         confidences, predicted) = unzip(self.number_plate_classification(zones))
+         confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
         texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
                                                                region_names,
-                                                               count_lines])))
+                                                               count_lines]), **forward_parameters))
         (region_ids, region_names, count_lines, confidences, texts, zones) = \
             group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))
         return unzip([images, images_bboxs,

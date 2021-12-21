@@ -34,7 +34,7 @@ class NumberPlateClassification(Pipeline):
 
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        model_output = self.detector.model(inputs)
+        model_output = self.detector.forward(inputs)
         return unzip([p.cpu().numpy() for p in model_output])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:

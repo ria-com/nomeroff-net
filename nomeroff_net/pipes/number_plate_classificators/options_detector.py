@@ -385,9 +385,14 @@ class OptionsDetector(object):
     def preprocess(images):
         x = convert_cv_zones_rgb_to_bgr(images)
         x = [normalize_img(img) for img in x]
-        x = torch.tensor(np.moveaxis(np.array(x), 3, 1))
-        x = x.to(device_torch)
+        x = np.moveaxis(np.array(x), 3, 1)
         return x
+
+    def forward(self, inputs):
+        x = torch.tensor(inputs)
+        x = x.to(device_torch)
+        model_output = self.model(x)
+        return model_output
 
     @torch.no_grad()
     def predict_with_confidence(self, imgs: List[np.ndarray or List]) -> Tuple:

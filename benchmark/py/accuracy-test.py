@@ -124,7 +124,7 @@ def main():
     dir_name = "../images"
 
     test_data = {
-        "0.jpeg": ["AI5255EI"],
+        "31.jpeg": ["AI5255EI"],
         "1.jpeg": ["AT6883CM"],
         "2.jpeg": ["AT1515CK"],
         "3.jpeg": ["BX0578CE"],
