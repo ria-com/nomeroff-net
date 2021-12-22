@@ -111,21 +111,25 @@ class Pipeline(object):
     def process_worker(func, inputs, params, num_workers=1):
         if num_workers == 1:
             return func(inputs, **params)
+        promises_outputs = []
         promise_all_args = []
         for chunk_inputs in chunked_iterable(inputs, num_workers):
-            promise_all_args.append(
-                {
-                    "function": func,
-                    "args": [chunk_inputs],
-                    "kwargs": params
-                }
-            )
-        promise_outputs = promise_all(promise_all_args)
+            for inp in chunked_iterable(chunk_inputs, 1):
+                promise_all_args.append(
+                    {
+                        "function": func,
+                        "args": [inp],
+                        "kwargs": params
+                    }
+                )
+            promise_outputs = promise_all(promise_all_args)
+            promises_outputs.append(promise_outputs)
 
         outputs = []
-        for promise_output in promise_outputs:
-            for item in promise_output:
-                outputs.append(item)
+        for promise_output in promises_outputs:
+            for chunk in promise_output:
+                for item in chunk:
+                    outputs.append(item)
         return outputs
 
     def run_multi(self, inputs, batch_size, num_workers, preprocess_params, forward_params, postprocess_params):
@@ -159,9 +163,6 @@ class RuntimePipeline(object):
         self.run_single = self.timeit(self.__class__.__name__)(self.run_single)
         for pipeline in self.pipelines:
             pipeline.run_single = self.timeit(pipeline.__class__.__name__)(pipeline.run_single)
-            pipeline.preprocess = self.timeit(pipeline.__class__.__name__)(pipeline.preprocess)
-            pipeline.forward = self.timeit(pipeline.__class__.__name__)(pipeline.forward)
-            pipeline.postprocess = self.timeit(pipeline.__class__.__name__)(pipeline.postprocess)
 
     def timeit(self, tag):
         def wrapper(method):
