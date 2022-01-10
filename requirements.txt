@@ -2,7 +2,7 @@ cython
 setuptools
 numpy>=1.16.*
 imgaug>=0.4.*
-opencv_python==4.5.4
+opencv_python<4.5.5
 scikit_image
 asyncio
 gitpython
