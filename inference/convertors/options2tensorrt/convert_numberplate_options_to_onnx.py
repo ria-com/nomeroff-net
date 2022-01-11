@@ -60,7 +60,8 @@ def main():
     # make dirs
     p = pathlib.Path(os.path.dirname(filepath))
     p.mkdir(parents=True, exist_ok=True)
-
+    
+    print("input shape", x.shape)
     # Export the model
     model.to_onnx(filepath, x,
                   export_params=True,  # store the trained parameter weights inside the model file

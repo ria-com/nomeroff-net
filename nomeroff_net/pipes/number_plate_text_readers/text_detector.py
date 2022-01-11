@@ -15,7 +15,8 @@ class TextDetector(object):
     def __init__(self,
                  prisets: Dict = None,
                  default_label: str = "eu_ua_2015",
-                 default_lines_count: int = 1) -> None:
+                 default_lines_count: int = 1,
+                 load_models=True) -> None:
         if prisets is None:
             prisets = {}
         self.prisets = prisets
@@ -39,7 +40,9 @@ class TextDetector(object):
             self.detectors.append(detector_class)
             self.detectors_names.append(_label)
             i += 1
-        self.load()
+        
+        if load_models:
+            self.load()
 
     def load(self):
         """

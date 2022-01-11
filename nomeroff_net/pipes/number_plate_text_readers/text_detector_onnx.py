@@ -9,7 +9,7 @@ class TextDetectorOnnx(TextDetector):
                  prisets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1) -> None:
-        TextDetector.__init__(self, prisets, default_label, default_lines_count)
+        TextDetector.__init__(self, prisets, default_label, default_lines_count, load_models=False)
         for i, detector_class in enumerate(self.detectors):
             onnx_detector_class = type(f"{detector_class.get_classname()}_onnx",
                                        (OcrTrt, detector_class),

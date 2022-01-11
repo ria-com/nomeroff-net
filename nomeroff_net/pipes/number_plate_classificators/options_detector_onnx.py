@@ -4,7 +4,7 @@ import numpy as np
 from typing import List, Dict, Tuple
 
 from nomeroff_net.tools import modelhub
-from options_detector import OptionsDetector
+from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.tools.image_processing import normalize_img
 
 
@@ -45,7 +45,6 @@ class OptionsDetectorOnnx(OptionsDetector):
                                                         self.get_classname(),
                                                         "numberplate_options_onnx")
             path_to_model = model_info["path"]
-        self.create_model()
         return self.load_model(path_to_model)
 
     def predict(self, imgs: List[np.ndarray], return_acc: bool = False) -> Tuple:

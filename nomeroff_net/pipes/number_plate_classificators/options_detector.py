@@ -73,8 +73,8 @@ class OptionsDetector(object):
             options = dict()
 
         # input
-        self.height = 128
-        self.width = 256
+        self.height = 64
+        self.width = 295
         self.color_channels = 3
 
         # outputs 1

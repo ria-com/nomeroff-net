@@ -32,16 +32,16 @@ class NumberPlateLocalizationTrt(Pipeline):
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
         images = [self.image_loader.load(item) for item in inputs]
-        batch_input_image = self.detector.yolov5_wrapper.prepare_batch_input_image(images)
-        return unzip([images, batch_input_image])
+        batch_input_image, batch_origin_h, batch_origin_w = self.detector.yolov5_wrapper.prepare_batch_input_image(images)
+        return unzip([images, batch_input_image, batch_origin_h, batch_origin_w])
 
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images, batch_input_image = unzip(inputs)
-        detected_images_bboxs = self.detector.yolov5_wrapper.infer(batch_input_image)
+        images, batch_input_image, batch_origin_h, batch_origin_w = unzip(inputs)
+        detected_images_bboxs = self.detector.yolov5_wrapper.infer(batch_input_image, batch_origin_h, batch_origin_w)
         return unzip([images, detected_images_bboxs])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         images, detected_images_bboxs = unzip(inputs)
         detected_images_bboxs = self.detector.postprocessing(detected_images_bboxs, **postprocess_parameters)
-        return unzip([images, detected_images_bboxs])
+        return unzip([detected_images_bboxs, images])

@@ -33,7 +33,6 @@ class OcrTrt(OCR):
         if options is None:
             options = dict()
         self.__dict__.update(options)
-
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name(self.get_classname())
             path_to_model = model_info["path"]

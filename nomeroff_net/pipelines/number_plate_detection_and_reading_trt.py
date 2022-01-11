@@ -5,7 +5,7 @@ from nomeroff_net.pipelines.number_plate_localization_trt import NumberPlateLoca
 from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from nomeroff_net.pipelines.number_plate_text_reading_onnx import NumberPlateTextReadingOnnx
 from nomeroff_net.pipelines.number_plate_classification_onnx import NumberPlateClassificationOnnx
-from number_plate_detection_and_reading import NumberPlateDetectionAndReading
+from .number_plate_detection_and_reading import NumberPlateDetectionAndReading
 
 
 class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
@@ -22,7 +22,7 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
                  prisets: Dict,
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",
-                 classification_options: List = None,
+                 classification_options: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
@@ -31,11 +31,6 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
             image_loader,
             engine_file_path=path_to_model,
             plugin_lib=plugin_lib)
-        self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
-            "number_plate_key_points_detection",
-            image_loader=None,
-            mtl_model_path=mtl_model_path,
-            refiner_model_path=refiner_model_path)
         self.number_plate_classification = NumberPlateClassificationOnnx(
             "number_plate_classification",
             image_loader=None,
@@ -48,11 +43,22 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
             default_label=default_label,
             default_lines_count=default_lines_count,
         )
+        self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
+            "number_plate_key_points_detection",
+            image_loader=None,
+            mtl_model_path=mtl_model_path,
+            refiner_model_path=refiner_model_path)
+        self.number_plate_localization = NumberPlateLocalizationTrt(
+            "number_plate_localization",
+            image_loader,
+            engine_file_path=path_to_model,
+            plugin_lib=plugin_lib)
+
         self.pipelines = [
-            self.number_plate_localization,
-            self.number_plate_key_points_detection,
             self.number_plate_classification,
             self.number_plate_text_reading,
+            self.number_plate_key_points_detection,
+            self.number_plate_localization,
         ]
         Pipeline.__init__(self, task, image_loader, **kwargs)
         CompositePipeline.__init__(self, self.pipelines)

@@ -1,4 +1,4 @@
-yolov5s_name="yolov5s-2021-12-12"
+yolov5s_name="yolov5s-2021-12-14"
 pt_ext="pt"
 wts_ext="wts"
 engine_ext="engine"
