@@ -593,6 +593,23 @@ def crop_number_plate_zones_from_images(images, images_points):
     return zones, image_ids
 
 
+def crop_number_plate_rect_zones_from_images(images, images_bboxs):
+    zones = []
+    image_ids = []
+    for i, (img, bboxs) in enumerate(zip(images, images_bboxs)):
+        for target_box in bboxs:
+            x, w, y, h = (
+                int(min(target_box[0], target_box[2])),
+                int(abs(target_box[2] - target_box[0])),
+                int(min(target_box[1], target_box[3])),
+                int(abs(target_box[3] - target_box[1]))
+            )
+            image_part = img[y:y + h, x:x + w]
+            zones.append(image_part)
+            image_ids.append(i)
+    return zones, image_ids
+
+
 def group_by_image_ids(image_ids, props):
     images_props = [[[] for _ in range(max(image_ids)+1)] for _ in props]
     for i, prop in enumerate(props):

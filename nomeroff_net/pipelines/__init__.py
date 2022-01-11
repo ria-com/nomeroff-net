@@ -10,9 +10,18 @@ from nomeroff_net.pipelines.number_plate_classification import NumberPlateClassi
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
 from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
 from nomeroff_net.pipelines.number_plate_detection_and_reading_runtime import NumberPlateDetectionAndReadingRuntime
+from nomeroff_net.pipelines.number_plate_short_detection_and_reading import NumberPlateShortDetectionAndReading
+from nomeroff_net.pipelines.multiline_number_plate_detection_and_reading \
+    import MultilineNumberPlateDetectionAndReadingRuntime
 
 
 SUPPORTED_TASKS = {
+    "multiline_number_plate_detection_and_reading": {
+        "impl": MultilineNumberPlateDetectionAndReadingRuntime,
+    },
+    "number_plate_short_detection_and_reading": {
+        "impl": NumberPlateShortDetectionAndReading,
+    },
     "number_plate_localization": {
         "impl": NumberPlateLocalization,
     },

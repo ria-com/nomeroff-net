@@ -233,7 +233,8 @@ def convert_multiline_to_one_line(img,
                                   all_mline_boxes,
                                   target_boxes,
                                   count_lines,
-                                  region_names, ccraft=CCraft()):
+                                  region_names,
+                                  ccraft=CCraft()):
     # convert multiline to one line
     image_parts = [img[int(box[1]):int(box[3]), int(box[0]):int(box[2])]
                    for box, cl in zip(target_boxes, count_lines)
@@ -254,4 +255,23 @@ def convert_multiline_to_one_line(img,
                                                        region_names_rect)
     for i, zone in zip(index_rect, zones_rect):
         zones[i] = zone
+    return zones
+
+
+def convert_multiline_images_to_one_line(image_ids,
+                                         images,
+                                         zones,
+                                         images_mline_boxes,
+                                         images_bboxs,
+                                         count_lines,
+                                         region_names):
+    for image_id, (image, image_mline_boxes, image_bboxs) in enumerate(zip(images, images_mline_boxes, images_bboxs)):
+        image_zones = [zone for _id, zone in zip(image_ids, zones) if _id == image_id]
+        image_count_lines = [count_line for _id, count_line in zip(image_ids, count_lines) if _id == image_id]
+        image_region_names = [region_name for _id, region_name in zip(image_ids, region_names) if _id == image_id]
+        zone_ids = [zone_id for zone_id, _id in enumerate(image_ids) if _id == image_id]
+        new_zones = convert_multiline_to_one_line(image, image_zones, image_mline_boxes,
+                                                  image_bboxs, image_count_lines, image_region_names)
+        for zone_id, new_zone in zip(zone_ids, new_zones):
+            zones[zone_id] = new_zone
     return zones

@@ -44,7 +44,6 @@ class Pipeline(object):
             raise TypeError(f"The image_loader type must by in None, BaseImageLoader, str")
         return image_loader_class()
 
-    @abstractmethod
     def sanitize_parameters(self, **pipeline_parameters):
         """
         sanitize_parameters will be called with any excessive named arguments from either `__init__` or `__call__`
@@ -54,7 +53,7 @@ class Pipeline(object):
         It is not meant to be called directly, it will be automatically called and the final parameters resolved by
         `__init__` and `__call__`
         """
-        raise NotImplementedError("sanitize_parameters not implemented")
+        return {}, {}, {}
 
     @abstractmethod
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Dict[str, Any]:
@@ -122,6 +121,7 @@ class Pipeline(object):
                         "kwargs": params
                     }
                 )
+            print(f"RUN promise_all {func} functions {len(promise_all_args)}")
             promise_outputs = promise_all(promise_all_args)
             promises_outputs.append(promise_outputs)
 
@@ -146,6 +146,26 @@ class Pipeline(object):
         model_outputs = self.forward(model_inputs, **forward_params)
         outputs = self.process_worker(self.postprocess, model_outputs, postprocess_params, num_workers)
         return outputs
+
+
+class CompositePipeline(object):
+    """
+    Runtime Pipeline
+    """
+    def __init__(self, pipelines):
+        self.pipelines = pipelines
+
+    def sanitize_parameters(self, **kwargs):
+        forward_parameters = {}
+        for key in kwargs:
+            if key == "batch_size":
+                forward_parameters["batch_size"] = kwargs["batch_size"]
+            if key == "num_workers":
+                forward_parameters["num_workers"] = kwargs["num_workers"]
+        for pipeline in self.pipelines:
+            for dict_params in pipeline.sanitize_parameters(**kwargs):
+                forward_parameters.update(dict_params)
+        return {}, forward_parameters, {}
 
 
 class RuntimePipeline(object):

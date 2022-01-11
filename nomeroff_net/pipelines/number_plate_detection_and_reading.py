@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, List
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.base import Pipeline
+from nomeroff_net.pipelines.base import Pipeline, CompositePipeline
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
 from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
@@ -9,7 +9,7 @@ from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_ima
 from nomeroff_net.tools import unzip
 
 
-class NumberPlateDetectionAndReading(Pipeline):
+class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
     """
     Number Plate Localization
     """
@@ -53,19 +53,8 @@ class NumberPlateDetectionAndReading(Pipeline):
             self.number_plate_classification,
             self.number_plate_text_reading,
         ]
-        super().__init__(task, image_loader, **kwargs)
-
-    def sanitize_parameters(self,  **kwargs):
-        forward_parameters = {}
-        for key in kwargs:
-            if key == "batch_size":
-                forward_parameters["batch_size"] = kwargs["batch_size"]
-            if key == "num_workers":
-                forward_parameters["num_workers"] = kwargs["num_workers"]
-        for pipeline in self.pipelines:
-            for dict_params in pipeline.sanitize_parameters(**kwargs):
-                forward_parameters.update(dict_params)
-        return {}, forward_parameters, {}
+        Pipeline.__init__(self, task, image_loader, **kwargs)
+        CompositePipeline.__init__(self, self.pipelines)
 
     def __call__(self, images: Any, **kwargs):
         return super().__call__(images, **kwargs)
@@ -74,6 +63,9 @@ class NumberPlateDetectionAndReading(Pipeline):
         return inputs
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
+        """
+        TODO: split into two methods so that there is no duplication of code
+        """
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
         images_points, _ = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
                                                                         **forward_parameters))

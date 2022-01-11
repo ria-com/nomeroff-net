@@ -3,7 +3,7 @@ import numpy as np
 import importlib
 
 from typing import List, Any, Tuple, Dict
-from np_multiline import default
+from nomeroff_net.np_multiline import default
 
 from nomeroff_net.tools.image_processing import (distance,
                                                  linear_line_matrix,
