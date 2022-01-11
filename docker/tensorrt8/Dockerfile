@@ -72,6 +72,7 @@ RUN python3.8 -m pip install "pillow>=8.2.0"
 RUN python3.8 -m pip install scipy
 RUN python3.8 -m pip install asyncio
 RUN python3.8 -m pip install GitPython
+RUN python3.8 -m pip install gevent
 RUN python3.8 -m pip install pycocotools
 RUN python3.8 -m pip install tqdm
 RUN python3.8 -m pip install pytorch_lightning
