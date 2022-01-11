@@ -1,45 +1,18 @@
-# Specify device
 import os
+from examples.py._paths import current_dir
+from nomeroff_net import pipeline
+from nomeroff_net.tools import unzip
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+if __name__ == '__main__':
+    number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader="opencv")
 
-# Import all necessary libraries.
-import sys
-import cv2
+    result = number_plate_detection_and_reading([
+        os.path.join(current_dir, '../images/example2.jpeg'),
+    ])
 
-# nomeroff_net path
-NOMEROFF_NET_DIR = os.path.abspath('../../')
+    (images, images_bboxs,
+     images_points, images_zones, region_ids,
+     region_names, count_lines,
+     confidences, texts) = unzip(result)
 
-sys.path.append(NOMEROFF_NET_DIR)
-
-# Import license plate recognition tools.
-from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
-detector = Detector()
-detector.load()
-
-from nomeroff_net.text_detectors.eu import eu
-from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
-from nomeroff_net.tools.image_processing import crop_image
-
-# load models
-text_detector = eu()
-text_detector.load("latest")
-
-# Detect numberplate
-img_path = '../images/example2.jpeg'
-img = cv2.imread(img_path)
-img = img[..., ::-1]
-
-target_boxes = detector.detect_bbox(img)
-
-zones = []
-region_names = []
-for target_box in target_boxes:
-    image_part, (x, w, y, h) = crop_image(img, target_box)
-    zones.append(image_part)
-    region_names.append('eu')
-
-# find text with postprocessing by standart
-text_arr = text_detector.predict(zones)
-text_arr = text_postprocessing(text_arr, region_names)
-print(text_arr)
+    print(texts)
