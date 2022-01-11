@@ -1,8 +1,6 @@
 from typing import Any, Dict, Optional, List
-from nomeroff_net.tools import unzip
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
-from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
 from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor \
     import convert_multiline_images_to_one_line
 
@@ -32,12 +30,11 @@ class MultilineNumberPlateDetectionAndReadingRuntime(NumberPlateDetectionAndRead
             default_lines_count, **kwargs)
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
-        images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
-                                                                                         **forward_parameters))
-        zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
-        (region_ids, region_names, count_lines,
-         confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
+        (region_ids, region_names,
+         count_lines, confidences, predicted,
+         zones, image_ids,
+         images_bboxs, images,
+         images_points, images_mline_boxes) = self.forward_detection_np(inputs, **forward_parameters)
         zones = convert_multiline_images_to_one_line(
             image_ids,
             images,
@@ -46,12 +43,8 @@ class MultilineNumberPlateDetectionAndReadingRuntime(NumberPlateDetectionAndRead
             images_bboxs,
             count_lines,
             region_names)
-        texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
-                                                               region_names,
-                                                               count_lines]), **forward_parameters))
-        (region_ids, region_names, count_lines, confidences, texts, zones) = \
-            group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))
-        return unzip([images, images_bboxs,
-                      images_points, zones,
-                      region_ids, region_names,
-                      count_lines, confidences, texts])
+        return self.forward_recognition_np(region_ids, region_names,
+                                           count_lines, confidences,
+                                           zones, image_ids,
+                                           images_bboxs, images,
+                                           images_points, **forward_parameters)

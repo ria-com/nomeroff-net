@@ -62,16 +62,22 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
         return inputs
 
-    def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        """
-        TODO: split into two methods so that there is no duplication of code
-        """
+    def forward_detection_np(self, inputs: Any, **forward_parameters: Dict):
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
-        images_points, _ = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
-                                                                        **forward_parameters))
+        images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
+                                                                                         **forward_parameters))
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
         (region_ids, region_names, count_lines,
          confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
+        return (region_ids, region_names, count_lines, confidences,
+                predicted, zones, image_ids, images_bboxs, images,
+                images_points, images_mline_boxes)
+
+    def forward_recognition_np(self, region_ids, region_names,
+                               count_lines, confidences,
+                               zones, image_ids,
+                               images_bboxs, images,
+                               images_points, **forward_parameters):
         texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
                                                                region_names,
                                                                count_lines]), **forward_parameters))
@@ -81,6 +87,21 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                       images_points, zones,
                       region_ids, region_names,
                       count_lines, confidences, texts])
+
+    def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
+        """
+        TODO: split into two methods so that there is no duplication of code
+        """
+        (region_ids, region_names,
+         count_lines, confidences, predicted,
+         zones, image_ids,
+         images_bboxs, images,
+         images_points, images_mline_boxes) = self.forward_detection_np(inputs, **forward_parameters)
+        return self.forward_recognition_np(region_ids, region_names,
+                                           count_lines, confidences,
+                                           zones, image_ids,
+                                           images_bboxs, images,
+                                           images_points, **forward_parameters)
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs

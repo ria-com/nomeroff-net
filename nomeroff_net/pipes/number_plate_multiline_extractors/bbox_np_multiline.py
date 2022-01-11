@@ -138,7 +138,7 @@ class MultilineConverter:
             mod = multiline_plugins[region_name]
         else:
             try:
-                module = 'np_multiline.%s' % region_name
+                module = 'nomeroff_net.np_multiline.%s' % region_name
                 mod = importlib.import_module(module)
             except ModuleNotFoundError:
                 print('Module {} is absent!'.format(region_name))
