@@ -635,7 +635,7 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         if quality_profile is None:
-            quality_profile = [1, 0, 0, 0]
+            quality_profile = [3, 1, 0, 0]
         all_points = []
         all_mline_boxes = []
         for target_box in target_boxes:
