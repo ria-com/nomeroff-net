@@ -76,7 +76,7 @@ RUN python3.8 -m pip install pycocotools
 RUN python3.8 -m pip install tqdm
 RUN python3.8 -m pip install pytorch_lightning
 RUN python3.8 -m pip install ipywidgets
-RUN python3.8 -m pip install -U "git+git://github.com/lilohuang/PyTurboJPEG.git"
+RUN python3.8 -m pip install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
 RUN python3.8 -m pip install -U "git+https://github.com/ria-com/modelhub-client.git"
 
 #RUN python3.8 -m pip install jupyter

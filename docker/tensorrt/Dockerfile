@@ -72,7 +72,7 @@ RUN pip3 install pycocotools
 RUN pip3 install tqdm
 RUN pip3 install pytorch_lightning
 RUN pip3 install ipywidgets
-RUN pip3 install -U "git+git://github.com/lilohuang/PyTurboJPEG.git"
+RUN pip3 install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
 RUN pip3 install -U "git+https://github.com/ria-com/modelhub-client.git"
 
 WORKDIR /var/www/nomeroff-net

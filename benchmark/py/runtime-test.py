@@ -17,7 +17,7 @@ NOMEROFF_NET_DIR = os.path.abspath('../../')
 sys.path.append(NOMEROFF_NET_DIR)
 
 # for best speed install PyTurboJPEG
-# pip3 install -U git+git://github.com/lilohuang/PyTurboJPEG.git
+# pip3 install -U git+https://github.com/lilohuang/PyTurboJPEG.git
 
 from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 
