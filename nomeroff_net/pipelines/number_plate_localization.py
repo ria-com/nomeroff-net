@@ -1,5 +1,5 @@
 from torch import no_grad
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
@@ -13,7 +13,7 @@ class NumberPlateLocalization(Pipeline):
 
     def __init__(self,
                  task,
-                 image_loader: Optional[BaseImageLoader],
+                 image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model="latest",
                  **kwargs):
         super().__init__(task, image_loader, **kwargs)

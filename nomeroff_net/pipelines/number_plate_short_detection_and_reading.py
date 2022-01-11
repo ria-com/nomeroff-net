@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
@@ -14,7 +14,7 @@ class NumberPlateShortDetectionAndReading(Pipeline, CompositePipeline):
 
     def __init__(self,
                  task,
-                 image_loader: Optional[BaseImageLoader],
+                 image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model: str = "latest",
                  text_reader_name: str = "eu",
                  text_reader_path: str = "latest",

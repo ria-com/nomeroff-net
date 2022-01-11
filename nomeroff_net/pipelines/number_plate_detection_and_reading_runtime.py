@@ -1,4 +1,4 @@
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
 from nomeroff_net.pipelines.base import RuntimePipeline
@@ -11,7 +11,7 @@ class NumberPlateDetectionAndReadingRuntime(NumberPlateDetectionAndReading, Runt
 
     def __init__(self,
                  task,
-                 image_loader: Optional[BaseImageLoader],
+                 image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model: str = "latest",
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",

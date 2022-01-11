@@ -1,6 +1,6 @@
 import time
 from abc import abstractmethod
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Union
 from collections import Counter
 from nomeroff_net.tools import promise_all
 from nomeroff_net.tools import chunked_iterable
@@ -22,7 +22,7 @@ class Pipeline(object):
     def __init__(
         self,
         task: str = "",
-        image_loader: BaseImageLoader or str = None,
+        image_loader: Optional[Union[str, BaseImageLoader]] = None,
         **kwargs,
     ):
         self.task = task

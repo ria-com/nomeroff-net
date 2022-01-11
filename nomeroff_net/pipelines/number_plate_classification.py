@@ -1,6 +1,5 @@
-import torch
 from torch import no_grad
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
@@ -9,17 +8,18 @@ from nomeroff_net.tools import unzip
 
 class NumberPlateClassification(Pipeline):
     """
-    Number Plate Localization
+    Number Plate Classification Pipeline
     """
 
     def __init__(self,
                  task,
-                 image_loader: Optional[BaseImageLoader],
+                 image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model="latest",
                  options=None,
+                 class_detector=OptionsDetector,
                  **kwargs):
         super().__init__(task, image_loader, **kwargs)
-        self.detector = OptionsDetector(options=options)
+        self.detector = class_detector(options=options)
         self.detector.load(path_to_model, options=options)
 
     def sanitize_parameters(self, **kwargs):

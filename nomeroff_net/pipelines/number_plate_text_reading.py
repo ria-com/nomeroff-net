@@ -1,5 +1,5 @@
 from torch import no_grad
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
@@ -52,20 +52,21 @@ DEFAULT_PRISETS = {
 
 class NumberPlateTextReading(Pipeline):
     """
-    Number Plate Localization
+    Number Plate Text Reading Pipeline
     """
 
     def __init__(self,
                  task,
-                 image_loader: Optional[BaseImageLoader],
+                 image_loader: Optional[Union[str, BaseImageLoader]],
                  prisets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
+                 class_detector=TextDetector,
                  **kwargs):
         if prisets is None:
             prisets = DEFAULT_PRISETS
         super().__init__(task, image_loader, **kwargs)
-        self.detector = TextDetector(prisets, default_label, default_lines_count)
+        self.detector = class_detector(prisets, default_label, default_lines_count)
 
     def sanitize_parameters(self, **kwargs):
         return {}, {}, {}

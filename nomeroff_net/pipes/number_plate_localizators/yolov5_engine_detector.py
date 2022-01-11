@@ -122,7 +122,20 @@ class YoLov5TRT(object):
         self.bindings = bindings
         self.batch_size = engine.max_batch_size
 
-    def infer(self, raw_image_generator):
+    def prepare_batch_input_image(self, raw_image_generator):
+        batch_origin_h = []
+        batch_origin_w = []
+        batch_image_raw = []
+        batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
+        for i, image_raw in enumerate(raw_image_generator):
+            input_image, image_raw, origin_h, origin_w = self.preprocess_image(image_raw)
+            batch_image_raw.append(image_raw)
+            batch_origin_h.append(origin_h)
+            batch_origin_w.append(origin_w)
+            np.copyto(batch_input_image[i], input_image)
+        return batch_input_image
+
+    def infer(self, batch_input_image):
         threading.Thread.__init__(self)
 
         # Make self the active context, pushing it on top of the context stack.
@@ -137,18 +150,6 @@ class YoLov5TRT(object):
         cuda_outputs = self.cuda_outputs
         bindings = self.bindings
 
-        # Do image preprocess
-        batch_image_raw = []
-        batch_origin_h = []
-        batch_origin_w = []
-
-        batch_input_image = np.empty(shape=[self.batch_size, 3, self.input_h, self.input_w])
-        for i, image_raw in enumerate(raw_image_generator):
-            input_image, image_raw, origin_h, origin_w = self.preprocess_image(image_raw)
-            batch_image_raw.append(image_raw)
-            batch_origin_h.append(origin_h)
-            batch_origin_w.append(origin_w)
-            np.copyto(batch_input_image[i], input_image)
         batch_input_image = np.ascontiguousarray(batch_input_image)
 
         # Copy input image to host buffer
@@ -366,9 +367,16 @@ class Detector(object):
             path_to_model = model_info["path"]
         self.load_model(path_to_model)
 
-    def detect_bbox(self, img: np.ndarray, min_accuracy: float = 0.5) -> List:
-        res = self.yolov5_wrapper.infer(img)
-        if len(res):
-            return [[x1, y1, x2, y2, acc, b] for x1, y1, x2, y2, acc, b in res[0] if acc > min_accuracy]
-        else:
-            return []
+    def detect_bbox(self, imgs: np.ndarray, min_accuracy: float = 0.5) -> List:
+        batch_input_image = self.yolov5_wrapper.prepare_batch_input_image(imgs)
+        detected_images_bboxs = self.yolov5_wrapper.infer(batch_input_image)
+        return self.postprocessing(detected_images_bboxs, min_accuracy)
+
+    @staticmethod
+    def postprocessing(detected_images_bboxs, min_accuracy: float = 0.5) -> List:
+        pretty_detected_image_bboxs = []
+        for detected_image_bboxs in detected_images_bboxs:
+            pretty_detected_image_bboxs.append([[x1, y1, x2, y2, acc, b]
+                                                for x1, y1, x2, y2, acc, b in detected_image_bboxs
+                                                if acc > min_accuracy])
+        return pretty_detected_image_bboxs
