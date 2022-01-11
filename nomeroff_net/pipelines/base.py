@@ -1,4 +1,10 @@
+import os
 import time
+import ujson
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from termcolor import colored
 from abc import abstractmethod
 from typing import Any, Dict, Optional, Union
 from collections import Counter
@@ -7,7 +13,94 @@ from nomeroff_net.tools import chunked_iterable
 from nomeroff_net.image_loaders import BaseImageLoader, DumpyImageLoader, image_loaders_map
 
 
-class Pipeline(object):
+class AccuracyTestPipeline(object):
+    """
+    Accuracy Test Pipeline
+    """
+    @staticmethod
+    def text_accuracy_test(true_images_texts, predicted_images_texts,
+                           img_paths, images, images_bboxs,
+                           images_points, images_zones,
+                           region_ids, region_names,
+                           count_lines, confidences,
+                           matplotlib_show=False):
+        n_good = 0
+        n_bad = 0
+        for predicted_image_texts, \
+            true_image_texts, \
+            image, image_bboxs, \
+            image_points, image_zones, \
+            image_region_ids, image_region_names, \
+            image_count_lines, image_confidences, \
+            img_path in zip(predicted_images_texts,
+                            true_images_texts,
+                            images, images_bboxs,
+                            images_points, images_zones,
+                            region_ids, region_names,
+                            count_lines, confidences,
+                            img_paths):
+            for true_image_text in true_image_texts:
+                if true_image_text in predicted_image_texts:
+                    print(colored(f"OK: TEXT:{true_image_text} \t\t\t RESULTS:{predicted_image_texts} "
+                                  f"\n\t\t\t\t\t in PATH:{img_path}", 'green'))
+                    n_good += 1
+                else:
+                    print(colored(f"NOT OK: TEXT:{true_image_text} \t\t\t RESULTS:{predicted_image_texts} "
+                                  f"\n\t\t\t\t\t in PATH:{img_path} ", 'red'))
+                    n_bad += 1
+                print("[INFO] images_bboxs", image_bboxs)
+                print("[INFO] image_points", image_points)
+
+                if matplotlib_show:
+                    image = image.astype(np.uint8)
+                    for cntr in image_points:
+                        cntr = np.array(cntr, dtype=np.int32)
+                        cv2.drawContours(image, [cntr], -1, (0, 0, 255), 2)
+                    for target_box in image_bboxs:
+                        cv2.rectangle(image,
+                                      (int(target_box[0]), int(target_box[1])),
+                                      (int(target_box[2]), int(target_box[3])),
+                                      (0, 255, 0),
+                                      1)
+                    plt.imshow(image)
+                    plt.show()
+
+                print("[INFO] image_region_ids", image_region_ids)
+                print("[INFO] image_region_names", image_region_names)
+                print("[INFO] image_count_lines", image_count_lines)
+                print("[INFO] image_confidences", image_confidences)
+                if matplotlib_show:
+                    for zone in image_zones:
+                        plt.imshow(zone)
+                        plt.show()
+        total = n_good + n_bad
+        print(f"TOTAL GOOD: {n_good / total}")
+        print(f"TOTAL BED: {n_bad / total}")
+
+    def text_accuracy_test_from_file(self, accuracy_test_data_file, predicted_images_texts,
+                                     img_paths, images, images_bboxs,
+                                     images_points, images_zones,
+                                     region_ids, region_names,
+                                     count_lines, confidences,
+                                     matplotlib_show=False):
+        with open(accuracy_test_data_file) as f:
+            accuracy_test_data = ujson.load(f)
+        true_images_texts = []
+        for image_path in img_paths:
+            key = os.path.basename(image_path)
+            if key in accuracy_test_data:
+                true_images_texts.append(accuracy_test_data[key])
+            else:
+                true_images_texts.append([])
+        self.text_accuracy_test(true_images_texts, predicted_images_texts,
+                                img_paths, images, images_bboxs,
+                                images_points, images_zones,
+                                region_ids, region_names,
+                                count_lines, confidences,
+                                matplotlib_show=matplotlib_show)
+
+
+class Pipeline(AccuracyTestPipeline):
     """
     The Pipeline class is the class from which all pipelines inherit. Refer to this class for methods shared across
     different pipelines.

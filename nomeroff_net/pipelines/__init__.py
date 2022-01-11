@@ -11,13 +11,17 @@ from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextRead
 from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
 from nomeroff_net.pipelines.number_plate_detection_and_reading_runtime import NumberPlateDetectionAndReadingRuntime
 from nomeroff_net.pipelines.number_plate_short_detection_and_reading import NumberPlateShortDetectionAndReading
-from nomeroff_net.pipelines.multiline_number_plate_detection_and_reading \
+from nomeroff_net.pipelines.multiline_number_plate_detection_and_reading import MultilineNumberPlateDetectionAndReading
+from nomeroff_net.pipelines.multiline_number_plate_detection_and_reading_runtime \
     import MultilineNumberPlateDetectionAndReadingRuntime
 
 
 SUPPORTED_TASKS = {
-    "multiline_number_plate_detection_and_reading": {
+    "multiline_number_plate_detection_and_reading_runtime": {
         "impl": MultilineNumberPlateDetectionAndReadingRuntime,
+    },
+    "multiline_number_plate_detection_and_reading": {
+        "impl": MultilineNumberPlateDetectionAndReading,
     },
     "number_plate_short_detection_and_reading": {
         "impl": NumberPlateShortDetectionAndReading,

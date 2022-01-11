@@ -75,6 +75,8 @@ RUN python3.8 -m pip install GitPython
 RUN python3.8 -m pip install gevent
 RUN python3.8 -m pip install pycocotools
 RUN python3.8 -m pip install tqdm
+RUN python3.8 -m pip install termcolor
+RUN python3.8 -m pip install ujson
 RUN python3.8 -m pip install pytorch_lightning
 RUN python3.8 -m pip install ipywidgets
 RUN python3.8 -m pip install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"

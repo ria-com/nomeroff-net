@@ -7,6 +7,7 @@ scikit_image
 asyncio
 gitpython
 pycocotools
+ujson
 pillow==8.0.1
 tqdm
 matplotlib
@@ -20,3 +21,4 @@ git+https://github.com/ria-com/modelhub-client.git
 pytorch_lightning
 ipywidgets
 gevent
+termcolor

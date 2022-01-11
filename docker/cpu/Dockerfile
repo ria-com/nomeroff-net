@@ -29,6 +29,8 @@ RUN pip3 install pillow
 RUN pip3 install scipy
 RUN pip3 install gevent
 RUN pip3 install asyncio
+RUN pip3 install termcolor
+RUN pip3 install ujson
 RUN pip3 install GitPython
 RUN pip3 install pycocotools
 RUN pip3 install tqdm

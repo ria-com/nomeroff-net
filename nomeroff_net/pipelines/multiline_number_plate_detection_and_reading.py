@@ -5,7 +5,7 @@ from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor
     import convert_multiline_images_to_one_line
 
 
-class MultilineNumberPlateDetectionAndReadingRuntime(NumberPlateDetectionAndReading):
+class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
     """
     Number Plate Detection and reading runtime
     """
