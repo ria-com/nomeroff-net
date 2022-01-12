@@ -273,9 +273,9 @@ class RuntimePipeline(object):
         self.time_stat = Counter()
         self.count_stat = Counter()
 
-        self.run_single = self.timeit(self.__class__.__name__)(self.run_single)
+        self.call = self.timeit(self.__class__.__name__)(self.call)
         for pipeline in self.pipelines:
-            pipeline.run_single = self.timeit(pipeline.__class__.__name__)(pipeline.run_single)
+            pipeline.call = self.timeit(pipeline.__class__.__name__)(pipeline.call)
 
     def timeit(self, tag):
         def wrapper(method):
@@ -293,8 +293,8 @@ class RuntimePipeline(object):
         self.time_stat = Counter()
         self.count_stat = Counter()
 
-    def get_timer_stat(self, batch=1):
+    def get_timer_stat(self, count_processed_images):
         timer_stat = {}
         for key in self.count_stat:
-            timer_stat[key] = (self.time_stat[key] / (self.count_stat[key] or 1)) / batch
+            timer_stat[key] = self.time_stat[key] / count_processed_images
         return timer_stat
