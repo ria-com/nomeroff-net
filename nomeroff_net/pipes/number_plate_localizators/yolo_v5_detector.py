@@ -76,7 +76,6 @@ class Detector(object):
                        min_accuracy: float = 0.5):
         res = []
         for pred, img, orig_img_shape in zip(preds, imgs, orig_img_shapes):
-            pred = pred[0]
             pred = non_max_suppression(pred)
             predicted_coords = self.scale_predicted_coords(img, pred, orig_img_shape)
             if len(predicted_coords):
@@ -105,10 +104,7 @@ class Detector(object):
                img_size: int = 640,
                stride: int = 32,
                min_accuracy: float = 0.5) -> List:
-        """
-        TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
-        """
         orig_img_shapes = [img.shape for img in imgs]
         input_tensors = self.normalize_imgs(imgs, img_size, stride)
-        preds = self.model([input_tensors])
+        preds = self.model(torch.cat(input_tensors, dim=0))
         return self.postprocessing(preds, imgs, orig_img_shapes, min_accuracy)

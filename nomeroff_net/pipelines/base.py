@@ -214,7 +214,7 @@ class Pipeline(AccuracyTestPipeline):
                         "kwargs": params
                     }
                 )
-            print(f"RUN promise_all {func} functions {len(promise_all_args)}")
+            # print(f"RUN promise_all {func} functions {len(promise_all_args)}")
             promise_outputs = promise_all(promise_all_args)
             promises_outputs.append(promise_outputs)
 

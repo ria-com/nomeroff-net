@@ -1,3 +1,4 @@
+import torch
 from torch import no_grad
 from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
@@ -42,7 +43,7 @@ class NumberPlateLocalization(Pipeline):
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         model_inputs, images = unzip(inputs)
-        model_outputs = [self.detector.model(item) for item in model_inputs]
+        model_outputs = self.detector.model(torch.cat(model_inputs, dim=0))
         return unzip([model_outputs, model_inputs, images])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
