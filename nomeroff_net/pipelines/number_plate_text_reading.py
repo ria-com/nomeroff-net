@@ -16,7 +16,7 @@ DEFAULT_PRISETS = {
         "model_path": "latest"
     },
     "eu": {
-        "for_regions": ["eu"],
+        "for_regions": ["eu", "xx_transit"],
         "model_path": "latest"
     },
     "ru": {
