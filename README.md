@@ -1,15 +1,14 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 2.5
+Nomeroff Net. Automatic numberplate recognition system. Version 3.0
 
 ## Introduction
 Nomeroff Net is an opensource python license plate 
 recognition framework based on YOLOv5 and CRAFT 
 networks and customized OCR-module powered by RNN architecture.
 
-The project is now at the stage of development, write to us if you are interested in helping us in the formation of a dataset for your country.
+Write to us if you are interested in helping us in the formation of a dataset for your country.
 
-Version 2.4 is completely rewritten to PyTorch.
 [Change History](https://github.com/ria-com/nomeroff-net/blob/master/History.md).
 
 ## Installation
