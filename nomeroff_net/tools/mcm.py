@@ -3,22 +3,6 @@ import os
 from modelhub_client import ModelHub
 
 models = {
-    "numberplate_orientation": {
-        "application": "OrientationDetector",
-        "url": "https://nomeroff.net.ua"
-               "/models/orientation/torch/numberplate_orientations_2021_07_12_pytorch_lightning.ckpt",
-        "orientations": ["0°", "90°", "180°", "270°"],
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateDataset-2021-05-12.zip",
-    },
-    "numberplate_orientations": {
-        "application": "InverseDetector",
-        "url": "https://nomeroff.net.ua/models/inverse/torch/numberplate_inverse_2021_09_12_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOrientationDataset-2021-09-12.zip",
-        "orientations": [
-            "0",
-            "180"
-        ],
-    },
     "numberplate_options": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_12_16_pytorch_lightning.ckpt",
