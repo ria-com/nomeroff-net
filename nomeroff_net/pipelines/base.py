@@ -146,7 +146,7 @@ class Pipeline(AccuracyTestPipeline):
         It is not meant to be called directly, it will be automatically called and the final parameters resolved by
         `__init__` and `__call__`
         """
-        return {}, {}, {}
+        return pipeline_parameters, pipeline_parameters, pipeline_parameters
 
     @abstractmethod
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Dict[str, Any]:

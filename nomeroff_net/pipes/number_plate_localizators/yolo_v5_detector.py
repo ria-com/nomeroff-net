@@ -57,7 +57,10 @@ class Detector(object):
         return res
 
     def normalize_img(self, img, img_size, stride):
-        img = letterbox(img, img_size, stride=stride)[0]
+        """
+        TODO: auto=False if pipeline batch size > 1
+        """
+        img = letterbox(img, img_size, stride=stride, auto=False)[0]
         img = img.transpose(2, 0, 1)  # to 3x416x416
         img = np.ascontiguousarray(img)
         img = torch.from_numpy(img).to(self.device)
@@ -66,7 +69,7 @@ class Detector(object):
         img = img.unsqueeze(0)
         return img
 
-    def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = 640, stride: int = 32):
+    def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = (640, 640), stride: int = 32):
         return [self.normalize_img(img, img_size, stride) for img in imgs]
 
     def postprocessing(self,

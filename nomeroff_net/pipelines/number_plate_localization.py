@@ -43,7 +43,10 @@ class NumberPlateLocalization(Pipeline):
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         model_inputs, images = unzip(inputs)
-        model_outputs = self.detector.model(torch.cat(model_inputs, dim=0))
+        x = torch.cat(model_inputs, dim=0)
+        model_outputs = self.detector.model(x)[0]
+        shape = model_outputs.shape
+        model_outputs = model_outputs.reshape((shape[0], 1, shape[1], shape[2]))
         return unzip([model_outputs, model_inputs, images])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
