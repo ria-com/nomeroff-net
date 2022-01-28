@@ -103,7 +103,7 @@ from NomeroffNet import textPostprocessing
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-textDetector = eu
+textDetector = eu()
 textDetector.load("latest")
 
 # Detect numberplate
@@ -153,7 +153,7 @@ detector.load()
 from NomeroffNet.TextDetectors.eu import eu
 from NomeroffNet import textPostprocessing
 
-textDetector = eu
+textDetector = eu()
 textDetector.load("latest")
 
 # Detect numberplate
