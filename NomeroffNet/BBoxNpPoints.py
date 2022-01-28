@@ -6,7 +6,8 @@ import collections
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from tools.mcm import (modelhub,
-                        get_mode_torch)
+                       get_mode_torch)
+
 info = modelhub.download_repo_for_model("craft_mlt")
 CRAFT_DIR = info["repo_path"]
 
@@ -19,7 +20,6 @@ from torch.autograd import Variable
 
 import cv2
 import numpy as np
-
 
 # load CRAFT packages
 from craft_mlt import imgproc
@@ -57,11 +57,75 @@ def copyStateDict(state_dict: Dict) -> OrderedDict:
     return new_state_dict
 
 
+def get_det_boxes(textmap, linkmap, text_threshold, link_threshold, low_text):
+    # prepare data
+    linkmap = linkmap.copy()
+    textmap = textmap.copy()
+    img_h, img_w = textmap.shape
+
+    """ labeling method """
+    ret, text_score = cv2.threshold(textmap, low_text, 1, 0)
+    ret, link_score = cv2.threshold(linkmap, link_threshold, 1, 0)
+
+    text_score_comb = np.clip(text_score + link_score, 0, 1)
+    nLabels, labels, stats, centroids = cv2.connectedComponentsWithStats(text_score_comb.astype(np.uint8),
+                                                                         connectivity=4)
+
+    det = []
+    mapper = []
+    for k in range(1, nLabels):
+        # size filtering
+        size = stats[k, cv2.CC_STAT_AREA]
+        if size < 10: continue
+
+        # thresholding
+        if np.max(textmap[labels == k]) < text_threshold: continue
+
+        # make segmentation map
+        segmap = np.zeros(textmap.shape, dtype=np.uint8)
+        segmap[labels == k] = 255
+        segmap[np.logical_and(link_score == 1, text_score == 0)] = 0  # remove link area
+        x, y = stats[k, cv2.CC_STAT_LEFT], stats[k, cv2.CC_STAT_TOP]
+        w, h = stats[k, cv2.CC_STAT_WIDTH], stats[k, cv2.CC_STAT_HEIGHT]
+        niter = int(math.sqrt(size * min(w, h) / (w * h)) * 2)
+        sx, ex, sy, ey = x - niter, x + w + niter + 1, y - niter, y + h + niter + 1
+        # boundary check
+        if sx < 0: sx = 0
+        if sy < 0: sy = 0
+        if ex >= img_w: ex = img_w
+        if ey >= img_h: ey = img_h
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1 + niter, 1 + niter))
+        segmap[sy:ey, sx:ex] = cv2.dilate(segmap[sy:ey, sx:ex], kernel)
+
+        # make box
+        np_contours = np.roll(np.array(np.where(segmap != 0)), 1, axis=0).transpose().reshape(-1, 2)
+        rectangle = cv2.minAreaRect(np_contours)
+        box = cv2.boxPoints(rectangle)
+
+        # align diamond-shape
+        w, h = np.linalg.norm(box[0] - box[1]), np.linalg.norm(box[1] - box[2])
+        box_ratio = max(w, h) / (min(w, h) + 1e-5)
+        if abs(1 - box_ratio) <= 0.1:
+            l, r = min(np_contours[:, 0]), max(np_contours[:, 0])
+            t, b = min(np_contours[:, 1]), max(np_contours[:, 1])
+            box = np.array([[l, t], [r, t], [r, b], [l, b]], dtype=np.float32)
+
+        # make clock-wise order
+        startidx = box.sum(axis=1).argmin()
+        box = np.roll(box, 4 - startidx, 0)
+        box = np.array(box)
+
+        det.append(box)
+        mapper.append(k)
+
+    return det
+
+
 @torch.no_grad()
 def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
              link_threshold: float, low_text: float, cuda: bool,
              poly: bool, canvas_size: int, refine_net: RefineNet = None,
-             mag_ratio: float = 1.5) -> Tuple[Any, Any, Any]:
+             mag_ratio: float = 1.5) -> Tuple[Any, Any]:
     """
     TODO: describe function
     """
@@ -93,20 +157,16 @@ def test_net(net: CRAFT, image: np.ndarray, text_threshold: float,
         score_link = y_refiner[0, :, :, 0].cpu().data.numpy()
 
     # Post-processing
-    boxes, polys = craft_utils.getDetBoxes(score_text, score_link, text_threshold, link_threshold, low_text, poly)
+    boxes = get_det_boxes(score_text, score_link, text_threshold, link_threshold, low_text)
 
     # coordinate adjustment
     boxes = craft_utils.adjustResultCoordinates(boxes, ratio_w, ratio_h)
-    polys = craft_utils.adjustResultCoordinates(polys, ratio_w, ratio_h)
-    for k in range(len(polys)):
-        if polys[k] is None:
-            polys[k] = boxes[k]
 
     # render results (optional)
     render_img = score_text.copy()
     render_img = np.hstack((render_img, score_link))
     ret_score_text = imgproc.cvt2HeatmapImg(render_img)
-    return boxes, polys, ret_score_text
+    return boxes, ret_score_text
 
 
 def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
@@ -276,12 +336,12 @@ def normalizeRect(rect: List) -> np.ndarray or List:
     angle_ccw = round(coef_ccw[2], 2)
     d_bottom = distance(rect[0], rect[3])
     d_left = distance(rect[0], rect[1])
-    k = d_bottom/d_left
+    k = d_bottom / d_left
     if round(rect[0][0], 4) == round(rect[1][0], 4):
         pass
     else:
         if d_bottom < d_left:
-            k = d_left/d_bottom
+            k = d_left / d_bottom
             if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
                 rect = reshapePoints(rect, 3)
         else:
@@ -297,13 +357,8 @@ def prepareImageText(img: np.ndarray) -> np.ndarray:
     """
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    img_min = np.amin(gray_image)
-    gray_image -= img_min
-    img_max = np.amax(img)
-    k = 255 / img_max
-    gray_image = gray_image.astype(np.float64)
-    gray_image *= k
-    gray_image = gray_image.astype(np.uint8)
+    gray_image = cv2.normalize(gray_image, None, alpha=0, beta=255,
+                               norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
     (thresh, blackAndWhiteImage) = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
     return blackAndWhiteImage
@@ -390,11 +445,11 @@ def makeRectVariants(propably_points: List, quality_profile: List = None) -> Lis
         dd = math.sqrt(dx ** 2 + dy ** 2)
         steps_all = int(d_max / dd)
 
-        step = int((steps_all*2)/steps)
+        step = int((steps_all * 2) / steps)
         if step < 1:
             step = 1
-        steps_minus = steps_all+steps_minus*step
-        steps_plus = steps_all+steps_plus*step
+        steps_minus = steps_all + steps_minus * step
+        steps_plus = steps_all + steps_plus * step
 
     points_arr = []
     for i in range(-steps_minus, steps + steps_plus + 1, step):
@@ -422,8 +477,8 @@ class NpPointsCraft(object):
                  low_text=0.4,
                  link_threshold=0.7,  # 0.4
                  text_threshold=0.6,
-                 canvas_size=1280,
-                 mag_ratio=1.5
+                 canvas_size=300,
+                 mag_ratio=1.0
                  ):
         self.low_text = low_text
         self.link_threshold = link_threshold
@@ -553,7 +608,7 @@ class NpPointsCraft(object):
             h = int(abs(targetBox[3] - targetBox[1]))
 
             image_part = image[y:y + h, x:x + w]
-            if h/w > 3.5:
+            if h / w > 3.5:
                 image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
             # image_part = normalize_color(image_part)
             local_propably_points, mline_boxes = self.detectInBbox(image_part)
@@ -592,29 +647,15 @@ class NpPointsCraft(object):
         canvas_size = craft_params.get('canvas_size', self.canvas_size)
         mag_ratio = craft_params.get('mag_ratio', self.mag_ratio)
 
-        t = time.time()
-        bboxes, polys, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
-                                             self.is_cuda, self.is_poly, canvas_size, self.refine_net, mag_ratio)
-        if debug:
-            print("elapsed time : {}s".format(time.time() - t))
+        bboxes, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
+                                      self.is_cuda, self.is_poly, canvas_size, self.refine_net, mag_ratio)
         dimensions = []
         for poly in bboxes:
             dimensions.append({'dx': distance(poly[0], poly[1]), 'dy': distance(poly[1], poly[2])})
 
-        if debug:
-            print(score_text.shape)
-            # print(polys)
-            print(dimensions)
-            print(bboxes)
-
         np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
 
         target_points = []
-        if debug:
-            print('np_bboxes_idx')
-            print(np_bboxes_idx)
-            print('garbage_bboxes_idx')
-            print(garbage_bboxes_idx)
 
         if len(np_bboxes_idx) == 1:
             target_points = bboxes[np_bboxes_idx[0]]
@@ -624,9 +665,6 @@ class NpPointsCraft(object):
 
         if len(np_bboxes_idx) > 0:
             target_points = normalizeRect(target_points)
-            if debug:
-                print("[INFO] target_points", target_points)
-                print('[INFO] image.shape', image.shape)
             target_points = addoptRectToBbox(target_points, image.shape, 7, 12, 0, 12)
         return target_points, [bboxes[i] for i in np_bboxes_idx]
 
@@ -643,8 +681,8 @@ class NpPointsCraft(object):
         mag_ratio = craft_params.get('mag_ratio', self.mag_ratio)
 
         t = time.time()
-        bboxes, polys, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
-                                             self.is_cuda, self.is_poly, canvas_size, self.refine_net, mag_ratio)
+        bboxes, score_text = test_net(self.net, image, text_threshold, link_threshold, low_text,
+                                      self.is_cuda, self.is_poly, canvas_size, self.refine_net, mag_ratio)
         if debug:
             print("elapsed time : {}s".format(time.time() - t))
 

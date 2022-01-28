@@ -103,13 +103,13 @@ from NomeroffNet import textPostprocessing
 optionsDetector = OptionsDetector()
 optionsDetector.load("latest")
 
-textDetector = eu
+textDetector = eu()
 textDetector.load("latest")
 
 # Detect numberplate
 img_path = 'images/example2.jpeg'
 img = cv2.imread(img_path)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = img[..., ::-1]
 
 targetBoxes = detector.detect_bbox(img)
 all_points = npPointsCraft.detect(img, targetBoxes,[5,2,0])
@@ -153,13 +153,13 @@ detector.load()
 from NomeroffNet.TextDetectors.eu import eu
 from NomeroffNet import textPostprocessing
 
-textDetector = eu
+textDetector = eu()
 textDetector.load("latest")
 
 # Detect numberplate
 img_path = 'images/example2.jpeg'
 img = cv2.imread(img_path)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = img[..., ::-1]
 
 targetBoxes = detector.detect_bbox(img)
 

@@ -52,8 +52,7 @@ class CustomOptionsMaker:
         self.dirpath = dirpath
 
         self.items_per_class = items_per_class
-        self.rebalance_suffix = rebalance_suffix
-        self.dirpath_custom_rebalance = '{}-{}'.format(self.dirpath_custom, self.rebalance_suffix)
+        self.dirpath_custom_rebalance = '{}-{}'.format(self.dirpath_custom, rebalance_suffix)
 
         if dataset_count_line_classes is not None:
             _, self.count_line_converter_all_idx = self.make_convertor(dataset_count_line_classes)
@@ -128,8 +127,6 @@ class CustomOptionsMaker:
         _ = self.calc_labels_stat(ann_dir)
         cnt = 0
         filtered_cnt = 0
-        # print('self.state_ids')
-        # print(self.state_ids)
         for dirName, subdirList, fileList in os.walk(ann_dir):
             for fname in fileList:
                 fname = os.path.join(ann_dir, fname)
@@ -144,11 +141,6 @@ class CustomOptionsMaker:
 
     def filter_by_state_id(self, json_data):
         if len(self.state_ids):
-            # if json_data["name"] == '260595195':
-            #     print('"state_id" in json_data')
-            #     print("state_id" in json_data)
-            #     print('int(json_data["state_id"]) in self.state_ids')
-            #     print(int(json_data["state_id"]) in self.state_ids)
             return "state_id" in json_data and int(json_data["state_id"]) in self.state_ids
         else:
             return True
@@ -210,6 +202,19 @@ class CustomOptionsMaker:
                 options_stats[json_data["region_id"]][fname] = json_data
         return options_stats
 
+    def get_count_lines_stats(self, custom_options_dir):
+        ann_dir = os.path.join(self.dirpath_custom, custom_options_dir,self.custom_options_sub_dirs[0])
+        options_stats = {}
+        for dirName, subdirList, fileList in os.walk(ann_dir):
+            for fname in fileList:
+                fname_full = os.path.join(ann_dir, fname)
+                with open(fname_full) as jsonF:
+                    json_data = json.load(jsonF)
+                if not (str(json_data["count_lines"]) in options_stats):
+                    options_stats[str(json_data["count_lines"])] = {}
+                options_stats[str(json_data["count_lines"])][fname] = json_data
+        return options_stats
+
     def duplicate_class_items(self, options_stat: List, idx: int, custom_options_dir: str, with_aug: bool = False):
         dirpath_custom_options_dir = os.path.join(self.dirpath_custom, custom_options_dir)
         dirpath_custom_options_dir_ann = os.path.join(dirpath_custom_options_dir, self.custom_options_sub_dirs[0])
@@ -241,7 +246,11 @@ class CustomOptionsMaker:
                 copyfile(img_file_from, img_file_to)
         return 1
 
-    def move_unused_items_to_rebalance_dir(self, rebalance_options_stats: List, region_id: int, selected_items: List, custom_options_dir: str):
+    def move_unused_items_to_rebalance_dir(self, 
+                                           rebalance_options_stats: List, 
+                                           region_id: int, 
+                                           selected_items: List, 
+                                           custom_options_dir: str):
         options_stat = rebalance_options_stats[region_id]
         dirpath_custom_options_dir = os.path.join(self.dirpath_custom, custom_options_dir)
         dirpath_custom_options_dir_ann = os.path.join(dirpath_custom_options_dir, self.custom_options_sub_dirs[0])
@@ -250,26 +259,19 @@ class CustomOptionsMaker:
         dirpath_custom_rebalance_options_ann = os.path.join(dirpath_custom_rebalance_options_dir, self.custom_options_sub_dirs[0])
         dirpath_custom_rebalance_options_img = os.path.join(dirpath_custom_rebalance_options_dir, self.custom_options_sub_dirs[1])
 
-        # with open('/tmp/{}.txt'.format(region_id), 'w') as f:
-        #     f.write("\n".join(selected_items))
-        # with open('/tmp/{}all.txt'.format(region_id), 'w') as f:
-        #     f.write("\n".join(options_stat.keys()))
         selected_items_set = set(selected_items)
         all_items_set = set(options_stat.keys())
-        # print('all_items count: {} -> {}'.format(region_id, len(all_items_set)))
-        # print('selected_items_set count: {} -> {}'.format(region_id, len(selected_items_set)))
         diff_items = all_items_set - selected_items_set
-        # print('diff_items count: {} -> {}'.format(region_id, len(diff_items)))
         for item in diff_items:
-                fname_full_from = os.path.join(dirpath_custom_options_dir_ann, item)
-                fname_full_to = os.path.join(dirpath_custom_rebalance_options_ann, item)
-                move(fname_full_from, fname_full_to)
+            fname_full_from = os.path.join(dirpath_custom_options_dir_ann, item)
+            fname_full_to = os.path.join(dirpath_custom_rebalance_options_ann, item)
+            move(fname_full_from, fname_full_to)
 
-                img_name = options_stat[item]["name"]+'.png'
-                img_file_from = os.path.join(dirpath_custom_options_dir_img, img_name)
-                img_file_to = os.path.join(dirpath_custom_rebalance_options_img, img_name)
+            img_name = options_stat[item]["name"]+'.png'
+            img_file_from = os.path.join(dirpath_custom_options_dir_img, img_name)
+            img_file_to = os.path.join(dirpath_custom_rebalance_options_img, img_name)
 
-                move(img_file_from, img_file_to)
+            move(img_file_from, img_file_to)
         return 1
 
     def add_class_entries(self, options_stat: List, custom_options_dir: str, with_aug: bool = False):
@@ -280,8 +282,6 @@ class CustomOptionsMaker:
         if self.verbose:
             print('Multiply {} class data in {} times and add random {} items of class'.format(region_cnt, copies_cnt, modulo))
         appendix_items = random.sample(tuple(options_stat.keys()), modulo)
-        # print('len(appendix_items)')
-        # print(len(appendix_items))
         for i in range(1, copies_cnt):
             if self.verbose:
                 print('Make full copy for index {}'.format(i))
@@ -294,7 +294,11 @@ class CustomOptionsMaker:
         self.duplicate_class_items(options_stat_appendix, copies_cnt, custom_options_dir, with_aug)
         return 1
 
-    def rebalance_region(self, rebalance_options_stats: List, region_id: int, custom_options_dir: str, with_aug: bool = False):
+    def rebalance_region(self, 
+                         rebalance_options_stats: List, 
+                         region_id: int, 
+                         custom_options_dir: str, 
+                         with_aug: bool = False):
         options_stat = rebalance_options_stats[region_id]
         region_cnt = len(options_stat.keys())
         items_per_class = self.items_per_class
@@ -308,8 +312,32 @@ class CustomOptionsMaker:
                 print('Increase class region_id {} from {} to {}'.format(region_id, len(options_stat.keys()), items_per_class))
             self.add_class_entries(options_stat, custom_options_dir, with_aug)
 
+    def rebalance_count_lines_item(self, 
+                                   rebalance_options_stats: List, 
+                                   count_lines: int, custom_options_dir: str, 
+                                   with_aug: bool = False,
+                                   rebalance_suffix: str = 'rebalance'):
+        options_stat = rebalance_options_stats[count_lines]
+        count_lines_cnt = len(options_stat.keys())
+        items_per_class = self.items_per_class
+        if items_per_class < count_lines_cnt:
+            balanced_region_items = random.sample(list(options_stat.keys()), items_per_class)
+            if self.verbose:
+                print('Crop class count_lines {} to {}'.format(count_lines, len(balanced_region_items)))
+            self.move_unused_items_to_rebalance_dir(rebalance_options_stats, count_lines,  balanced_region_items, custom_options_dir)
+        else:
+            if self.verbose:
+                print('Increase class region_id {} from {} to {}'.format(count_lines, len(options_stat.keys()), items_per_class))
+            self.add_class_entries(options_stat, custom_options_dir, with_aug)
 
-    def rebalance_regions(self, custom_options_dir: str = 'train', with_aug: bool = False, verbose: bool = False) -> int:
+
+    def rebalance_regions(self, 
+                          custom_options_dir: str = 'train', 
+                          with_aug: bool = False, 
+                          rebalance_suffix: str = None,
+                          verbose: bool = False) -> int:
+        if rebalance_suffix is not None:
+            self.dirpath_custom_rebalance = '{}-{}'.format(self.dirpath_custom, rebalance_suffix)
         self.verbose = verbose
         if os.path.exists(self.dirpath_custom):
             if not os.path.exists(self.dirpath_custom_rebalance):
@@ -319,8 +347,6 @@ class CustomOptionsMaker:
                 os.mkdir(dirpath_custom_rebalance_options_dir)
                 for sub_dir in self.custom_options_sub_dirs:
                     os.mkdir(os.path.join(dirpath_custom_rebalance_options_dir, sub_dir))
-                # if with_aug:
-                #     from NomeroffNet.data_modules.augmentations import aug
                 rebalance_options_stats = self.get_regions_stats(custom_options_dir)
                 for region_id in rebalance_options_stats:
                     if self.verbose:
@@ -332,3 +358,32 @@ class CustomOptionsMaker:
             print('Rebalancing is possible only after calling the make method for custom dir: "{}"!'.format(self.dirpath_custom))
         return 1
 
+
+    def rebalance_count_lines(self, 
+                              custom_options_dir: str = 'train', 
+                              with_aug: bool = False, 
+                              rebalance_suffix: str = None,
+                              verbose: bool = False) -> int:
+        if rebalance_suffix is not None:
+            self.dirpath_custom_rebalance = '{}-{}'.format(self.dirpath_custom, rebalance_suffix)
+        self.verbose = verbose
+        if os.path.exists(self.dirpath_custom):
+            if not os.path.exists(self.dirpath_custom_rebalance):
+                os.mkdir(self.dirpath_custom_rebalance)
+            dirpath_custom_rebalance_options_dir = os.path.join(self.dirpath_custom_rebalance, custom_options_dir)
+            if not os.path.exists(dirpath_custom_rebalance_options_dir):
+                os.mkdir(dirpath_custom_rebalance_options_dir)
+                for sub_dir in self.custom_options_sub_dirs:
+                    os.mkdir(os.path.join(dirpath_custom_rebalance_options_dir, sub_dir))
+                rebalance_options_stats = self.get_count_lines_stats(custom_options_dir)
+                if verbose:
+                    print("Rebalance options stats", rebalance_options_stats)
+                for count_lines in rebalance_options_stats:
+                    if self.verbose:
+                        print('Prepare data for count_lines: {}'.format(count_lines))
+                    self.rebalance_count_lines_item(rebalance_options_stats, count_lines, custom_options_dir, with_aug)
+            else:
+                print('Rebalancing is possible only once!')
+        else:
+            print('Rebalancing is possible only after calling the make method for custom dir: "{}"!'.format(self.dirpath_custom))
+        return 1
