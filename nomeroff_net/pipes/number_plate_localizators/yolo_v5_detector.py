@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 from typing import List, Tuple
@@ -44,7 +45,7 @@ class Detector(object):
             path_to_model = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":
-            device = ""
+            device = os.environ["CUDA_VISIBLE_DEVICES"] or '0'
         self.load_model(path_to_model, device)
 
     @staticmethod
