@@ -3,19 +3,31 @@ import torch.nn as nn
 from torch.nn import functional
 from .classification_model import ClassificationNet
 from torchvision.models import resnet18
+import contextlib
 
 
+@contextlib.contextmanager
+def dummy_context_mgr():
+    yield None
+
+
+    
 class NPOptionsNet(ClassificationNet):
     def __init__(self,
                  region_output_size: int,
                  count_line_output_size: int,
-                 img_h: int = 64,
-                 img_w: int = 295,
+                 img_h: int = 128,
+                 img_w: int = 256,
                  batch_size: int = 1,
-                 learning_rate: float = 0.005):
+                 learning_rate: float = 0.005,
+                 train_regions=True,
+                 train_count_lines=True):
         super(NPOptionsNet, self).__init__()  # activation='relu'
         self.batch_size = batch_size
         self.learning_rate = learning_rate
+        
+        self.train_regions = train_regions
+        self.train_count_lines = train_count_lines
 
         resnet = resnet18(pretrained=True)
         modules = list(resnet.children())[:-3]
@@ -89,23 +101,26 @@ class NPOptionsNet(ClassificationNet):
         }
 
     def forward(self, x):
-        x = self.resnet(x)
-
-        x1 = x.reshape(x.size(0), -1)
-        x1 = self.dropout_reg(x1)
-        x1 = functional.relu(self.fc1_reg(x1))
-        if self.batch_size > 1:
-            x1 = self.batch_norm_reg(x1)
-        x1 = functional.relu(self.fc2_reg(x1))
-        x1 = functional.softmax(self.fc3_reg(x1))
-
-        x2 = x.reshape(x.size(0), -1)
-        x2 = self.dropout_line(x2)
-        x2 = functional.relu(self.fc1_line(x2))
-        if self.batch_size > 1:
-            x2 = self.batch_norm_line(x2)
-        x2 = functional.relu(self.fc2_line(x2))
-        x2 = functional.softmax(self.fc3_line(x2))
+        with torch.no_grad():
+            x = self.resnet(x)
+        
+        with dummy_context_mgr() if self.train_regions else torch.no_grad():
+            x1 = x.reshape(x.size(0), -1)
+            x1 = self.dropout_reg(x1)
+            x1 = functional.relu(self.fc1_reg(x1))
+            if self.batch_size > 1:
+                x1 = self.batch_norm_reg(x1)
+            x1 = functional.relu(self.fc2_reg(x1))
+            x1 = functional.softmax(self.fc3_reg(x1))
+        
+        with dummy_context_mgr() if self.train_count_lines else torch.no_grad():
+            x2 = x.reshape(x.size(0), -1)
+            x2 = self.dropout_line(x2)
+            x2 = functional.relu(self.fc1_line(x2))
+            if self.batch_size > 1:
+                x2 = self.batch_norm_line(x2)
+            x2 = functional.relu(self.fc2_line(x2))
+            x2 = functional.softmax(self.fc3_line(x2))
 
         return x1, x2
 
@@ -115,10 +130,17 @@ class NPOptionsNet(ClassificationNet):
         outputs = self.forward(x)
         label_reg = ys[0]
         label_cnt = ys[1]
-
+        
         loss_reg = functional.cross_entropy(outputs[0], torch.max(label_reg, 1)[1])
         loss_line = functional.cross_entropy(outputs[1], torch.max(label_cnt, 1)[1])
-        loss = (loss_reg + loss_line) / 2
+        if self.train_regions and self.train_count_lines:
+            loss = (loss_reg + loss_line) / 2
+        elif self.train_regions:
+            loss = loss_reg
+        elif self.train_count_lines:
+            loss = loss_line
+        else:
+            raise Exception("train_regions and train_count_lines can not to be False both!")
 
         acc_reg = (torch.max(outputs[0], 1)[1] == torch.max(label_reg, 1)[1]).float().sum() / self.batch_size
         acc_line = (torch.max(outputs[1], 1)[1] == torch.max(label_cnt, 1)[1]).float().sum() / self.batch_size

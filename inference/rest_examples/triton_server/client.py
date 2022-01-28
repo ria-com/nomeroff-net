@@ -14,7 +14,7 @@ for _ in range(1):
     for img_path in glob.glob(glob_path):
         print(img_path)
         img = cv2.imread(img_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = img[..., ::-1]
     
         targetBoxes = yoloV5GRPCDetector.grpc_detect(img)
         i += 1

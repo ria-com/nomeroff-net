@@ -75,8 +75,8 @@ class OptionsDetector(object):
             options = dict()
 
         # input
-        self.height = 64
-        self.width = 295
+        self.height = 128
+        self.width = 256
         self.color_channels = 3
 
         # outputs 1
@@ -96,6 +96,8 @@ class OptionsDetector(object):
         self.batch_size = 64
         self.epochs = 100
         self.gpus = 1
+        self.train_regions = True
+        self.train_count_lines = True
 
         self.class_region_indexes = None
         self.class_region_indexes_global = None
@@ -138,9 +140,11 @@ class OptionsDetector(object):
         if self.model is None:
             self.model = NPOptionsNet(len(self.class_region),
                                       len(self.count_lines),
-                                      self.height,
-                                      self.width,
-                                      self.batch_size)
+                                      img_h=self.height,
+                                      img_w=self.width,
+                                      batch_size=self.batch_size,
+                                      train_regions=self.train_regions,
+                                      train_count_lines=self.train_count_lines,)
             if mode_torch == "gpu":
                 self.model = self.model.cuda()
         return self.model
@@ -230,7 +234,12 @@ class OptionsDetector(object):
         self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
                                                        map_location=torch.device('cpu'),
                                                        region_output_size=len(self.class_region),
-                                                       count_line_output_size=len(self.count_lines))
+                                                       count_line_output_size=len(self.count_lines),
+                                                       img_h=self.height,
+                                                       img_w=self.width,
+                                                       batch_size=self.batch_size,
+                                                       train_regions=self.train_regions,
+                                                       train_count_lines=self.train_count_lines,)
         if mode_torch == "gpu":
             self.model = self.model.cuda()
         self.model.eval()
@@ -285,12 +294,6 @@ class OptionsDetector(object):
                                in enumerate(CLASS_REGION_ALL)]
                               for confidence in confidences]
         return global_indexes, global_confidences
-
-    def custom_count_lines_id_to_all_count_lines(self, indexes: List[int]) -> List[int]:
-        """
-        TODO: describe method
-        """
-        return [CLASS_LINES_ALL.index(str(self.count_lines[index])) for index in indexes]
 
     def custom_count_lines_id_to_all_count_lines(self, indexes: List[int]) -> List[int]:
         """
