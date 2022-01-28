@@ -36,7 +36,7 @@ class Detector(object):
         self.device = "cpu"
         self.half = False
 
-    def load_model(self, weights: str, device: str = 'cuda') -> None:
+    def load_model(self, weights: str, device: str = '') -> None:
         device = select_device(device)
         model = attempt_load(weights, map_location=device)  # load FP32 model
         half = device.type != 'cpu'  # half precision only supported on CUDA
@@ -53,7 +53,7 @@ class Detector(object):
             path_to_model = model_info["path"]
         device = "cpu"
         if get_mode_torch() == "gpu":
-            device = "cuda"
+            device = os.environ["CUDA_VISIBLE_DEVICES"]
         self.load_model(path_to_model, device)
 
     def detect_bbox(self,
