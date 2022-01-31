@@ -41,10 +41,10 @@ class OcrNetDataModule(pl.LightningDataModule):
             val_dir,
             letters,
             max_text_len,
-            width,
-            height,
-            batch_size,
-            max_plate_length)
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            max_plate_length=max_plate_length)
 
         # init test generator
         self.test = None
@@ -52,10 +52,10 @@ class OcrNetDataModule(pl.LightningDataModule):
             test_dir,
             letters,
             max_text_len,
-            width,
-            height,
-            batch_size,
-            max_plate_length)
+            img_w=width,
+            img_h=height,
+            batch_size=batch_size,
+            max_plate_length=max_plate_length)
 
     def prepare_data(self):
         return

@@ -3,11 +3,17 @@ import os
 import json
 import torch
 import numpy as np
+import torch.nn as nn
+from tqdm import tqdm
 from PIL import Image
 from typing import List, Tuple, Generator, Any
 from torchvision import transforms
+from torchvision.models import resnet18
 
+from nomeroff_net.tools.mcm import modelhub, get_device_torch
 from nomeroff_net.tools.ocr_tools import is_valid_str
+
+device_torch = get_device_torch()
 
 
 class TextImageGenerator(object):
@@ -29,24 +35,28 @@ class TextImageGenerator(object):
         self.max_text_len = max_text_len
         self.max_plate_length = max_plate_length
         self.letters = letters
-
+        self.with_aug = with_aug
         self.label_converter = label_converter
-        self.list_transforms = transforms.Compose([
-            transforms.ToTensor()
-        ])
+        self.prepare_transformers()
 
         img_dirpath = os.path.join(dirpath, 'img')
         ann_dirpath = os.path.join(dirpath, 'ann')
+        cache_postfix = "cache_ocr"
+        if with_aug:
+            cache_postfix = f"{cache_postfix}_aug"
+        cache_dirpath = os.path.join(dirpath, cache_postfix)
+        os.makedirs(cache_dirpath, exist_ok=True)
         self.pathes = [os.path.join(img_dirpath, file_name) for file_name in os.listdir(img_dirpath)]
         self.samples = []
-        for file_name in os.listdir(img_dirpath):
+        for file_name in tqdm(os.listdir(img_dirpath)):
             name, ext = os.path.splitext(file_name)
             if ext == '.png':
                 img_filepath = os.path.join(img_dirpath, file_name)
+                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
                 json_filepath = os.path.join(ann_dirpath, name + '.json')
                 description = json.load(open(json_filepath, 'r'))['description']
                 if is_valid_str(description, self.letters):
-                    self.samples.append([img_filepath, description])
+                    self.samples.append([x_filepath, description])
                 else:
                     raise Warning(f"Image {img_filepath} does not have a valid description!")
             else:
@@ -56,7 +66,6 @@ class TextImageGenerator(object):
         self.batch_count = int(self.n / batch_size)
         self.indexes = list(range(self.n))
         self.cur_index = 0
-        self.with_aug = with_aug
         self.count_ep = 0
         self.letters_max = len(letters) + 1
         self.imgs = None
@@ -68,9 +77,20 @@ class TextImageGenerator(object):
         """
         return self.n
 
-    def get_x_from_path(self, img_path: str, newsize: Tuple = None) -> torch.Tensor:
+    def generate_x_path(self, img_path: str, cache_dirpath: str):
+        filename, file_extension = os.path.splitext(img_path)
+        filename = os.path.basename(filename)
+        x_path = os.path.join(cache_dirpath, f'{filename}.pt')
+        return x_path
+
+    def generate_cache_x_in_path(self, img_path: str, cache_dirpath: str, newsize: Tuple = None) -> torch.Tensor:
+        x_path = self.generate_x_path(img_path, cache_dirpath)
+
+        if os.path.exists(x_path):
+            return x_path
+
         if newsize is None:
-            newsize = (200, 50)
+            newsize = (self.img_w, self.img_h)
         img = Image.open(img_path).convert('RGB')
         img = img.resize(newsize)
         if self.with_aug:
@@ -78,8 +98,13 @@ class TextImageGenerator(object):
             img = np.array(img)
             imgs = aug([img])
             img = Image.fromarray(imgs[0])
-        img = self.transform(img)
-        return img
+        x = self.transform(img)
+        torch.save(x, x_path)
+        return x_path
+
+    def get_x_from_path(self, x_path: str) -> torch.Tensor:
+        x = torch.load(x_path)
+        return x
 
     def __getitem__(self, index):
         """
@@ -91,8 +116,26 @@ class TextImageGenerator(object):
         img = self.get_x_from_path(img_path)
         return img, text
 
+    def prepare_transformers(self, model_name="Resnet18"):
+        model_info = modelhub.download_model_by_name(model_name)
+        path_to_model = model_info["path"]
+
+        resnet = resnet18(pretrained=False)
+        modules = list(resnet.children())[:-3]
+        self.resnet = nn.Sequential(*modules)
+        self.resnet.load_state_dict(torch.load(path_to_model))
+        self.resnet = self.resnet.to(device_torch)
+        self.list_transforms = transforms.Compose([
+            transforms.ToTensor(),
+        ])
+
+    @torch.no_grad()
     def transform(self, img) -> torch.Tensor:
-        return self.list_transforms(img)
+        x = self.list_transforms(img)
+        x = x.unsqueeze(0).to(device_torch)
+        x = self.resnet(x)
+        x = x.squeeze(0).cpu()
+        return x
 
     def next_sample(self) -> Tuple:
         self.cur_index += 1

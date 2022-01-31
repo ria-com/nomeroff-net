@@ -28,7 +28,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  **kwargs):
         self.number_plate_localization = NumberPlateLocalization(
             "number_plate_localization",
-            image_loader,
+            image_loader=None,
             path_to_model=path_to_model)
         self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
             "number_plate_key_points_detection",
@@ -60,7 +60,8 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         return super().__call__(images, **kwargs)
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
-        return inputs
+        images = [self.image_loader.load(item) for item in inputs]
+        return images
 
     def forward_detection_np(self, inputs: Any, **forward_parameters: Dict):
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))

@@ -99,8 +99,7 @@ class NPOptionsNet(ClassificationNet):
         }
 
     def forward(self, x):
-        with torch.no_grad():
-            x = self.resnet(x)
+        x = self.resnet(x)
         
         with dummy_context_mgr() if self.train_regions else torch.no_grad():
             x1 = x.reshape(x.size(0), -1)

@@ -9,5 +9,6 @@ class TurboImageLoader(BaseImageLoader):
 
     def load(self, img_path):
         with open(img_path, 'rb') as in_file:
-            img = self.jpeg.decode(in_file.read(), TJPF_RGB)
+            img = self.jpeg.decode(in_file.read())
+            img = img[..., ::-1]
         return img

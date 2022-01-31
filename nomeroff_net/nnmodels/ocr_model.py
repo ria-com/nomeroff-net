@@ -4,7 +4,6 @@ import pytorch_lightning as pl
 
 from torch.nn import functional
 from typing import List, Any
-from torchvision.models import resnet18
 
 from nomeroff_net.tools.ocr_tools import plot_loss, print_prediction
 
@@ -26,13 +25,13 @@ class BlockCNN(nn.Module):
         self.kernel_size = kernel_size
         self.padding = padding
         # layers
-        self.conv = nn.Conv2d(in_nc, out_nc, 
-                              kernel_size=kernel_size, 
-                              stride=stride, 
+        self.conv = nn.Conv2d(in_nc, out_nc,
+                              kernel_size=kernel_size,
+                              stride=stride,
                               padding=padding)
         self.bn = nn.BatchNorm2d(out_nc)
-        
-    def forward(self, batch, use_bn=False, use_relu=False, 
+
+    def forward(self, batch, use_bn=False, use_relu=False,
                 use_maxpool=False, maxpool_kernelsize=None):
         """
             in:
@@ -49,8 +48,8 @@ class BlockCNN(nn.Module):
             assert maxpool_kernelsize is not None
             batch = functional.max_pool2d(batch, kernel_size=maxpool_kernelsize, stride=1)
         return batch
-    
-    
+
+
 class BlockRNN(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, bidirectional):
         super(BlockRNN, self).__init__()
@@ -60,7 +59,7 @@ class BlockRNN(nn.Module):
         self.bidirectional = bidirectional
         # layers
         self.gru = nn.LSTM(in_size, hidden_size, bidirectional=bidirectional, batch_first=True)
-        
+
     def forward(self, batch, add_output=False):
         """
         in array:
@@ -90,27 +89,21 @@ class NPOcrNet(pl.LightningModule):
                  clip_norm: int = 5):
         super().__init__()
         self.save_hyperparameters()
-        
+
         self.letters = letters
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         self.clip_norm = clip_norm
         self.momentum = momentum
         self.max_plate_length = max_plate_length
-        
+
         self.hidden_size = hidden_size
         self.bidirectional = bidirectional
-        
+
         self.label_converter = label_converter
-        
-        # make layers
-        # convolutions 
-        resnet = resnet18(pretrained=True)
-        modules = list(resnet.children())[:-3]
-        self.resnet = nn.Sequential(*modules)
 
         self.cnn = BlockCNN(256, 256, kernel_size=3, padding=1)
-        
+
         # RNN + Linear
         self.linear1 = nn.Linear(1024, 512)
         self.gru1 = BlockRNN(512, hidden_size, hidden_size,
@@ -118,7 +111,7 @@ class NPOcrNet(pl.LightningModule):
         self.gru2 = BlockRNN(hidden_size, hidden_size, letters_max,
                              bidirectional=bidirectional)
         self.linear2 = nn.Linear(hidden_size * 2, letters_max)
-        
+
         self.automatic_optimization = True
         self.criterion = None
         self.val_dataset = val_dataset
@@ -130,25 +123,22 @@ class NPOcrNet(pl.LightningModule):
         ------:size sequence:------
         torch.Size([batch_size, 3, 64, 128]) -- IN:
         torch.Size([batch_size, 16, 16, 32]) -- CNN blocks ended
-        torch.Size([batch_size, 32, 256]) -- permuted 
+        torch.Size([batch_size, 32, 256]) -- permuted
         torch.Size([batch_size, 32, 32]) -- Linear #1
-        torch.Size([batch_size, 32, 512]) -- IN GRU 
-        torch.Size([batch_size, 512, 512]) -- OUT GRU 
+        torch.Size([batch_size, 32, 512]) -- IN GRU
+        torch.Size([batch_size, 512, 512]) -- OUT GRU
         torch.Size([batch_size, 32, vocab_size]) -- Linear #2
         torch.Size([32, batch_size, vocab_size]) -- :OUT
         """
         batch_size = batch.size(0)
-        
-        # convolutions
-        batch = self.resnet(batch)
-        
+
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
         n_channels = batch.size(1)
         batch = batch.reshape(batch_size, n_channels, -1)
-        
+
         batch = self.linear1(batch)
-        
+
         # rnn layers
         batch = self.gru1(batch, add_output=True)
         batch = self.gru2(batch)
@@ -159,11 +149,11 @@ class NPOcrNet(pl.LightningModule):
 
     def init_loss(self):
         self.criterion = nn.CTCLoss(blank=0, zero_infinity=True, reduction='mean')
-        
+
     def calculate_loss(self, logits, texts):
         if self.criterion is None:
             self.init_loss()
-        
+
         # get infomation from prediction
         device = logits.device
         input_len, batch_size, vocab_size = logits.size()
@@ -173,12 +163,12 @@ class NPOcrNet(pl.LightningModule):
         logits_lens = torch.full(size=(batch_size,), fill_value=input_len, dtype=torch.int32)
         # calculate ctc
         loss = self.criterion(
-            logits, 
-            encoded_texts, 
-            logits_lens.to(device), 
+            logits,
+            encoded_texts,
+            logits_lens.to(device),
             text_lens)
         return loss
-   
+
     def step(self, batch):
 
         x, texts = batch
@@ -187,24 +177,24 @@ class NPOcrNet(pl.LightningModule):
 
         loss = self.calculate_loss(output, texts)
         return loss
-    
+
     def on_save_checkpoint(self, _):
         if self.current_epoch and self.val_dataset:
             device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
             print_prediction(self, self.val_dataset, device, self.label_converter)
             plot_loss(self.current_epoch, self.train_losses, self.val_losses)
-        
+
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
-            self.parameters(), 
+            self.parameters(),
             lr=self.learning_rate,
-            nesterov=True, 
-            weight_decay=self.weight_decay, 
+            nesterov=True,
+            weight_decay=self.weight_decay,
             momentum=self.momentum)
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
         lr_schedulers = {'scheduler': scheduler, 'monitor': 'val_loss'}
         return [optimizer], [lr_schedulers]
-    
+
     def training_step(self, batch, batch_idx):
         loss = self.step(batch)
         self.log(f'train_loss', loss)

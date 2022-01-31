@@ -4,11 +4,10 @@ from pytorch_lightning import LightningModule
 
 class ClassificationNet(LightningModule):
     def __init__(self):
-        super(LightningModule, self).__init__()
-        ...
+        super(ClassificationNet, self).__init__()
 
     def forward(self, *args, **kwargs) -> Any:
-        ...
+        pass
 
     def training_step(self, batch, batch_idx):
         loss, acc = self.step(batch)

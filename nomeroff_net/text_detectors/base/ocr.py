@@ -15,12 +15,10 @@ from nomeroff_net.nnmodels.ocr_model import NPOcrNet, weights_init
 
 from nomeroff_net.tools.errors import OCRError
 from nomeroff_net.tools.mcm import modelhub, get_device_torch
-from nomeroff_net.tools.image_processing import normalize_img
 from nomeroff_net.tools.augmentations import aug_seed
 from nomeroff_net.tools.ocr_tools import (StrLabelConverter,
                                           decode_prediction,
                                           decode_batch)
-
 
 device_torch = get_device_torch()
 
@@ -49,13 +47,13 @@ class OCR(object):
         self.batch_size = 32
         self.epochs = 1
         self.gpus = 1
-        
+
         self.label_converter = None
         self.path_to_model = None
-    
+
     def init_label_converter(self):
         self.label_converter = StrLabelConverter("".join(self.letters), self.max_text_len)
-        
+
     @staticmethod
     def get_counter(dirpath: str, verbose: bool = True) -> Tuple[Counter, int]:
         dir_name = os.path.basename(dirpath)
@@ -161,7 +159,8 @@ class OCR(object):
         if seed is not None:
             aug_seed(seed)
             pl.seed_everything(seed)
-        self.create_model()
+        if self.model is None:
+            self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
@@ -170,9 +169,8 @@ class OCR(object):
                                   weights_summary=None)
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
-        self.trainer.test()
         return self.model
-    
+
     def validation(self, val_losses, device):
         with torch.no_grad():
             self.model.eval()
@@ -181,7 +179,7 @@ class OCR(object):
                 val_loss = self.model.calculate_loss(logits, batch_text)
                 val_losses.append(val_loss.item())
         return val_losses
-    
+
     def tune(self) -> Dict:
         """
         TODO: describe method
@@ -189,25 +187,17 @@ class OCR(object):
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
                              gpus=self.gpus)
-        
+
         model = self.create_model()
         lr_finder = trainer.tuner.lr_find(model, self.dm, early_stop_threshold=None, min_lr=1e-30)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
         model.hparams["learning_rate"] = lr
-        
+
         return lr_finder
 
-    def preprocess(self, imgs):
-        xs = []
-        for img in imgs:
-            x = normalize_img(img,
-                              width=self.width,
-                              height=self.height)
-            xs.append(x)
-        xs = np.moveaxis(np.array(xs), 3, 1)
-        xs = torch.tensor(xs)
-        xs = xs.to(device_torch)
+    @staticmethod
+    def preprocess(xs):
         return xs
 
     def forward(self, xs):
@@ -220,22 +210,10 @@ class OCR(object):
         return pred_texts
 
     @torch.no_grad()
-    def predict(self, imgs: List, return_acc: bool = False) -> Any:
-        xs = []
-        for img in imgs:
-            x = normalize_img(img,
-                              width=self.width,
-                              height=self.height)
-            xs.append(x)
-        pred_texts = []
-        net_out_value = []
-        if bool(xs):
-            xs = np.moveaxis(np.array(xs), 3, 1)
-            xs = torch.tensor(xs)
-            xs = xs.to(device_torch)
-            net_out_value = self.model(xs)
-            net_out_value = [p.cpu().numpy() for p in net_out_value]
-            pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
+    def predict(self, xs: List, return_acc: bool = False) -> Any:
+        net_out_value = self.model(xs)
+        net_out_value = [p.cpu().numpy() for p in net_out_value]
+        pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)
         pred_texts = [pred_text.upper() for pred_text in pred_texts]
         if return_acc:
             if len(net_out_value):
@@ -245,7 +223,7 @@ class OCR(object):
                                                        net_out_value.shape[2]))
             return pred_texts, net_out_value
         return pred_texts
-        
+
     def save(self, path: str, verbose: bool = True) -> None:
         """
         TODO: describe method
@@ -318,8 +296,8 @@ class OCR(object):
             encoded_texts,
             logits_lens.to(device),
             text_lens
-            )
-        return 1 - acc/len(self.letters)
+        )
+        return 1 - acc / len(self.letters)
 
     def acc_calc(self, dataset, verbose: bool = False) -> float:
         acc = 0
@@ -335,17 +313,17 @@ class OCR(object):
                 elif verbose:
                     print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
         return acc / len(dataset)
-    
+
     def val_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.val_image_generator, verbose=verbose)
         print('Validaton Accuracy: ', acc)
         return acc
-        
+
     def test_acc(self, verbose=True) -> float:
         acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose)
         print('Testing Accuracy: ', acc)
         return acc
-        
+
     def train_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.train_image_generator, verbose=verbose)
         print('Training Accuracy: ', acc)

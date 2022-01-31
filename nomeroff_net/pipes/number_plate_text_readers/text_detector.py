@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Dict, Tuple
 
 from nomeroff_net import text_detectors
+from nomeroff_net.pipes.base.resnet18 import Resnet18
 from nomeroff_net.tools.errors import TextDetectorError
 from nomeroff_net.tools.image_processing import convert_cv_zones_rgb_to_bgr
 
@@ -40,7 +41,8 @@ class TextDetector(object):
             self.detectors.append(detector_class)
             self.detectors_names.append(_label)
             i += 1
-        
+
+        self.resnet18 = Resnet18()
         if load_models:
             self.load()
 
@@ -48,6 +50,7 @@ class TextDetector(object):
         """
         TODO: support reloading
         """
+        self.resnet18.load()
         for i, (detector_class, detector_name) in enumerate(zip(self.detectors, self.detectors_names)):
             detector = detector_class()
             detector.load(self.prisets[detector_name]['model_path'])
@@ -96,12 +99,13 @@ class TextDetector(object):
         labels, lines = self.define_predict_classes(zones, labels, lines)
         predicted = self.define_order_detector(zones, labels)
         for key in predicted.keys():
-            predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"])
+            predicted[key]["xs"] = self.resnet18.preprocess(predicted[key]["zones"])
         return predicted
 
     def forward(self, predicted):
         for key in predicted.keys():
-            predicted[key]["ys"] = self.detectors[int(key)].forward(predicted[key]["xs"])
+            xs = self.resnet18.forward(predicted[key]["xs"])
+            predicted[key]["ys"] = self.detectors[int(key)].forward(xs)
         return predicted
 
     def postprocess(self, predicted):

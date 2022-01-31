@@ -43,10 +43,10 @@ CLASS_LINES_ALL = [
 ]
 
 CLASS_STATE_ALL = [
-    "garbage",     # garbage
-    "filled",      # manual filled number
+    "garbage",  # garbage
+    "filled",  # manual filled number
     "not filled",  # two line
-    "empty"        # deprecated
+    "empty"  # deprecated
 ]
 
 
@@ -65,6 +65,7 @@ class OptionsDetector(object):
     """
     TODO: describe class
     """
+
     def __init__(self, options: Dict = None) -> None:
         """
         TODO: describe __init__
@@ -140,7 +141,7 @@ class OptionsDetector(object):
                                       len(self.count_lines),
                                       batch_size=self.batch_size,
                                       train_regions=self.train_regions,
-                                      train_count_lines=self.train_count_lines,)
+                                      train_count_lines=self.train_count_lines, )
             self.model = self.model.to(device_torch)
         return self.model
 
@@ -190,18 +191,18 @@ class OptionsDetector(object):
                                   gpus=self.gpus,
                                   callbacks=self.define_callbacks(log_dir))
         self.trainer.fit(self.model, self.dm)
-        self.trainer.test()
         return self.model
-    
+
     def tune(self) -> Dict:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
         """
         model = self.create_model()
-        trainer = pl.Trainer(auto_lr_find=True,
-                             max_epochs=self.epochs,
-                             gpus=self.gpus)
+        trainer = pl.Trainer(
+            auto_lr_find=True,
+            max_epochs=self.epochs,
+            gpus=self.gpus)
         return trainer.tune(model, self.dm)
 
     def test(self) -> List:
@@ -236,7 +237,7 @@ class OptionsDetector(object):
                                                        img_w=self.width,
                                                        batch_size=self.batch_size,
                                                        train_regions=self.train_regions,
-                                                       train_count_lines=self.train_count_lines,)
+                                                       train_count_lines=self.train_count_lines, )
         self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model

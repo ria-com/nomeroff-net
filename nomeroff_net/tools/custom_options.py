@@ -16,6 +16,7 @@ class CustomOptionsMaker:
     """
     TODO: describe class
     """
+
     def __init__(self,
                  dirpath: str,
                  dirpath_custom: str,
@@ -33,7 +34,9 @@ class CustomOptionsMaker:
                  custom_options_sub_dirs: List = None,
 
                  items_per_class: int = 2000,
-                 rebalance_suffix: str = 'rebalance'
+                 rebalance_suffix: str = 'rebalance',
+
+                 verbose: bool = False
                  ) -> None:
         """
         TODO: describe __init__
@@ -54,7 +57,7 @@ class CustomOptionsMaker:
         self.dirpath_custom = dirpath_custom
         self.dirpath = dirpath
 
-        self.verbose = False
+        self.verbose = verbose
 
         self.items_per_class = items_per_class
         self.dirpath_custom_rebalance = '{}-{}'.format(self.dirpath_custom, rebalance_suffix)
@@ -138,7 +141,7 @@ class CustomOptionsMaker:
                 with open(fname) as jsonF:
                     json_data = json.load(jsonF)
                 if self.filter_by_state_id(json_data):
-                    cnt += self.make_custom_record(option_dir, json_data, verbose)
+                    cnt += self.make_custom_record(option_dir, copy.deepcopy(json_data), verbose)
                 else:
                     filtered_cnt += 1
         print("In {} prepared {} records".format(option_dir, cnt))
@@ -190,6 +193,7 @@ class CustomOptionsMaker:
                     all_region_id, custom_region_id))
         with open(ann_file_to, "w", encoding='utf8') as jsonWF:
             json.dump(json_data, jsonWF, ensure_ascii=False)
+
         copyfile(img_file_from, img_file_to)
         return 1
 
@@ -227,6 +231,9 @@ class CustomOptionsMaker:
         dirpath_custom_options_dir = os.path.join(self.dirpath_custom, custom_options_dir)
         dirpath_custom_options_dir_ann = os.path.join(dirpath_custom_options_dir, self.custom_options_sub_dirs[0])
         dirpath_custom_options_dir_img = os.path.join(dirpath_custom_options_dir, self.custom_options_sub_dirs[1])
+        for _dir in [dirpath_custom_options_dir_ann, dirpath_custom_options_dir_img]:
+            os.makedirs(_dir, exist_ok=True)
+
         if self.verbose:
             print('Try make duplicate/augmentation for {} items'.format(len(options_stat.keys())))
 
@@ -237,7 +244,7 @@ class CustomOptionsMaker:
             json_data["name"] = 'aug_{}_{}'.format(idx, json_data["name"])
             with open(fname_full, "w", encoding='utf8') as jsonWF:
                 json.dump(json_data, jsonWF, ensure_ascii=False)
-            fname_img_to = json_data["name"]+'.png'
+            fname_img_to = json_data["name"] + '.png'
             fname_img_from = options_stat[fname]["name"] + '.png'
             img_file_from = os.path.join(dirpath_custom_options_dir_img, fname_img_from)
             img_file_to = os.path.join(dirpath_custom_options_dir_img, fname_img_to)
@@ -254,10 +261,10 @@ class CustomOptionsMaker:
                 copyfile(img_file_from, img_file_to)
         return 1
 
-    def move_unused_items_to_rebalance_dir(self, 
+    def move_unused_items_to_rebalance_dir(self,
                                            rebalance_options_stats: Dict,
-                                           region_id: int, 
-                                           selected_items: List, 
+                                           region_id: int,
+                                           selected_items: List,
                                            custom_options_dir: str):
         options_stat = rebalance_options_stats[region_id]
         dirpath_custom_options_dir = os.path.join(self.dirpath_custom, custom_options_dir)
@@ -279,7 +286,7 @@ class CustomOptionsMaker:
             fname_full_to = os.path.join(dirpath_custom_rebalance_options_ann, item)
             move(fname_full_from, fname_full_to)
 
-            img_name = options_stat[item]["name"]+'.png'
+            img_name = options_stat[item]["name"] + '.png'
             img_file_from = os.path.join(dirpath_custom_options_dir_img, img_name)
             img_file_to = os.path.join(dirpath_custom_rebalance_options_img, img_name)
 
@@ -308,10 +315,10 @@ class CustomOptionsMaker:
         self.duplicate_class_items(options_stat_appendix, copies_cnt, custom_options_dir, with_aug)
         return 1
 
-    def rebalance_region(self, 
+    def rebalance_region(self,
                          rebalance_options_stats: Dict,
-                         region_id: int, 
-                         custom_options_dir: str, 
+                         region_id: int,
+                         custom_options_dir: str,
                          with_aug: bool = False):
         options_stat = rebalance_options_stats[region_id]
         region_cnt = len(options_stat.keys())
@@ -331,7 +338,7 @@ class CustomOptionsMaker:
                                                                          items_per_class))
             self.add_class_entries(options_stat, custom_options_dir, with_aug)
 
-    def rebalance_count_lines_item(self, 
+    def rebalance_count_lines_item(self,
                                    rebalance_options_stats: Dict,
                                    count_lines: int or str,
                                    custom_options_dir: str,
@@ -354,8 +361,8 @@ class CustomOptionsMaker:
                                                                          items_per_class))
             self.add_class_entries(options_stat, custom_options_dir, with_aug)
 
-    def rebalance_regions(self, 
-                          custom_options_dir: str = 'train', 
+    def rebalance_regions(self,
+                          custom_options_dir: str = 'train',
                           with_aug: bool = False,
                           verbose: bool = False) -> int:
         self.verbose = verbose
@@ -376,8 +383,8 @@ class CustomOptionsMaker:
                   .format(self.dirpath_custom))
         return 1
 
-    def rebalance_count_lines(self, 
-                              custom_options_dir: str = 'train', 
+    def rebalance_count_lines(self,
+                              custom_options_dir: str = 'train',
                               with_aug: bool = False,
                               verbose: bool = False) -> int:
         self.verbose = verbose

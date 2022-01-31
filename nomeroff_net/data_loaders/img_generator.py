@@ -5,7 +5,10 @@ import cv2
 import torch
 import numpy as np
 import random
+from tqdm import tqdm
 from typing import List, Tuple, Generator
+from PIL import Image
+from torchvision import transforms
 from torch.utils.data import Dataset
 
 from nomeroff_net.tools.image_processing import normalize_img
@@ -19,7 +22,7 @@ class ImgGenerator(Dataset):
                  batch_size: int = 32,
                  labels_counts: List = (14, 4, 2),
                  with_aug: bool = False) -> None:
-
+        self.with_aug = with_aug
         self.cur_index = 0
         self.paths = []
         self.discs = []
@@ -30,27 +33,39 @@ class ImgGenerator(Dataset):
 
         self.labels_counts = labels_counts
         self.dirpath = dirpath
-
         self.samples = []
+        self.images_path = []
+        self.list_transforms = None
+
+        self.prepare_transformers()
+        self.load_dataset(with_aug, dirpath)
 
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.batch_count = int(self.n/batch_size)
-        self.with_aug = with_aug
         self.rezero()
 
-    def load_dataset(self):
+    def load_dataset(self, with_aug, dirpath):
         img_dirpath = os.path.join(self.dirpath, 'img')
         ann_dirpath = os.path.join(self.dirpath, 'ann')
+        cache_postfix = "cache_options"
+
+        if with_aug:
+            cache_postfix = f"{cache_postfix}_aug"
+        cache_dirpath = os.path.join(dirpath, cache_postfix)
+        os.makedirs(cache_dirpath, exist_ok=True)
         self.samples = []
-        for file_name in os.listdir(img_dirpath):
+        self.images_path = []
+        for file_name in tqdm(os.listdir(img_dirpath)):
             name, ext = os.path.splitext(file_name)
             if ext == '.png':
                 img_filepath = os.path.join(img_dirpath, file_name)
+                self.images_path.append(img_filepath)
                 json_filepath = os.path.join(ann_dirpath, name + '.json')
+                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
                 if os.path.exists(json_filepath):
                     description = json.load(open(json_filepath, 'r'))
-                    self.samples.append([img_filepath, [
+                    self.samples.append([x_filepath, [
                         int(description.get("region_id", -1)),
                         int(description.get("count_lines", -1)),
                         int(description.get("orientation", -1))]])
@@ -73,17 +88,53 @@ class ImgGenerator(Dataset):
         x = np.moveaxis(np.array(x), 2, 0)
         return x
 
+    def generate_cache_x_in_path(self, img_path: str, cache_dirpath: str, newsize: Tuple = None) -> str:
+        x_path = self.generate_x_path(img_path, cache_dirpath)
+
+        if os.path.exists(x_path):
+            return x_path
+
+        if newsize is None:
+            newsize = (self.img_w, self.img_h)
+        img = Image.open(img_path).convert('RGB')
+        img = img.resize(newsize)
+        if self.with_aug:
+            from nomeroff_net.tools.augmentations import aug
+            img = np.array(img)
+            imgs = aug([img])
+            img = Image.fromarray(imgs[0])
+        x = self.transform(img)
+        torch.save(x, x_path)
+        return x_path
+
+    @staticmethod
+    def generate_x_path(img_path: str, cache_dirpath: str):
+        filename, file_extension = os.path.splitext(img_path)
+        filename = os.path.basename(filename)
+        x_path = os.path.join(cache_dirpath, f'{filename}.pt')
+        return x_path
+
     def __getitem__(self, index):
         """
         Generates one sample of data
         """
 
-        x, y = copy.deepcopy(self.paths[self.indexes[index]]), copy.deepcopy(self.discs[self.indexes[index]])
+        x = copy.deepcopy(self.paths[self.indexes[index]])
+        y = copy.deepcopy(self.discs[self.indexes[index]])
         x = self.get_x_from_path(x)
         x = torch.from_numpy(x)
         y[0] = torch.from_numpy(y[0])
         y[1] = torch.from_numpy(y[1])
         return x, y
+
+    def prepare_transformers(self):
+        self.list_transforms = transforms.Compose([
+            transforms.ToTensor(),
+        ])
+
+    def transform(self, img) -> torch.Tensor:
+        x = self.list_transforms(img)
+        return x
 
     def rezero(self) -> None:
         self.cur_index = 0
@@ -105,7 +156,7 @@ class ImgGenerator(Dataset):
         self.cur_index += 1
         if self.cur_index >= self.n:
             self.cur_index = 0
-        return self.paths[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
+        return self.images_path[self.indexes[self.cur_index]], self.discs[self.indexes[self.cur_index]]
 
     def run_iteration(self, with_aug=False):
         ys = [[], []]
