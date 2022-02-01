@@ -621,7 +621,8 @@ class NpPointsCraft(object):
     def detect_mline_many(self,
                           images: List[np.ndarray],
                           images_target_boxes: List,
-                          quality_profile: List = None) -> Tuple:
+                          quality_profile: List = None,
+                          **_) -> Tuple:
         images_points = []
         images_mline_boxes = []
         for image, target_boxes in zip(images, images_target_boxes):

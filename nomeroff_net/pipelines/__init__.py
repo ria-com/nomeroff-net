@@ -9,6 +9,7 @@ from nomeroff_net.pipelines.number_plate_key_points_filling import NumberPlateKe
 from nomeroff_net.pipelines.number_plate_classification import NumberPlateClassification
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
 from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
+from nomeroff_net.pipelines.number_plate_detection_and_reading_v2 import NumberPlateDetectionAndReadingV2
 from nomeroff_net.pipelines.number_plate_detection_and_reading_runtime import NumberPlateDetectionAndReadingRuntime
 from nomeroff_net.pipelines.number_plate_short_detection_and_reading import NumberPlateShortDetectionAndReading
 from nomeroff_net.pipelines.multiline_number_plate_detection_and_reading import MultilineNumberPlateDetectionAndReading
@@ -43,6 +44,9 @@ SUPPORTED_TASKS = {
     },
     "number_plate_text_reading": {
         "impl": NumberPlateTextReading
+    },
+    "number_plate_detection_and_reading_v2": {
+        "impl": NumberPlateDetectionAndReadingV2
     },
     "number_plate_detection_and_reading": {
         "impl": NumberPlateDetectionAndReading

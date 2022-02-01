@@ -70,14 +70,15 @@ class Detector(object):
         img = img.unsqueeze(0)
         return img
 
-    def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = (640, 640), stride: int = 32):
+    def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = (640, 640), stride: int = 32, **_):
         return [self.normalize_img(img, img_size, stride) for img in imgs]
 
     def postprocessing(self,
                        preds: torch.Tensor,
                        imgs: List[np.ndarray],
                        orig_img_shapes: List[Tuple],
-                       min_accuracy: float = 0.5):
+                       min_accuracy: float = 0.5,
+                       **_):
         res = []
         for pred, img, orig_img_shape in zip(preds, imgs, orig_img_shapes):
             pred = non_max_suppression(pred)
