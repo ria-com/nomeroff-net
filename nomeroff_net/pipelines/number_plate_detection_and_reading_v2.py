@@ -69,8 +69,7 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
     def forward_detection_np(self, images: Any, **forward_parameters: Dict):
         orig_img_shapes = [img.shape for img in images]
         model_inputs = self.localization_detector.normalize_imgs(images, **forward_parameters)
-        x = torch.cat(model_inputs, dim=0)
-        localization_detector_output = self.localization_detector.model(x)[0]
+        localization_detector_output = self.localization_detector.model(model_inputs)[0]
         shape = localization_detector_output.shape
         localization_detector_output = localization_detector_output.reshape((shape[0], 1, shape[1], shape[2]))
         images_target_boxes = self.localization_detector.postprocessing(

@@ -53,7 +53,7 @@ class Detector(object):
         res = []
         for i, det in enumerate(pred):
             if len(det):
-                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], orig_img_shape).round()
+                det[:, :4] = scale_coords(img.shape[1:], det[:, :4], orig_img_shape).round()
                 res.append(det.cpu().detach().numpy())
         return res
 
@@ -64,14 +64,17 @@ class Detector(object):
         img = letterbox(img, img_size, stride=stride, auto=False)[0]
         img = img.transpose(2, 0, 1)  # to 3x416x416
         img = np.ascontiguousarray(img)
-        img = torch.from_numpy(img).to(self.device)
-        img = img.half() if self.half else img.float()  # uint8 to fp16/32
-        img /= 255.0  # 0 - 255 to 0.0 - 1.0
-        img = img.unsqueeze(0)
+
         return img
 
     def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = (640, 640), stride: int = 32, **_):
-        return [self.normalize_img(img, img_size, stride) for img in imgs]
+        normalized_imgs = np.zeros((len(imgs), 3, *img_size))
+        for i, img in enumerate(imgs):
+            normalized_imgs[i] = self.normalize_img(img, img_size, stride)
+        input_tensors = torch.from_numpy(normalized_imgs).to(self.device)
+        input_tensors = input_tensors.half() if self.half else input_tensors.float()  # uint8 to fp16/32
+        input_tensors /= 255.0  # 0 - 255 to 0.0 - 1.0
+        return input_tensors
 
     def postprocessing(self,
                        preds: torch.Tensor,
@@ -100,7 +103,12 @@ class Detector(object):
         TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
         """
         orig_img_shapes = [img.shape]
-        input_tensor = self.normalize_img(img, img_size, stride)
+        normalized_img = self.normalize_img(img, img_size, stride)
+        input_tensor = torch.from_numpy(normalized_img).to(self.device)
+        input_tensor = input_tensor.half() if self.half else input_tensor.float()  # uint8 to fp16/32
+        input_tensor /= 255.0  # 0 - 255 to 0.0 - 1.0
+        input_tensor = input_tensor.unsqueeze(0)
+
         preds = self.model([input_tensor])
         return self.postprocessing(preds, [img], orig_img_shapes, min_accuracy)[0]
 
