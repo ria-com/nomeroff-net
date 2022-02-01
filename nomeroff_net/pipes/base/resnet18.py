@@ -52,10 +52,7 @@ class Resnet18(object):
         xs = xs.to(device_torch)
         return xs
 
+    @torch.no_grad()
     def forward(self, x):
         x = self.resnet(x)
         return x
-
-    @torch.no_grad()
-    def predict(self, imgs: List, return_acc: bool = False) -> Any:
-        pass
