@@ -109,8 +109,8 @@ class Detector(object):
         input_tensor /= 255.0  # 0 - 255 to 0.0 - 1.0
         input_tensor = input_tensor.unsqueeze(0)
 
-        preds = self.model([input_tensor])
-        return self.postprocessing(preds, [img], orig_img_shapes, min_accuracy)[0]
+        preds = self.model(input_tensor)
+        return self.postprocessing(preds, input_tensor, orig_img_shapes, min_accuracy)[0]
 
     def detect(self,
                imgs: List[np.ndarray],
