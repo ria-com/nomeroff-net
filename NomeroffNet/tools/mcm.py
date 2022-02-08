@@ -22,8 +22,8 @@ models = {
     },
     "numberplate_options": {
         "application": "OptionsDetector",
-        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2021_12_16_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-11-25.zip",
+        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2022_02_07_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2022-02-07.zip",
         "class_region": [
             "military-ua",
             "eu-ua-2015",
@@ -50,8 +50,8 @@ models = {
     "numberplate_options_uacustom": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua" +
-               "/models/options/torch/numberplate_options_2021_12_16_uacustom_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2021-11-25.zip",
+               "/models/options/torch/numberplate_options_2022_02_07_uacustom_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2022-02-07.zip",
         "class_region": [
             "eu-ua-2015",
             "eu-ua-2004",

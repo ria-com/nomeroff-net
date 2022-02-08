@@ -193,7 +193,6 @@ class OptionsDetector(object):
                                   callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
-        self.trainer.test()
         return self.model
     
     def tune(self) -> Dict:
