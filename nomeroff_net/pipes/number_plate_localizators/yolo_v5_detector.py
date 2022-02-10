@@ -103,9 +103,6 @@ class Detector(object):
                     img_size: int = 640,
                     stride: int = 32,
                     min_accuracy: float = 0.5) -> List:
-        """
-        TODO: input img in BGR format, not RGB; To Be Implemented in release 2.2
-        """
         orig_img_shapes = [img.shape]
         normalized_img = self.normalize_img(img, img_size, stride)
         input_tensor = torch.from_numpy(normalized_img).to(self.device)
