@@ -25,7 +25,7 @@ class Detector(object):
 
     def __init__(self) -> None:
         self.model = None
-        self.device = "cpu"
+        self.device = ""
         self.half = False
 
     def load_model(self, weights: str, device: str = '') -> None:
@@ -57,20 +57,24 @@ class Detector(object):
                 res.append(det.cpu().detach().numpy())
         return res
 
-    def normalize_img(self, img, img_size, stride):
+    def normalize_img(self, img, img_size, stride, auto=True):
         """
         TODO: auto=False if pipeline batch size > 1
         """
-        img = letterbox(img, img_size, stride=stride, auto=False)[0]
+        img = letterbox(img, img_size, stride=stride, auto=auto)[0]
         img = img.transpose(2, 0, 1)  # to 3x416x416
         img = np.ascontiguousarray(img)
 
         return img
 
     def normalize_imgs(self, imgs: List[np.ndarray], img_size: int = (640, 640), stride: int = 32, **_):
-        normalized_imgs = np.zeros((len(imgs), 3, *img_size))
-        for i, img in enumerate(imgs):
-            normalized_imgs[i] = self.normalize_img(img, img_size, stride)
+        if len(imgs) == 1:
+            normalized_imgs = self.normalize_img(imgs[0], img_size, stride, auto=False)
+            normalized_imgs = np.expand_dims(normalized_imgs, axis=0)
+        else:
+            normalized_imgs = np.zeros((len(imgs), 3, *img_size))
+            for i, img in enumerate(imgs):
+                normalized_imgs[i] = self.normalize_img(img, img_size, stride)
         input_tensors = torch.from_numpy(normalized_imgs).to(self.device)
         input_tensors = input_tensors.half() if self.half else input_tensors.float()  # uint8 to fp16/32
         input_tensors /= 255.0  # 0 - 255 to 0.0 - 1.0
