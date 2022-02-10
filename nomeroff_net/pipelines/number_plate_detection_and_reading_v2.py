@@ -106,9 +106,9 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
         (region_ids, region_names, count_lines, confidences, texts, zones) = \
             group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))
         return [images, images_bboxs,
-                      images_points, zones,
-                      region_ids, region_names,
-                      count_lines, confidences, texts]
+                images_points, zones,
+                region_ids, region_names,
+                count_lines, confidences, texts]
 
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
