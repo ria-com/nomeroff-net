@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.base import Pipeline, CompositePipeline
+from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
 from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
@@ -104,5 +104,6 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                                            images_bboxs, images,
                                            images_points, **forward_parameters)
 
+    @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs

@@ -13,6 +13,17 @@ from nomeroff_net.tools import chunked_iterable
 from nomeroff_net.image_loaders import BaseImageLoader, DumpyImageLoader, image_loaders_map
 
 
+def may_by_empty_method(func):
+    # if in your pipeline you want to off some thing
+    func.is_empty = False
+    return func
+
+
+def empty_method(func):
+    func.is_empty = True
+    return func
+
+
 class AccuracyTestPipeline(object):
     """
     Accuracy Test Pipeline
@@ -149,6 +160,7 @@ class Pipeline(AccuracyTestPipeline):
         return pipeline_parameters, pipeline_parameters, pipeline_parameters
 
     @abstractmethod
+    @may_by_empty_method
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Dict[str, Any]:
         """
         Preprocess will take the `input_` of a specific pipeline and return a dictionnary of everything necessary for
@@ -157,6 +169,7 @@ class Pipeline(AccuracyTestPipeline):
         raise NotImplementedError("preprocess not implemented")
 
     @abstractmethod
+    @may_by_empty_method
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Dict[str, Any]:
         """
         _forward will receive the prepared dictionnary from `preprocess` and run it on the model. This method might
@@ -166,9 +179,10 @@ class Pipeline(AccuracyTestPipeline):
         code surrounding `_forward` making sure tensors and models are on the same device, disabling the training part
         of the code (leading to faster inference).
         """
-        raise NotImplementedError("_forward not implemented")
+        raise NotImplementedError("forward not implemented")
 
     @abstractmethod
+    @may_by_empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         """
         Postprocess will receive the raw outputs of the `forward` method, generally tensors, and reformat them into
@@ -235,10 +249,14 @@ class Pipeline(AccuracyTestPipeline):
         return outputs
 
     def run_single(self, inputs, num_workers, preprocess_params, forward_params, postprocess_params):
-        model_inputs = self.process_worker(self.preprocess, inputs, preprocess_params, num_workers)
-        model_outputs = self.forward(model_inputs, **forward_params)
-        outputs = self.process_worker(self.postprocess, model_outputs, postprocess_params, num_workers)
-        return outputs
+        _inputs = inputs
+        if not hasattr(self.preprocess, "is_empty") or not self.preprocess.is_empty:
+            _inputs = self.process_worker(self.preprocess, _inputs, preprocess_params, num_workers)
+        if not hasattr(self.forward, "is_empty") or not self.forward.is_empty:
+            _inputs = self.forward(_inputs, **forward_params)
+        if not hasattr(self.postprocess, "is_empty") or not self.postprocess.is_empty:
+            _inputs = self.process_worker(self.postprocess, _inputs, postprocess_params, num_workers)
+        return _inputs
 
 
 class CompositePipeline(object):

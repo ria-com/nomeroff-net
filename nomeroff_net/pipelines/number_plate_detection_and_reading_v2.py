@@ -1,10 +1,8 @@
-import torch
 from torch import no_grad
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.base import Pipeline
+from nomeroff_net.pipelines.base import Pipeline, empty_method
 from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
-from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import NpPointsCraft
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
@@ -128,5 +126,6 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
                                            images_bboxs, images,
                                            images_points, **forward_parameters)
 
+    @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs

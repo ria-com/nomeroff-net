@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.base import Pipeline
+from nomeroff_net.pipelines.base import Pipeline, empty_method
 from nomeroff_net.tools import unzip
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
 from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
@@ -61,5 +61,6 @@ class NumberPlateKeyPointsFilling(Pipeline):
             filled_images.append(image)
         return filled_images
 
+    @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs
