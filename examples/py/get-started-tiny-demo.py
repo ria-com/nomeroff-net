@@ -1,5 +1,5 @@
 import os
-from examples.py._paths import current_dir
+from _paths import current_dir
 from nomeroff_net import pipeline
 from nomeroff_net.tools import unzip
 
