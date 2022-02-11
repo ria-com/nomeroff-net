@@ -52,6 +52,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
+        pip install -q jupyter  # wandb  # extras
         python --version
         pip --version
         pip list
@@ -59,9 +60,18 @@ jobs:
 
     - name: Tests workflow
       run: |
+          # test python examples
           python examples/py/get-started-demo.py
           python examples/py/get-started-tiny-demo.py
           python examples/py/number-plate-filling-demo.py
           python examples/py/number-plate-recognition-multiline-demo.py
+
+          # test jupyter examples
+          jupyter nbconvert --execute examples/custom-options-model-demo.ipynb
+          jupyter nbconvert --execute examples/get-started-demo.ipynb
+          jupyter nbconvert --execute examples/get-started-tiny-demo.ipynb
+          jupyter nbconvert --execute examples/number-plate-bbox-filling.ipynb
+          jupyter nbconvert --execute examples/number-plate-keypoints-filling.ipynb
+          jupyter nbconvert --execute examples/number-plate-recognition-multiline-demo.ipynb
 
       shell: bash
