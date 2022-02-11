@@ -59,7 +59,6 @@ jobs:
 
     - name: Tests workflow
       run: |
-          # Test examples
           python examples/py/get-started-demo.py
           python examples/py/get-started-tiny-demo.py
           python examples/py/number-plate-filling-demo.py
