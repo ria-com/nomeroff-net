@@ -63,6 +63,5 @@ jobs:
           python examples/py/get-started-tiny-demo.py
           python examples/py/number-plate-filling-demo.py
           python examples/py/number-plate-recognition-multiline-demo.py
-          EOF
 
       shell: bash
