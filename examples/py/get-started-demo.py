@@ -16,4 +16,5 @@ if __name__ == '__main__':
      region_names, count_lines,
      confidences, texts) = unzip(result)
 
+    # (['AC4921CB'], ['RP70012', 'JJF509'])
     print(texts)
