@@ -21,7 +21,7 @@ if __name__ == '__main__':
      confidences, texts) = unzip(result)
 
     number_plate_detection_and_reading.text_accuracy_test_from_file(
-        os.path.join(current_dir, "./accuracy_test_data.json"),
+        os.path.join(current_dir, "../accuracy_test_data.json"),
         texts, image_paths,
         images, images_bboxs,
         images_points, images_zones,

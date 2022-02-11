@@ -84,6 +84,5 @@ jobs:
           jupyter nbconvert --execute --to html accuracy-test-multiline.ipynb
           jupyter nbconvert --execute --to html runtime-test.ipynb
           jupyter nbconvert --execute --to html runtime-test-multiline.ipynb
-          jupyter nbconvert --execute --to html runtime-test-source.ipynb
 
       shell: bash

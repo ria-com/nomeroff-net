@@ -1,4 +1,3 @@
-import torch
 from torch import no_grad
 from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
