@@ -67,11 +67,23 @@ jobs:
           python examples/py/number-plate-recognition-multiline-demo.py
 
           # test jupyter examples
-          jupyter nbconvert --execute examples/custom-options-model-demo.ipynb
-          jupyter nbconvert --execute examples/get-started-demo.ipynb
-          jupyter nbconvert --execute examples/get-started-tiny-demo.ipynb
-          jupyter nbconvert --execute examples/number-plate-bbox-filling.ipynb
-          jupyter nbconvert --execute examples/number-plate-keypoints-filling.ipynb
-          jupyter nbconvert --execute examples/number-plate-recognition-multiline-demo.ipynb
+          #jupyter nbconvert --execute --to html examples/custom-options-model-demo.ipynb
+          jupyter nbconvert --execute --to html examples/get-started-demo.ipynb
+          jupyter nbconvert --execute --to html examples/get-started-tiny-demo.ipynb
+          jupyter nbconvert --execute --to html examples/number-plate-bbox-filling.ipynb
+          jupyter nbconvert --execute --to html examples/number-plate-keypoints-filling.ipynb
+          jupyter nbconvert --execute --to html examples/number-plate-recognition-multiline-demo.ipynb
+
+          # test python benchmarks
+          python benchmark/py/accuracy-test.py
+          python benchmark/py/runtime-test.py
+
+          # test jupyter benchmarks
+          jupyter nbconvert --execute --to html accuracy-test.ipynb
+          jupyter nbconvert --execute --to html accuracy-test-custom.ipynb
+          jupyter nbconvert --execute --to html accuracy-test-multiline.ipynb
+          jupyter nbconvert --execute --to html runtime-test.ipynb
+          jupyter nbconvert --execute --to html runtime-test-multiline.ipynb
+          jupyter nbconvert --execute --to html runtime-test-source.ipynb
 
       shell: bash
