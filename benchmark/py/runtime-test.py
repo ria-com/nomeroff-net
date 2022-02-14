@@ -31,7 +31,7 @@ if __name__ == '__main__':
                                                      batch_size=batch_size,
                                                      num_workers=num_workers)
 
-    timer_stat = number_plate_detection_and_reading.get_timer_stat(batch_size)
+    timer_stat = number_plate_detection_and_reading.get_timer_stat(len(images)*num_run)
 
     print(f"Processed {len(images)} photos")
     print(f"One photo process {timer_stat['NumberPlateDetectionAndReadingRuntime.call']} seconds")

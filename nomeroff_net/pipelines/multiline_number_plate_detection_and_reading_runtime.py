@@ -12,5 +12,5 @@ class MultilineNumberPlateDetectionAndReadingRuntime(MultilineNumberPlateDetecti
     def __init__(self,
                  *args,
                  **kwargs):
-        MultilineNumberPlateDetectionAndReadingRuntime.__init__(self, *args, **kwargs)
+        MultilineNumberPlateDetectionAndReading.__init__(self, *args, **kwargs)
         RuntimePipeline.__init__(self, self.pipelines)
