@@ -79,10 +79,10 @@ jobs:
           python benchmark/py/runtime-test.py
 
           # test jupyter benchmarks
-          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html accuracy-test.ipynb
-          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html accuracy-test-custom.ipynb
-          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html accuracy-test-multiline.ipynb
-          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html runtime-test.ipynb
-          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html runtime-test-multiline.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/accuracy-test.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/accuracy-test-custom.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/accuracy-test-multiline.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/runtime-test.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/runtime-test-multiline.ipynb
 
       shell: bash
