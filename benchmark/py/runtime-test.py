@@ -20,10 +20,6 @@ if __name__ == '__main__':
     images = glob(os.path.join(current_dir, '../images/*'))
 
     number_plate_detection_and_reading.clear_stat()
-    outputs = number_plate_detection_and_reading(images,
-                                                 batch_size=batch_size,
-                                                 num_workers=num_workers)
-    number_plate_detection_and_reading.clear_stat()
 
     for i in range(num_run):
         print(f"pass {i}")
