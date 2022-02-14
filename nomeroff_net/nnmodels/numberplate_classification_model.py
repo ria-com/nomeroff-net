@@ -1,3 +1,4 @@
+import torch
 from typing import Any
 from pytorch_lightning import LightningModule
 
@@ -35,3 +36,10 @@ class ClassificationNet(LightningModule):
             'test_loss': loss,
             'test_acc': acc,
         }
+
+
+if __name__ == "__main__":
+    classification_net = ClassificationNet()
+    x = torch.rand((1, 64, 295))
+    y = classification_net(x)
+    print("[ClassificationNet]", y)

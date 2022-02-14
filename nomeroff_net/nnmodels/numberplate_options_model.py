@@ -153,3 +153,10 @@ class NPOptionsNet(ClassificationNet):
                                      t0=1000000.0,
                                      weight_decay=0)
         return optimizer
+
+
+if __name__ == "__main__":
+    np_options_net = NPOptionsNet(13, 3)
+    x = torch.rand((1, 64, 295))
+    y = np_options_net(x)
+    print("[NPOptionsNet]", y)

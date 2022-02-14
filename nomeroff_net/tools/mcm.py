@@ -33,7 +33,7 @@ models = {
     "numberplate_options_uacustom": {
         "application": "OptionsDetector",
         "url": "https://nomeroff.net.ua" +
-               "/models/options/torch/numberplate_options_2022_02_07_uacustom_pytorch_lightning.ckpt",
+               "/models/options/torch/numberplate_options_2022_02_14_uacustom_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2022-02-07.zip",
         "class_region": [
             "eu-ua-2015",
