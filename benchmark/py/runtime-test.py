@@ -9,8 +9,10 @@ warnings.filterwarnings("ignore")
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 if __name__ == '__main__':
-    number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading_runtime",
-                                                  image_loader="turbo")
+    number_plate_detection_and_reading = pipeline(
+        "number_plate_detection_and_reading_runtime",
+        image_loader="turbo"  # Try 'turbo' for faster performance.
+    )
 
     num_run = 1
     batch_size = 1
