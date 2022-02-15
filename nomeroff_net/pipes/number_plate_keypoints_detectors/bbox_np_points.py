@@ -110,135 +110,8 @@ class NpPointsCraft(object):
             self.refine_net.eval()
             self.is_poly = True
 
-    def detect_by_image_path(self,
-                             image_path: str,
-                             target_boxes: List[Dict],
-                             quality_profile: List = None) -> Tuple[List[Dict], Any]:
-        """
-        TODO: describe method
-        """
-        if quality_profile is None:
-            quality_profile = [1, 0, 0, 0]
-        image = imgproc.loadImage(image_path)
-        for target_box in target_boxes:
-            image_part, (x, w, y, h) = crop_image(image, target_box)
-            points = self.detect_in_bbox(image_part)
-            propably_points = add_coordinates_offset(points, x, y)
-            target_box['points'] = []
-            target_box['img_parts'] = []
-            if len(propably_points):
-                target_points_variants = make_rect_variants(propably_points, quality_profile)
-                if len(target_points_variants) > 1:
-                    img_parts = [get_cv_zone_rgb(image, reshape_points(rect, 1)) for rect in target_points_variants]
-                    normalized_perspective_img = normalize_perspective_images(img_parts)
-                    idx = detect_best_perspective(normalized_perspective_img)
-                    target_box['points'] = target_points_variants[idx]
-                    target_box['img_parts'] = img_parts
-                else:
-                    target_box['points'] = target_points_variants[0]
-        return target_boxes, image
-
-    def detect(self, image: np.ndarray, target_boxes: List, quality_profile: List = None) -> List:
-        """
-        TODO: describe method
-        """
-        points, mline_boxes = self.detect_mline(image, target_boxes, quality_profile)
-        return points
-
-    def detect_mline_many(self,
-                          images: List[np.ndarray],
-                          images_target_boxes: List,
-                          quality_profile: List = None,
-                          **_) -> Tuple:
-        images_points = []
-        images_mline_boxes = []
-        for image, target_boxes in zip(images, images_target_boxes):
-            points, mline_boxes = self.detect_mline(image, target_boxes, quality_profile)
-            images_points.append(points)
-            images_mline_boxes.append(mline_boxes)
-        return images_points, images_mline_boxes
-
-    def detect_mline(self, image: np.ndarray, target_boxes: List, quality_profile: List = None) -> Tuple:
-        """
-        TODO: describe method
-        """
-        all_points, all_mline_boxes, all_count_lines, all_image_parts = self.detect_mline_count_lines(image,
-                                                                                                      target_boxes,
-                                                                                                      quality_profile)
-        return all_points, all_mline_boxes
-
-    def detect_mline_count_lines(self, image: np.ndarray, target_boxes: List, quality_profile: List = None) -> Tuple:
-        """
-        TODO: describe method
-        """
-        if quality_profile is None:
-            quality_profile = [1, 0, 0, 0]
-        all_points = []
-        all_mline_boxes = []
-        all_image_parts = []
-        all_count_lines = []
-        for target_box in target_boxes:
-            image_part, (x, w, y, h) = crop_image(image, target_box)
-            all_image_parts.append(image_part)
-
-            if h / w > 3.5:
-                image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
-            local_propably_points, mline_boxes, probably_count_lines = self.detect_in_bbox_count_lines(image_part)
-            all_mline_boxes.append(mline_boxes)
-            all_count_lines.append(probably_count_lines)
-            propably_points = add_coordinates_offset(local_propably_points, x, y)
-            if len(propably_points):
-                target_points_variants = make_rect_variants(propably_points, quality_profile)
-                if len(target_points_variants) > 1:
-                    img_parts = [get_cv_zone_rgb(image, reshape_points(rect, 1)) for rect in target_points_variants]
-                    idx = detect_best_perspective(normalize_perspective_images(img_parts))
-                    points = target_points_variants[idx]
-                else:
-                    points = target_points_variants[0]
-                all_points.append(points)
-            else:
-                all_points.append([
-                    [x, y + h],
-                    [x, y],
-                    [x + w, y],
-                    [x + w, y + h]
-                ])
-        return all_points, all_mline_boxes
-
-    def detect_in_bbox_count_lines(
-            self,
-            image: np.ndarray,
-            low_text=0.4,
-            link_threshold=0.7,
-            text_threshold=0.6,
-            canvas_size=300,
-            mag_ratio=1.0):
-        """
-        TODO: describe method
-        """
-        bboxes, np_bboxes_idx, multiline_rects, dimensions = self.detect_probably_multiline_zones(
-            image, low_text, link_threshold,
-            text_threshold, canvas_size, mag_ratio)
-
-        probably_count_lines = 1
-        target_points = []
-        if len(np_bboxes_idx) == 1:
-            target_points = bboxes[np_bboxes_idx[0]]
-        if len(np_bboxes_idx) > 1:
-            started_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
-            target_points = minimum_bounding_rectangle(np.concatenate(multiline_rects, axis=0))
-            np_bboxes_idx, garbage_bboxes_idx, probably_count_lines = filter_boxes(bboxes, dimensions,
-                                                                                   target_points, np_bboxes_idx)
-            filtred_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
-            if len(started_boxes) > len(filtred_boxes):
-                target_points = minimum_bounding_rectangle(started_boxes)
-        if len(np_bboxes_idx) > 0:
-            target_points = normalize_rect(target_points)
-            target_points = addopt_rect_to_bbox(target_points, image.shape, 7, 12, 0, 12)
-        return target_points, multiline_rects, probably_count_lines
-
     @staticmethod
-    def preprocessing(image, canvas_size, mag_ratio):
+    def preprocessing_craft(image, canvas_size, mag_ratio):
         # resize
         img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(
             image,
@@ -250,7 +123,7 @@ class NpPointsCraft(object):
         return x, ratio_h, ratio_w
 
     @staticmethod
-    def postprocessing(score_text: np.ndarray, score_link: np.ndarray, text_threshold: float,
+    def craft_postprocessing(score_text: np.ndarray, score_link: np.ndarray, text_threshold: float,
                        link_threshold: float, low_text: float, ratio_w: float, ratio_h: float):
         # Post-processing
         boxes = get_det_boxes(score_text, score_link, text_threshold, link_threshold, low_text)
@@ -283,26 +156,103 @@ class NpPointsCraft(object):
 
         return score_text, score_link
 
-    def detect_probably_multiline_zones(self,
-                                        image,
-                                        low_text=0.4,
-                                        link_threshold=0.7,
-                                        text_threshold=0.6,
-                                        canvas_size=300,
-                                        mag_ratio=1.0):
-        """
-        TODO: describe method
-        """
-        x, ratio_h, ratio_w = self.preprocessing(image, canvas_size, mag_ratio)
-        score_text, score_link = self.forward(x)
-        bboxes, ret_score_text = self.postprocessing(
-            score_text, score_link, text_threshold,
-            link_threshold, low_text, ratio_w, ratio_h)
+    def detect(self,
+               inputs,
+               canvas_size: int = 300,
+               mag_ratio: float = 1.0,
+               quality_profile: List = None,
+               text_threshold: float = 0.6,
+               link_threshold: float = 0.7,
+               low_text: float = 0.4
+               ):
+        preprocessed_data = self.preprocess(inputs, canvas_size, mag_ratio)
+        model_outputs = self.forward(preprocessed_data)
+        return self.postprocess(model_outputs, quality_profile, text_threshold, link_threshold, low_text)
 
-        dimensions = []
-        for poly in bboxes:
-            dimensions.append({'dx': distance(poly[0], poly[1]), 'dy': distance(poly[1], poly[2])})
+    @torch.no_grad()
+    def forward_batch(self, inputs: Any) -> Any:
+        return [[*self.forward(x[0]), *x[1:]] for x in inputs]
 
-        np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
-        multiline_rects = [bboxes[i] for i in np_bboxes_idx]
-        return bboxes, np_bboxes_idx, multiline_rects, dimensions
+    def preprocess(self, inputs: Any, canvas_size: int = 300, mag_ratio: float = 1.0) -> Any:
+        res = []
+        for image_id, (image, target_boxes) in enumerate(inputs):
+            for target_box in target_boxes:
+                image_part, (x0, w0, y0, h0) = crop_image(image, target_box)
+                if h0 / w0 > 3.5:
+                    image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
+                x, ratio_h, ratio_w = self.preprocessing_craft(image_part, canvas_size, mag_ratio)
+                res.append([x, image, ratio_h, ratio_w, target_box, image_id, (x0, w0, y0, h0), image_part])
+        return res
+
+    def postprocess(self, inputs: Any,
+                    quality_profile: List = None,
+                    text_threshold: float = 0.6,
+                    link_threshold: float = 0.7,
+                    low_text: float = 0.4) -> Any:
+        if quality_profile is None:
+            quality_profile = [1, 0, 0, 0]
+
+        all_points = []
+        all_mline_boxes = []
+        all_image_ids = []
+        all_count_lines = []
+        all_image_parts = []
+        for score_text, score_link, image, ratio_h, ratio_w, target_box, image_id, (x0, w0, y0, h0), image_part \
+                in inputs:
+            all_image_parts.append(image_part)
+            image_shape = image_part.shape
+            all_image_ids.append(image_id)
+            bboxes, ret_score_text = self.craft_postprocessing(
+                score_text, score_link, text_threshold,
+                link_threshold, low_text, ratio_w, ratio_h)
+            dimensions = [{'dx': distance(poly[0], poly[1]), 'dy': distance(poly[1], poly[2])}
+                          for poly in bboxes]
+            np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
+            multiline_rects = [bboxes[i] for i in np_bboxes_idx]
+
+            probably_count_lines = 1
+            target_points = []
+            if len(np_bboxes_idx) == 1:
+                target_points = bboxes[np_bboxes_idx[0]]
+            if len(np_bboxes_idx) > 1:
+                started_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
+                target_points = minimum_bounding_rectangle(np.concatenate(multiline_rects, axis=0))
+                np_bboxes_idx, garbage_bboxes_idx, probably_count_lines = filter_boxes(bboxes, dimensions,
+                                                                                       target_points, np_bboxes_idx)
+                filtred_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
+                if len(started_boxes) > len(filtred_boxes):
+                    target_points = minimum_bounding_rectangle(started_boxes)
+            if len(np_bboxes_idx) > 0:
+                target_points = normalize_rect(target_points)
+                target_points = addopt_rect_to_bbox(target_points, image_shape, 7, 12, 0, 12)
+            all_count_lines.append(probably_count_lines)
+
+            local_propably_points, mline_boxes = target_points, multiline_rects
+            all_mline_boxes.append(mline_boxes)
+            propably_points = add_coordinates_offset(local_propably_points, x0, y0)
+            if len(propably_points):
+                target_points_variants = make_rect_variants(propably_points, quality_profile)
+                if len(target_points_variants):
+                    target_points_variants = make_rect_variants(propably_points, quality_profile)
+                    if len(target_points_variants) > 1:
+                        img_parts = [get_cv_zone_rgb(image, reshape_points(rect, 1)) for rect in target_points_variants]
+                        idx = detect_best_perspective(normalize_perspective_images(img_parts))
+                        points = target_points_variants[idx]
+                    else:
+                        points = target_points_variants[0]
+                    all_points.append(points)
+                else:
+                    all_points.append([
+                        [x0, y0 + h0],
+                        [x0, y0],
+                        [x0 + w0, y0],
+                        [x0 + w0, y0 + h0]
+                    ])
+
+        n = max(all_image_ids) + 1
+        images_points = [[] for _ in range(n)]
+        images_mline_boxes = [[] for _ in range(n)]
+        for point, mline_box, image_id in zip(all_points, all_mline_boxes, all_image_ids):
+            images_points[image_id].append(point)
+            images_mline_boxes[image_id].append(mline_box)
+        return images_points, images_mline_boxes

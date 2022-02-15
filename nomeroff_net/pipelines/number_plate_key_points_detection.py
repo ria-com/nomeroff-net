@@ -1,9 +1,9 @@
 from torch import no_grad
 from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.base import Pipeline, empty_method
-from nomeroff_net.tools import unzip
+from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import NpPointsCraft
+from nomeroff_net.tools import unzip
 
 
 class NumberPlateKeyPointsDetection(Pipeline):
@@ -31,17 +31,11 @@ class NumberPlateKeyPointsDetection(Pipeline):
         return super().__call__(images, **kwargs)
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
-        images, images_target_boxes = unzip(inputs)
-        images = [self.image_loader.load(item) for item in images]
-        return unzip([images, images_target_boxes])
+        return self.detector.preprocess(inputs, **preprocess_parameters)
 
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images, images_target_boxes = unzip(inputs)
-        images_points, images_mline_boxes = self.detector.detect_mline_many(images, images_target_boxes,
-                                                                            **forward_parameters)
-        return unzip([images_points, images_mline_boxes])
+        return self.detector.forward_batch(inputs, **forward_parameters)
 
-    @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        return inputs
+        return unzip(self.detector.postprocess(inputs, **postprocess_parameters))
