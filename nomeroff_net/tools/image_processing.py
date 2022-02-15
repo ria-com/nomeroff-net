@@ -33,7 +33,7 @@ def fline(p0: List, p1: List, debug: bool = False) -> List:
     return [k, b, a, a180, r]
 
 
-def distance(p0: List, p1: List or np.ndarray) -> float:
+def distance(p0: List or np.ndarray, p1: List or np.ndarray) -> float:
     """
     distance between two points p0 and p1
     """

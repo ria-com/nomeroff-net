@@ -8,8 +8,8 @@ on:
     branches: [ v3.0 ]
   pull_request:
     branches: [ v3.0 ]
-  schedule:
-    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+#  schedule:
+#    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
 
 jobs:
   cpu-tests:

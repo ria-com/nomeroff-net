@@ -1,5 +1,4 @@
 import os
-import time
 import cv2
 import torch
 import numpy as np
@@ -23,6 +22,7 @@ from .bbox_np_points_tools import (
     get_det_boxes,
     addopt_rect_to_bbox,
     split_boxes,
+    filter_boxes,
     normalize_rect,
 )
 info = modelhub.download_repo_for_model("craft_mlt")
@@ -162,17 +162,30 @@ class NpPointsCraft(object):
         """
         TODO: describe method
         """
+        all_points, all_mline_boxes, all_count_lines, all_image_parts = self.detect_mline_count_lines(image,
+                                                                                                      target_boxes,
+                                                                                                      quality_profile)
+        return all_points, all_mline_boxes
+
+    def detect_mline_count_lines(self, image: np.ndarray, target_boxes: List, quality_profile: List = None) -> Tuple:
+        """
+        TODO: describe method
+        """
         if quality_profile is None:
-            quality_profile = [3, 1, 0, 0]
+            quality_profile = [1, 0, 0, 0]
         all_points = []
         all_mline_boxes = []
+        all_image_parts = []
+        all_count_lines = []
         for target_box in target_boxes:
             image_part, (x, w, y, h) = crop_image(image, target_box)
+            all_image_parts.append(image_part)
 
             if h / w > 3.5:
                 image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
-            local_propably_points, mline_boxes = self.detect_in_bbox(image_part)
+            local_propably_points, mline_boxes, probably_count_lines = self.detect_in_bbox_count_lines(image_part)
             all_mline_boxes.append(mline_boxes)
+            all_count_lines.append(probably_count_lines)
             propably_points = add_coordinates_offset(local_propably_points, x, y)
             if len(propably_points):
                 target_points_variants = make_rect_variants(propably_points, quality_profile)
@@ -192,32 +205,37 @@ class NpPointsCraft(object):
                 ])
         return all_points, all_mline_boxes
 
-    def detect_in_bbox(self,
-                       image: np.ndarray,
-                       low_text=0.4,
-                       link_threshold=0.7,
-                       text_threshold=0.6,
-                       canvas_size=300,
-                       mag_ratio=1.0):
+    def detect_in_bbox_count_lines(
+            self,
+            image: np.ndarray,
+            low_text=0.4,
+            link_threshold=0.7,
+            text_threshold=0.6,
+            canvas_size=300,
+            mag_ratio=1.0):
         """
         TODO: describe method
         """
-        bboxes, np_bboxes_idx, multiline_rects = self.detect_probably_multiline_zones(
+        bboxes, np_bboxes_idx, multiline_rects, dimensions = self.detect_probably_multiline_zones(
             image, low_text, link_threshold,
             text_threshold, canvas_size, mag_ratio)
 
+        probably_count_lines = 1
         target_points = []
-
         if len(np_bboxes_idx) == 1:
             target_points = bboxes[np_bboxes_idx[0]]
-
         if len(np_bboxes_idx) > 1:
+            started_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
             target_points = minimum_bounding_rectangle(np.concatenate(multiline_rects, axis=0))
-
+            np_bboxes_idx, garbage_bboxes_idx, probably_count_lines = filter_boxes(bboxes, dimensions,
+                                                                                   target_points, np_bboxes_idx)
+            filtred_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
+            if len(started_boxes) > len(filtred_boxes):
+                target_points = minimum_bounding_rectangle(started_boxes)
         if len(np_bboxes_idx) > 0:
             target_points = normalize_rect(target_points)
             target_points = addopt_rect_to_bbox(target_points, image.shape, 7, 12, 0, 12)
-        return target_points, multiline_rects
+        return target_points, multiline_rects, probably_count_lines
 
     @staticmethod
     def preprocessing(image, canvas_size, mag_ratio):
@@ -287,4 +305,4 @@ class NpPointsCraft(object):
 
         np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
         multiline_rects = [bboxes[i] for i in np_bboxes_idx]
-        return bboxes, np_bboxes_idx, multiline_rects
+        return bboxes, np_bboxes_idx, multiline_rects, dimensions

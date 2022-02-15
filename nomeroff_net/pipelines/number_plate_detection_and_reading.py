@@ -17,7 +17,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
     def __init__(self,
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
-                     path_to_model: str = "latest",
+                 path_to_model: str = "latest",
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",
                  path_to_classification_model: str = "latest",

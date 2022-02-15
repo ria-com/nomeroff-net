@@ -2,7 +2,7 @@ import cv2
 import math
 import numpy as np
 import collections
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple, Union, Any
 from collections import OrderedDict
 
 from nomeroff_net.tools.image_processing import (fline,
@@ -434,3 +434,38 @@ def normalize_perspective_images(images: List or np.ndarray) -> List[np.ndarray]
     for img in images:
         new_images.append(prepare_image_text(img))
     return new_images
+
+
+def filter_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
+                 target_points: Any,
+                 np_bboxes_idx: List[int], filter_range: int = 0.7) -> Tuple[List[int], List[int], int]:
+    """
+    TODO: describe function
+    """
+    target_points = normalize_rect(target_points)
+    dy = distance(target_points[0], target_points[1])
+    new_np_bboxes_idx = []
+    garbage_bboxes_idx = []
+    max_dy = 0
+    if len(bboxes):
+        max_dy = max([dimension['dy'] for dimension in dimensions])
+    for i, (bbox, dimension) in enumerate(zip(bboxes, dimensions)):
+        if i in np_bboxes_idx:
+            coef = dimension['dy']/max_dy
+            if coef > filter_range:
+                new_np_bboxes_idx.append(i)
+            else:
+                boxify_factor = dimension['dx']/dimension['dy']
+                dx_offset = round(dimension['dx']/2)
+                if bbox[0][0] <= dx_offset and 0.7 < boxify_factor < 1.7:
+                    garbage_bboxes_idx.append(i)
+                else:
+                    new_np_bboxes_idx.append(i)
+        else:
+            garbage_bboxes_idx.append(i)
+
+    probably_count_lines = round(dy/max_dy)
+    probably_count_lines = 1 if probably_count_lines < 1 else probably_count_lines
+    probably_count_lines = 3 if probably_count_lines > 3 else probably_count_lines
+    return new_np_bboxes_idx, garbage_bboxes_idx, probably_count_lines
+

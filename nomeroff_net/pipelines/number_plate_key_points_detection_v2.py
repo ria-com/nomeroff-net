@@ -66,7 +66,7 @@ class NumberPlateKeyPointsDetectionV2(Pipeline):
         return [[*self.detector.forward(x[0]), *x[1:]] for x in inputs]
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        quality_profile = postprocess_parameters.get("quality_profile", [3, 1, 0, 0])
+        quality_profile = postprocess_parameters.get("quality_profile", [1, 0, 0, 0])
         text_threshold = postprocess_parameters.get("text_threshold", 0.6)
         link_threshold = postprocess_parameters.get("link_threshold", 0.7)
         low_text = postprocess_parameters.get("low_text", 0.4)
@@ -122,5 +122,5 @@ class NumberPlateKeyPointsDetectionV2(Pipeline):
         images_mline_boxes = [[] for _ in range(n)]
         for point, mline_box, image_id in zip(all_points, all_mline_boxes, all_image_ids):
             images_points[image_id].append(point)
-            images_mline_boxes[image_id].append(point)
+            images_mline_boxes[image_id].append(mline_box)
         return unzip([images_points, images_mline_boxes])
