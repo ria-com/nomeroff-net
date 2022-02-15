@@ -186,6 +186,50 @@ def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Di
     return np_bboxes_idx, garbage_bboxes_idx
 
 
+def filter_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
+                 target_points: List[Union[np.ndarray, np.ndarray]],
+                 np_bboxes_idx: List[int], filter_range: int = 0.7) -> Tuple[List[int], List[int], int]:
+    """
+    TODO: describe function
+    """
+    target_points = normalize_rect(target_points)
+    probably_count_lines = 1
+    #print('target_points')
+    #print(target_points)
+    dy = distance(target_points[0], target_points[1])
+    dx = distance(target_points[1], target_points[2])
+    #print('dx {}, dy {}'.format(dx, dy))
+    new_np_bboxes_idx = []
+    garbage_bboxes_idx = []
+    max_dy = 0
+    if len(bboxes):
+        max_dy = max([dimension['dy'] for dimension in dimensions])
+    for i, (bbox, dimension) in enumerate(zip(bboxes, dimensions)):
+        if i in np_bboxes_idx:
+            coef = dimension['dy']/max_dy
+            #print('coef {}, max_dy {}, dimension["dy"] {}'.format(coef, max_dy, dimension['dy']))
+            if coef > filter_range:
+                new_np_bboxes_idx.append(i)
+            else:
+                boxify_factor = dimension['dx']/dimension['dy']
+                #print('boxify_factor {}'.format(boxify_factor))
+                #print('bbox[0] {}'.format(bbox[0]))
+                dx_offset = round(dimension['dx']/2)
+                #print('dx_offset {}'.format(dx_offset))
+                if bbox[0][0]<=dx_offset and (boxify_factor > 0.7 and boxify_factor < 1.7):
+                    #print('Box {} is filtered!'.format(i))
+                    garbage_bboxes_idx.append(i)
+                else:
+                    new_np_bboxes_idx.append(i)
+        else:
+            garbage_bboxes_idx.append(i)
+
+    probably_count_lines = round(dy/max_dy)
+    probably_count_lines = 1 if probably_count_lines < 1 else probably_count_lines
+    probably_count_lines = 3 if probably_count_lines > 3 else probably_count_lines
+    return new_np_bboxes_idx, garbage_bboxes_idx, probably_count_lines
+
+
 def detect_intersection_norm_dd(matrix1: np.ndarray, matrix2: np.ndarray, d1: float, d2: float) -> np.ndarray:
     """
     TODO: describe function
@@ -622,17 +666,28 @@ class NpPointsCraft(object):
         """
         TODO: describe method
         """
+        all_points, all_mline_boxes, all_count_lines, all_image_parts = self.detect_mline_count_lines(image, target_boxes, quality_profile)
+        return all_points, all_mline_boxes
+
+    def detect_mline_count_lines(self, image: np.ndarray, target_boxes: List, quality_profile: List = None) -> Tuple:
+        """
+        TODO: describe method
+        """
         if quality_profile is None:
             quality_profile = [1, 0, 0, 0]
         all_points = []
         all_mline_boxes = []
+        all_image_parts = []
+        all_count_lines = []
         for target_box in target_boxes:
             image_part, (x, w, y, h) = crop_image(image, target_box)
+            all_image_parts.append(image_part)
 
             if h / w > 3.5:
                 image_part = cv2.rotate(image_part, cv2.ROTATE_90_CLOCKWISE)
-            local_propably_points, mline_boxes = self.detect_in_bbox(image_part)
+            local_propably_points, mline_boxes, probably_count_lines = self.detect_in_bbox_count_lines(image_part)
             all_mline_boxes.append(mline_boxes)
+            all_count_lines.append(probably_count_lines)
             propably_points = add_coordinates_offset(local_propably_points, x, y)
             if len(propably_points):
                 target_points_variants = make_rect_variants(propably_points, quality_profile)
@@ -650,9 +705,27 @@ class NpPointsCraft(object):
                     [x + w, y],
                     [x + w, y + h]
                 ])
-        return all_points, all_mline_boxes
+        return all_points, all_mline_boxes, all_count_lines, all_image_parts
 
     def detect_in_bbox(self,
+                       image: np.ndarray,
+                       low_text=0.4,
+                       link_threshold=0.7,
+                       text_threshold=0.6,
+                       canvas_size=300,
+                       mag_ratio=1.0):
+        """
+        TODO: describe method
+        """
+        target_points, mline_boxes, probably_count_lines = self.detect_in_bbox_count_lines(image,
+                       low_text,
+                       link_threshold,
+                       text_threshold,
+                       canvas_size,
+                       mag_ratio)
+        return target_points, mline_boxes
+
+    def detect_in_bbox_count_lines(self,
                        image: np.ndarray,
                        low_text=0.4,
                        link_threshold=0.7,
@@ -672,17 +745,24 @@ class NpPointsCraft(object):
         np_bboxes_idx, garbage_bboxes_idx = split_boxes(bboxes, dimensions)
 
         target_points = []
+        probably_count_lines = 1
 
         if len(np_bboxes_idx) == 1:
             target_points = bboxes[np_bboxes_idx[0]]
 
         if len(np_bboxes_idx) > 1:
+            started_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
             target_points = minimum_bounding_rectangle(np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0))
+            np_bboxes_idx, garbage_bboxes_idx, probably_count_lines  = filter_boxes(bboxes, dimensions, target_points, np_bboxes_idx)
+            filtred_boxes = np.concatenate([bboxes[i] for i in np_bboxes_idx], axis=0)
+            if len(started_boxes) > len(filtred_boxes):
+                target_points = minimum_bounding_rectangle(started_boxes)
 
         if len(np_bboxes_idx) > 0:
             target_points = normalize_rect(target_points)
             target_points = addopt_rect_to_bbox(target_points, image.shape, 7, 12, 0, 12)
-        return target_points, [bboxes[i] for i in np_bboxes_idx]
+        return target_points, [bboxes[i] for i in np_bboxes_idx], probably_count_lines
+
 
     def detect_probably_multiline_zones(self,
                                         image,
