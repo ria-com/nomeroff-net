@@ -170,10 +170,10 @@ class NpPointsCraft(object):
         return self.postprocess(model_outputs, quality_profile, text_threshold, link_threshold, low_text)
 
     @torch.no_grad()
-    def forward_batch(self, inputs: Any) -> Any:
+    def forward_batch(self, inputs: Any, **_) -> Any:
         return [[*self.forward(x[0]), *x[1:]] for x in inputs]
 
-    def preprocess(self, inputs: Any, canvas_size: int = 300, mag_ratio: float = 1.0) -> Any:
+    def preprocess(self, inputs: Any, canvas_size: int = 300, mag_ratio: float = 1.0, **_) -> Any:
         res = []
         for image_id, (image, target_boxes) in enumerate(inputs):
             for target_box in target_boxes:
@@ -188,7 +188,8 @@ class NpPointsCraft(object):
                     quality_profile: List = None,
                     text_threshold: float = 0.6,
                     link_threshold: float = 0.7,
-                    low_text: float = 0.4) -> Any:
+                    low_text: float = 0.4,
+                    **_) -> Any:
         if quality_profile is None:
             quality_profile = [1, 0, 0, 0]
 
