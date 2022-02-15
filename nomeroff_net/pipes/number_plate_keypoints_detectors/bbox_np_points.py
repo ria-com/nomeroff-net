@@ -121,12 +121,7 @@ class NpPointsCraft(object):
             quality_profile = [1, 0, 0, 0]
         image = imgproc.loadImage(image_path)
         for target_box in target_boxes:
-            x = min(target_box['x1'], target_box['x2'])
-            w = abs(target_box['x2'] - target_box['x1'])
-            y = min(target_box['y1'], target_box['y2'])
-            h = abs(target_box['y2'] - target_box['y1'])
-
-            image_part = image[y:y + h, x:x + w]
+            image_part, (x, w, y, h) = crop_image(image, target_box)
             points = self.detect_in_bbox(image_part)
             propably_points = add_coordinates_offset(points, x, y)
             target_box['points'] = []
@@ -252,13 +247,13 @@ class NpPointsCraft(object):
         return boxes, ret_score_text
 
     @torch.no_grad()
-    def forward(self, x: np.ndarray, cuda: bool) -> Tuple[Any, Any]:
+    def forward(self, x: np.ndarray) -> Tuple[Any, Any]:
         """
         TODO: describe function
         """
         x = torch.from_numpy(x).permute(2, 0, 1)  # [h, w, c] to [c, h, w]
         x = Variable(x.unsqueeze(0))  # [c, h, w] to [b, c, h, w]
-        if cuda:
+        if self.is_cuda:
             x = x.cuda()
 
         y, feature = self.net(x)
@@ -281,7 +276,7 @@ class NpPointsCraft(object):
         TODO: describe method
         """
         x, ratio_h, ratio_w = self.preprocessing(image, canvas_size, mag_ratio)
-        score_text, score_link = self.forward(x, self.is_cuda)
+        score_text, score_link = self.forward(x)
         bboxes, ret_score_text = self.postprocessing(
             score_text, score_link, text_threshold,
             link_threshold, low_text, ratio_w, ratio_h)

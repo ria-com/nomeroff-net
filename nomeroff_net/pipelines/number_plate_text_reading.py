@@ -20,7 +20,7 @@ DEFAULT_PRISETS = {
         "model_path": "latest"
     },
     "ru": {
-        "for_regions": ["ru", "eu-ua-ordlo-lpr", "eu-ua-ordlo-dpr"],
+        "for_regions": ["ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr"],
         "model_path": "latest"
     },
     "kz": {

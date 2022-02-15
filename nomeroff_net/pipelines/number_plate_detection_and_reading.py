@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
 from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
-from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
+from nomeroff_net.pipelines.number_plate_key_points_detection_v2 import NumberPlateKeyPointsDetectionV2
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
 from nomeroff_net.pipelines.number_plate_classification import NumberPlateClassification
 from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
@@ -30,7 +30,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             "number_plate_localization",
             image_loader=None,
             path_to_model=path_to_model)
-        self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
+        self.number_plate_key_points_detection = NumberPlateKeyPointsDetectionV2(
             "number_plate_key_points_detection",
             image_loader=None,
             mtl_model_path=mtl_model_path,
