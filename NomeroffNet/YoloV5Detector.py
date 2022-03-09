@@ -54,6 +54,7 @@ class Detector(object):
         device = "cpu"
         if get_mode_torch() == "gpu":
             device = os.environ.get("CUDA_VISIBLE_DEVICES", '0')
+
         self.load_model(path_to_model, device)
 
     def detect_bbox(self,
