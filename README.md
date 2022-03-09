@@ -1,6 +1,6 @@
 <img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 Nomeroff Net. Automatic numberplate recognition system. Version 2.5
-<br />
+<br /><br />
 <blockquote style="border-left-color: #ff0000">
 Now there is a war going on in my country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
 For 2 weeks we have been appealing to USA & Nato: "Please close the sky", but so far these calls remain unanswered...
