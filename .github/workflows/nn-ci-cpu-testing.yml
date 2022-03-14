@@ -85,4 +85,10 @@ jobs:
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/runtime-test.ipynb
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html benchmark/runtime-test-multiline.ipynb
 
+          # test jupyter tools
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tools/py/analyze_via_dataset.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tools/py/auto_number_grab.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tools/py/check_ocr_model.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tools/py/option_checker.ipynb
+          jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tools/py/ocr_dataset_format_checker.ipynb
       shell: bash

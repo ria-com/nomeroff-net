@@ -1,6 +1,7 @@
 import numpy as np
 
 from typing import List, Dict, Tuple
+from torch import no_grad
 
 from nomeroff_net import text_detectors
 from nomeroff_net.pipes.base.resnet18 import Resnet18
@@ -102,6 +103,7 @@ class TextDetector(object):
             predicted[key]["xs"] = self.resnet18.preprocess(predicted[key]["zones"])
         return predicted
 
+    @no_grad()
     def forward(self, predicted):
         for key in predicted.keys():
             xs = self.resnet18.forward(predicted[key]["xs"])

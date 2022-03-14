@@ -166,7 +166,7 @@ class NpPointsCraft(object):
                low_text: float = 0.4
                ):
         preprocessed_data = self.preprocess(inputs, canvas_size, mag_ratio)
-        model_outputs = self.forward(preprocessed_data)
+        model_outputs = self.forward_batch(preprocessed_data)
         return self.postprocess(model_outputs, quality_profile, text_threshold, link_threshold, low_text)
 
     @torch.no_grad()
