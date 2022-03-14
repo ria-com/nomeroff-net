@@ -17,10 +17,9 @@ from nomeroff_net.tools.image_processing import normalize_img
 class ImgGenerator(Dataset):
     def __init__(self,
                  dirpath: str,
-                 img_w: int = 295,
-                 img_h: int = 64,
+                 img_w: int = 256,
+                 img_h: int = 256,
                  batch_size: int = 32,
-                 labels_counts: List = (14, 4, 2),
                  with_aug: bool = False) -> None:
         self.with_aug = with_aug
         self.cur_index = 0
@@ -31,7 +30,6 @@ class ImgGenerator(Dataset):
         self.img_w = img_w
         self.batch_size = batch_size
 
-        self.labels_counts = labels_counts
         self.dirpath = dirpath
         self.samples = []
         self.images_path = []
@@ -45,29 +43,37 @@ class ImgGenerator(Dataset):
         self.batch_count = int(self.n/batch_size)
         self.rezero()
 
-    def load_dataset(self, with_aug: bool, dirpath: str, cache_postfix: str = "cache_options"):
-        img_dirpath = os.path.join(self.dirpath, 'img')
-        ann_dirpath = os.path.join(self.dirpath, 'ann')
+    def generate_numberplate_fraud_and_true(self, image_filename, corners):
+        fraud_paths, true_paths = [], []
+        x_filepath = self.generate_cache_x_in_path(image_filename, corners)
 
-        if with_aug:
-            cache_postfix = f"{cache_postfix}_aug"
-        cache_dirpath = os.path.join(dirpath, cache_postfix)
-        os.makedirs(cache_dirpath, exist_ok=True)
+        return fraud_paths, true_paths
+
+
+    def load_dataset(self, with_aug: bool, dir_path: str, json_path: str):
+        with open(json_path) as jsonFile:
+            json_data = json.load(jsonFile)
+
         self.samples = []
         self.images_path = []
-        for file_name in tqdm(os.listdir(img_dirpath)):
-            name, ext = os.path.splitext(file_name)
-            if ext == '.png':
-                img_filepath = os.path.join(img_dirpath, file_name)
-                self.images_path.append(img_filepath)
-                json_filepath = os.path.join(ann_dirpath, name + '.json')
-                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
-                if os.path.exists(json_filepath):
-                    description = json.load(open(json_filepath, 'r'))
-                    self.samples.append([x_filepath, [
-                        int(description.get("region_id", -1)),
-                        int(description.get("count_lines", -1)),
-                        int(description.get("orientation", -1))]])
+        for key in json_data["_via_img_metadata"]:
+            metadata = json_data["_via_img_metadata"][key]
+
+            # define image_id
+            image_filename = metadata["filename"]
+            print("image_filename", image_filename)
+
+            for region in metadata["regions"]:
+                segmentation = [[]]
+                for x, y in zip(region["shape_attributes"]["all_points_x"], region["shape_attributes"]["all_points_y"]):
+                    segmentation[0].append(x)
+                    segmentation[0].append(y)
+
+                # define area
+                corners = [(x, y) for x, y in
+                           zip(region["shape_attributes"]["all_points_x"], region["shape_attributes"]["all_points_y"])]
+                fraud_paths, true_paths = self.generate_numberplate_fraud_and_true(image_filename, corners)
+
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.batch_count = int(self.n / self.batch_size)
@@ -87,7 +93,10 @@ class ImgGenerator(Dataset):
         x = np.moveaxis(np.array(x), 2, 0)
         return x
 
-    def generate_cache_x_in_path(self, img_path: str, cache_dirpath: str, newsize: Tuple = None) -> str:
+    def generate_cache_x_in_path(self,
+                                 img_path: str,
+                                 cache_dirpath: str,
+                                 newsize: Tuple = None) -> str:
         x_path = self.generate_x_path(img_path, cache_dirpath)
 
         if os.path.exists(x_path):
