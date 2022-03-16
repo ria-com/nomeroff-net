@@ -210,7 +210,7 @@ class OCR(object):
         return pred_texts
 
     @torch.no_grad()
-    def predict(self, xs: List, return_acc: bool = False) -> Any:
+    def predict(self, xs: List or torch.Tensor, return_acc: bool = False) -> Any:
         net_out_value = self.model(xs)
         net_out_value = [p.cpu().numpy() for p in net_out_value]
         pred_texts = decode_batch(torch.Tensor(net_out_value), self.label_converter)

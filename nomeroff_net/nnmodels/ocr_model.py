@@ -21,6 +21,39 @@ def weights_init(m):
         m.bias.data.fill_(0)
 
 
+class BlockCNN(nn.Module):
+    def __init__(self, in_nc, out_nc, kernel_size, padding, stride=tuple([1])):
+        super(BlockCNN, self).__init__()
+        self.in_nc = in_nc
+        self.out_nc = out_nc
+        self.kernel_size = kernel_size
+        self.padding = padding
+        # layers
+        self.conv = nn.Conv2d(in_nc, out_nc,
+                              kernel_size=kernel_size,
+                              stride=stride,
+                              padding=padding)
+        self.bn = nn.BatchNorm2d(out_nc)
+
+    def forward(self, batch, use_bn=False, use_relu=False,
+                use_maxpool=False, maxpool_kernelsize=None):
+        """
+            in:
+                batch - [batch_size, in_nc, H, W]
+            out:
+                batch - [batch_size, out_nc, H', W']
+        """
+        batch = self.conv(batch)
+        if use_bn:
+            batch = self.bn(batch)
+        if use_relu:
+            batch = functional.relu(batch)
+        if use_maxpool:
+            assert maxpool_kernelsize is not None
+            batch = functional.max_pool2d(batch, kernel_size=maxpool_kernelsize, stride=1)
+        return batch
+
+
 class BlockRNN(nn.Module):
     def __init__(self, in_size, hidden_size, out_size, bidirectional):
         super(BlockRNN, self).__init__()
@@ -72,6 +105,8 @@ class NPOcrNet(pl.LightningModule):
         self.bidirectional = bidirectional
 
         self.label_converter = label_converter
+
+        self.cnn = BlockCNN(256, 256, kernel_size=3, padding=1)
 
         # RNN + Linear
         self.linear1 = nn.Linear(1024, 512)
@@ -187,4 +222,5 @@ if __name__ == "__main__":
     x = torch.rand((1, 256, 4, 19))
     y = net(x)
     print(y)
+
 

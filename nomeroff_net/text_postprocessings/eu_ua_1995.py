@@ -1,3 +1,6 @@
+"""
+python3 -m nomeroff_net.text_postprocessings.eu_ua_1995 -f nomeroff_net/text_postprocessings/eu_ua_1995.py
+"""
 from .xx_xx import XxXx
 
 
@@ -40,3 +43,7 @@ class EuUa1995(XxXx):
 
 
 eu_ua_1995 = EuUa1995()
+
+if __name__ == "__main__":
+    postprocessor = EuUa1995()
+    assert postprocessor.find("123456AB") == "23456AB"

@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.eu -f nomeroff_net/text_detectors/eu.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -15,3 +19,9 @@ class Eu(OCR):
 
 
 eu = Eu
+
+if __name__ == "__main__":
+    ocr = Eu()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

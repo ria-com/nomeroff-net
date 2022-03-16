@@ -46,3 +46,27 @@ python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmode
 python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
 python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
 python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
+
+# test tools
+python3 nomeroff_net/tools/test_tools.py
+
+# test ocrs
+python3 -m nomeroff_net.text_detectors.am -f nomeroff_net/text_detectors/am.py
+python3 -m nomeroff_net.text_detectors.by -f nomeroff_net/text_detectors/by.py
+python3 -m nomeroff_net.text_detectors.eu -f nomeroff_net/text_detectors/eu.py
+python3 -m nomeroff_net.text_detectors.eu_ua_1995 -f nomeroff_net/text_detectors/eu_ua_1995.py
+python3 -m nomeroff_net.text_detectors.eu_ua_2004_2015 -f nomeroff_net/text_detectors/eu_ua_2004_2015.py
+python3 -m nomeroff_net.text_detectors.ge -f nomeroff_net/text_detectors/ge.py
+python3 -m nomeroff_net.text_detectors.kg -f nomeroff_net/text_detectors/kg.py
+python3 -m nomeroff_net.text_detectors.kz -f nomeroff_net/text_detectors/kz.py
+python3 -m nomeroff_net.text_detectors.ru -f nomeroff_net/text_detectors/ru.py
+python3 -m nomeroff_net.text_detectors.su -f nomeroff_net/text_detectors/su.py
+
+# test text postprocessing
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2015_squire -f nomeroff_net/text_postprocessings/eu_ua_2015_squire.py
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2004_squire -f nomeroff_net/text_postprocessings/eu_ua_2004_squire.py
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2004 -f nomeroff_net/text_postprocessings/eu_ua_2004.py
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2015 -f nomeroff_net/text_postprocessings/eu_ua_2015.py
+python3 -m nomeroff_net.text_postprocessings.eu_ua_1995 -f nomeroff_net/text_postprocessings/eu_ua_1995.py
+python3 -m nomeroff_net.text_postprocessings.xx_xx -f nomeroff_net/text_postprocessings/xx_xx.py
+python3 -m nomeroff_net.text_postprocessings.ge -f nomeroff_net/text_postprocessings/ge.py

@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.ru -f nomeroff_net/text_detectors/ru.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -14,3 +18,9 @@ class Ru(OCR):
 
 
 ru = Ru
+
+if __name__ == "__main__":
+    ocr = Ru()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

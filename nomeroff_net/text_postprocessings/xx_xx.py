@@ -1,3 +1,6 @@
+"""
+python3 -m nomeroff_net.text_postprocessings.xx_xx -f nomeroff_net/text_postprocessings/xx_xx.py
+"""
 import re
 import numpy as np
 import string
@@ -117,3 +120,8 @@ class XxXx(object):
 
 
 xx_xx = XxXx()
+
+if __name__ == "__main__":
+    postprocessor = XxXx()
+    assert postprocessor.find("AAAA") == "AAAA"
+    assert postprocessor.find("1243") == "1243"

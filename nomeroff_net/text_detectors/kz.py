@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.kz -f nomeroff_net/text_detectors/kz.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -14,3 +18,9 @@ class Kz(OCR):
 
 
 kz = Kz
+
+if __name__ == "__main__":
+    ocr = Kz()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

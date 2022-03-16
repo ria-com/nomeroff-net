@@ -1,3 +1,6 @@
+"""
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2004_squire -f nomeroff_net/text_postprocessings/eu_ua_2004_squire.py
+"""
 from .xx_xx import XxXx
 
 
@@ -36,9 +39,13 @@ class EuUa2004Squire(XxXx):
 
     def find(self, text: str, strong: bool = False) -> str:
         text = super().find(text, strong)
-        if len(text) == 6:
+        if len(text) == 8:
             text = text[:2] + text[4:8] + text[2:4]
         return text
 
 
 eu_ua_2004_squire = EuUa2004Squire()
+
+if __name__ == "__main__":
+    postprocessor = EuUa2004Squire()
+    print(postprocessor.find("ABHH1234"))

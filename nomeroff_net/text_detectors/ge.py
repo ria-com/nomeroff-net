@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.ge -f nomeroff_net/text_detectors/ge.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -14,3 +18,9 @@ class Ge(OCR):
 
 
 ge = Ge
+
+if __name__ == "__main__":
+    ocr = Ge()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

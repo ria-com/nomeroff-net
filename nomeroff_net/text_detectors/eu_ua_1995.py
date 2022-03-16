@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.eu_ua_1995 -f nomeroff_net/text_detectors/eu_ua_1995.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -15,3 +19,9 @@ class EuUa1995(OCR):
 
 
 eu_ua_1995 = EuUa1995
+
+if __name__ == "__main__":
+    ocr = EuUa1995()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

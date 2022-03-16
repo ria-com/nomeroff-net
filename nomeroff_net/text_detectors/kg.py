@@ -1,3 +1,7 @@
+"""
+python3 -m nomeroff_net.text_detectors.kg -f nomeroff_net/text_detectors/kg.py
+"""
+import torch
 from .base.ocr import OCR
 
 
@@ -16,3 +20,9 @@ class Kg(OCR):
 
 
 kg = Kg
+
+if __name__ == "__main__":
+    ocr = Kg()
+    ocr.load()
+    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    print(y)

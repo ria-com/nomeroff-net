@@ -1,3 +1,6 @@
+"""
+python3 -m nomeroff_net.text_postprocessings.eu_ua_2004 -f nomeroff_net/text_postprocessings/eu_ua_2004.py
+"""
 import operator
 from collections import Counter
 from .xx_xx import XxXx
@@ -98,3 +101,7 @@ class EuUa2004(XxXx):
 
 
 eu_ua_2004 = EuUa2004()
+
+if __name__ == "__main__":
+    postprocessor = EuUa2004()
+    assert postprocessor.find("AB1234CH1") == "AB1234CH"

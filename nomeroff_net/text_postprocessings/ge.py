@@ -1,3 +1,6 @@
+"""
+python3 -m nomeroff_net.text_postprocessings.ge -f nomeroff_net/text_postprocessings/ge.py
+"""
 from .xx_xx import XxXx
 import string
 
@@ -28,3 +31,8 @@ class Ge(XxXx):
 
 
 ge = Ge()
+
+if __name__ == "__main__":
+    postprocessor = Ge()
+    assert postprocessor.find("A0C123") == "AOC123"
+    assert postprocessor.find("A0123C0") == "AO123CO"
