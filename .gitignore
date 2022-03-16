@@ -1,6 +1,5 @@
 # nomeroff-net
 examples/*.html
-benchmark/*.html
 
 moderation/node_modules/*
 moderation/config/default.js

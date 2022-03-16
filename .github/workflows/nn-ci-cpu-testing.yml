@@ -85,7 +85,7 @@ jobs:
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test.ipynb
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-multiline.ipynb
 
-          # test jupyter tools
+          # test jupyter dataset tools examples
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/analyze_via_dataset.ipynb
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/auto_number_grab.ipynb
           jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/check_ocr_model.ipynb
