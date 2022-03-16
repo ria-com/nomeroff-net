@@ -49,7 +49,6 @@ class ImgGenerator(Dataset):
 
         return fraud_paths, true_paths
 
-
     def load_dataset(self, with_aug: bool, dir_path: str, json_path: str):
         with open(json_path) as jsonFile:
             json_data = json.load(jsonFile)
