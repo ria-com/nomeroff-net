@@ -1,4 +1,5 @@
 import json
+import re
 import tqdm
 import cv2
 import os
@@ -6,15 +7,112 @@ import glob
 import shutil
 import pandas as pd
 import numpy as np
+import multiprocessing
 import matplotlib.image as mpimg
+from collections import Counter
+from nomeroff_net.tools import modelhub
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import NpPointsCraft
+from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 
 from nomeroff_net.tools.image_processing import (
     get_cv_zone_rgb,
     convert_cv_zones_rgb_to_bgr,
     reshape_points)
+
+
+def option_checker(dataset_dir, img_format="png", part_size=1):
+    options_detector = OptionsDetector()
+    options_detector.load("latest")
+
+    ann = "ann"
+    img = "img"
+    ann_dir = os.path.join(dataset_dir, ann)
+    img_dir = os.path.join(dataset_dir, img)
+
+    img_fnames = []
+    notted_regions = []
+    nottedcount_lines = []
+    notted_states = []
+    zones = []
+    ann_fnames = []
+    ann_data = []
+    i = 0
+    counter = Counter()
+    for dir_name, subdir_list, file_list in os.walk(ann_dir):
+        for fname in file_list:
+            ann_path = os.path.join(ann_dir, fname)
+
+            i += 1
+            ann_fnames.append(ann_path)
+            with open(ann_path) as jsonR:
+                data = json.load(jsonR)
+            img_name = data["name"]
+            ann_data.append(data)
+
+            img_path = os.path.join(img_dir, "{}.{}".format(img_name, img_format))
+            zones.append(cv2.cvtColor(mpimg.imread(img_path), cv2.COLOR_RGB2BGR))
+
+            img_fnames.append(img_path)
+            notted_regions.append(data["region_id"])
+            notted_states.append(data["state_id"])
+            nottedcount_lines.append(data["count_lines"])
+            if i >= part_size:
+                # find standart
+                region_ids, count_lines = options_detector.predict(zones)
+                for (regionId, zone, nottedRegion, nottedState, imgFname,
+                     annFname, annItem, nottedCountL, countL) in zip(region_ids,
+                                                                     zones,
+                                                                     notted_regions,
+                                                                     notted_states,
+                                                                     img_fnames,
+                                                                     ann_fnames,
+                                                                     ann_data,
+                                                                     count_lines,
+                                                                     nottedcount_lines):
+
+                    # region
+                    bad_region = False
+                    if int(regionId) != int(nottedRegion):
+                        bad_region = True
+                        if not ('moderation' in annItem):
+                            annItem['moderation'] = {}
+                        annItem['moderation']['regionPredicted'] = int(regionId)
+                        print("REGION NOT CORRECT IN {}".format(imgFname))
+                        print("PREDICTED: {}".format(regionId))
+                        print("ANNOTATED: {}".format(nottedRegion))
+                        counter["BAD_REGION"] += 1
+                    else:
+                        counter["GOOD_REGION"] += 1
+
+                    # count
+                    bad_count = False
+                    if int(countL) != int(nottedCountL):
+                        bad_count = True
+                        if not ('moderation' in annItem):
+                            annItem['moderation'] = {}
+                        annItem['moderation']['countPredicted'] = int(countL)
+                        print("COUNT LINES NOT CORRECT IN {}".format(imgFname))
+                        print("PREDICTED: {}".format(countL))
+                        print("ANNOTATED: {}".format(nottedCountL))
+                        counter["BAD_COUNT"] += 1
+                    else:
+                        counter["GOOD_COUNT"] += 1
+
+                    if 'moderation' in annItem and (bad_region or bad_count):
+                        with open(annFname, "w") as jsonW:
+                            annItem['moderation']['isModerated'] = 0
+                            json.dump(annItem, jsonW)
+
+                img_fnames = []
+                notted_regions = []
+                nottedcount_lines = []
+                notted_states = []
+                zones = []
+                ann_fnames = []
+                ann_data = []
+    return counter
 
 
 def auto_number_grab(root_dir, csv_dataset_path, res_dir):
@@ -156,3 +254,89 @@ def check_ocr_model(root_dir,
 
     print("Error detection count: {}".format(err_cnt))
     print("Accuracy: {}".format(1-err_cnt/len(predicted)))
+
+
+def get_datasets(names=None, states=None):
+    if names is None:
+        names = [
+            "EuUaFrom2004",
+            "EuUa1995",
+            "Eu",
+            "Ru",
+            "Kz",
+            "Ge",
+            "By",
+            "Su",
+            "Kg",
+            "Am",
+        ]
+    if states is None:
+        states = [
+            "train",
+            "test",
+            "val"
+        ]
+
+    datasets = {}
+    for name in names:
+        info = modelhub.download_dataset_for_model(name)
+        print(name, info["dataset_path"])
+        for state in states:
+            datasets[(name, state)] = os.path.join(info["dataset_path"], state)
+    return datasets
+
+
+def read_json(fname):
+    with open(fname) as jsonF:
+        json_data = json.load(jsonF)
+    return fname, json_data
+
+
+def read_annotations(root_dir, processes=10):
+    ann_dir = os.path.join(root_dir, "ann")
+    jsons_paths = []
+    for dir_name, subdir_list, file_list in os.walk(ann_dir):
+        for fname in file_list:
+            fname = os.path.join(ann_dir, fname)
+            jsons_paths.append(fname)
+    with multiprocessing.Pool(processes=processes) as pool:
+        results = pool.map(read_json, jsons_paths)
+    jsons = {}
+    for (fname, json_data) in results:
+        jsons[fname] = json_data
+    return jsons
+
+
+def find_all_datset_format(annotations):
+    formats_counter = Counter()
+    for fanme in annotations:
+        json_data = annotations[fanme]
+        numberplate_format = json_data["description"].lower()
+        numberplate_format = re.sub(r"[0-9]", "#", numberplate_format)  # number
+        numberplate_format = re.sub(r"[a-z]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[а-я]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[їіёъ]", "@", numberplate_format)  # letter
+        formats_counter[numberplate_format] += 1
+    return formats_counter.most_common()
+
+
+def print_datset_format(annotations, ann_format):
+    for fname in annotations:
+        json_data = annotations[fname]
+        numberplate_format = json_data["description"].lower()
+        numberplate_format = re.sub(r"[0-9]", "#", numberplate_format)  # number
+        numberplate_format = re.sub(r"[a-z]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[а-я]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[їіёъ]", "@", numberplate_format)  # letter
+        if ann_format == numberplate_format:
+            print("\t\t\t", fname, json_data)
+            img_path = os.path.dirname(fname)
+            img_path = img_path.replace("ann", "img")
+            img_path = os.path.join(img_path, f"{json_data['name']}.png")
+            img = cv2.imread(img_path)
+            try:
+                from matplotlib import pyplot as plt
+                plt.imshow(img)
+                plt.plot()
+            except ModuleNotFoundError as _:
+                pass
