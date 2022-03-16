@@ -1,3 +1,7 @@
+"""
+Numberplate Classification Model
+python3 ./nomeroff_net/nnmodels/numberplate_classification_model.py
+"""
 import torch
 from typing import Any
 from pytorch_lightning import LightningModule
@@ -42,4 +46,3 @@ if __name__ == "__main__":
     classification_net = ClassificationNet()
     x = torch.rand((1, 64, 295))
     y = classification_net(x)
-    print("[ClassificationNet]", y)

@@ -1,3 +1,7 @@
+"""
+Numberplate Classification Model
+python3 -m nomeroff_net.nnmodels.numberplate_options_model -f nomeroff_net/nnmodels/numberplate_options_model.py
+"""
 import torch
 import torch.nn as nn
 from torch.nn import functional
@@ -157,6 +161,6 @@ class NPOptionsNet(ClassificationNet):
 
 if __name__ == "__main__":
     np_options_net = NPOptionsNet(13, 3)
-    x = torch.rand((1, 64, 295))
-    y = np_options_net(x)
-    print("[NPOptionsNet]", y)
+    xs = torch.rand((1, 3, 64, 295))
+    ys = np_options_net(xs)
+    print(ys)

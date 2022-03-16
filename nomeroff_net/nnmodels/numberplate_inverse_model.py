@@ -1,3 +1,7 @@
+"""
+Numberplate Inverse Model
+python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
+"""
 import torch
 import torch.nn as nn
 from torch.nn import functional
@@ -64,3 +68,10 @@ class NPInverseNet(ClassificationNet):
 
     def configure_optimizers(self):
         return torch.optim.Adamax(self.parameters(), lr=self.learning_rate)
+
+
+if __name__ == "__main__":
+    net = NPInverseNet(2)
+    x = torch.rand((1, 3, 64, 295))
+    y = net(x)
+    print(y)

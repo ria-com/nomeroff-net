@@ -1,3 +1,8 @@
+"""
+Numberplate Orientation Model
+python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
+"""
+import torch
 import torch.nn as nn
 from .numberplate_inverse_model import NPInverseNet
 
@@ -34,3 +39,10 @@ class NPOrientationNet(NPInverseNet):
         self.fc2 = nn.Linear(512, 256)
         self.batch_norm = nn.BatchNorm1d(512)
         self.fc3 = nn.Linear(256, orientation_output_size)
+
+
+if __name__ == "__main__":
+    net = NPOrientationNet(2)
+    x = torch.rand((1, 3, 300, 300))
+    y = net(x)
+    print(y)

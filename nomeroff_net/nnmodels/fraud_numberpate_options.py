@@ -1,3 +1,7 @@
+"""
+Numberplate Classification Model
+python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmodels/fraud_numberpate_options.py
+"""
 import torch
 import torch.nn as nn
 from torch.nn import functional
@@ -5,11 +9,11 @@ from .numberplate_classification_model import ClassificationNet
 from torchvision.models import resnet18
 
 
-class NPOptionsNet(ClassificationNet):
+class FraudNPNet(ClassificationNet):
     def __init__(self,
                  batch_size: int = 1,
                  learning_rate: float = 0.005):
-        super(NPOptionsNet, self).__init__()  # activation='relu'
+        super(FraudNPNet, self).__init__()  # activation='relu'
         self.batch_size = batch_size
         self.learning_rate = learning_rate
         self.criterion = nn.BCEWithLogitsLoss()
@@ -18,7 +22,7 @@ class NPOptionsNet(ClassificationNet):
         modules = list(resnet.children())[:-3]
         self.resnet = nn.Sequential(*modules)
 
-        self.fc1 = nn.Linear(256 * 4 * 19, 512)
+        self.fc1 = nn.Linear(256 * 16 * 16, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 1)
 
@@ -77,11 +81,11 @@ class NPOptionsNet(ClassificationNet):
         y = self.relu(self.fc1(y))
         if self.batch_size > 1:
             y = self.batchnorm1(y)
-        y = self.relu(self.fc2_reg(y))
+        y = self.relu(self.fc2(y))
         if self.batch_size > 1:
             y = self.batchnorm2(y)
         y = self.dropout(y)
-        y = functional.sigmoid(self.fc3_reg(y))
+        y = functional.sigmoid(self.fc3(y))
 
         return y
 
@@ -109,6 +113,6 @@ class NPOptionsNet(ClassificationNet):
 
 
 if __name__ == "__main__":
-    net = NPOptionsNet()
-    predicted = net(torch.rand((1, 256, 256)))
-    print("[NPOptionsNet]", predicted)
+    net = FraudNPNet()
+    predicted = net(torch.rand((1, 3, 256, 256)))
+    print(predicted)
