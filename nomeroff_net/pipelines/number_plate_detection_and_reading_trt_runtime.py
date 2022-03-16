@@ -1,4 +1,4 @@
-from nomeroff_net.pipelines.number_plate_detection_and_reading_trt import NumberPlateDetectionAndReadingTrt
+from .number_plate_detection_and_reading_trt import NumberPlateDetectionAndReadingTrt
 from nomeroff_net.pipelines.base import RuntimePipeline
 
 

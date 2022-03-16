@@ -1,10 +1,10 @@
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
-from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
-from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
-from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
-from nomeroff_net.pipelines.number_plate_classification import NumberPlateClassification
+from .number_plate_localization import NumberPlateLocalization
+from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
+from .number_plate_text_reading import NumberPlateTextReading
+from.number_plate_classification import NumberPlateClassification
 from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
 from nomeroff_net.tools import unzip
 

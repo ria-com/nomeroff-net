@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, empty_method
 from nomeroff_net.tools import unzip
-from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
-from nomeroff_net.pipelines.number_plate_key_points_detection import NumberPlateKeyPointsDetection
+from .number_plate_localization import NumberPlateLocalization
+from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
 
 
 class NumberPlateKeyPointsFilling(Pipeline):

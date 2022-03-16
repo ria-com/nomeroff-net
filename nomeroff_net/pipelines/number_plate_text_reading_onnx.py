@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
+from .number_plate_text_reading import NumberPlateTextReading
 from nomeroff_net.pipes.number_plate_text_readers.text_detector_onnx import TextDetectorOnnx
 
 

@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
-from nomeroff_net.pipelines.number_plate_detection_and_reading import NumberPlateDetectionAndReading
+from .number_plate_detection_and_reading import NumberPlateDetectionAndReading
 from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor \
     import convert_multiline_images_to_one_line
 

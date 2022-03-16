@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from typing import Any, Dict
-from nomeroff_net.pipelines.number_plate_localization import NumberPlateLocalization
+from .number_plate_localization import NumberPlateLocalization
 from nomeroff_net.tools import unzip
 
 

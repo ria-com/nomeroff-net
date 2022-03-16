@@ -8,7 +8,7 @@ from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import N
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from nomeroff_net.pipelines.number_plate_text_reading import DEFAULT_PRISETS
+from .number_plate_text_reading import DEFAULT_PRISETS
 
 
 class NumberPlateDetectionAndReadingV2(Pipeline):
