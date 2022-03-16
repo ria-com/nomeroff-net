@@ -22,10 +22,10 @@ models = {
     },
     "numberplate_options": {
         "application": "OptionsDetector",
-        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2022_02_07_pytorch_lightning.ckpt",
-        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2022-02-07.zip",
+        "url": "https://nomeroff.net.ua/models/options/torch/numberplate_options_2022_03_14_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOptionsDataset-2022-02-22.zip",
         "class_region": [
-            "military-ua",
+            "military-ru",
             "eu-ua-2015",
             "eu-ua-2004",
             "eu-ua-1995",
@@ -40,6 +40,7 @@ models = {
             "su",
             "kg",
             "am",
+            "military-ua"
         ],
         "count_lines": [
             1,
