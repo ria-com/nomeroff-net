@@ -78,14 +78,9 @@ class ImgGenerator(Dataset):
         """
         return self.n
 
-    def get_x_from_path(self, path: str) -> np.ndarray:
-        img = cv2.imread(path)
-        x = normalize_img(img,
-                          with_aug=self.with_aug,
-                          width=self.img_w,
-                          height=self.img_h)
-        x = np.moveaxis(np.array(x), 2, 0)
-        return x
+    @staticmethod
+    def get_x_from_path(x_path: str) -> torch.Tensor:
+        return torch.load(x_path)
 
     def generate_cache_x_in_path(self, img_path: str, cache_dirpath: str, newsize: Tuple = None) -> str:
         x_path = self.generate_x_path(img_path, cache_dirpath)
@@ -121,7 +116,6 @@ class ImgGenerator(Dataset):
         x = copy.deepcopy(self.paths[self.indexes[index]])
         y = copy.deepcopy(self.discs[self.indexes[index]])
         x = self.get_x_from_path(x)
-        x = torch.from_numpy(x)
         y[0] = torch.from_numpy(y[0])
         y[1] = torch.from_numpy(y[1])
         return x, y

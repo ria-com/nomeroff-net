@@ -102,9 +102,9 @@ class TextImageGenerator(object):
         torch.save(x, x_path)
         return x_path
 
-    def get_x_from_path(self, x_path: str) -> torch.Tensor:
-        x = torch.load(x_path)
-        return x
+    @staticmethod
+    def get_x_from_path(x_path: str) -> torch.Tensor:
+        return torch.load(x_path)
 
     def __getitem__(self, index):
         """
