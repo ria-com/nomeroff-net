@@ -22,6 +22,10 @@ public/npdetect.php
 Mask_RCNN/*
 centermask2/*
 
+# models
+*.ckpt
+*.pt
+
 # sonarcube
 .scannerwork
 sonar-project.properties
