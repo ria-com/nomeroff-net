@@ -51,6 +51,7 @@ python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
 python3 nomeroff_net/tools/test_tools.py
 
 # test ocrs
+# TODO: make runnable for GPU
 python3 -m nomeroff_net.text_detectors.am -f nomeroff_net/text_detectors/am.py
 python3 -m nomeroff_net.text_detectors.by -f nomeroff_net/text_detectors/by.py
 python3 -m nomeroff_net.text_detectors.eu -f nomeroff_net/text_detectors/eu.py

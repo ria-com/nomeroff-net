@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime
+FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -25,7 +25,7 @@ RUN pip3 install Cython
 RUN pip3 install pycocotools
 RUN pip3 install matplotlib
 RUN pip3 install seaborn
-RUN pip3 install opencv_python
+RUN pip3 install 'opencv_python<4.5.5'
 RUN pip3 install "numpy>=1.16.*"
 RUN pip3 install imgaug
 RUN pip3 install pillow

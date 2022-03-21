@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:latest
+FROM python:3.7-slim
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
@@ -8,6 +8,9 @@ WORKDIR /var/www
 
 RUN apt-get update
 
+RUN apt-get install -y build-essential
+RUN apt-get install -y manpages-dev
+
 # For opencv
 RUN apt-get install -y libglib2.0
 
@@ -15,27 +18,27 @@ RUN apt-get install -y libglib2.0
 RUN apt-get install -y git
 RUN apt-get install -y libgl1-mesa-glx
 
-RUN pip3 install setuptools
-RUN pip3 install "PyYAML>=5.3"
-RUN pip3 install scikit_image
-RUN pip3 install Cython
-RUN pip3 install pycocotools
-RUN pip3 install matplotlib
-RUN pip3 install seaborn
-RUN pip3 install opencv_python
-RUN pip3 install "numpy>=1.16.*"
-RUN pip3 install imgaug
-RUN pip3 install pillow
-RUN pip3 install scipy
-RUN pip3 install gevent
-RUN pip3 install asyncio
-RUN pip3 install termcolor
-RUN pip3 install ujson
-RUN pip3 install GitPython
-RUN pip3 install pycocotools
-RUN pip3 install tqdm
-RUN pip3 install pytorch_lightning
-RUN pip3 install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
-RUN pip3 install -U "git+https://github.com/ria-com/modelhub-client.git"
+RUN python3 -m pip install setuptools
+RUN python3 -m pip install "PyYAML>=5.3"
+RUN python3 -m pip install scikit_image
+RUN python3 -m pip install Cython
+RUN python3 -m pip install pycocotools
+RUN python3 -m pip install matplotlib
+RUN python3 -m pip install seaborn
+RUN python3 -m pip install 'opencv_python<4.5.5'
+RUN python3 -m pip install "numpy>=1.16.*"
+RUN python3 -m pip install imgaug
+RUN python3 -m pip install pillow
+RUN python3 -m pip install scipy
+RUN python3 -m pip install gevent
+RUN python3 -m pip install asyncio
+RUN python3 -m pip install termcolor
+RUN python3 -m pip install ujson
+RUN python3 -m pip install GitPython
+RUN python3 -m pip install tqdm
+RUN python3 -m pip install pytorch_lightning
+RUN python3 -m pip install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
+RUN python3 -m pip install -U "git+https://github.com/ria-com/modelhub-client.git"
+RUN pip3 install torch==1.10.0 torchvision==0.11.0 -f https://download.pytorch.org/whl/torch_stable.html
 
 WORKDIR /var/www/nomeroff-net
