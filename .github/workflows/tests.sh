@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+# RUN: . .github/workflows/tests.sh
 
 # test python inference examples
 python examples/py/inference/get-started-demo.py
