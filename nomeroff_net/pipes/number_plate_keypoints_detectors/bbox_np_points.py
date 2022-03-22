@@ -124,7 +124,7 @@ class NpPointsCraft(object):
 
     @staticmethod
     def craft_postprocessing(score_text: np.ndarray, score_link: np.ndarray, text_threshold: float,
-                       link_threshold: float, low_text: float, ratio_w: float, ratio_h: float):
+                             link_threshold: float, low_text: float, ratio_w: float, ratio_h: float):
         # Post-processing
         boxes = get_det_boxes(score_text, score_link, text_threshold, link_threshold, low_text)
 

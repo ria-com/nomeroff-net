@@ -1,5 +1,6 @@
 from torch import no_grad
 from typing import Any, Dict, Optional, List, Union
+from nomeroff_net.tools import unzip
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, empty_method
 from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
@@ -76,9 +77,8 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
             orig_img_shapes,
             **forward_parameters)
 
-        images_points, images_mline_boxes = self.key_points_detector.detect_mline_many(
-            images,
-            images_target_boxes,
+        images_points, images_mline_boxes = self.key_points_detector.detect(
+            unzip([images, images_target_boxes]),
             **forward_parameters)
 
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)

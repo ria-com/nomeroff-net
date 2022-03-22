@@ -1,4 +1,6 @@
-FROM nvcr.io/nvidia/tensorrt:20.12-py3
+# nVidia TensorRT Base Image
+ARG TRT_VERSION=21.07
+FROM nvcr.io/nvidia/tensorrt:${TRT_VERSION}-py3
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
@@ -10,7 +12,7 @@ WORKDIR /var/www
 RUN apt-get update
 
 ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=rel-1.8.2
+ARG ONNXRUNTIME_BRANCH=v1.10.0
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80
 
 RUN apt-get update &&\
@@ -18,7 +20,7 @@ RUN apt-get update &&\
 RUN unattended-upgrade
 
 WORKDIR /code
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.14.3-linux-x86_64/bin:${PATH}
+ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.21.0-linux-x86_64/bin:/opt/miniconda/bin:${PATH}
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
 # for Jetson you may use https://elinux.org/Jetson_Zoo#ONNX_Runtime
@@ -40,7 +42,7 @@ RUN apt-get install -y libgl1-mesa-glx
 # turbojpeg
 RUN apt-get install -y libturbojpeg
 
-RUN pip3 install torch==1.10.0+cu111 torchvision==0.11.0+cu111 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip3 install torch==1.10.0+cu113 torchvision==0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip3 install setuptools
 RUN pip3 install "PyYAML>=5.3"
 RUN pip3 install scikit_image

@@ -1,3 +1,6 @@
+"""
+python3 examples/py/model_convertors/ocr2tensorrt/convert_ocr_to_onnx.py
+"""
 import sys
 import os
 import time

@@ -3,6 +3,7 @@
   **updates** 
   * Refactored code with Sonarqube 
   * Added Pipelines
+  * Restructured code 
 
 2.5.0 / 2021-11-24
 ==================

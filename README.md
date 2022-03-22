@@ -1,7 +1,14 @@
-<img width="400" src="http://linux.ria.ua/img/articles/numberplate_detection/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
-
+![Nomeroff Net. Automatic numberplate recognition system](./public/images/nomeroff_net.svg)
 
 Nomeroff Net. Automatic numberplate recognition system. Version 3.0
+<br /><br />
+<blockquote style="border-left-color: #ff0000">
+Now there is a war going on in my country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
+For 2 weeks we have been appealing to USA & Nato: "Please close the sky", but so far these calls remain unanswered...
+
+![Russian troops bombed a maternity hospital in Mariupol](./public/images/russian_troops_bombed_a_maternity_hospital_in_Mariupol_2022-03-09_19-26-39.jpg?raw=true)
+</blockquote>
+
 
 ## Introduction
 Nomeroff Net is an opensource python license plate 
@@ -72,6 +79,7 @@ pip3 install -r requirements.txt
 
 ```python
 from nomeroff_net import pipeline
+from nomeroff_net.tools import unzip
 
 number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", 
                                               image_loader="opencv")
@@ -79,8 +87,8 @@ number_plate_detection_and_reading = pipeline("number_plate_detection_and_readin
 (images, images_bboxs, 
  images_points, images_zones, region_ids, 
  region_names, count_lines, 
- confidences, texts) = number_plate_detection_and_reading(['./images/example1.jpeg', 
-                                                           './images/example2.jpeg'])
+ confidences, texts) = unzip(number_plate_detection_and_reading(['./data/examples/oneline_images/example1.jpeg', 
+                                                                 './data/examples/oneline_images/example2.jpeg']))
  
 print(texts)
 ```
@@ -90,15 +98,14 @@ Note: This example disables some important Nomeroff Net features. It will recogn
 
 ```python
 from nomeroff_net import pipeline
+from nomeroff_net.tools import unzip
 
-number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading_tiny", 
+number_plate_detection_and_reading = pipeline("number_plate_short_detection_and_reading", 
                                               image_loader="opencv")
 
-(images, images_bboxs, 
- images_points, images_zones, region_ids, 
- region_names, count_lines, 
- confidences, texts) = number_plate_detection_and_reading(['./images/example1.jpeg', 
-                                                           './images/example2.jpeg'])
+(images, images_bboxs,
+ zones, texts) = unzip(number_plate_detection_and_reading(['./data/examples/oneline_images/example1.jpeg', 
+                                                           './data/examples/oneline_images/example2.jpeg']))
  
 print(texts)
 ```
