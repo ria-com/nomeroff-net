@@ -6,11 +6,11 @@ module.exports = {
         version: p.version
     },
     template: {
-        path: `${__dir_name}/../templates`,
+        path: `${__dirname}/../templates`,
         annDefault: 'kz.json'
     },
     dataset: {
-        baseDir: `${__dir_name}/../../../dataset/ocr/kz`,
+        baseDir: `${__dirname}/../../../dataset/ocr/kz`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },
