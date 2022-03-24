@@ -33,8 +33,8 @@ CLASS_REGION_ALL = [
     "su",
     "kg",
     "am",
-    "military-ua",
-    "military-ru",
+    "ua-military",
+    "ru-military",
 ]
 
 CLASS_LINES_ALL = [
