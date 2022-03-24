@@ -1,5 +1,9 @@
 #!/usr/bin/bash
 
+# test train examples
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-by-train.ipynb
+
+
 # test python inference examples
 python examples/py/inference/get-started-demo.py
 python examples/py/inference/get-started-tiny-demo.py
@@ -73,5 +77,3 @@ python3 -m nomeroff_net.text_postprocessings.eu_ua_1995 -f nomeroff_net/text_pos
 python3 -m nomeroff_net.text_postprocessings.xx_xx -f nomeroff_net/text_postprocessings/xx_xx.py
 python3 -m nomeroff_net.text_postprocessings.ge -f nomeroff_net/text_postprocessings/ge.py
 
-# test train examples
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-by-train.ipynb

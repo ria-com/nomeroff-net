@@ -124,6 +124,7 @@ class TextImageGenerator(object):
         modules = list(resnet.children())[:-3]
         self.resnet = nn.Sequential(*modules)
         self.resnet.load_state_dict(torch.load(path_to_model, map_location=device_torch))
+        self.resnet = self.resnet.to(device_torch)
         self.list_transforms = transforms.Compose([
             transforms.ToTensor(),
         ])

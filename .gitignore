@@ -12,6 +12,7 @@ source/*
 ./.pypirc
 
 # datasets
+lightning_logs
 datasets/*
 data/dataset/*
 !data/dataset/Detector/yolov5/autoria_numberplate_dataset_example/*
