@@ -180,16 +180,21 @@ class OCR(object):
                 val_losses.append(val_loss.item())
         return val_losses
 
-    def tune(self) -> Dict:
+    def tune(self, percentage=0.1) -> Dict:
         """
         TODO: describe method
         """
+        model = self.create_model()
+
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
                              gpus=self.gpus)
 
-        model = self.create_model()
-        lr_finder = trainer.tuner.lr_find(model, self.dm, early_stop_threshold=None, min_lr=1e-30)
+        num_training = int(len(self.dm.train_image_generator)*percentage) or 1
+        lr_finder = trainer.tuner.lr_find(model,
+                                          self.dm,
+                                          num_training=num_training,
+                                          early_stop_threshold=None)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
         model.hparams["learning_rate"] = lr

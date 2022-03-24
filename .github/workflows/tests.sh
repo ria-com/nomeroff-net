@@ -46,6 +46,7 @@ python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmode
 python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
 python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
 python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
+python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/base_ocr_model.py
 
 # test tools
 python3 nomeroff_net/tools/test_tools.py
@@ -71,3 +72,6 @@ python3 -m nomeroff_net.text_postprocessings.eu_ua_2015 -f nomeroff_net/text_pos
 python3 -m nomeroff_net.text_postprocessings.eu_ua_1995 -f nomeroff_net/text_postprocessings/eu_ua_1995.py
 python3 -m nomeroff_net.text_postprocessings.xx_xx -f nomeroff_net/text_postprocessings/xx_xx.py
 python3 -m nomeroff_net.text_postprocessings.ge -f nomeroff_net/text_postprocessings/ge.py
+
+# test train examples
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-by-train.ipynb
