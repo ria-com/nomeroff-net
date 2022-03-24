@@ -5,17 +5,22 @@ module.exports = {
         description: p.description,
         version: p.version
     },
-    server: {
-        port: process.env.NODE_APP_INSTANCE || 5005
+    template_path: {
+        path: `${__dir_name}/../templates`,
+        annDefault: 'kz.json'
     },
     dataset: {
         baseDir: `${__dir_name}/../../../dataset/ocr/kz`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },
+    template: {
+        path: `${__dir_name}/../templates`,
+        annDefault: 'kz.json'
+    },
     via: {
         partDirs: ['train', 'val']
-    }
+    },
     moderation: {
         regionOCRModeration: {
             base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
