@@ -1,3 +1,8 @@
+: '
+cd ./examples/py/model_convertors/
+./yolo2tensorrt/bin/yolov5_tensorrt.sh
+'
+
 yolov5s_name="yolov5s-2021-12-14"
 pt_ext="pt"
 wts_ext="wts"
@@ -41,7 +46,7 @@ if [ -f ${yolov5s_wts} ]; then
   echo "${yolov5s_wts} detected"
 else
   echo "python3 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}"
-  python3.8 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}
+  python3 gen_wts.py -w ${yolov5s_model} -o ${yolov5s_wts}
 fi
 
 cd ../tensorrtx/yolov5/

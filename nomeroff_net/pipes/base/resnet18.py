@@ -2,7 +2,6 @@ import torch
 import numpy as np
 import torch.nn as nn
 from torchvision.models import resnet18
-from typing import List, Any
 from nomeroff_net.tools.image_processing import normalize_img
 from nomeroff_net.tools.mcm import modelhub, get_device_torch
 
@@ -21,6 +20,7 @@ class Resnet18(object):
         resnet = resnet18(pretrained=False)
         modules = list(resnet.children())[:-3]
         self.resnet = nn.Sequential(*modules)
+
         self.resnet.load_state_dict(torch.load(path_to_model, map_location=device_torch))
         self.resnet = self.resnet.to(device_torch)
         return self.resnet

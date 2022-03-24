@@ -1,5 +1,5 @@
 """
-python3 examples/py/model_convertors/ocr2tensorrt/convert_ocr_to_onnx.py
+python3 ./convert_ocr_to_onnx.py
 """
 import sys
 import os
@@ -18,7 +18,7 @@ def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("-f", "--filepath",
                     default=os.path.join(os.path.abspath(os.getcwd()),
-                                         "../../../data/model_repository/ocr-{ocr_name}/1/model.onnx"),
+                                         "../../../../data/model_repository/ocr-{ocr_name}/1/model.onnx"),
                     required=False,
                     type=str,
                     help="Result onnx model filepath")
@@ -86,11 +86,7 @@ def main():
         # get model and model inputs
         model = detector.model
         model = model.to(device)
-        x = torch.randn(batch_size,
-                        detector.color_channels,
-                        detector.height,
-                        detector.width,
-                        requires_grad=True)
+        x = torch.rand((batch_size, 256, 4, 19), requires_grad=True)
         x = x.to(device)
 
         # make dirs
@@ -117,14 +113,13 @@ def main():
         print(f"[INFO] torch time {(time.time() - start_time)/n * 1000}ms torch")
 
         # Load onnx model
-        ort_session = onnxruntime.InferenceSession(model_filepath)
+        ort_session = onnxruntime.InferenceSession(model_filepath, providers=['TensorrtExecutionProvider',
+                                                                              'CUDAExecutionProvider',
+                                                                              'CPUExecutionProvider'])
         input_name = ort_session.get_inputs()[0].name
         ort_inputs = {
             input_name: np.random.randn(
-                batch_size,
-                detector.color_channels,
-                detector.height,
-                detector.width
+                batch_size, 256, 4, 19
             ).astype(np.float32)
         }
 
