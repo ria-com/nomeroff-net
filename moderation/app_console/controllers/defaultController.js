@@ -294,7 +294,7 @@ async function dataJoin (options) {
         throw new Error('"opt.srcJson" must be array for 2 (min) elements!')
     }
     const srcDir = options.srcDir,
-        targetDir = options.targetDir || throw new Error('"opt.targetDir" is not defined!'),
+        targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
         annExt = '.'+config.dataset.ann.ext
     ;
     for (let dir of srcDir) {
