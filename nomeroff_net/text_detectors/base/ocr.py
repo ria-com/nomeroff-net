@@ -305,7 +305,8 @@ class OCR(object):
             self.model.eval()
             for idx in range(len(dataset)):
                 img, text = dataset[idx]
-                logits = self.model(img.unsqueeze(0))
+                img = img.unsqueeze(0).to(device_torch)
+                logits = self.model(img)
                 pred_text = decode_prediction(logits.cpu(), self.label_converter)
 
                 if pred_text == text:
