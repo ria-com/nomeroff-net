@@ -1,8 +1,5 @@
 const Router = require('koa-router'),
-    convert = require('koa-convert'),
-    KoaBody = require('koa-body'),
-    views   = require('koa-views'),
-    config  = require('config')
+    KoaBody = require('koa-body')
 ;
 
 const

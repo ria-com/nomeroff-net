@@ -1,15 +1,15 @@
 const fs = require('fs');
 
-module.exports = (dir_name, isCreate = false) => {
-    if (!fs.existsSync(dir_name)) {
+module.exports = (dirname, isCreate = false) => {
+    if (!fs.existsSync(dirname)) {
         if (isCreate) {
             try {
-                fs.mkdirSync(dir_name)
+                fs.mkdirSync(dirname)
             } catch (e) {
-                throw new Error(`Cannot create path "${dir_name}"`)
+                throw new Error(`Cannot create path "${dirname}"`)
             }
         } else {
-            throw new Error(`Incorrect path ${dir_name}`)
+            throw new Error(`Incorrect path ${dirname}`)
         }
     }
 }
