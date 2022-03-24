@@ -111,6 +111,11 @@ models = {
         "url": "https://nomeroff.net.ua/models/ocr/ru/torch/anpr_ocr_ru_2021_09_01_pytorch_lightning.ckpt",
         "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-2021-09-01.zip",
     },
+    "RuMilitary": {
+        "application": "TextDetector",
+        "url": "https://nomeroff.net.ua/models/ocr/ru-military/torch/anpr_ocr_military-ru_2022_03_24_pytorch_lightning.ckpt",
+        "dataset": "https://nomeroff.net.ua/datasets/autoriaNumberplateOcrRu-Military-2022-03-24.zip",
+    },
     "Kz": {
         "application": "TextDetector",
         "url": "https://nomeroff.net.ua/models/ocr/kz/torch/anpr_ocr_kz_2021_09_01_pytorch_lightning.ckpt",
