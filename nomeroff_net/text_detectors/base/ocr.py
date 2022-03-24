@@ -253,7 +253,7 @@ class OCR(object):
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
                                                    max_plate_length=self.max_plate_length)
-        self.model.to(device_torch)
+        self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model
 
