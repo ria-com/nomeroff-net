@@ -1,15 +1,16 @@
 #!/usr/bin/bash
 
 # test train examples
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-by-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-eu-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-ge-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-kg-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-kz-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-ua-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-ua-1995-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-su-train.ipynb
-jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr-ru-train.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/by.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/eu.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ge.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kg.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kz.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua-1995.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/su.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ru.ipynb
 
 # test python inference examples
 python examples/py/inference/get-started-demo.py
