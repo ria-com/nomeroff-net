@@ -108,6 +108,7 @@ number_plate_detection_and_reading = pipeline("number_plate_short_detection_and_
                                                            './data/examples/oneline_images/example2.jpeg']))
  
 print(texts)
+# (['AC4921CB'], ['RP70012', 'JJF509'])
 ```
 
 
