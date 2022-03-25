@@ -36,8 +36,8 @@ module.exports = {
                     "su",
                     "kg",
                     "am",
-                    "military-ua",
-                    "military-ru"
+                    "ua-military",
+                    "ru-military"
                 ],
                 state_id: ["garbage", "filled", "not filled", "empty"],
                 count_lines: ["0", "1", "2", "3"]
