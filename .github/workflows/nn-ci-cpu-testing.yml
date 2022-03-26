@@ -53,7 +53,11 @@ jobs:
         sudo apt-get install libturbojpeg
         python -m pip install --upgrade pip
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
-        pip install -q jupyter  # wandb  # extras
+
+        # extras
+        pip install -q jupyter
+        pip install -I jinja2==3.0.3
+
         python --version
         pip --version
         pip list
