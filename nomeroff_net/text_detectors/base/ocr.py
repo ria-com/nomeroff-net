@@ -180,16 +180,21 @@ class OCR(object):
                 val_losses.append(val_loss.item())
         return val_losses
 
-    def tune(self) -> Dict:
+    def tune(self, percentage=0.1) -> Dict:
         """
         TODO: describe method
         """
+        model = self.create_model()
+
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
                              gpus=self.gpus)
 
-        model = self.create_model()
-        lr_finder = trainer.tuner.lr_find(model, self.dm, early_stop_threshold=None, min_lr=1e-30)
+        num_training = int(len(self.dm.train_image_generator)*percentage) or 1
+        lr_finder = trainer.tuner.lr_find(model,
+                                          self.dm,
+                                          num_training=num_training,
+                                          early_stop_threshold=None)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
         model.hparams["learning_rate"] = lr
@@ -253,7 +258,7 @@ class OCR(object):
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
                                                    max_plate_length=self.max_plate_length)
-        self.model.to(device_torch)
+        self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model
 
@@ -305,7 +310,8 @@ class OCR(object):
             self.model.eval()
             for idx in range(len(dataset)):
                 img, text = dataset[idx]
-                logits = self.model(img.unsqueeze(0))
+                img = img.unsqueeze(0).to(device_torch)
+                logits = self.model(img)
                 pred_text = decode_prediction(logits.cpu(), self.label_converter)
 
                 if pred_text == text:

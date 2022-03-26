@@ -115,6 +115,7 @@ class CustomOptionsMaker:
             for file in file_names:
                 file = os.path.join(dirpath, file)
                 with open(file) as json_file:
+                    print(file)
                     json_data = json.load(json_file)
                     key = tuple([json_data[label] for label in labels])
                     options_stat[key] += 1

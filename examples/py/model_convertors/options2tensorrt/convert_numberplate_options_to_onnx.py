@@ -1,3 +1,6 @@
+"""
+python3 ./convert_numberplate_options_to_onnx.py
+"""
 import sys
 import os
 import time
@@ -15,7 +18,7 @@ def parse_args():
     ap = argparse.ArgumentParser()
     ap.add_argument("-f", "--filepath",
                     default=os.path.join(os.path.abspath(os.getcwd()),
-                                         "../../../data/model_repository/numberplate_options/1/model.onnx"),
+                                         "../../../../data/model_repository/numberplate_options/1/model.onnx"),
                     required=False,
                     type=str,
                     help="Result onnx model filepath")
@@ -83,7 +86,9 @@ def main():
     print(f"[INFO] torch time {(time.time() - start_time)/n * 1000}ms torch outs {outs}")
 
     # Load onnx model
-    ort_session = onnxruntime.InferenceSession(filepath)
+    ort_session = onnxruntime.InferenceSession(filepath, providers=['TensorrtExecutionProvider',
+                                                                    'CUDAExecutionProvider',
+                                                                    'CPUExecutionProvider'])
     input_name = ort_session.get_inputs()[0].name
     ort_inputs = {
         input_name: np.random.randn(

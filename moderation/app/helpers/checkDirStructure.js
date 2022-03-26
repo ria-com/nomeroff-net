@@ -2,9 +2,9 @@ const checkDir = require('./checkDir'),
       path = require('path')
 ;
 
-module.exports = (dir_name, subDirArr = [], isCreate = false) => {
-    checkDir(dir_name, isCreate);
+module.exports = (dirname, subDirArr = [], isCreate = false) => {
+    checkDir(dirname, isCreate);
     for (let subDir of subDirArr) {
-        checkDir(path.join(dir_name, subDir), isCreate);
+        checkDir(path.join(dirname, subDir), isCreate);
     }
 };

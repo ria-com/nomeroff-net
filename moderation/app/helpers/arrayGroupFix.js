@@ -5,9 +5,9 @@ function makeGroups(arr) {
     for(let nameIdx in arr) {
         let name = arr[nameIdx];
         let result = name.match(groupMask);
-        if (result !=undefined && result.length) {
+        if (result !== undefined && result.length) {
             let group = result[1];
-            if (groupHash[group] == undefined) {
+            if (groupHash[group] === undefined) {
                 groupHash[group] = []
             }
             groupHash[group].push(nameIdx);
@@ -30,7 +30,7 @@ function clearGroups(targetKeys, targetGroups, groups) {
     }
 
     for (let i in targetKeys) {
-        if (removedIdsIdx[i] != undefined) {
+        if (removedIdsIdx[i] !== undefined) {
             toArr.push(targetKeys[i]);
         } else {
             newArr.push(targetKeys[i]);
@@ -50,7 +50,7 @@ module.exports = function arrayGroupFix(splitRate,partKeys = { 'train': [], 'val
     ;
 
     for (let group in valGroups) {
-        if (trainGroups[group] != undefined) {
+        if (trainGroups[group] !== undefined) {
             if (Math.random() > splitRate) {
                 toTrainGroups.push(group)
             } else {

@@ -42,11 +42,11 @@ async function createAnnotations (options) {
 
         console.log(imgPath);
         fs.readdir(imgPath, async function(err, items) {
-                for (let file_name of items) {
-                        const fileObj = path.parse(file_name);
-                        if (fileObj.ext == imgExt) {
+                for (let filename of items) {
+                        const fileObj = path.parse(filename);
+                        if (fileObj.ext === imgExt) {
                                 const annFile = path.join(annPath, `${fileObj.name}.${config.dataset.ann.ext}`),
-                                      imgFile = path.join(imgPath, file_name),
+                                      imgFile = path.join(imgPath, filename),
                                       imgSize = sizeOf(imgFile);
                                 let data = Object.assign(annTrmplate,{
                                         description: fileObj.name,
@@ -82,12 +82,13 @@ async function moveChecked (options) {
         checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
         fs.readdir(src.annPath, async function(err, items) {
-                for (let file_name of items) {
-                        const fileObj = path.parse(file_name);
+                for (let filename of items) {
+                        const fileObj = path.parse(filename);
                         if (fileObj.ext === annExt) {
                                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                      annfile_name = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
+                                      annFileName = path.join( src.annPath, annName);
+                                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                                        annFileName)),
                                       imgName = `${data.name}.${config.dataset.img.ext}`
                                 ;
                                 if (data.moderation !== undefined
@@ -130,14 +131,14 @@ async function dataSplit (options) {
                     cnt = Math.round(sItems.length * splitRate),
                     itemsTest = sItems.slice(0,cnt);
 
-                for (var i=0; i<itemsTest.length; i++) {
-                        const  file_name = items[i],
-                               fileObj = path.parse(file_name);
-                        //console.log(fileObj)
-                        if (fileObj.ext == annExt) {
+                for (let i=0; i<itemsTest.length; i++) {
+                        const  filename = items[i],
+                               fileObj = path.parse(filename);
+                        if (fileObj.ext === annExt) {
                                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                    annfile_name = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
+                                    annFileName = path.join( src.annPath, annName);
+                                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                                        annFileName)),
                                     imgName = `${data.name}.${config.dataset.img.ext}`
                                 ;
                                 checkedAnn.push(annName);
@@ -170,15 +171,16 @@ async function moveGarbage (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (let file_name of items) {
-            const fileObj = path.parse(file_name);
-            if (fileObj.ext == annExt) {
+        for (let filename of items) {
+            const fileObj = path.parse(filename);
+            if (fileObj.ext === annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annfile_name = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
+                    annFileName = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                        annFileName)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
-                if (data.region_id != undefined && data.region_id == 0) {
+                if (data["region_id"] !== undefined && data["region_id"] === 0) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
@@ -208,12 +210,13 @@ async function moveSomething (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (let file_name of items) {
-            const fileObj = path.parse(file_name);
-            if (fileObj.ext == annExt) {
+        for (let filename of items) {
+            const fileObj = path.parse(filename);
+            if (fileObj.ext === annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annfile_name = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
+                    annFileName = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                        annFileName)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
 
@@ -250,13 +253,14 @@ async function moveDupes (options) {
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
 
     fs.readdir(src.annPath, async function(err, items) {
-        for (let file_name of items) {
-            const  file_name = items,
-                fileObj = path.parse(file_name);
+        for (let filename of items) {
+            const  filename = items,
+                fileObj = path.parse(filename);
             if (fileObj.ext === annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annfile_name = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annfile_name)?annfile_name:path.join(process.cwd(), annfile_name)),
+                    annFileName = path.join( src.annPath, annName);
+                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                        annFileName)),
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
                 let imgFullFile = path.join(imgPath, imgName),
@@ -294,7 +298,7 @@ async function dataJoin (options) {
         throw new Error('"opt.srcJson" must be array for 2 (min) elements!')
     }
     const srcDir = options.srcDir,
-        targetDir = options.targetDir || throw new Error('"opt.targetDir" is not defined!'),
+        targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
         annExt = '.'+config.dataset.ann.ext
     ;
     for (let dir of srcDir) {

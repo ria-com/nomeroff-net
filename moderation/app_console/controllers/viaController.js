@@ -29,7 +29,7 @@ async function split (options) {
           splitRate = options.rate || 0.2,
           srcViaPath = path.join(srcDir, viaFile),
           data = require(srcViaPath),
-          keys = arrayShuffle(Object.keys(data._via_img_metadata)),
+          keys = arrayShuffle(Object.keys(data["_via_img_metadata"])),
           cnt = Math.round(keys.length * splitRate),
           partKeys = {
               'train': keys.slice(cnt),
@@ -71,19 +71,19 @@ async function joinVia (options) {
     let data = {};
 
     for (let item of srcJson) {
-        let srcDir = path.dir_name(item);
+        let srcDir = path.dirname(item);
         checkDir(srcDir);
         let dataPart = require(item);
         if (data === undefined) {
             data = dataPart
         } else {
-            data._via_img_metadata = {...data._via_img_metadata, ...dataPart._via_img_metadata};
+            data["_via_img_metadata"] = {...data["_via_img_metadata"], ...dataPart["_via_img_metadata"]};
         }
-        moveViaPart(dataPart,srcDir,path.dir_name(targetDir),path.basename(targetDir));
+        moveViaPart(dataPart, srcDir, path.dirname(targetDir),path.basename(targetDir));
     }
     writeViaPart(
         data,
-        path.dir_name(targetDir),
+        path.dirname(targetDir),
         path.basename(targetDir),
         viaFile);
     await sleep(1000)
@@ -100,13 +100,13 @@ async function addAttribute (options) {
         attrName = options.attrName || new Error('"opt.attrName" is not defined!'),
         attrValue = options.attrValue || new Error('"opt.attrName" is not defined!')
     ;
-    let srcDir = path.dir_name(srcJson);
+    let srcDir = path.dirname(srcJson);
     checkDir(srcDir);
-    let dataPart = require(srcJson), data = dataPart._via_img_metadata;
+    let dataPart = require(srcJson), data = dataPart["_via_img_metadata"];
     for (let key in data) {
         let item = data[key];
         for (let region of item.regions) {
-            region.region_attributes[attrName] = attrValue
+            region["region_attributes"][attrName] = attrValue
         }
     }
     writeViaPartFull(dataPart,srcJson);
@@ -136,8 +136,8 @@ async function groupSplit (options) {
         data = require(srcViaPath),
         viaIdx = {}
     ;
-    for (let via_idx in data._via_img_metadata) {
-        viaIdx[data._via_img_metadata[via_idx].file_name] = via_idx;
+    for (let viaId in data["_via_img_metadata"]) {
+        viaIdx[data["_via_img_metadata"][viaId].filename] = viaId;
     }
 
     const keys = arrayShuffle(Object.keys(viaIdx)),

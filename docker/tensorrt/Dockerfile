@@ -15,41 +15,44 @@ ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
 ARG ONNXRUNTIME_BRANCH=v1.10.0
 ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80
 
-RUN apt-get update &&\
-    apt-get install -y sudo git bash unattended-upgrades
+RUN apt-get install -y sudo git bash unattended-upgrades
 RUN unattended-upgrade
 
 WORKDIR /code
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.21.0-linux-x86_64/bin:/opt/miniconda/bin:${PATH}
 
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
-# for Jetson you may use https://elinux.org/Jetson_Zoo#ONNX_Runtime
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
     cp onnxruntime/docs/Privacy.md /code/Privacy.md &&\
     cp onnxruntime/dockerfiles/LICENSE-IMAGE.txt /code/LICENSE-IMAGE.txt &&\
     cp onnxruntime/ThirdPartyNotices.txt /code/ThirdPartyNotices.txt &&\
     cd onnxruntime &&\
-    /bin/sh ./build.sh --parallel --skip_submodule_sync --cuda_home /usr/local/cuda --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /workspace/tensorrt --config Release --build_wheel --update --build --cmake_extra_defines ONNXRUNTIME_VERSION=$(cat ./VERSION_NUMBER) '"CMAKE_CUDA_ARCHITECTURES='${CMAKE_CUDA_ARCHITECTURES}'"' &&\
+    /bin/sh ./build.sh --parallel --skip_submodule_sync --cuda_home /usr/local/cuda --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /workspace/tensorrt --config Release --build_wheel --update --build --cmake_extra_d
     pip install /code/onnxruntime/build/Linux/Release/dist/*.whl &&\
     cd ..
 
 # For opencv
 RUN apt-get install -y libglib2.0
 RUN apt-get install -y git
-RUN apt-get install -y libgl1-mesa-glx
+RUN apt update
+RUN apt install libgl1-mesa-glx -y
 
 # turbojpeg
 RUN apt-get install -y libturbojpeg
 
-RUN pip3 install torch==1.10.0+cu113 torchvision==0.11.0+cu113 -f https://download.pytorch.org/whl/torch_stable.html
-RUN pip3 install setuptools
-RUN pip3 install "PyYAML>=5.3"
-RUN pip3 install scikit_image
-RUN pip3 install Cython
-RUN pip3 install pycocotools
-RUN pip3 install matplotlib
-RUN pip3 install seaborn
+RUN pip install --upgrade pip
+RUN pip install pillow==8.0.1
+RUN pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
+RUN pip install setuptools
+RUN pip install "PyYAML>=5.3"
+RUN pip install "numpy>=1.16.*"
+RUN pip install scikit_image
+RUN pip install Cython
+RUN pip install pycocotools
+RUN pip install matplotlib
+RUN pip install seaborn
+RUN pip install gevent
 
 RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip
 RUN wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/master.zip
@@ -64,20 +67,23 @@ RUN rm /var/www/opencv.zip;\
     rm -rf /var/www/opencv_contrib-master;\
     rm -rf /var/www/build
 
-RUN pip3 install "numpy>=1.16.*"
-RUN pip3 install imgaug
-RUN pip3 install "pillow>=8.2.0"
-RUN pip3 install scipy
-RUN pip3 install asyncio
-RUN pip3 install GitPython
-RUN pip3 install pycocotools
-RUN pip3 install tqdm
-RUN pip3 install termcolor
-RUN pip3 install ujson
-RUN pip3 install gevent
-RUN pip3 install pytorch_lightning
-RUN pip3 install ipywidgets
-RUN pip3 install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
-RUN pip3 install -U "git+https://github.com/ria-com/modelhub-client.git"
+RUN pip install "numpy>=1.16.*"
+RUN pip install imgaug
+RUN pip install "pillow>=8.2.0"
+RUN pip install scipy
+RUN pip install asyncio
+RUN pip install GitPython
+RUN pip install gevent
+RUN pip install pycocotools
+RUN pip install tqdm
+RUN pip install termcolor
+RUN pip install ujson
+RUN pip install pytorch_lightning
+RUN pip install ipywidgets
+RUN pip install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
+RUN pip install -U "git+https://github.com/ria-com/modelhub-client.git"
+
+RUN pip install jupyter
+RUN apt-get install -y mc
 
 WORKDIR /var/www/nomeroff-net

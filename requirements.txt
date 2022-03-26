@@ -8,7 +8,7 @@ asyncio
 gitpython
 pycocotools
 ujson
-pillow==8.0.1
+pillow==9.0.1
 tqdm
 matplotlib
 scipy
@@ -22,3 +22,4 @@ pytorch_lightning
 ipywidgets
 gevent
 termcolor
+sklearn

@@ -8,6 +8,14 @@ module.exports = {
     server: {
         port: process.env.NODE_APP_INSTANCE || 5005
     },
+    dataset: {
+        baseDir: `${__dir_name}/../../../dataset/ocr/kz`,
+        ann: { dir: 'ann', ext: 'json'},
+        img: { dir: 'img', ext: 'png'}
+    },
+    via: {
+        partDirs: ['train', 'val']
+    }
     moderation: {
         regionOCRModeration: {
             base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
@@ -28,8 +36,8 @@ module.exports = {
                     "su",
                     "kg",
                     "am",
-                    "military-ua",
-                    "military-ru"
+                    "ua-military",
+                    "ru-military"
                 ],
                 state_id: ["garbage", "filled", "not filled", "empty"],
                 count_lines: ["0", "1", "2", "3"]

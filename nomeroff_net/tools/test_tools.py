@@ -58,7 +58,7 @@ def check_test_coverage(test_script_file, dirs_for_test, test_dir="./"):
 if __name__ == "__main__":
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    test_file = os.path.join(current_dir, "../../.github/workflows/tests.sh")
+    test_file = os.path.join(current_dir, "../../.github/workflows/nn-ci-cpu-testing.yml")
 
     dirs = [
         os.path.join(current_dir, "../../nomeroff_net"),

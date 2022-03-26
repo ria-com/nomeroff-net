@@ -31,8 +31,8 @@ CLASS_REGION_ALL = [
     "su",
     "kg",
     "am",
-    "military-ua",
-    "military-ru",
+    "ua-military",
+    "ru-military",
 ]
 
 CLASS_LINES_ALL = [
@@ -193,17 +193,28 @@ class OptionsDetector(object):
         self.trainer.fit(self.model, self.dm)
         return self.model
 
-    def tune(self) -> Dict:
+    def tune(self, percentage=0.1) -> Dict:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
         """
         model = self.create_model()
+
         trainer = pl.Trainer(
             auto_lr_find=True,
             max_epochs=self.epochs,
             gpus=self.gpus)
-        return trainer.tune(model, self.dm)
+        num_training = int(len(self.dm.train_image_generator) * percentage) or 1
+
+        lr_finder = trainer.tuner.lr_find(model,
+                                          self.dm,
+                                          num_training=num_training,
+                                          early_stop_threshold=None)
+        lr = lr_finder.suggestion()
+        print(f"Found lr: {lr}")
+        model.hparams["learning_rate"] = lr
+
+        return lr_finder
 
     def test(self) -> List:
         """
