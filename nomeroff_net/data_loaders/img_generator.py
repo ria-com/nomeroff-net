@@ -68,9 +68,19 @@ class ImgGenerator(Dataset):
                         int(description.get("region_id", -1)),
                         int(description.get("count_lines", -1)),
                         int(description.get("orientation", -1))]])
+
+        self.added_samples_to_round_batch()
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.batch_count = int(self.n / self.batch_size)
+
+    def added_samples_to_round_batch(self):
+        while len(self.samples) % self.batch_size != 0 and len(self.samples):
+            for sample, images_path in zip(self.samples, self.images_path):
+                self.samples.append(sample)
+                self.images_path.append(images_path)
+                if len(self.samples) % self.batch_size == 0:
+                    break
 
     def __len__(self):
         """

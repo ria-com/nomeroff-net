@@ -22,3 +22,4 @@ pytorch_lightning
 ipywidgets
 gevent
 termcolor
+sklearn
