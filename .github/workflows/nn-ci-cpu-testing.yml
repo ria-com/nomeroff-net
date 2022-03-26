@@ -56,6 +56,7 @@ jobs:
 
         # extras
         pip install -q jupyter
+        pip install --upgrade jinja2
 
         python --version
         pip --version
