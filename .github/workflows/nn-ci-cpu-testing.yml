@@ -56,6 +56,7 @@ jobs:
 
         # extras
         pip install jupyter
+        python -m pip install -I jinja2==3.0.3
 
         python --version
         pip --version
@@ -64,20 +65,6 @@ jobs:
 
     - name: Tests workflow
       run: |
-
-        # test python inference examples
-        python examples/py/inference/get-started-demo.py
-        python examples/py/inference/get-started-tiny-demo.py
-        python examples/py/inference/number-plate-filling-demo.py
-        python examples/py/inference/number-plate-recognition-multiline-demo.py
-
-        # test jupyter inference examples
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/custom-options-model-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-tiny-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-bbox-filling.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-keypoints-filling.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-multiline-demo.ipynb
 
         # test train examples
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
@@ -94,6 +81,20 @@ jobs:
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua-1995.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/su.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ru.ipynb
+
+        # test python inference examples
+        python examples/py/inference/get-started-demo.py
+        python examples/py/inference/get-started-tiny-demo.py
+        python examples/py/inference/number-plate-filling-demo.py
+        python examples/py/inference/number-plate-recognition-multiline-demo.py
+
+        # test jupyter inference examples
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/custom-options-model-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-tiny-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-bbox-filling.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-keypoints-filling.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-multiline-demo.ipynb
 
         # test python benchmarks examples
         python examples/py/benchmark/accuracy-test.py
