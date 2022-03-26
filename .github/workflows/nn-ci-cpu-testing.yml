@@ -94,6 +94,7 @@ jobs:
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-bbox-filling.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-keypoints-filling.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-multiline-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-demo-ocr-custom.ipynb
 
         # test python benchmarks examples
         python examples/py/benchmark/accuracy-test.py

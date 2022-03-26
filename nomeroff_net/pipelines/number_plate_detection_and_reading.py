@@ -22,10 +22,13 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  refiner_model_path: str = "latest",
                  path_to_classification_model: str = "latest",
                  prisets: Dict = None,
+                 off_number_plate_classification: bool = False,
                  classification_options: List = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
+        self.default_label = default_label
+        self.default_lines_count = default_lines_count
         self.number_plate_localization = NumberPlateLocalization(
             "number_plate_localization",
             image_loader=None,
@@ -35,11 +38,13 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             image_loader=None,
             mtl_model_path=mtl_model_path,
             refiner_model_path=refiner_model_path)
-        self.number_plate_classification = NumberPlateClassification(
-            "number_plate_classification",
-            image_loader=None,
-            path_to_model=path_to_classification_model,
-            options=classification_options)
+        self.number_plate_classification = None
+        if not off_number_plate_classification:
+            self.number_plate_classification = NumberPlateClassification(
+                "number_plate_classification",
+                image_loader=None,
+                path_to_model=path_to_classification_model,
+                options=classification_options)
         self.number_plate_text_reading = NumberPlateTextReading(
             "number_plate_text_reading",
             image_loader=None,
@@ -50,9 +55,10 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         self.pipelines = [
             self.number_plate_localization,
             self.number_plate_key_points_detection,
-            self.number_plate_classification,
             self.number_plate_text_reading,
         ]
+        if self.number_plate_classification is not None:
+            self.pipelines.append(self.number_plate_classification)
         Pipeline.__init__(self, task, image_loader, **kwargs)
         CompositePipeline.__init__(self, self.pipelines)
 
@@ -68,8 +74,15 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
                                                                                          **forward_parameters))
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
-        (region_ids, region_names, count_lines,
-         confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
+        if self.number_plate_classification is None:
+            region_ids = [-1 for _ in zones]
+            region_names = [self.default_label for _ in zones]
+            count_lines = [self.default_lines_count for _ in zones]
+            confidences = [-1 for _ in zones]
+            predicted = [-1 for _ in zones]
+        else:
+            (region_ids, region_names, count_lines,
+             confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
         return (region_ids, region_names, count_lines, confidences,
                 predicted, zones, image_ids, images_bboxs, images,
                 images_points, images_mline_boxes)

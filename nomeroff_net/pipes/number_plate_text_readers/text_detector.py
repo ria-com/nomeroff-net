@@ -34,7 +34,7 @@ class TextDetector(object):
         for priset_name in self.prisets:
             priset = self.prisets[priset_name]
             for region in priset["for_regions"]:
-                self.detectors_map[region] = i
+                self.detectors_map[region.replace("-", '_')] = i
             _label = priset_name
             if _label not in dir(text_detectors):
                 raise TextDetectorError("Text detector {} not in Text Detectors".format(_label))
