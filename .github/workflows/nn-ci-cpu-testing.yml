@@ -65,21 +65,21 @@ jobs:
     - name: Tests workflow
       run: |
 
-#        # test train examples
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-train.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-custom-train.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-train.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/object_detection/yolov5-train.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/by.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/eu.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ge.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kg.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kz.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua-1995.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/su.ipynb
-#        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ru.ipynb
+        # test train examples
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-custom-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/object_detection/yolov5-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/by.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/eu.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ge.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kg.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kz.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua-1995.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/su.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ru.ipynb
 
         # test python inference examples
         python examples/py/inference/get-started-demo.py
