@@ -55,7 +55,7 @@ jobs:
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
         # extras
-        pip install setuptools wheel pytest jupyter numpy matplotlib qsharp pyzmq==19.0.2 jinja2==3.0.3
+        pip install setuptools wheel pytest jupyter
 
         python --version
         pip --version
@@ -66,11 +66,11 @@ jobs:
       run: |
 
         # test train examples
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-custom-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/object_detection/yolov5-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-custom-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-train.ipynb
+        # jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/object_detection/yolov5-train.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/by.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/eu.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ge.ipynb
