@@ -55,7 +55,7 @@ jobs:
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
         # extras
-        pip install setuptools wheel pytest jupyter jinja2==3.0.0
+        pip install setuptools wheel pytest jupyter
 
         python --version
         pip --version
