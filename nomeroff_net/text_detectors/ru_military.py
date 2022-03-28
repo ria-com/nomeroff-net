@@ -22,5 +22,5 @@ ru_military = RuMilitary
 if __name__ == "__main__":
     ocr = RuMilitary()
     ocr.load()
-    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    y = ocr.predict(torch.rand((1, 3, 50, 200)))
     print(y)

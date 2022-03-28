@@ -23,5 +23,5 @@ eu_ua_2004_2015 = EuUaFrom2004
 if __name__ == "__main__":
     ocr = EuUaFrom2004()
     ocr.load()
-    y = ocr.predict(torch.rand((1, 256, 4, 19)))
+    y = ocr.predict(torch.rand((1, 3, 50, 200)))
     print(y)

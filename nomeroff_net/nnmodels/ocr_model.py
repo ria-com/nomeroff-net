@@ -209,7 +209,7 @@ class NPOcrNet(pl.LightningModule):
 
 if __name__ == "__main__":
     net = NPOcrNet(["4", "2"], letters_max=2)
-    x = torch.rand((1, 256, 4, 19))
+    x = torch.rand((1, 3, 50, 200))
     y = net(x)
     print(y)
 

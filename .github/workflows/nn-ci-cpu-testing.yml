@@ -138,7 +138,6 @@ jobs:
         python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
         python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
         python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
-        python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/base_ocr_model.py
 
         # test tools
         python3 nomeroff_net/tools/test_tools.py
