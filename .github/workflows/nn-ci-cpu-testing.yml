@@ -54,13 +54,13 @@ jobs:
         sudo apt-get install libturbojpeg
         python -m pip install --upgrade pip
 
-        # fix AttributeError: module 'jinja2' has no attribute 'Markup'
-        pip install jinja2 >= 3.0.0, < 3.1.0
-
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
         # extras
         pip install setuptools wheel pytest jupyter
+
+        # fix AttributeError: module 'jinja2' has no attribute 'Markup'
+        pip install mkdocs==1.2.4
 
         python --version
         pip --version
