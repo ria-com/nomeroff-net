@@ -18,6 +18,7 @@ class OcrNetDataModule(pl.LightningDataModule):
                  batch_size=32,
                  max_plate_length=8,
                  num_workers=0,
+                 seed=42,
                  with_aug=False):
         super().__init__()
         self.batch_size = batch_size
@@ -33,6 +34,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             img_h=height,
             batch_size=batch_size,
             max_plate_length=max_plate_length,
+            seed=seed,
             with_aug=with_aug)
 
         # init validation generator

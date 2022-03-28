@@ -13,6 +13,7 @@ from collections import Counter
 from nomeroff_net.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from nomeroff_net.nnmodels.ocr_model import NPOcrNet, weights_init
 
+from nomeroff_net.tools.image_processing import normalize_img
 from nomeroff_net.tools.errors import OCRError
 from nomeroff_net.tools.mcm import modelhub, get_device_torch
 from nomeroff_net.tools.augmentations import aug_seed
@@ -104,6 +105,7 @@ class OCR(object):
     def prepare(self,
                 path_to_dataset: str,
                 use_aug: bool = False,
+                seed: int = 42,
                 verbose: bool = True,
                 num_workers: int = 0) -> None:
         train_dir = os.path.join(path_to_dataset, "train")
@@ -133,6 +135,7 @@ class OCR(object):
             batch_size=self.batch_size,
             max_plate_length=self.max_plate_length,
             num_workers=num_workers,
+            seed=seed,
             with_aug=use_aug)
         if verbose:
             print("DATA PREPARED")
@@ -150,8 +153,9 @@ class OCR(object):
         return self.model
 
     def train(self,
-              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../data/logs/ocr')),
-              seed: int = None
+              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../data/logs/ocr')),
+              seed: int = None,
+              ckpt_path: str = None
               ) -> NPOcrNet:
         """
         TODO: describe method
@@ -165,9 +169,8 @@ class OCR(object):
         lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
                                   gpus=self.gpus,
-                                  callbacks=[checkpoint_callback, lr_monitor],
-                                  weights_summary=None)
-        self.trainer.fit(self.model, self.dm)
+                                  callbacks=[checkpoint_callback, lr_monitor])
+        self.trainer.fit(self.model, self.dm, ckpt_path=ckpt_path)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         return self.model
 
@@ -180,29 +183,38 @@ class OCR(object):
                 val_losses.append(val_loss.item())
         return val_losses
 
-    def tune(self, percentage=0.1) -> Dict:
+    def tune(self, percentage=0.05) -> Dict:
         """
         TODO: describe method
         """
-        model = self.create_model()
+        if self.model is None:
+            self.create_model()
 
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
                              gpus=self.gpus)
 
         num_training = int(len(self.dm.train_image_generator)*percentage) or 1
-        lr_finder = trainer.tuner.lr_find(model,
+        lr_finder = trainer.tuner.lr_find(self.model,
                                           self.dm,
                                           num_training=num_training,
                                           early_stop_threshold=None)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
-        model.hparams["learning_rate"] = lr
+        self.model.hparams["learning_rate"] = lr
 
         return lr_finder
 
-    @staticmethod
-    def preprocess(xs):
+    def preprocess(self, imgs):
+        xs = []
+        for img in imgs:
+            x = normalize_img(img,
+                              width=self.width,
+                              height=self.height)
+            xs.append(x)
+        xs = np.moveaxis(np.array(xs), 3, 1)
+        xs = torch.tensor(xs)
+        xs = xs.to(device_torch)
         return xs
 
     def forward(self, xs):
@@ -250,9 +262,9 @@ class OCR(object):
             return False
         return True
 
-    def load_model(self, path_to_model):
+    def load_model(self, path_to_model, nn_class=NPOcrNet):
         self.path_to_model = path_to_model
-        self.model = NPOcrNet.load_from_checkpoint(path_to_model,
+        self.model = nn_class.load_from_checkpoint(path_to_model,
                                                    map_location=torch.device('cpu'),
                                                    letters=self.letters,
                                                    letters_max=len(self.letters) + 1,
@@ -262,7 +274,7 @@ class OCR(object):
         self.model.eval()
         return self.model
 
-    def load(self, path_to_model: str = "latest") -> NPOcrNet:
+    def load(self, path_to_model: str = "latest", nn_class=NPOcrNet) -> NPOcrNet:
         """
         TODO: describe method
         """
@@ -276,7 +288,7 @@ class OCR(object):
                                                         self.get_classname())
             path_to_model = model_info["path"]
 
-        return self.load_model(path_to_model)
+        return self.load_model(path_to_model, nn_class=nn_class)
 
     @torch.no_grad()
     def get_acc(self, predicted: List, decode: List) -> torch.Tensor:
@@ -303,21 +315,22 @@ class OCR(object):
             text_lens
         )
         return 1 - acc / len(self.letters)
-
+    
+    @torch.no_grad()
     def acc_calc(self, dataset, verbose: bool = False) -> float:
         acc = 0
-        with torch.no_grad():
-            self.model.eval()
-            for idx in range(len(dataset)):
-                img, text = dataset[idx]
-                img = img.unsqueeze(0).to(device_torch)
-                logits = self.model(img)
-                pred_text = decode_prediction(logits.cpu(), self.label_converter)
+        self.model = self.model.to(device_torch)
+        self.model.eval()
+        for idx in range(len(dataset)):
+            img, text = dataset[idx]
+            img = img.unsqueeze(0).to(device_torch)
+            logits = self.model(img)
+            pred_text = decode_prediction(logits.cpu(), self.label_converter)
 
-                if pred_text == text:
-                    acc += 1
-                elif verbose:
-                    print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
+            if pred_text == text:
+                acc += 1
+            elif verbose:
+                print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
         return acc / len(dataset)
 
     def val_acc(self, verbose=False) -> float:

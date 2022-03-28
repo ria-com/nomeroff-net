@@ -1,9 +1,16 @@
-3.0.0 / 2021-11-24
+3.1.0 / 2022-03-28
+==================
+  **updates** 
+  * Returned to a separate backbone for ocr models
+  * Fixed bag with block_cnn in ocr models
+
+3.0.0 / 2022-03-16
 ==================
   **updates** 
   * Refactored code with Sonarqube 
   * Added Pipelines
   * Restructured code 
+  * Added common backbone for ocr models
 
 2.5.0 / 2021-11-24
 ==================

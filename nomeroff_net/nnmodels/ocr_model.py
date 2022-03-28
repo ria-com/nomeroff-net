@@ -4,10 +4,10 @@ python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
 """
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
-
-from torch.nn import functional
 from typing import List, Any
+import pytorch_lightning as pl
+from torch.nn import functional
+from torchvision.models import resnet18
 
 from nomeroff_net.tools.ocr_tools import plot_loss, print_prediction
 
@@ -19,39 +19,6 @@ def weights_init(m):
     elif classname.find('BatchNorm') != -1:
         m.weight.data.normal_(1.0, 0.02)
         m.bias.data.fill_(0)
-
-
-class BlockCNN(nn.Module):
-    def __init__(self, in_nc, out_nc, kernel_size, padding, stride=tuple([1])):
-        super(BlockCNN, self).__init__()
-        self.in_nc = in_nc
-        self.out_nc = out_nc
-        self.kernel_size = kernel_size
-        self.padding = padding
-        # layers
-        self.conv = nn.Conv2d(in_nc, out_nc,
-                              kernel_size=kernel_size,
-                              stride=stride,
-                              padding=padding)
-        self.bn = nn.BatchNorm2d(out_nc)
-
-    def forward(self, batch, use_bn=False, use_relu=False,
-                use_maxpool=False, maxpool_kernelsize=None):
-        """
-            in:
-                batch - [batch_size, in_nc, H, W]
-            out:
-                batch - [batch_size, out_nc, H', W']
-        """
-        batch = self.conv(batch)
-        if use_bn:
-            batch = self.bn(batch)
-        if use_relu:
-            batch = functional.relu(batch)
-        if use_maxpool:
-            assert maxpool_kernelsize is not None
-            batch = functional.max_pool2d(batch, kernel_size=maxpool_kernelsize, stride=1)
-        return batch
 
 
 class BlockRNN(nn.Module):
@@ -105,8 +72,11 @@ class NPOcrNet(pl.LightningModule):
         self.bidirectional = bidirectional
 
         self.label_converter = label_converter
-
-        self.cnn = BlockCNN(256, 256, kernel_size=3, padding=1)
+        
+        # convolutions 
+        resnet = resnet18(pretrained=True)
+        modules = list(resnet.children())[:-3]
+        self.resnet = nn.Sequential(*modules)
 
         # RNN + Linear
         self.linear1 = nn.Linear(1024, 512)
@@ -135,6 +105,9 @@ class NPOcrNet(pl.LightningModule):
         torch.Size([32, batch_size, vocab_size]) -- :OUT
         """
         batch_size = batch.size(0)
+        
+        # convolutions
+        batch = self.resnet(batch)
 
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
@@ -195,26 +168,43 @@ class NPOcrNet(pl.LightningModule):
             nesterov=True,
             weight_decay=self.weight_decay,
             momentum=self.momentum)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True, patience=5)
-        lr_schedulers = {'scheduler': scheduler, 'monitor': 'val_loss'}
-        return [optimizer], [lr_schedulers]
+        return optimizer
 
     def training_step(self, batch, batch_idx):
         loss = self.step(batch)
-        self.log(f'train_loss', loss)
-        self.train_losses.append(loss.cpu().detach().numpy())
-        return loss
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'train_loss': loss,
+        }
+        return {
+            'loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
 
     def validation_step(self, batch, batch_idx):
         loss = self.step(batch)
-        self.log('val_loss', loss)
-        self.val_losses.append(loss.cpu().detach().numpy())
-        return loss
+        self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'val_loss': loss,
+        }
+        return {
+            'val_loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
 
     def test_step(self, batch, batch_idx):
         loss = self.step(batch)
-        self.log('test_loss', loss)
-        return loss
+        self.log('test_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        tqdm_dict = {
+            'test_loss': loss,
+        }
+        return {
+            'test_loss': loss,
+            'progress_bar': tqdm_dict,
+            'log': tqdm_dict
+        }
 
 
 if __name__ == "__main__":

@@ -3,14 +3,12 @@ import os
 import json
 import torch
 import numpy as np
-import torch.nn as nn
 from tqdm import tqdm
 from PIL import Image
 from typing import List, Tuple, Generator, Any
 from torchvision import transforms
-from torchvision.models import resnet18
 
-from nomeroff_net.tools.mcm import modelhub, get_device_torch
+from nomeroff_net.tools.mcm import get_device_torch
 from nomeroff_net.tools.ocr_tools import is_valid_str
 
 device_torch = get_device_torch()
@@ -26,6 +24,7 @@ class TextImageGenerator(object):
                  img_h: int = 64,
                  batch_size: int = 1,
                  max_plate_length: int = 8,
+                 seed: int = 42,
                  with_aug: bool = False) -> None:
 
         self.dirpath = dirpath
@@ -43,7 +42,7 @@ class TextImageGenerator(object):
         ann_dirpath = os.path.join(dirpath, 'ann')
         cache_postfix = "cache_ocr"
         if with_aug:
-            cache_postfix = f"{cache_postfix}_aug"
+            cache_postfix = f"{cache_postfix}_aug_{seed}"
         cache_dirpath = os.path.join(dirpath, cache_postfix)
         os.makedirs(cache_dirpath, exist_ok=True)
         self.pathes = [os.path.join(img_dirpath, file_name) for file_name in os.listdir(img_dirpath)]
@@ -116,15 +115,7 @@ class TextImageGenerator(object):
         img = self.get_x_from_path(img_path)
         return img, text
 
-    def prepare_transformers(self, model_name="Resnet18"):
-        model_info = modelhub.download_model_by_name(model_name)
-        path_to_model = model_info["path"]
-
-        resnet = resnet18(pretrained=False)
-        modules = list(resnet.children())[:-3]
-        self.resnet = nn.Sequential(*modules)
-        self.resnet.load_state_dict(torch.load(path_to_model, map_location=device_torch))
-        self.resnet = self.resnet.to(device_torch)
+    def prepare_transformers(self):
         self.list_transforms = transforms.Compose([
             transforms.ToTensor(),
         ])
@@ -132,9 +123,6 @@ class TextImageGenerator(object):
     @torch.no_grad()
     def transform(self, img) -> torch.Tensor:
         x = self.list_transforms(img)
-        x = x.unsqueeze(0).to(device_torch)
-        x = self.resnet(x)
-        x = x.squeeze(0).cpu()
         return x
 
     def next_sample(self) -> Tuple:
