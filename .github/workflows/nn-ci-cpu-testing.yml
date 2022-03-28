@@ -5,9 +5,9 @@ name: Nomeroff Net CI CPU Testing
 
 on:
   push:
-    branches: [ master v3.0 v3.1 ]
+    branches: [ master, v3.0, v3.1 ]
   pull_request:
-    branches: [  master v3.0 v3.1 ]
+    branches: [  master, v3.0, v3.1 ]
 #  schedule:
 #    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
 
