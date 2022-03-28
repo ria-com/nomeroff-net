@@ -61,6 +61,7 @@ jobs:
 
         # fix AttributeError: module 'jinja2' has no attribute 'Markup'
         pip install mkdocs==1.2.4
+        pip install jinja2==3.1
 
         python --version
         pip --version
