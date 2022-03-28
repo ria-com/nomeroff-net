@@ -19,15 +19,24 @@ class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
                  path_to_classification_model: str = "latest",
                  prisets: Dict = None,
                  classification_options: List = None,
+                 off_number_plate_classification: bool = False,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
         NumberPlateDetectionAndReading.__init__(
-            self, task, image_loader, path_to_model,
-            mtl_model_path, refiner_model_path,
-            path_to_classification_model, prisets,
-            classification_options, default_label,
-            default_lines_count, **kwargs)
+            self,
+            task=task,
+            image_loader=image_loader,
+            path_to_model=path_to_model,
+            mtl_model_path=mtl_model_path,
+            refiner_model_path=refiner_model_path,
+            off_number_plate_classification=off_number_plate_classification,
+            path_to_classification_model=path_to_classification_model,
+            prisets=prisets,
+            classification_options=classification_options,
+            default_label=default_label,
+            default_lines_count=default_lines_count,
+            **kwargs)
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         (region_ids, region_names,
