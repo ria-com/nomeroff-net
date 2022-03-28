@@ -92,9 +92,14 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                                zones, image_ids,
                                images_bboxs, images,
                                images_points, **forward_parameters):
-        texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
-                                                               region_names,
-                                                               count_lines]), **forward_parameters))
+        number_plate_text_reading_res = unzip(
+            self.number_plate_text_reading(unzip([zones,
+                                                  region_names,
+                                                  count_lines]), **forward_parameters))
+        if len(number_plate_text_reading_res):
+            texts, _ = number_plate_text_reading_res
+        else:
+            texts = []
         (region_ids, region_names, count_lines, confidences, texts, zones) = \
             group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))
         return unzip([images, images_bboxs,

@@ -249,8 +249,10 @@ class NpPointsCraft(object):
                         [x0 + w0, y0],
                         [x0 + w0, y0 + h0]
                     ])
-
-        n = max(all_image_ids) + 1
+        if len(all_image_ids):
+            n = max(all_image_ids) + 1
+        else:
+            n = 1
         images_points = [[] for _ in range(n)]
         images_mline_boxes = [[] for _ in range(n)]
         for point, mline_box, image_id in zip(all_points, all_mline_boxes, all_image_ids):

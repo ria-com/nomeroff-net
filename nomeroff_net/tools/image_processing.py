@@ -611,7 +611,7 @@ def crop_number_plate_rect_zones_from_images(images, images_bboxs):
 
 
 def group_by_image_ids(image_ids, props):
-    images_props = [[[] for _ in range(max(image_ids)+1)] for _ in props]
+    images_props = [[[] for _ in range(max(image_ids or [0])+1)] for _ in props]
     for i, prop in enumerate(props):
         for image_id, val in zip(image_ids, prop):
             images_props[i][image_id].append(val)
