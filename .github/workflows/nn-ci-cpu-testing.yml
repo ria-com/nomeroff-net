@@ -50,8 +50,13 @@ jobs:
 
     - name: Install dependencies
       run: |
+
         sudo apt-get install libturbojpeg
         python -m pip install --upgrade pip
+
+        # fix AttributeError: module 'jinja2' has no attribute 'Markup'
+        pip install jinja2 >= 3.0.0, < 3.1.0
+
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
         # extras
