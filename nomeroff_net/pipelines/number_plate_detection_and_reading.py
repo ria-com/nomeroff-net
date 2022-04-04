@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
-from .number_plate_localization import NumberPlateLocalization
+from .number_plate_localization import NumberPlateLocalization as DefaultNumberPlateLocalization
 from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from .number_plate_text_reading import NumberPlateTextReading
 from.number_plate_classification import NumberPlateClassification
@@ -26,10 +26,11 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  classification_options: List = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
+                 number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  **kwargs):
         self.default_label = default_label
         self.default_lines_count = default_lines_count
-        self.number_plate_localization = NumberPlateLocalization(
+        self.number_plate_localization = number_plate_localization_class(
             "number_plate_localization",
             image_loader=None,
             path_to_model=path_to_model)
@@ -71,8 +72,10 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
 
     def forward_detection_np(self, inputs: Any, **forward_parameters: Dict):
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
+        print("images_bboxs", images_bboxs)
         images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
                                                                                          **forward_parameters))
+        print("images_points", images_points)
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
         if self.number_plate_classification is None:
             region_ids = [-1 for _ in zones]

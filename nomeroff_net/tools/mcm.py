@@ -3,7 +3,11 @@ import os
 from modelhub_client import ModelHub
 
 model_config_urls = [
+    # numberplate classification
     "http://models.vsp.net.ua/config_model/nomeroff-net-np-classification/model-1.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ua-np-classification/model-1.json",
+
+    # ocr
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-2.json",
@@ -15,8 +19,12 @@ model_config_urls = [
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-2.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ua-np-classification/model-1.json",
+
+    # object detection
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5/model-1.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-yolox/model-1.json",
+
+    # text localization
     "http://models.vsp.net.ua/config_model/craft-mlt/model-1.json",
     "http://models.vsp.net.ua/config_model/craft-refiner/model-1.json",
 ]
