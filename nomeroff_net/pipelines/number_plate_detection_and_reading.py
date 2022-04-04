@@ -72,10 +72,8 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
 
     def forward_detection_np(self, inputs: Any, **forward_parameters: Dict):
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
-        print("images_bboxs", images_bboxs)
         images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
                                                                                          **forward_parameters))
-        print("images_points", images_points)
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
         if self.number_plate_classification is None:
             region_ids = [-1 for _ in zones]
