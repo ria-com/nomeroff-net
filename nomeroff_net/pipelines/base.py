@@ -142,7 +142,7 @@ class Pipeline(AccuracyTestPipeline):
             image_loader_class = image_loaders_map.get(image_loader, None)
             if image_loader is None:
                 raise ValueError(f"{image_loader} not in {image_loaders_map.keys()}.")
-        elif type(image_loader) == BaseImageLoader:
+        elif issubclass(image_loader, BaseImageLoader):
             image_loader_class = image_loader
         else:
             raise TypeError(f"The image_loader type must by in None, BaseImageLoader, str")

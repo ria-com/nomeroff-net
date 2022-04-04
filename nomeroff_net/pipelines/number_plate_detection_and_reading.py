@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
-from .number_plate_localization import NumberPlateLocalization
+from .number_plate_localization import NumberPlateLocalization as DefaultNumberPlateLocalization
 from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from .number_plate_text_reading import NumberPlateTextReading
 from.number_plate_classification import NumberPlateClassification
@@ -26,10 +26,11 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  classification_options: List = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
+                 number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  **kwargs):
         self.default_label = default_label
         self.default_lines_count = default_lines_count
-        self.number_plate_localization = NumberPlateLocalization(
+        self.number_plate_localization = number_plate_localization_class(
             "number_plate_localization",
             image_loader=None,
             path_to_model=path_to_model)
