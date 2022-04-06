@@ -6,16 +6,16 @@ module.exports = {
         version: p.version
     },
     template_path: {
-        path: `${__dir_name}/../templates`,
+        path: `${__dirname}/../templates`,
         annDefault: 'kz.json'
     },
     dataset: {
-        baseDir: `${__dir_name}/../../../dataset/ocr/kz`,
+        baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example_res`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },
     template: {
-        path: `${__dir_name}/../templates`,
+        path: `${__dirname}/../templates`,
         annDefault: 'kz.json'
     },
     via: {

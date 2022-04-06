@@ -6,10 +6,16 @@ name: Nomeroff Net CI CPU Testing
 on:
   push:
     branches: [ master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
-#  schedule:
-#    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
+  schedule:
+    - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   cpu-tests:

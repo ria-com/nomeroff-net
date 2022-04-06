@@ -15,7 +15,7 @@ module.exports = {
     },
     via: {
         partDirs: ['train', 'val']
-    }
+    },
     moderation: {
         regionOCRModeration: {
             base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",

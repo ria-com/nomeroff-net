@@ -10,7 +10,7 @@ module.exports = {
         annDefault: 'kz.json'
     },
     dataset: {
-        baseDir: `${__dirname}/../../../dataset/ocr/kz`,
+        baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example_res`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },
