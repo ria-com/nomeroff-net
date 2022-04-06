@@ -5,11 +5,17 @@ name: Nomeroff Net CI CPU Testing
 
 on:
   push:
-    branches: [ v3.1, v3.0, master ]
+    branches: [ master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
   pull_request:
-    branches: [ v3.1, v3.0, master ]
+    branches: [  master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
   schedule:
-    - cron: '0 0 * * *'  # Runs at 00:00 UTC every day
+    - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   cpu-tests:

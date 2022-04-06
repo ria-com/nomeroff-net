@@ -15,39 +15,52 @@ const config = require('config'),
 
 
 /**
+ * EN: Console script example
+ * UA: Приклад консольного скрипту
+ * RU: Пример консольного скрипта
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=index
  * @module controllers/defaultController
  */
 async function index (options) {
-    console.log('Hello world defaultController & index action with options: ' +JSON.stringify(options));
+    console.log('Hello world defaultController & index action with options: ' + JSON.stringify(options));
 }
 
 
 /**
- * Создание OCR-датасета Nomeroff Net
+ * EN: Creating an OCR dataset Nomeroff Net
+ * UA: Створення OCR-датасету Nomeroff Net
+ * RU: Создание OCR-датасета Nomeroff Net
  *
  * @param options
- * @example ./console.js --section=default --action=createAnnotations  --baseDir=../../dataset/ocr/kz/kz2
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=createAnnotations  \
+ *                                               --opt.baseDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.imageDir=../data/examples/numberplate_zone_images/
  */
 async function createAnnotations (options) {
         let baseDir = options.baseDir || config.dataset.baseDir;
-        checkDir(baseDir);
+        let imageDir = options.imageDir || Error("You must setup imageDir param");
+        checkDir(baseDir, true);
 
         const imgPath = path.join(baseDir, config.dataset.img.dir),
               annPath = path.join(baseDir, config.dataset.ann.dir),
               imgExt = '.'+config.dataset.img.ext,
               tplPath = path.join(config.template.path, config.template.annDefault),
               annTrmplate = require(tplPath);
-        checkDir(imgPath);
+        checkDir(imgPath, true);
         checkDir(annPath,true);
 
-        console.log(imgPath);
-        fs.readdir(imgPath, async function(err, items) {
+        console.log("readdir", imageDir);
+        fs.readdir(imageDir, async function(err, items) {
                 for (let filename of items) {
                         const fileObj = path.parse(filename);
                         if (fileObj.ext === imgExt) {
                                 const annFile = path.join(annPath, `${fileObj.name}.${config.dataset.ann.ext}`),
-                                      imgFile = path.join(imgPath, filename),
+                                      imgFile = path.join(imageDir, filename),
+                                      resImgFile = path.join(imgPath, filename),
                                       imgSize = sizeOf(imgFile);
+                                fs.copyFileSync(imgFile, resImgFile)
                                 let data = Object.assign(annTrmplate,{
                                         description: fileObj.name,
                                         name: fileObj.name,
@@ -63,11 +76,16 @@ async function createAnnotations (options) {
         });
 }
 
+
 /**
- * Перенести в одельную папку из OCR-датасета промодеированные данные
+ * EN: Move the moderated data to a separate folder from the OCR dataset
+ * UA: Перенести в окрему папку з OCR-датасету промодейовані дані
+ * RU: Перенести в отдельную папку из OCR-датасета промодеированные данные
  *
  * @param options
- * @example ./console.js --section=default --action=moveChecked  --opt.srcDir=../../datasets/ocr/kz/draft --opt.targetDir=../../datasets/ocr/kz/checked
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=moveChecked \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/
  */
 async function moveChecked (options) {
         const srcDir = options.srcDir || './draft',
@@ -104,12 +122,18 @@ async function moveChecked (options) {
         });
 }
 
+
 /**
- * Поделить датасет на 2 части в заданой пропорции (перенести из заданной папки в указанную с заданной пропорцией)
+ * EN: Divide the dataset into 2 parts in a given proportion (move from a given folder to a specified one with a given proportion)
+ * UA: Поділити датасет на 2 частини у заданій пропорції (перенести із заданої папки у зазначену із заданою пропорцією)
+ * RU: Поделить датасет на 2 части в заданой пропорции (перенести из заданной папки в указанную с заданной пропорцией)
  *
  * @param options
- * @example ./console.js --section=default --action=dataSplit --opt.rate=0.2  --opt.srcDir=../../datasets/ocr/draft --opt.targetDir=../../datasets/ocr/test
- *          use opt.test=1 if you want emulate split process
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=dataSplit \
+ *                                               --opt.rate=0.5 \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/ \
+ *                                               --opt.test=1 #use opt.test=1 if you want emulate split process
  */
 async function dataSplit (options) {
         const srcDir = options.srcDir || './train',
@@ -153,10 +177,14 @@ async function dataSplit (options) {
 
 
 /**
- * Перенести в одельную папку "мусор" ("region_id": 0) из OCR-датасета
+ * EN: Move to a separate folder "garbage" ("region_id": 0) from the OCR dataset
+ * UA: Перенести в папку "сміття" ("region_id": 0) з OCR-датасету
+ * RU: Перенести в одельную папку "мусор" ("region_id": 0) из OCR-датасета
  *
  * @param options
- * @example ./console.js --section=default --action=moveGarbage  --opt.srcDir=../../datasets/ocr/kz/draft --opt.targetDir=../../datasets/ocr/kz/garbage
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=moveGarbage  \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/garbage/
  */
 async function moveGarbage (options) {
     const srcDir = options.srcDir || './draft',
@@ -191,11 +219,16 @@ async function moveGarbage (options) {
     });
 }
 
+
 /**
- * Перенести в одельную что-либо по условию в тексте кода из OCR-датасета
+ * EN: Move something to a separate folder by condition in the code text from the OCR dataset
+ * UA: Перенести в окрему папку щось за умовою в тексті коду з OCR-датасету
+ * RU: Перенести в отдельную папку что-либо по условию в тексте кода из OCR-датасета
  *
  * @param options
- * @example ./console.js --section=default --action=moveSomething  --opt.srcDir=/mnt/data/home/nn/datasets/autoriaNumberplateOptions3Dataset-2019-10-04/lnr --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateOptions3Dataset-2019-10-04/lnr.true
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=moveSomething \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/train.true/
  */
 async function moveSomething (options) {
     const srcDir = options.srcDir || './draft',
@@ -233,10 +266,14 @@ async function moveSomething (options) {
 
 
 /**
- * Перенести дубликаты записай (по фото) в отдельную папку
+ * EN: Move duplicate records (by photo) to a separate folder
+ * UA: Перенести дублікати записай (по фото) в окрему папку
+ * RU: Перенести дубликаты записай (по фото) в отдельную папку
  *
  * @param options
- * @example ./console.js --section=default --action=moveDupes --opt.srcDir=../../datasets/ocr/train --opt.targetDir=../../datasets/ocr/dupes
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=moveDupes \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/train.dupes/
  */
 async function moveDupes (options) {
     const srcDir = options.srcDir || './draft',
@@ -254,8 +291,7 @@ async function moveDupes (options) {
 
     fs.readdir(src.annPath, async function(err, items) {
         for (let filename of items) {
-            const  filename = items,
-                fileObj = path.parse(filename);
+            const  fileObj = path.parse(filename);
             if (fileObj.ext === annExt) {
                 const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
                     annFileName = path.join( src.annPath, annName);
@@ -288,26 +324,31 @@ async function moveDupes (options) {
 
 
 /**
- * Склеить несколько папок в одну только для незакрашеных номеров
+ * EN: Glue several folders into one only for unpainted numbers
+ * UA: Склеїти кілька папок в одну лише для незафарбованих номерів
+ * RU: Склеить несколько папок в одну только для незакрашеных номеров
  *
  * @param options
- * @example ./console.js --section=default --action=dataJoin --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge  --opt.srcDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/ge.ok --opt.targetDir=/var/www/html2/js/nomeroff-net_2/datasets/ocr/ge2/target
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=dataJoin \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/val/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/train/
  */
 async function dataJoin (options) {
-    if (options.srcDir !== undefined && Array.isArray(options.srcDir)) {
-        throw new Error('"opt.srcJson" must be array for 2 (min) elements!')
+    if (!Array.isArray(options.srcDir) || options.srcDir.length < 2) {
+        throw new Error('"opt.srcDir" must be array for 2 (min) elements!');
     }
+    console.log("", options.targetDir);
     const srcDir = options.srcDir,
-        targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
-        annExt = '.'+config.dataset.ann.ext
+          targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
+          annExt = '.'+config.dataset.ann.ext
     ;
     for (let dir of srcDir) {
         checkDirStructure(dir,[config.dataset.img.dir,config.dataset.ann.dir]);
     }
     checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
-    joinAnnotationOcrDataset(srcDir, annExt)
+    joinAnnotationOcrDataset(srcDir, annExt, targetDir)
 }
-
 
 
 module.exports = {

@@ -3,10 +3,10 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
-from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolox_detector import Detector
 
 
-class NumberPlateLocalization(Pipeline):
+class NumberPlateLocalizationX(Pipeline):
     """
     Number Plate Localization
     """
@@ -41,9 +41,7 @@ class NumberPlateLocalization(Pipeline):
     @no_grad()
     def forward(self, images: Any, **forward_parameters: Dict) -> Any:
         model_inputs = self.detector.normalize_imgs(images, **forward_parameters)
-        model_outputs = self.detector.model(model_inputs)[0]
-        shape = model_outputs.shape
-        model_outputs = model_outputs.reshape((shape[0], 1, shape[1], shape[2]))
+        model_outputs = self.detector.forward(model_inputs)
         return unzip([model_outputs, model_inputs, images])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:

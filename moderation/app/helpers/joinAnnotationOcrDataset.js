@@ -4,7 +4,7 @@ const fs = require('fs'),
       moveDatasetFiles = require('./moveDatasetFiles')
 ;
 
-module.exports = function joinAnnotationOcrDataset(srcDir, annExt) {
+module.exports = function joinAnnotationOcrDataset(srcDir, annExt, targetDir) {
     for (let dir of srcDir) {
         let annDir = path.join(dir, config.dataset.ann.dir),
             Anns = [],

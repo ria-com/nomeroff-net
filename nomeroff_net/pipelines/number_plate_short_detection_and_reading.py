@@ -58,9 +58,14 @@ class NumberPlateShortDetectionAndReading(Pipeline, CompositePipeline):
         zones, image_ids = crop_number_plate_rect_zones_from_images(images, images_bboxs)
         region_names = [self.text_reader_name for _ in zones]
         lines = [self.default_lines_count for _ in zones]
-        texts, _ = unzip(self.number_plate_text_reading(unzip([zones,
-                                                               region_names,
-                                                               lines]), **forward_parameters))
+        number_plate_text_reading_res = unzip(
+            self.number_plate_text_reading(unzip([zones,
+                                                  region_names,
+                                                  lines]), **forward_parameters))
+        if len(number_plate_text_reading_res):
+            texts, _ = number_plate_text_reading_res
+        else:
+            texts = []
         (texts, zones) = group_by_image_ids(image_ids, (texts, zones))
         return unzip([images, images_bboxs,
                       zones, texts])
