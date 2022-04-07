@@ -1,6 +1,6 @@
 # nVidia TensorRT Base Image
-ARG TRT_VERSION=21.07
-FROM nvcr.io/nvidia/tensorrt:${TRT_VERSION}-py3
+ARG TRT_CONTAINER_VERSION=21.07
+FROM nvcr.io/nvidia/tensorrt:${TRT_CONTAINER_VERSION}-py3
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
@@ -24,9 +24,6 @@ ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.21.0-linux-x86_
 # Prepare onnxruntime repository & build onnxruntime with TensorRT
 RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
     /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
-    cp onnxruntime/docs/Privacy.md /code/Privacy.md &&\
-    cp onnxruntime/dockerfiles/LICENSE-IMAGE.txt /code/LICENSE-IMAGE.txt &&\
-    cp onnxruntime/ThirdPartyNotices.txt /code/ThirdPartyNotices.txt &&\
     cd onnxruntime &&\
     /bin/sh ./build.sh --parallel --skip_submodule_sync --cuda_home /usr/local/cuda --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /workspace/tensorrt --config Release --build_wheel --update --build --cmake_extra_d
     pip install /code/onnxruntime/build/Linux/Release/dist/*.whl &&\
@@ -85,5 +82,8 @@ RUN pip install -U "git+https://github.com/ria-com/modelhub-client.git"
 
 RUN pip install jupyter
 RUN apt-get install -y mc
+RUN pip install nvidia-pyindex
+RUN python -m pip install --upgrade nvidia-tensorrt
+RUN pip install pycuda
 
 WORKDIR /var/www/nomeroff-net

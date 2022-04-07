@@ -1,5 +1,8 @@
 """
-python3 ./convert_ocr_to_onnx.py
+Convert ocr models to onnx by onnxruntime
+
+EXAMPLE:
+    python3 ./convert_ocr_to_onnx.py
 """
 import sys
 import os
@@ -12,6 +15,7 @@ import onnxruntime
 
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../../"))
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
+from nomeroff_net.pipelines.number_plate_text_reading import DEFAULT_PRISETS
 
 
 def parse_args():
@@ -44,36 +48,7 @@ def main():
 
     # get models
     # Initialize text detector.
-    text_detector = TextDetector({
-        "eu_ua_2004_2015": {
-            "for_regions": ["eu_ua_2015", "eu_ua_2004"],
-            "model_path": "latest"
-        },
-        "eu_ua_1995": {
-            "for_regions": ["eu_ua_1995"],
-            "model_path": "latest"
-        },
-        "eu": {
-            "for_regions": ["eu"],
-            "model_path": "latest"
-        },
-        "ru": {
-            "for_regions": ["ru", "eu-ua-ordlo-lpr", "eu-ua-ordlo-dpr"],
-            "model_path": "latest"
-        },
-        "kz": {
-            "for_regions": ["kz"],
-            "model_path": "latest"
-        },
-        "ge": {
-            "for_regions": ["ge"],
-            "model_path": "latest"
-        },
-        "su": {
-            "for_regions": ["su"],
-            "model_path": "latest"
-        }
-    })
+    text_detector = TextDetector(DEFAULT_PRISETS)
 
     # get device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -86,7 +61,11 @@ def main():
         # get model and model inputs
         model = detector.model
         model = model.to(device)
-        x = torch.rand((batch_size, 256, 4, 19), requires_grad=True)
+        x = torch.randn(batch_size,
+                        detector.color_channels,
+                        detector.height,
+                        detector.width,
+                        requires_grad=True)
         x = x.to(device)
 
         # make dirs
@@ -119,7 +98,10 @@ def main():
         input_name = ort_session.get_inputs()[0].name
         ort_inputs = {
             input_name: np.random.randn(
-                batch_size, 256, 4, 19
+                batch_size,
+                detector.color_channels,
+                detector.height,
+                detector.width
             ).astype(np.float32)
         }
 
