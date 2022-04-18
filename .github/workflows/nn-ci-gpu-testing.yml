@@ -18,7 +18,7 @@ on:
     - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
-  cpu-tests:
+  gpu-tests:
     runs-on: [self-hosted,cml,gpu]
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
