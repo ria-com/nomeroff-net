@@ -20,13 +20,16 @@ on:
 jobs:
   cpu-tests:
     runs-on: [self-hosted,cml,gpu]
+
+    # Timeout: https://stackoverflow.com/a/59076067/4521646
+    timeout-minutes: 120
+
     steps:
     - uses: actions/checkout@v2
+
     - name: Set up environ
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-      # Timeout: https://stackoverflow.com/a/59076067/4521646
-      timeout-minutes: 120
 
     # Note: This uses an internal pip API and may not always work
     # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
