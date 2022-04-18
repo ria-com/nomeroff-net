@@ -19,7 +19,7 @@ on:
 
 jobs:
   gpu-tests:
-    runs-on: [self-hosted,cml,gpu]
+    runs-on: self-hosted
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 120
