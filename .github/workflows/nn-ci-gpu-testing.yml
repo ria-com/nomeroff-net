@@ -27,18 +27,18 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up environ
-      env:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-
     # Note: This uses an internal pip API and may not always work
     # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
     - name: Get pip cache
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
       id: pip-cache
       run: |
         python -c "from pip._internal.locations import USER_CACHE_DIR; print('::set-output name=dir::' + USER_CACHE_DIR)"
 
     - name: Cache pip
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
       uses: actions/cache@v2.1.7
       with:
         path: ${{ steps.pip-cache.outputs.dir }}
@@ -47,6 +47,8 @@ jobs:
           ${{ runner.os }}-${{ matrix.python-version }}-pip-
 
     - name: Install dependencies
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
 
         sudo apt-get install libturbojpeg
@@ -67,6 +69,8 @@ jobs:
       shell: bash
 
     - name: Tests workflow
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
 
         # test train examples ocr
