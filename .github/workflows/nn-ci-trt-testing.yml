@@ -80,6 +80,8 @@ jobs:
         python -m pip install --upgrade pip
 
         pip install -r requirements.txt
+        pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
+        pip3 install tqdm==4.40.0
 
         # extras
         pip install setuptools wheel pytest
@@ -95,7 +97,7 @@ jobs:
       run: |
 
         # test model converting to trt
-        ./examples/py/model_convertors/yolov5_to_tensorrtx.sh
+        ./examples/py/model_convertors/models_to_tensorrt.sh
 
         # test jupyter notebooks
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/runtime-test-tensorrt.ipynb
