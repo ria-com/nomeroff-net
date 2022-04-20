@@ -19,6 +19,7 @@ echo "Check yolov5s model: ${yolov5s_model}"
 if [ -f ${model_dir}/${yolov5s_model} ]; then
   echo "Found..."
 else
+  mkdir -p ${model_dir}
   echo "download ${yolov5s_model} to ${model_dir}"
   wget https://nomeroff.net.ua/models/object_detection/${yolov5s_model} -O ${model_dir}/${yolov5s_model}
 fi
