@@ -21,5 +21,9 @@ class NumberPlateClassificationTrt(NumberPlateClassification):
                                            class_detector=OptionsDetectorTrt, **kwargs)
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        model_output = self.detector.forward(inputs)
-        return unzip(model_output)
+        model_outputs = []
+        for inp in inputs:
+            model_output = self.detector.forward([inp])
+            model_output = unzip(model_output)
+            model_outputs.append(model_output)
+        return model_outputs

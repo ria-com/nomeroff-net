@@ -1,6 +1,7 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any
 from nomeroff_net.image_loaders import BaseImageLoader
 from .number_plate_text_reading import NumberPlateTextReading
+from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_text_readers.text_detector_trt import TextDetectorTrt
 
 
@@ -18,3 +19,13 @@ class NumberPlateTextReadingTrt(NumberPlateTextReading):
                  **kwargs):
         NumberPlateTextReading.__init__(self, task, image_loader, prisets, default_label,
                                         default_lines_count, class_detector=TextDetectorTrt, **kwargs)
+
+    def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
+        images, labels, lines = unzip(inputs)
+        model_outputs = []
+        for image, label, line in zip(images, labels, lines):
+            model_inputs = self.detector.preprocess([image], [label], [line])
+            model_output = self.detector.forward(model_inputs)
+            model_output = self.detector.postprocess(model_output)
+            model_outputs.append(model_output)
+        return unzip([images, model_outputs, labels])

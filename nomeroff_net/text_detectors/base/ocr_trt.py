@@ -22,7 +22,6 @@ class OcrTrt(OCR):
         OCR.__init__(self)
         self.ort_session = None
         self.input_name = None
-        
 
     def is_loaded(self) -> bool:
         if self.ort_session is None:
@@ -32,10 +31,8 @@ class OcrTrt(OCR):
     def load_model(self, engine_file_path, device=0):
         assert os.path.exists(engine_file_path)
 
-        #self.ctx = cuda.Device(device).make_context()
         stream = cuda.Stream()
         trt_logger = trt.Logger(trt.Logger.INFO)
-        runtime = trt.Runtime(trt_logger)
 
         with open(engine_file_path, "rb") as f, trt.Runtime(trt_logger) as runtime:
             self.engine = runtime.deserialize_cuda_engine(f.read())
@@ -80,9 +77,6 @@ class OcrTrt(OCR):
     def run_engine(self, batch_input_image):
         threading.Thread.__init__(self)
 
-        # Make self the active context, pushing it on top of the context stack.
-        #self.ctx.push()
-
         # Restore
         stream = self.stream
         context = self.context
@@ -92,8 +86,6 @@ class OcrTrt(OCR):
         cuda_outputs = self.cuda_outputs
         bindings = self.bindings
 
-        image_width = self.width
-        image_height = self.height
 
         batch_input_image = np.ascontiguousarray(batch_input_image)
         
@@ -137,7 +129,7 @@ class OcrTrt(OCR):
                               width=self.width,
                               height=self.height)
             x = np.moveaxis(x, 2, 0)
-            xs[i,:,:,:] = x
+            xs[i, :, :, :] = x
         return xs
 
     def predict(self, xs: List, return_acc: bool = False) -> Any:
@@ -155,8 +147,7 @@ class OcrTrt(OCR):
             return pred_texts, net_out_value
         return pred_texts
 
-    
-    def forward(self, xs):
+    def forward(self, xs, return_acc: bool = False):
         if not len(xs):
             return ([], []) if return_acc else []
         net_out_value = self.run_engine(xs)
