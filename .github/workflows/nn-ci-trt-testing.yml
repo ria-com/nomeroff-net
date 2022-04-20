@@ -73,7 +73,7 @@ jobs:
 
         apt-get install -y libopencv-dev
         apt-get install -y libturbojpeg
-        apt-get install -y python3-nbconvert
+        apt-get install -y jupyter-nbconvert
         apt-get install -y python3-notebook
         apt-get install -y jupyter-notebook
 
