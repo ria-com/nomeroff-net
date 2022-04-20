@@ -32,7 +32,8 @@ class NumberPlateLocalizationTrt(Pipeline):
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
         images = [self.image_loader.load(item) for item in inputs]
-        batch_input_image, batch_origin_h, batch_origin_w = self.detector.yolov5_wrapper.prepare_batch_input_image(images)
+        (batch_input_image, batch_origin_h, 
+         batch_origin_w) = self.detector.yolov5_wrapper.prepare_batch_input_image(images)
         return unzip([images, batch_input_image, batch_origin_h, batch_origin_w])
 
     @no_grad()

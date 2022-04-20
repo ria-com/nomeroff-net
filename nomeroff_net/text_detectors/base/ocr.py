@@ -1,4 +1,8 @@
+"""
+python3 -m nomeroff_net.text_detectors.base.ocr -f nomeroff_net/text_detectors/base/ocr.py
+"""
 import os
+import cv2
 import json
 import numpy as np
 import torch
@@ -347,3 +351,27 @@ class OCR(object):
         acc = self.acc_calc(self.dm.train_image_generator, verbose=verbose)
         print('Training Accuracy: ', acc)
         return acc
+
+
+if __name__ == "__main__":
+    det = OCR()
+    det.get_classname = lambda: "Eu"
+    det.letters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I",
+                   "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
+    det.max_text_len = 9
+    det.max_plate_length = 9
+    det.letters_max = len(det.letters)+1
+    det.init_label_converter()
+    det.load()
+
+    image_path = os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/JJF509.png")
+    img = cv2.imread(image_path)
+    xs = det.preprocess([img])
+    y = det.predict(xs)
+    print("y", y)
+
+    image_path = os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/RP70012.png")
+    img = cv2.imread(image_path)
+    xs = det.preprocess([img])
+    y = det.predict(xs)
+    print("y", y)

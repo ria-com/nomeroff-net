@@ -11,24 +11,6 @@ WORKDIR /var/www
 
 RUN apt-get update
 
-ARG ONNXRUNTIME_REPO=https://github.com/Microsoft/onnxruntime
-ARG ONNXRUNTIME_BRANCH=v1.10.0
-ARG CMAKE_CUDA_ARCHITECTURES=37;50;52;60;61;70;75;80
-
-RUN apt-get install -y sudo git bash unattended-upgrades
-RUN unattended-upgrade
-
-WORKDIR /code
-ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:/code/cmake-3.21.0-linux-x86_64/bin:/opt/miniconda/bin:${PATH}
-
-# Prepare onnxruntime repository & build onnxruntime with TensorRT
-RUN git clone --single-branch --branch ${ONNXRUNTIME_BRANCH} --recursive ${ONNXRUNTIME_REPO} onnxruntime &&\
-    /bin/sh onnxruntime/dockerfiles/scripts/install_common_deps.sh &&\
-    cd onnxruntime &&\
-    /bin/sh ./build.sh --parallel --skip_submodule_sync --cuda_home /usr/local/cuda --cudnn_home /usr/lib/x86_64-linux-gnu/ --use_tensorrt --tensorrt_home /workspace/tensorrt --config Release --build_wheel --update --build --cmake_extra_d
-    pip install /code/onnxruntime/build/Linux/Release/dist/*.whl &&\
-    cd ..
-
 # For opencv
 RUN apt-get install -y libglib2.0
 RUN apt-get install -y git

@@ -13,7 +13,6 @@ class Eu(OCR):
         self.max_text_len = 9
         self.max_plate_length = 9
         self.letters_max = len(self.letters)+1
-        self.label_length = 32 - 2
 
         self.init_label_converter()
 

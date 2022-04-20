@@ -13,7 +13,6 @@ class RuMilitary(OCR):
         self.max_text_len = 8
         self.max_plate_length = 8
         self.letters_max = len(self.letters)+1
-        self.label_length = 32 - 2
         self.init_label_converter()
 
 

@@ -4,6 +4,7 @@ An example that uses TensorRT's Python api to make inferences.
 import pathlib
 from typing import List
 
+import pycuda.autoinit
 import ctypes
 import os
 import threading
@@ -77,7 +78,7 @@ class YoLov5TRT(object):
 
     def __init__(self, engine_file_path):
         # Create a Context on this device,
-        self.ctx = cuda.Device(0).make_context()
+        #self.ctx = cuda.Device(0).make_context()
         stream = cuda.Stream()
         trt_logger = trt.Logger(trt.Logger.INFO)
         runtime = trt.Runtime(trt_logger)
@@ -133,13 +134,13 @@ class YoLov5TRT(object):
             batch_origin_h.append(origin_h)
             batch_origin_w.append(origin_w)
             np.copyto(batch_input_image[i], input_image)
-        return batch_input_image
+        return batch_input_image, batch_origin_h, batch_origin_w
 
-    def infer(self, batch_input_image):
+    def infer(self, batch_input_image, batch_origin_h, batch_origin_w):
         threading.Thread.__init__(self)
 
         # Make self the active context, pushing it on top of the context stack.
-        self.ctx.push()
+        #self.ctx.push()
 
         # Restore
         stream = self.stream
@@ -165,7 +166,7 @@ class YoLov5TRT(object):
         stream.synchronize()
 
         # Remove any context from the top of the context stack, deactivating it.
-        self.ctx.pop()
+        #self.ctx.pop()
         # Here we use the first row of output in that batch_size = 1
         output = host_outputs[0]
 
@@ -181,9 +182,9 @@ class YoLov5TRT(object):
             result.append(item_res)
         return result
 
-    def destroy(self):
-        # Remove any context from the top of the context stack, deactivating it.
-        self.ctx.pop()
+    #def destroy(self):
+    #    # Remove any context from the top of the context stack, deactivating it.
+    #    self.ctx.pop()
 
     @staticmethod
     def get_raw_image(image_path_batch):
@@ -368,8 +369,8 @@ class Detector(object):
         self.load_model(path_to_model)
 
     def detect_bbox(self, imgs: np.ndarray, min_accuracy: float = 0.5) -> List:
-        batch_input_image = self.yolov5_wrapper.prepare_batch_input_image(imgs)
-        detected_images_bboxs = self.yolov5_wrapper.infer(batch_input_image)
+        batch_input_image, batch_origin_h, batch_origin_w = self.yolov5_wrapper.prepare_batch_input_image(imgs)
+        detected_images_bboxs = self.yolov5_wrapper.infer(batch_input_image, batch_origin_h, batch_origin_w)
         return self.postprocessing(detected_images_bboxs, min_accuracy)
 
     @staticmethod
