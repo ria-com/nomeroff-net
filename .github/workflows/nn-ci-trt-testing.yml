@@ -70,7 +70,6 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        nvidia-smi
 
         apt-get install -y libopencv-dev
         apt-get install -y libturbojpeg
@@ -94,14 +93,13 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        nvidia-smi
 
         # test model converting to trt
         ./examples/py/model_convertors/yolov5_to_tensorrtx.sh
 
         # test jupyter notebooks
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/runtime-test-tensorrt.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/number-plate-recognition-tensorrt.ipynb
 
         # test python scripts
         python3 examples/py/inference/number-plate-recognition-trt.py

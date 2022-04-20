@@ -28,7 +28,6 @@ echo "Prepare repositories:"
 git clone https://github.com/ultralytics/yolov5.git
 git clone https://github.com/wang-xinyu/tensorrtx.git
 
-
 echo "Prepare gen_wts.py:"
 if [ -f "./yolov5/gen_wts.py" ]; then
   echo "gen_wts.py detected"
