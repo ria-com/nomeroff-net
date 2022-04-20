@@ -138,7 +138,7 @@ jobs:
         python3 -m nomeroff_net.image_loaders.turbo_loader -f nomeroff_net/image_loaders/turbo_loader.py
 
         # test nnmodels
-        python3 nomeroff_net/nnmodels/numberplate_classification_model.py
+        python3 -m nomeroff_net.nnmodels.numberplate_classification_model -f nomeroff_net/nnmodels/numberplate_classification_model.py
         python3 -m nomeroff_net.nnmodels.numberplate_options_model -f nomeroff_net/nnmodels/numberplate_options_model.py
         python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmodels/fraud_numberpate_options.py
         python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py

@@ -45,6 +45,7 @@ class NPOrientationNet(NPInverseNet):
 if __name__ == "__main__":
     net = NPOrientationNet(2)
     device = get_device_torch()
+    net = net.to(device)
     xs = torch.rand((1, 3, 300, 300)).to(device)
     y = net(xs)
     print(y)

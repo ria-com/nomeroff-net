@@ -74,6 +74,7 @@ class NPInverseNet(ClassificationNet):
 if __name__ == "__main__":
     net = NPInverseNet(2)
     device = get_device_torch()
+    net = net.to(device)
     xs = torch.rand((1, 3, 64, 295)).to(device)
     y = net(xs)
     print(y)

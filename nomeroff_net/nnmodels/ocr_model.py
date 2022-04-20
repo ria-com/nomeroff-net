@@ -210,6 +210,7 @@ class NPOcrNet(pl.LightningModule):
 if __name__ == "__main__":
     net = NPOcrNet(["4", "2"], letters_max=2)
     device = get_device_torch()
+    net = net.to(device)
     xs = torch.rand((1, 3, 50, 200)).to(device)
     y = net(xs)
     print(y)

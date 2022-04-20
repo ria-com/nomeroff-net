@@ -116,6 +116,7 @@ class FraudNPNet(ClassificationNet):
 if __name__ == "__main__":
     net = FraudNPNet()
     device = get_device_torch()
+    net = net.to(device)
     xs = torch.rand((1, 3, 256, 256)).to(device)
     predicted = net(xs)
     print(predicted)

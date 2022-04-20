@@ -47,6 +47,7 @@ class ClassificationNet(LightningModule):
 if __name__ == "__main__":
     classification_net = ClassificationNet()
     device = get_device_torch()
+    net = classification_net.to(device)
     xs = torch.rand((1, 64, 295)).to(device)
     y = classification_net(xs)
     print(y)

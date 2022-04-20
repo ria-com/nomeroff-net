@@ -163,6 +163,7 @@ class NPOptionsNet(ClassificationNet):
 if __name__ == "__main__":
     np_options_net = NPOptionsNet(13, 3)
     device = get_device_torch()
+    net = np_options_net.to(device)
     xs = torch.rand((1, 3, 64, 295)).to(device)
     y = np_options_net(xs)
     print(y)
