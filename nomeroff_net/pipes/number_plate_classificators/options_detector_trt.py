@@ -24,6 +24,7 @@ class OptionsDetectorTrt(OptionsDetector):
     def __init__(self, options: Dict = None) -> None:
         OptionsDetector.__init__(self, options)
         self.engine = None
+        self.input_name = None
 
     def load_model(self, path_to_model):
         assert os.path.exists(path_to_model)
@@ -126,7 +127,7 @@ class OptionsDetectorTrt(OptionsDetector):
         for i, img in enumerate(imgs):
             x = normalize_img(img)
             x = np.moveaxis(x, 2, 0)
-            xs[i,:,:,:] = x
+            xs[i, :, :, :] = x
 
         predicted = self.run_engine(xs)
         confidences, region_ids, count_lines = self.unzip_predicted(predicted)

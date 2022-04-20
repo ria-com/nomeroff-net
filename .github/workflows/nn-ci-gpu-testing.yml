@@ -59,9 +59,8 @@ jobs:
         # extras
         pip install setuptools wheel pytest jupyter
 
-        # fix AttributeError: module 'jinja2' has no attribute 'Markup'
-        pip install mkdocs==1.2.4
-        pip install jinja2==3.1
+        # fix AttributeError: module 'jinja2' has no attribute 'contextfilter'
+        pip install --upgrade jinja2
 
         python --version
         pip --version
