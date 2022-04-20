@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn import functional
 from .numberplate_classification_model import ClassificationNet
 from torchvision.models import resnet18
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 class FraudNPNet(ClassificationNet):
@@ -114,5 +115,7 @@ class FraudNPNet(ClassificationNet):
 
 if __name__ == "__main__":
     net = FraudNPNet()
-    predicted = net(torch.rand((1, 3, 256, 256)))
+    device = get_device_torch()
+    xs = torch.rand((1, 3, 256, 256)).to(device)
+    predicted = net(xs)
     print(predicted)

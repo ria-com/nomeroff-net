@@ -5,6 +5,7 @@ python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/n
 import torch
 import torch.nn as nn
 from .numberplate_inverse_model import NPInverseNet
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 class NPOrientationNet(NPInverseNet):
@@ -43,6 +44,7 @@ class NPOrientationNet(NPInverseNet):
 
 if __name__ == "__main__":
     net = NPOrientationNet(2)
-    x = torch.rand((1, 3, 300, 300))
-    y = net(x)
+    device = get_device_torch()
+    xs = torch.rand((1, 3, 300, 300)).to(device)
+    y = net(xs)
     print(y)

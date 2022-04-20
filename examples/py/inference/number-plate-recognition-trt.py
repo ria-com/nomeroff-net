@@ -34,7 +34,7 @@ if __name__ == '__main__':
         # numberplate classification trt paths
         path_to_classification_model=os.path.join(nomeroff_net_dir,
                                                   "./data/model_repository/numberplate_options/1/model.trt"),
-        options = {
+        options={
             "class_region": [
                     "military",
                     "eu_ua_2015",
@@ -52,7 +52,7 @@ if __name__ == '__main__':
                     "kg",
                     "am"
                 ],
-                "count_lines": [
+            "count_lines": [
                     1,
                     2,
                     3
@@ -72,7 +72,7 @@ if __name__ == '__main__':
                                            "./data/model_repository/ocr-eu_ua_1995/1/model.trt")
             },
             "eu": {
-                "for_regions": ["eu"],
+                "for_regions": ["eu", "xx_unknown"],
                 "model_path": os.path.join(nomeroff_net_dir,
                                            "./data/model_repository/ocr-eu/1/model.trt")
             },

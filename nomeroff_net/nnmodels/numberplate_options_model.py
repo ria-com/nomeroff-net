@@ -9,6 +9,7 @@ from .numberplate_classification_model import ClassificationNet
 from torchvision.models import resnet18
 from nomeroff_net.tools.errors import NPOptionsNetError
 import contextlib
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 @contextlib.contextmanager
@@ -161,6 +162,7 @@ class NPOptionsNet(ClassificationNet):
 
 if __name__ == "__main__":
     np_options_net = NPOptionsNet(13, 3)
-    xs = torch.rand((1, 3, 64, 295))
-    ys = np_options_net(xs)
-    print(ys)
+    device = get_device_torch()
+    xs = torch.rand((1, 3, 64, 295)).to(device)
+    y = np_options_net(xs)
+    print(y)

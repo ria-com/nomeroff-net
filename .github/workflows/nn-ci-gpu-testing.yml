@@ -123,7 +123,7 @@ jobs:
         CUDA_VISIBLE_DEVICES=0 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-multiline.ipynb
 
         # test nnmodels
-        CUDA_VISIBLE_DEVICES=0 python3 nomeroff_net/nnmodels/numberplate_classification_model.py
+        CUDA_VISIBLE_DEVICES=0 python3 -m nomeroff_net.nnmodels.numberplate_classification_model  -f nomeroff_net/nnmodels/numberplate_classification_model.py
         CUDA_VISIBLE_DEVICES=0 python3 -m nomeroff_net.nnmodels.numberplate_options_model -f nomeroff_net/nnmodels/numberplate_options_model.py
         CUDA_VISIBLE_DEVICES=0 python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmodels/fraud_numberpate_options.py
         CUDA_VISIBLE_DEVICES=0 python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
