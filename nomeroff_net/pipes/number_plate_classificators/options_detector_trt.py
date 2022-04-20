@@ -145,12 +145,10 @@ if __name__ == "__main__":
         os.getcwd(),
         "./data/model_repository/numberplate_options/1/model.trt"))
 
-    image_path = os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/JJF509.png")
-    img = cv2.imread(image_path)
-    y = det.predict([img])
-    print("y", y)
-
-    image_path = os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/RP70012.png")
-    img = cv2.imread(image_path)
-    y = det.predict([img])
+    image_paths = [
+        os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/JJF509.png"),
+        os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/RP70012.png")
+    ]
+    images = [cv2.imread(image_path) for image_path in image_paths]
+    y = det.predict(images)
     print("y", y)

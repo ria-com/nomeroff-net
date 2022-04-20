@@ -70,17 +70,16 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        apt-get install libopencv-dev
-        apt-get install libturbojpeg
+
+        apt-get install -y libopencv-dev
+        apt-get install -y libturbojpeg
+
         python -m pip install --upgrade pip
 
         pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
 
         # extras
         pip install setuptools wheel pytest jupyter
-
-        # fix AttributeError: module 'jinja2' has no attribute 'contextfilter'
-        pip install --upgrade jinja2
 
         python --version
         pip --version
