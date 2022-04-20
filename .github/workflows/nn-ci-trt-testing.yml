@@ -97,14 +97,15 @@ jobs:
       run: |
 
         # test model converting to trt
-        ./examples/py/model_convertors/models_to_tensorrt.sh
-
-        # test jupyter notebooks
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/runtime-test-tensorrt.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/number-plate-recognition-tensorrt.ipynb
+        cd ./examples/py/model_convertors/
+        ./models_to_tensorrt.sh
+        cd ../../../
 
         # test python scripts
         python3 examples/py/inference/number-plate-recognition-trt.py
 
+        # test jupyter notebooks
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
 
       shell: bash

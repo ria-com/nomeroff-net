@@ -77,24 +77,24 @@ jobs:
       run: |
 
         # test train examples ocr
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/by.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/eu.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/ge.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/kg.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/kz.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/ua.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/ua-1995.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/su.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/ocr/ru.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/by.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/eu.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ge.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kg.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/kz.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ua-1995.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/su.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/ocr/ru.ipynb
 
         # test train examples classification
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/classification/options-base-count_lines-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/classification/options-base-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/classification/options-custom-train.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/classification/options-train.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-count_lines-train.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-base-train.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-custom-train.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/classification/options-train.ipynb
 
         # test train examples object detection
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/train/object_detection/yolov5-train.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/train/object_detection/yolov5-train.ipynb
 
         # test python inference examples
         python examples/py/inference/get-started-demo.py
@@ -103,31 +103,31 @@ jobs:
         python examples/py/inference/number-plate-recognition-multiline-demo.py
 
         # test jupyter inference examples
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/custom-options-model-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/get-started-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/get-started-tiny-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/number-plate-bbox-filling.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/number-plate-keypoints-filling.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/number-plate-recognition-multiline-demo.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/inference/get-started-demo-ocr-custom.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/custom-options-model-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-tiny-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-bbox-filling.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-keypoints-filling.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-multiline-demo.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/get-started-demo-ocr-custom.ipynb
 
         # test python benchmarks examples
         python examples/py/benchmark/accuracy-test.py
         python examples/py/benchmark/runtime-test.py
 
         # test jupyter benchmarks examples
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/accuracy-test.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/accuracy-test-custom.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/accuracy-test-multiline.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/runtime-test.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/benchmark/runtime-test-multiline.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/accuracy-test.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/accuracy-test-custom.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/accuracy-test-multiline.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-multiline.ipynb
 
         # test jupyter dataset tools examples
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/dataset_tools/analyze_via_dataset.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/dataset_tools/auto_number_grab.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/dataset_tools/check_ocr_model.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/dataset_tools/option_checker.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to notebook examples/ju/dataset_tools/ocr_dataset_format_checker.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/analyze_via_dataset.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/auto_number_grab.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/check_ocr_model.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/option_checker.ipynb
+        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/dataset_tools/ocr_dataset_format_checker.ipynb
 
         # test image loaders
         python3 nomeroff_net/image_loaders/base.py
