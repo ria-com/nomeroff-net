@@ -70,16 +70,20 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        nvidia-smi
 
         apt-get install -y libopencv-dev
         apt-get install -y libturbojpeg
+        apt-get install -y python3-nbconvert
+        apt-get install -y python3-notebook
+        apt-get install -y jupyter-notebook
 
         python -m pip install --upgrade pip
 
         pip install -r requirements.txt
 
         # extras
-        pip install setuptools wheel pytest jupyter
+        pip install setuptools wheel pytest
 
         python --version
         pip --version
@@ -90,6 +94,7 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        nvidia-smi
 
         # test model converting to trt
         ./examples/py/model_convertors/yolov5_to_tensorrtx.sh

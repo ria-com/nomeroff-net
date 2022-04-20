@@ -11,6 +11,7 @@ import argparse
 import subprocess
 
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../"))
+
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 
 

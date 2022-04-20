@@ -12,6 +12,7 @@ import argparse
 import subprocess
 
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../"))
+
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 from nomeroff_net.pipelines.number_plate_text_reading import DEFAULT_PRISETS
 
