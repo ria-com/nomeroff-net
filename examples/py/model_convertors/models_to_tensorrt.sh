@@ -21,3 +21,4 @@ python3 ./convert_ocr_to_tensorrt.py -d ge
 python3 ./convert_ocr_to_tensorrt.py -d su
 python3 ./convert_ocr_to_tensorrt.py -d am
 python3 ./convert_ocr_to_tensorrt.py -d by
+
