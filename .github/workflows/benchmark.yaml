@@ -79,12 +79,13 @@ jobs:
                     --num_workers=1 >> report.md
 
         echo "## Benchmark accuracy" >> report.md
+        echo '```diff' >> report.md
         CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/accuracy-test.py \
             --pipeline_name=number_plate_detection_and_reading \
             --image_loader_name=turbo \
             --images_glob=./data/examples/benchmark_oneline_np_images/* \
             --test_file=./data/examples/accuracy_test_data.json >> report.md
-
+        echo '```' >> report.md
         cml-send-comment report.md
 
       shell: bash

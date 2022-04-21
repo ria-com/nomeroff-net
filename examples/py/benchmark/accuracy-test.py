@@ -51,7 +51,8 @@ def main(pipeline_name, image_loader_name, images_glob, test_file, **_):
         region_ids, region_names,
         count_lines, confidences,
         matplotlib_show=False,
-        debug=False
+        debug=False,
+        md=True
     )
 
 

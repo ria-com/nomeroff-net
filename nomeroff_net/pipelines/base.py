@@ -35,7 +35,8 @@ class AccuracyTestPipeline(object):
                            region_ids, region_names,
                            count_lines, confidences,
                            matplotlib_show=False,
-                           debug=True):
+                           debug=True,
+                           md=False):
         n_good = 0
         n_bad = 0
         for predicted_image_texts, \
@@ -53,11 +54,18 @@ class AccuracyTestPipeline(object):
                             img_paths):
             for true_image_text in true_image_texts:
                 if true_image_text in predicted_image_texts:
-                    print(f"[T] PATH:{img_path} TEXT:{true_image_text} RESULTS:{predicted_image_texts}")
+                    message = f"+ NAME:{os.path.basename(img_path)} " \
+                              f"TRUE:{true_image_text} " \
+                              f"PREDICTED:{predicted_image_texts}"
+                    message = message if md else colored(message, 'green')
                     n_good += 1
                 else:
-                    print(f"[F] PATH:{img_path} TEXT:{true_image_text} RESULTS:{predicted_image_texts}")
+                    message = f"- NAME:{os.path.basename(img_path)} " \
+                              f"TRUE:{true_image_text} " \
+                              f"PREDICTED:{predicted_image_texts}"
+                    message = message if md else colored(message, 'green')
                     n_bad += 1
+                print(message)
                 if debug:
                     print("[INFO] images_bboxs", image_bboxs)
                     print("[INFO] image_points", image_points)
@@ -95,7 +103,8 @@ class AccuracyTestPipeline(object):
                                      region_ids, region_names,
                                      count_lines, confidences,
                                      matplotlib_show=False,
-                                     debug=True):
+                                     debug=True,
+                                     md=False):
         with open(accuracy_test_data_file) as f:
             accuracy_test_data = ujson.load(f)
         true_images_texts = []
@@ -111,7 +120,8 @@ class AccuracyTestPipeline(object):
                                 region_ids, region_names,
                                 count_lines, confidences,
                                 matplotlib_show=matplotlib_show,
-                                debug=debug)
+                                debug=debug,
+                                md=md)
 
 
 class Pipeline(AccuracyTestPipeline):
