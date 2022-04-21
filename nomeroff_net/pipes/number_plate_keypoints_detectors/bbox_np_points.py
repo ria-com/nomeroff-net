@@ -82,7 +82,6 @@ class NpPointsCraft(object):
         # load net
         self.net = CRAFT()  # initialize
 
-        print('Loading weights from checkpoint (' + trained_model + ')')
         if is_cuda:
             model = torch.load(trained_model)
             self.net.load_state_dict(copy_state_dict(model))
@@ -100,7 +99,6 @@ class NpPointsCraft(object):
         self.refine_net = None
         if is_refine:
             self.refine_net = RefineNet()
-            print('Loading weights of refiner from checkpoint (' + refiner_model + ')')
             if is_cuda:
                 self.refine_net.load_state_dict(copy_state_dict(torch.load(refiner_model)))
                 self.refine_net = self.refine_net.cuda()

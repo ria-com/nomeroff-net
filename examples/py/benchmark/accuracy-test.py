@@ -50,7 +50,9 @@ def main(pipeline_name, image_loader_name, images_glob, test_file, **_):
         images_points, images_zones,
         region_ids, region_names,
         count_lines, confidences,
-        matplotlib_show=False)
+        matplotlib_show=False,
+        debug=False
+    )
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 import os
-import json
 import warnings
 import argparse
 from glob import glob
@@ -18,11 +17,7 @@ def parse_args():
                     required=False, type=str, help="Image loader name")
     ap.add_argument("-g", "--images_glob", default="./data/examples/benchmark_oneline_np_images/1.jpeg",
                     required=False, type=str, help="Images glob path")
-    ap.add_argument("-f", "--res_file", default="./data/examples/runtime_test_report.json",
-                    required=False, type=str, help="Test json file path")
     ap.add_argument("-n", "--num_run", default=1,
-                    required=False, type=int, help="Number loops")
-    ap.add_argument("-o", "--overclock_num_run", default=1,
                     required=False, type=int, help="Number loops")
     ap.add_argument("-b", "--batch_size", default=1,
                     required=False, type=int, help="Batch size")
@@ -33,8 +28,8 @@ def parse_args():
     return kwargs
 
 
-def main(pipeline_name, image_loader_name, images_glob, res_file,
-         num_run, batch_size, num_workers, overclock_num_run, **_):
+def main(pipeline_name, image_loader_name, images_glob,
+         num_run, batch_size, num_workers,  **_):
     number_plate_detection_and_reading = pipeline(
         pipeline_name,
         image_loader=image_loader_name
@@ -44,17 +39,9 @@ def main(pipeline_name, image_loader_name, images_glob, res_file,
         images = glob(images_glob)
     else:
         images = glob(os.path.join(nomeroff_net_dir, images_glob))
-    if os.path.isabs(images_glob):
-        res_file = res_file
-    else:
-        res_file = os.path.join(nomeroff_net_dir, res_file)
 
-    for i in range(overclock_num_run):
-        print(f"gpu overclocking pass {i}")
-        number_plate_detection_and_reading(images, batch_size=batch_size, num_workers=num_workers)
     number_plate_detection_and_reading.clear_stat()
     for i in range(num_run):
-        print(f"running pass {i}")
         number_plate_detection_and_reading(images,
                                            batch_size=batch_size,
                                            num_workers=num_workers)

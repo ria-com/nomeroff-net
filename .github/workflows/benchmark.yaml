@@ -60,23 +60,30 @@ jobs:
         echo "### CPU info" >> report.md
         lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)' >> report.md
 
+        echo "## Benchmark runtime" >> report.md
+        # run first time for download models and overclock gpus
+        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
+            --pipeline_name=number_plate_detection_and_reading_runtime \
+            --image_loader_name=turbo \
+            --images_glob=./data/examples/benchmark_oneline_np_images/* \
+            --num_run=1 \
+            --batch_size=1 \
+            --num_workers=1
+        # run second time to write report
+        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
+                    --pipeline_name=number_plate_detection_and_reading_runtime \
+                    --image_loader_name=turbo \
+                    --images_glob=./data/examples/benchmark_oneline_np_images/* \
+                    --num_run=10 \
+                    --batch_size=1 \
+                    --num_workers=1 >> report.md
+
         echo "## Benchmark accuracy" >> report.md
         CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/accuracy-test.py \
             --pipeline_name=number_plate_detection_and_reading \
             --image_loader_name=turbo \
             --images_glob=./data/examples/benchmark_oneline_np_images/* \
             --test_file=./data/examples/accuracy_test_data.json >> report.md
-
-        echo "## Benchmark runtime" >> report.md
-        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
-            --pipeline_name=number_plate_detection_and_reading_runtime \
-            --image_loader_name=turbo \
-            --images_glob=./data/examples/benchmark_oneline_np_images/* \
-            --res_file=./data/examples/runtime_test_report.json \
-            --num_run=10 \
-            --overclock_num_run=2 \
-            --batch_size=1 \
-            --num_workers=1 >> report.md
 
         cml-send-comment report.md
 
