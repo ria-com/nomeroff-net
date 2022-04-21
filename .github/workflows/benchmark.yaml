@@ -10,6 +10,7 @@ on:
 jobs:
   gpu-benchmark:
     runs-on: self-hosted
+    container: docker://dvcorg/cml-py3:latest
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 120
@@ -40,22 +41,6 @@ jobs:
       env:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
-
-        apt-get install -y libopencv-dev
-        apt-get install -y libturbojpeg
-        apt-get install -y jupyter-nbconvert
-        apt-get install -y python3-notebook
-        apt-get install -y jupyter-notebook
-
-        python -m pip install --upgrade pip
-
-        pip install -r requirements.txt
-        pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
-        pip3 install tqdm==4.40.0
-
-        # extras
-        pip install setuptools wheel pytest
-
         python --version
         pip --version
         pip list
@@ -67,8 +52,6 @@ jobs:
       run: |
 
         echo "## Benchmarks metrics" > report.md
-        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/accuracy-test.py >> report.md
-        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py >> report.md
+        cml send-comment report.md
 
-        cml-send-comment report.md
       shell: bash
