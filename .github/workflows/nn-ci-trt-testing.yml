@@ -4,21 +4,6 @@
 name: Nomeroff Net CI GPU Tensorrt Testing
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
-    paths:
-      - 'nomeroff_net/pipes/number_plate_text_readers/text_detector_trt.py'
-      - 'nomeroff_net/text_detectors/base/ocr_trt.py'
-      - 'nomeroff_net/pipes/number_plate_localizators/yolov5_engine_detector.py'
-      - 'nomeroff_net/pipes/number_plate_classificators/options_detector_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_text_reading_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_localization_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_detection_and_reading_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_classification_trt.py'
-      - 'examples/ju/benchmark/runtime-test-tensorrt.ipynb'
-      - 'examples/ju/inference/number-plate-recognition-tensorrt.ipynb'
-      - 'examples/py/inference/number-plate-recognition-trt.py'
-      - 'examples/py/model_convertors/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
     paths:

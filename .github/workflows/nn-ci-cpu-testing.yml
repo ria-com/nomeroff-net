@@ -4,16 +4,6 @@
 name: Nomeroff Net CI CPU Testing
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
-    paths:
-      - 'nomeroff_net/**'
-      - 'examples/ju/dataset_convertors/**'
-      - 'examples/ju/dataset_tools/**'
-      - 'examples/ju/inference/**'
-      - 'examples/ju/train/**'
-      - 'examples/py/inference/**'
-      - 'examples/py/rest_examples/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
     paths:
