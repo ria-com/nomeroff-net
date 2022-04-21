@@ -102,10 +102,10 @@ jobs:
         cd ../../../
 
         # test python scripts
-        gdb -ex r --args python3 examples/py/inference/number-plate-recognition-trt.py
+        #CUDA_VISIBLE_DEVICES=1 gdb -ex r --args python3 examples/py/inference/number-plate-recognition-trt.py
 
         # test jupyter notebooks
-        CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
-        CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
 
       shell: bash
