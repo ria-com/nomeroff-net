@@ -31,7 +31,7 @@ def main(pipeline_name, image_loader_name, images_glob, test_file, **_):
         image_paths = glob(images_glob)
     else:
         image_paths = glob(os.path.join(nomeroff_net_dir, images_glob))
-    result = number_plate_detection_and_reading(image_paths, quality_profile=[3, 1, 0])
+    result = number_plate_detection_and_reading(image_paths, quality_profile=[5, 1, 0])
 
     (images, images_bboxs,
      images_points, images_zones, region_ids,
