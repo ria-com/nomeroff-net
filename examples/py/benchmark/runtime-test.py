@@ -70,10 +70,6 @@ def main(pipeline_name, image_loader_name, images_glob, res_file,
     print(f"classification_time_all {timer_stat['NumberPlateClassification.call']} per one photo")
     print(f"ocr_time_all {timer_stat['NumberPlateTextReading.call']} per one photo")
 
-    # save timer stat result
-    with open(res_file, "w") as f:
-        json.dump(timer_stat, f)
-
 
 if __name__ == '__main__':
     main(**parse_args())

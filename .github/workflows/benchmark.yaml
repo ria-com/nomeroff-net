@@ -71,8 +71,8 @@ jobs:
             --num_run=10 \
             --overclock_num_run=2 \
             --batch_size=1 \
-            --num_workers=1
-        ./data/examples/runtime_test_report.json >> report.md
+            --num_workers=1 \
+            >> report.md
 
         cml-send-comment report.md
 
