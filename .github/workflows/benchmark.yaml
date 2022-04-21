@@ -64,7 +64,7 @@ jobs:
 
         echo "# Benchmark runtime" > report.md
         CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
-            --pipeline_name=number_plate_detection_and_reading \
+            --pipeline_name=number_plate_detection_and_reading_runtime \
             --image_loader_name=turbo \
             --images_glob=./data/examples/benchmark_oneline_np_images/* \
             --res_file=./data/examples/runtime_test_report.json \
