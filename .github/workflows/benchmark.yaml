@@ -2,10 +2,11 @@
 name: Nomeroff Net CI GPU Benchmark
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
   pull_request:
     branches: [  master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
 
 jobs:
   gpu-benchmark:
