@@ -8,8 +8,6 @@ on:
     branches: [  master, v3.0, v3.1 ]
     paths:
       - 'moderation/**'
-  schedule:
-    - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   test:

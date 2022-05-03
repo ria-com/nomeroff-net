@@ -19,8 +19,6 @@ on:
       - 'examples/ju/inference/number-plate-recognition-tensorrt.ipynb'
       - 'examples/py/inference/number-plate-recognition-trt.py'
       - 'examples/py/model_convertors/**'
-  schedule:
-    - cron: '13 1 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   trt-tests:

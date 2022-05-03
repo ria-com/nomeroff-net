@@ -11,8 +11,6 @@ on:
       - 'examples/ju/inference/**'
       - 'examples/ju/train/**'
       - 'examples/py/inference/**'
-  schedule:
-    - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   gpu-tests:
