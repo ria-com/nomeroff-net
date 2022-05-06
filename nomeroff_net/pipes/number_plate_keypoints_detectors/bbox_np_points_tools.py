@@ -18,9 +18,7 @@ from nomeroff_net.tools.image_processing import (fline,
 try:
     from .cpp_bindings.cpp_bindings import find_char_boxes, find_word_boxes
     CPP_BIND_AVAILABLE = True
-except OSError as e:
-    CPP_BIND_AVAILABLE = False
-except ImportError as e:
+except Exception as e:
     CPP_BIND_AVAILABLE = False
 
 
