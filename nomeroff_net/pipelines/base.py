@@ -63,7 +63,7 @@ class AccuracyTestPipeline(object):
                     message = f"- NAME:{os.path.basename(img_path)} " \
                               f"TRUE:{true_image_text} " \
                               f"PREDICTED:{predicted_image_texts}"
-                    message = message if md else colored(message, 'green')
+                    message = message if md else colored(message, 'red')
                     n_bad += 1
                 print(message)
                 if debug:

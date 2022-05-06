@@ -46,6 +46,10 @@ jobs:
         pip --version
         pip list
 
+        cd nomeroff_net/pipes/number_plate_keypoints_detectors/cpp_bindings/
+        . ./build_cpp_bindings_unix.sh
+        cd ../../../../
+
       shell: bash
 
     - name: Run benchmark

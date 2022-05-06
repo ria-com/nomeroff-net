@@ -187,6 +187,7 @@ class NpPointsCraft(object):
                     text_threshold: float = 0.6,
                     link_threshold: float = 0.7,
                     low_text: float = 0.4,
+                    in_zone_only: bool = False,
                     **_) -> Any:
         if quality_profile is None:
             quality_profile = [1, 0, 0, 0]
@@ -239,6 +240,12 @@ class NpPointsCraft(object):
                         points = target_points_variants[idx]
                     else:
                         points = target_points_variants[0]
+                    if in_zone_only:
+                        for i in range(len(points)):
+                            points[i][0] = x0 if points[i][0] < x0 else points[i][0]
+                            points[i][1] = y0 if points[i][1] < y0 else points[i][1]
+                            points[i][0] = x0 + w0 if points[i][0] > x0 + w0 else points[i][0]
+                            points[i][1] = y0 + h0 if points[i][1] > y0 + h0 else points[i][1]
                     all_points.append(points)
                 else:
                     all_points.append([

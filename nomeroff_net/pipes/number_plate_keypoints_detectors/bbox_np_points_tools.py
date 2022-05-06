@@ -15,6 +15,14 @@ from nomeroff_net.tools.image_processing import (fline,
                                                  detect_intersection,
                                                  reshape_points)
 
+try:
+    from .cpp_bindings.cpp_bindings import find_char_boxes, find_word_boxes
+    CPP_BIND_AVAILABLE = True
+except OSError as e:
+    CPP_BIND_AVAILABLE = False
+except ImportError as e:
+    CPP_BIND_AVAILABLE = False
+
 
 def copy_state_dict(state_dict: Dict) -> OrderedDict:
     """
@@ -31,7 +39,10 @@ def copy_state_dict(state_dict: Dict) -> OrderedDict:
     return new_state_dict
 
 
-def get_det_boxes(textmap, linkmap, text_threshold, link_threshold, low_text):
+def get_det_boxes(textmap, linkmap, text_threshold, link_threshold, low_text, use_cpp_bindings=True):
+    """
+    get det boxes
+    """
     # prepare data
     linkmap = linkmap.copy()
     textmap = textmap.copy()
@@ -45,58 +56,62 @@ def get_det_boxes(textmap, linkmap, text_threshold, link_threshold, low_text):
     n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(text_score_comb.astype(np.uint8),
                                                                           connectivity=4)
 
-    det = []
-    mapper = []
-    for k in range(1, n_labels):
-        # size filtering
-        size = stats[k, cv2.CC_STAT_AREA]
-        if size < 10:
-            continue
+    if CPP_BIND_AVAILABLE and use_cpp_bindings:
+        det, mapper = find_word_boxes(textmap, labels, n_labels, stats,
+                                      text_threshold, fast_mode=True, rotated_box=True)
+    else:
+        det = []
+        mapper = []
+        for k in range(1, n_labels):
+            # size filtering
+            size = stats[k, cv2.CC_STAT_AREA]
+            if size < 10:
+                continue
 
-        # thresholding
-        if np.max(textmap[labels == k]) < text_threshold:
-            continue
+            # thresholding
+            if np.max(textmap[labels == k]) < text_threshold:
+                continue
 
-        # make segmentation map
-        segmap = np.zeros(textmap.shape, dtype=np.uint8)
-        segmap[labels == k] = 255
-        segmap[np.logical_and(link_score == 1, text_score == 0)] = 0  # remove link area
-        x, y = stats[k, cv2.CC_STAT_LEFT], stats[k, cv2.CC_STAT_TOP]
-        w, h = stats[k, cv2.CC_STAT_WIDTH], stats[k, cv2.CC_STAT_HEIGHT]
-        niter = int(math.sqrt(size * min(w, h) / (w * h)) * 2)
-        sx, ex, sy, ey = x - niter, x + w + niter + 1, y - niter, y + h + niter + 1
-        # boundary check
-        if sx < 0:
-            sx = 0
-        if sy < 0:
-            sy = 0
-        if ex >= img_w:
-            ex = img_w
-        if ey >= img_h:
-            ey = img_h
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1 + niter, 1 + niter))
-        segmap[sy:ey, sx:ex] = cv2.dilate(segmap[sy:ey, sx:ex], kernel)
+            # make segmentation map
+            segmap = np.zeros(textmap.shape, dtype=np.uint8)
+            segmap[labels == k] = 255
+            segmap[np.logical_and(link_score == 1, text_score == 0)] = 0  # remove link area
+            x, y = stats[k, cv2.CC_STAT_LEFT], stats[k, cv2.CC_STAT_TOP]
+            w, h = stats[k, cv2.CC_STAT_WIDTH], stats[k, cv2.CC_STAT_HEIGHT]
+            niter = int(math.sqrt(size * min(w, h) / (w * h)) * 2)
+            sx, ex, sy, ey = x - niter, x + w + niter + 1, y - niter, y + h + niter + 1
+            # boundary check
+            if sx < 0:
+                sx = 0
+            if sy < 0:
+                sy = 0
+            if ex >= img_w:
+                ex = img_w
+            if ey >= img_h:
+                ey = img_h
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1 + niter, 1 + niter))
+            segmap[sy:ey, sx:ex] = cv2.dilate(segmap[sy:ey, sx:ex], kernel)
 
-        # make box
-        np_contours = np.roll(np.array(np.where(segmap != 0)), 1, axis=0).transpose().reshape(-1, 2)
-        rectangle = cv2.minAreaRect(np_contours)
-        box = cv2.boxPoints(rectangle)
+            # make box
+            np_contours = np.roll(np.array(np.where(segmap != 0)), 1, axis=0).transpose().reshape(-1, 2)
+            rectangle = cv2.minAreaRect(np_contours)
+            box = cv2.boxPoints(rectangle)
 
-        # align diamond-shape
-        w, h = np.linalg.norm(box[0] - box[1]), np.linalg.norm(box[1] - box[2])
-        box_ratio = max(w, h) / (min(w, h) + 1e-5)
-        if abs(1 - box_ratio) <= 0.1:
-            l, r = min(np_contours[:, 0]), max(np_contours[:, 0])
-            t, b = min(np_contours[:, 1]), max(np_contours[:, 1])
-            box = np.array([[l, t], [r, t], [r, b], [l, b]], dtype=np.float32)
+            # align diamond-shape
+            w, h = np.linalg.norm(box[0] - box[1]), np.linalg.norm(box[1] - box[2])
+            box_ratio = max(w, h) / (min(w, h) + 1e-5)
+            if abs(1 - box_ratio) <= 0.1:
+                l, r = min(np_contours[:, 0]), max(np_contours[:, 0])
+                t, b = min(np_contours[:, 1]), max(np_contours[:, 1])
+                box = np.array([[l, t], [r, t], [r, b], [l, b]], dtype=np.float32)
 
-        # make clock-wise order
-        startidx = box.sum(axis=1).argmin()
-        box = np.roll(box, 4 - startidx, 0)
-        box = np.array(box)
+            # make clock-wise order
+            startidx = box.sum(axis=1).argmin()
+            box = np.roll(box, 4 - startidx, 0)
+            box = np.array(box)
 
-        det.append(box)
-        mapper.append(k)
+            det.append(box)
+            mapper.append(k)
 
     return det
 
