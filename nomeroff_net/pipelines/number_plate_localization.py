@@ -40,17 +40,8 @@ class NumberPlateLocalization(Pipeline):
 
     @no_grad()
     def forward(self, images: Any, **forward_parameters: Dict) -> Any:
-        model_inputs = self.detector.normalize_imgs(images, **forward_parameters)
-        model_outputs = self.detector.model(model_inputs)[0]
-        shape = model_outputs.shape
-        model_outputs = model_outputs.reshape((shape[0], 1, shape[1], shape[2]))
-        return unzip([model_outputs, model_inputs, images])
+        model_outputs = self.detector.predict(images)
+        return unzip([model_outputs, images])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        model_outputs, images, orig_images = unzip(inputs)
-        orig_img_shapes = [img.shape for img in orig_images]
-        output = self.detector.postprocessing(model_outputs,
-                                              images,
-                                              orig_img_shapes,
-                                              **postprocess_parameters)
-        return unzip([output, orig_images])
+        return inputs
