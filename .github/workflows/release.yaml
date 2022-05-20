@@ -5,7 +5,7 @@ name: release nomeroff-net
 
 on:
   release:
-    types: [ published ]
+    types: [ created ]
 
 jobs:
   release:
