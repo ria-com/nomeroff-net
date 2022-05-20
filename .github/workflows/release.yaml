@@ -37,9 +37,12 @@ jobs:
       shell: bash
 
     - name: Release
+      env:
+          PYPL_PASSWORD: ${{ secrets.PYPL_PASSWORD }}
+          PYPL_USER: ${{ secrets.PYPL_USER }}
       run: |
 
         python3 setup.py sdist bdist_wheel
-        twine upload --skip-existing -u=${{ secrets.PYPL_USER }} -p=${{ secrets.PYPL_PASSWORD }} dist/*
+        twine upload --skip-existing -u=$PYPL_USER -p=$PYPL_PASSWORD dist/*
 
       shell: bash
