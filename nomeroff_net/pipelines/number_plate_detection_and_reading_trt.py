@@ -17,7 +17,6 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model: str,
-                 plugin_lib: str,
                  path_to_classification_model: str,
                  prisets: Dict,
                  mtl_model_path: str = "latest",
@@ -36,8 +35,7 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
         self.number_plate_localization = NumberPlateLocalizationTrt(
             "number_plate_localization",
             image_loader=None,
-            engine_file_path=path_to_model,
-            plugin_lib=plugin_lib)
+            engine_file_path=path_to_model)
         self.number_plate_classification = NumberPlateClassificationTrt(
             "number_plate_classification",
             image_loader=None,
