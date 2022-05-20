@@ -6,7 +6,7 @@ import re
 def read_version():
     # importing gpustat causes an ImportError :-)
     __PATH__ = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(__PATH__, 'modelhub_client/__init__.py')) as f:
+    with open(os.path.join(__PATH__, 'nomeroff_net/__init__.py')) as f:
         version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
                                   f.read(), re.M)
     if version_match:
@@ -23,7 +23,10 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 # get project requirements list
 with open("requirements.txt", "r", encoding="utf-8") as fh:
-    packages = fh.read().split("/n")
+    requirements = fh.read()
+    required_pkgs, required_repos = requirements.split('# git repos')
+    required_pkgs = required_pkgs.split()
+    required_repos = required_repos.split()
 
 setup(name='nomeroff-net',
       version=__version__,
@@ -41,8 +44,10 @@ setup(name='nomeroff-net',
       url='https://github.com/ria-com/nomeroff-net',
       author='Dmytro Probachay, Oleg Cherniy',
       author_email='dimabendera@gmail.com, oleg.cherniy@ria.com',
-      license='MIT',
+      license='GNU General Public License v3.0',
       packages=find_packages(),
-      install_requires=packages,
+      install_requires=required_pkgs,
+      dependency_links=required_repos,
       include_package_data=True,
+      python_requires='>=3.7',
       zip_safe=False)
