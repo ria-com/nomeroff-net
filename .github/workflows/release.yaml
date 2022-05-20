@@ -32,6 +32,7 @@ jobs:
 
         pip install setuptools
         pip install twine
+        pip install wheel
 
       shell: bash
 
