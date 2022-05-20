@@ -40,6 +40,6 @@ jobs:
       run: |
 
         python3 setup.py sdist bdist_wheel
-        twine upload -u $PYPL_USER -p $PYPL_PASSWORD dist/*
+        twine upload --skip-existing -u=${{ secrets.PYPL_USER }} -p=${{ secrets.PYPL_PASSWORD }} dist/*
 
       shell: bash
