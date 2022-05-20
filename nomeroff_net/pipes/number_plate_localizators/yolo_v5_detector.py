@@ -23,7 +23,8 @@ class Detector(object):
 
     def load_model(self, weights: str, device: str = '') -> None:
         device = device or self.device
-        model = torch.hub.load(repo_path, 'custom', device=device, path=weights, source="local")
+        model = torch.hub.load(repo_path, 'custom', device="cpu", path=weights, source="local")
+        model.to(device)
         if device != 'cpu':  # half precision only supported on CUDA
             model.half()  # to FP16
 
