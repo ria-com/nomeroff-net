@@ -9,4 +9,4 @@ from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detect
 from nomeroff_net.pipelines import pipeline
 
 
-__version__ = "3.1.0"
+__version__ = "3.1.1"
