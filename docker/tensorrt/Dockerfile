@@ -1,5 +1,5 @@
 # nVidia TensorRT Base Image
-ARG TRT_CONTAINER_VERSION=21.12
+ARG TRT_CONTAINER_VERSION=21.07
 FROM nvcr.io/nvidia/tensorrt:${TRT_CONTAINER_VERSION}-py3
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -33,7 +33,19 @@ RUN pip install matplotlib
 RUN pip install seaborn
 RUN pip install gevent
 
-RUN pip install 'opencv_python<4.5.5'
+RUN wget -O opencv.zip https://github.com/opencv/opencv/archive/master.zip
+RUN wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/master.zip
+RUN unzip opencv.zip; unzip opencv_contrib.zip
+RUN mkdir -p build && cd build;\
+    cmake -DOPENCV_EXTRA_MODULES_PATH=../opencv_contrib-master/modules ../opencv-master; make -j8;\
+    make install
+
+RUN rm /var/www/opencv.zip;\
+    rm /var/www/opencv_contrib.zip;\
+    rm -rf /var/www/opencv-master;\
+    rm -rf /var/www/opencv_contrib-master;\
+    rm -rf /var/www/build
+
 RUN pip install "numpy>=1.16.*"
 RUN pip install imgaug
 RUN pip install "pillow>=8.2.0"
@@ -52,5 +64,8 @@ RUN pip install -U "git+https://github.com/ria-com/modelhub-client.git"
 
 RUN pip install jupyter
 RUN apt-get install -y mc
+RUN pip install nvidia-pyindex
+RUN python -m pip install --upgrade nvidia-tensorrt
+RUN pip install pycuda
 
 WORKDIR /var/www/nomeroff-net

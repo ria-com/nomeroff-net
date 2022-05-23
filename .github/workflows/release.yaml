@@ -1,0 +1,48 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: release nomeroff-net
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04 ]
+        python-version: [ 3.9 ]
+
+    # Timeout: https://stackoverflow.com/a/59076067/4521646
+    timeout-minutes: 120
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+
+        pip install setuptools
+        pip install twine
+        pip install wheel
+
+      shell: bash
+
+    - name: Release
+      env:
+          PYPL_PASSWORD: ${{ secrets.PYPL_PASSWORD }}
+          PYPL_USER: ${{ secrets.PYPL_USER }}
+      run: |
+
+        python3 setup.py sdist bdist_wheel
+        twine upload --skip-existing -u=$PYPL_USER -p=$PYPL_PASSWORD dist/*
+
+      shell: bash
