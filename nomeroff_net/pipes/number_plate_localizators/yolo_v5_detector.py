@@ -1,19 +1,12 @@
-import os
 import torch
 import numpy as np
-from typing import List, Tuple
+from typing import List
 
-from nomeroff_net.tools import (modelhub, get_mode_torch)
-from nomeroff_net.pipes.number_plate_localizators.yolo_tools import scale_predicted_coords
+from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 
 # download and append to path yolo repo
-modelhub.download_repo_for_model("yolov5")
-
-# load yolo packages
-from yolov5.models.experimental import attempt_load
-from yolov5.utils.datasets import letterbox
-from yolov5.utils.general import non_max_suppression
-from yolov5.utils.torch_utils import select_device
+info = modelhub.download_repo_for_model("yolov5")
+repo_path = info["repo_path"]
 
 
 class Detector(object):
@@ -26,91 +19,29 @@ class Detector(object):
 
     def __init__(self) -> None:
         self.model = None
-        self.device = ""
-        self.half = False
+        self.device = get_device_torch()
 
     def load_model(self, weights: str, device: str = '') -> None:
-        device = select_device(device)
-        model = attempt_load(weights, map_location=device)  # load FP32 model
-        half = device.type != 'cpu'  # half precision only supported on CUDA
-        if half:
+        device = device or self.device
+        model = torch.hub.load(repo_path, 'custom', device="cpu", path=weights, source="local")
+        model.to(device)
+        if device != 'cpu':  # half precision only supported on CUDA
             model.half()  # to FP16
 
         self.model = model
         self.device = device
-        self.half = half
 
     def load(self, path_to_model: str = "latest") -> None:
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("yolov5")
             path_to_model = model_info["path"]
-        device = "cpu"
-        if get_mode_torch() == "gpu":
-            device = os.environ.get("CUDA_VISIBLE_DEVICES", '0')
-        self.load_model(path_to_model, device)
-
-    def normalize_img(self, img, img_size, stride, auto=True):
-        """
-        TODO: auto=False if pipeline batch size > 1
-        """
-        img = letterbox(img, img_size, stride=stride, auto=auto)[0]
-        img = img.transpose(2, 0, 1)  # to 3x416x416
-        img = np.ascontiguousarray(img)
-
-        return img
-
-    def normalize_imgs(self, imgs: List[np.ndarray], img_size: Tuple = (640, 640), stride: int = 32, **_):
-        if len(imgs) == 1:
-            normalized_imgs = self.normalize_img(imgs[0], img_size, stride, auto=True)
-            normalized_imgs = np.expand_dims(normalized_imgs, axis=0)
-        else:
-            normalized_imgs = np.zeros((len(imgs), 3, *img_size))
-            for i, img in enumerate(imgs):
-                normalized_imgs[i] = self.normalize_img(img, img_size, stride, auto=False)
-        input_tensors = torch.from_numpy(normalized_imgs).to(self.device)
-        input_tensors = input_tensors.half() if self.half else input_tensors.float()  # uint8 to fp16/32
-        input_tensors /= 255.0  # 0 - 255 to 0.0 - 1.0
-        return input_tensors
-
-    def postprocessing(self,
-                       preds: torch.Tensor,
-                       imgs: List[np.ndarray],
-                       orig_img_shapes: List[Tuple],
-                       min_accuracy: float = 0.5,
-                       **_):
-        res = []
-        for pred, img, orig_img_shape in zip(preds, imgs, orig_img_shapes):
-            pred = non_max_suppression(pred)
-            predicted_coords = scale_predicted_coords(img, pred, orig_img_shape)
-            if len(predicted_coords):
-                res.append([[x1, y1, x2, y2, acc, b]
-                            for x1, y1, x2, y2, acc, b in predicted_coords[0]
-                            if acc > min_accuracy])
-            else:
-                res.append([])
-        return res
+        self.load_model(path_to_model)
 
     @torch.no_grad()
-    def detect_bbox(self,
-                    img: np.ndarray,
-                    img_size: Tuple = (640, 640),
-                    stride: int = 32,
-                    min_accuracy: float = 0.5) -> List:
-        orig_img_shapes = [img.shape]
-        normalized_img = self.normalize_img(img, img_size, stride)
-        input_tensor = torch.from_numpy(normalized_img).to(self.device)
-        input_tensor = input_tensor.half() if self.half else input_tensor.float()  # uint8 to fp16/32
-        input_tensor /= 255.0  # 0 - 255 to 0.0 - 1.0
-        input_tensor = input_tensor.unsqueeze(0)
-
-        preds = self.model(input_tensor)
-        return self.postprocessing(preds, input_tensor, orig_img_shapes, min_accuracy)[0]
-
-    @torch.no_grad()
-    def detect(self, imgs: List[np.ndarray], min_accuracy: float = 0.5) -> List:
-        orig_img_shapes = [img.shape for img in imgs]
-        input_tensors = self.normalize_imgs(imgs)
-        model_outputs = self.model(input_tensors)[0]
-        shape = model_outputs.shape
-        model_outputs = model_outputs.reshape((shape[0], 1, shape[1], shape[2]))
-        return self.postprocessing(model_outputs, input_tensors, orig_img_shapes, min_accuracy=min_accuracy)
+    def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.5) -> List:
+        model_outputs = self.model(imgs)
+        model_outputs = [[[item["xmin"], item["ymin"], item["xmax"], item["ymax"], item["confidence"]]
+                         for item in img_item.to_dict(orient="records")
+                         if item["confidence"] > min_accuracy]
+                         for img_item in model_outputs.pandas().xyxy]
+        return model_outputs

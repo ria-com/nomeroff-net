@@ -1,0 +1,96 @@
+
+name: Nomeroff Net CI GPU Benchmark
+
+on:
+  pull_request:
+    branches: [  master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/**'
+      - 'examples/**'
+
+jobs:
+  gpu-benchmark:
+    runs-on: self-hosted
+    #container: docker://dvcorg/cml-py3:latest
+
+    # Timeout: https://stackoverflow.com/a/59076067/4521646
+    timeout-minutes: 120
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - uses: iterative/setup-cml@v1
+    - name: Install dependencies
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+
+        apt-get install -y libopencv-dev
+        apt-get install -y libturbojpeg
+        apt-get install -y jupyter-nbconvert
+        apt-get install -y python3-notebook
+        apt-get install -y jupyter-notebook
+
+        python -m pip install --upgrade pip
+
+        pip install -r requirements.txt
+        pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
+        pip3 install tqdm==4.40.0
+
+        # extras
+        pip install setuptools wheel pytest
+
+        python --version
+        pip --version
+        pip list
+
+        cd nomeroff_net/pipes/number_plate_keypoints_detectors/cpp_bindings/
+        . ./build_cpp_bindings_unix.sh
+        cd ../../../../
+
+      shell: bash
+
+    - name: Run benchmark
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+
+        echo "# Benchmarks" > report.md
+
+        echo "## Hardware сharacteristics" >> report.md
+        echo "### GPU info" >> report.md
+        nvidia-smi --query-gpu=gpu_name,driver_version,memory.total --format=csv --id=0 >> report.md
+        echo "### CPU info" >> report.md
+        lscpu | egrep 'Model name|Socket|Thread|NUMA|CPU\(s\)' >> report.md
+
+        echo "## Benchmark runtime" >> report.md
+        # run first time for download models and overclock gpus
+        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
+            --pipeline_name=number_plate_detection_and_reading_runtime \
+            --image_loader_name=turbo \
+            --images_glob=./data/examples/benchmark_oneline_np_images/* \
+            --num_run=1 \
+            --batch_size=1 \
+            --num_workers=1
+        # run second time to write report
+        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/runtime-test.py \
+                    --pipeline_name=number_plate_detection_and_reading_runtime \
+                    --image_loader_name=turbo \
+                    --images_glob=./data/examples/benchmark_oneline_np_images/* \
+                    --num_run=10 \
+                    --batch_size=1 \
+                    --num_workers=1 >> report.md
+
+        echo "## Benchmark accuracy" >> report.md
+        echo '```diff' >> report.md
+        CUDA_VISIBLE_DEVICES=0 python examples/py/benchmark/accuracy-test.py \
+            --pipeline_name=number_plate_detection_and_reading \
+            --image_loader_name=turbo \
+            --images_glob=./data/examples/benchmark_oneline_np_images/* \
+            --test_file=./data/examples/accuracy_test_data.json >> report.md
+        echo '```' >> report.md
+        cml-send-comment report.md
+
+      shell: bash

@@ -16,10 +16,12 @@ torch>=1.8
 torchvision>=0.9
 PyYAML>=5.4
 seaborn
-git+https://github.com/lilohuang/PyTurboJPEG.git
-git+https://github.com/ria-com/modelhub-client.git
 pytorch_lightning
 ipywidgets
 gevent
 termcolor
 sklearn
+
+# git repos
+PyTurboJPEG @ git+https://github.com/lilohuang/PyTurboJPEG.git
+modelhub_client @ git+https://github.com/ria-com/modelhub-client.git

@@ -1,0 +1,94 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Nomeroff Net CI GPU Tensorrt Testing
+
+on:
+  pull_request:
+    branches: [  master, v3.0, v3.1 ]
+    paths:
+      - 'nomeroff_net/pipes/number_plate_text_readers/text_detector_trt.py'
+      - 'nomeroff_net/text_detectors/base/ocr_trt.py'
+      - 'nomeroff_net/pipes/number_plate_localizators/yolov5_engine_detector.py'
+      - 'nomeroff_net/pipes/number_plate_classificators/options_detector_trt.py'
+      - 'nomeroff_net/pipelines/number_plate_text_reading_trt.py'
+      - 'nomeroff_net/pipelines/number_plate_localization_trt.py'
+      - 'nomeroff_net/pipelines/number_plate_detection_and_reading_trt.py'
+      - 'nomeroff_net/pipelines/number_plate_classification_trt.py'
+      - 'examples/ju/benchmark/runtime-test-tensorrt.ipynb'
+      - 'examples/ju/inference/number-plate-recognition-tensorrt.ipynb'
+      - 'examples/py/inference/number-plate-recognition-trt.py'
+      - 'examples/py/model_convertors/**'
+
+jobs:
+  trt-tests:
+    runs-on: self-hosted
+
+    # Timeout: https://stackoverflow.com/a/59076067/4521646
+    timeout-minutes: 120
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Note: This uses an internal pip API and may not always work
+    # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+    - name: Get pip cache
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      id: pip-cache
+      run: |
+        python -c "from pip._internal.locations import USER_CACHE_DIR; print('::set-output name=dir::' + USER_CACHE_DIR)"
+
+    - name: Cache pip
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      uses: actions/cache@v2.1.7
+      with:
+        path: ${{ steps.pip-cache.outputs.dir }}
+        key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.python-version }}-pip-
+
+    - name: Install dependencies
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+
+        apt-get install -y libopencv-dev
+        apt-get install -y libturbojpeg
+        apt-get install -y jupyter-nbconvert
+        apt-get install -y python3-notebook
+        apt-get install -y jupyter-notebook
+
+        python -m pip install --upgrade pip
+
+        pip install -r requirements.txt
+        pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
+        pip3 install tqdm==4.40.0
+
+        # extras
+        pip install setuptools wheel pytest
+
+        python --version
+        pip --version
+        pip list
+      shell: bash
+
+    - name: Tests workflow
+      env:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+
+        # test model converting to trt
+        cd ./examples/py/model_convertors/
+        ./models_to_tensorrt.sh
+        cd ../../../
+
+        # test python scripts
+        #CUDA_VISIBLE_DEVICES=1 gdb -ex r --args python3 examples/py/inference/number-plate-recognition-trt.py
+
+        # test jupyter notebooks
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
+
+      shell: bash

@@ -15,11 +15,10 @@ class NumberPlateLocalizationTrt(Pipeline):
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  engine_file_path: str,
-                 plugin_lib: str,
                  **kwargs):
         super().__init__(task, image_loader, **kwargs)
         self.detector = Detector()
-        self.detector.load_model(engine_file_path=engine_file_path, plugin_lib=plugin_lib)
+        self.detector.load_model(engine_file_path)
 
     def sanitize_parameters(self, img_size=None, stride=None, min_accuracy=None, **kwargs):
         postprocess_parameters = {}
@@ -32,16 +31,12 @@ class NumberPlateLocalizationTrt(Pipeline):
 
     def preprocess(self, inputs: Any, **preprocess_parameters: Dict) -> Any:
         images = [self.image_loader.load(item) for item in inputs]
-        batch_input_image, batch_origin_h, batch_origin_w = self.detector.yolov5_wrapper.prepare_batch_input_image(images)
-        return unzip([images, batch_input_image, batch_origin_h, batch_origin_w])
+        return images
 
     @no_grad()
-    def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images, batch_input_image, batch_origin_h, batch_origin_w = unzip(inputs)
-        detected_images_bboxs = self.detector.yolov5_wrapper.infer(batch_input_image, batch_origin_h, batch_origin_w)
+    def forward(self, images: Any, **forward_parameters: Dict) -> Any:
+        detected_images_bboxs = self.detector.predict(images)
         return unzip([images, detected_images_bboxs])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        images, detected_images_bboxs = unzip(inputs)
-        detected_images_bboxs = self.detector.postprocessing(detected_images_bboxs, **postprocess_parameters)
-        return unzip([detected_images_bboxs, images])
+        return inputs

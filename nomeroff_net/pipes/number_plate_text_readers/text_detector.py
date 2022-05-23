@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 from typing import List, Dict, Tuple
 from torch import no_grad
@@ -77,7 +78,9 @@ class TextDetector(object):
         i = 0
         for zone, label in zip(zones, labels):
             if label not in self.detectors_map.keys():
-                raise ValueError(f"Label {label} not in {self.detectors_map.keys()}")
+                warnings.warn(f"Label '{label}' not in {self.detectors_map.keys()}! "
+                              f"Label changed on default '{self.default_label}'.")
+                label = self.default_label
             detector = self.detectors_map[label]
             if detector not in predicted.keys():
                 predicted[detector] = {"zones": [], "order": []}

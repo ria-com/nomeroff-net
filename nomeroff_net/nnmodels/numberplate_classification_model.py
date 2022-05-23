@@ -1,10 +1,12 @@
 """
 Numberplate Classification Model
-python3 ./nomeroff_net/nnmodels/numberplate_classification_model.py
+python3 -m nomeroff_net.nnmodels.numberplate_classification_model \
+        -f ./nomeroff_net/nnmodels/numberplate_classification_model.py
 """
 import torch
 from typing import Any
 from pytorch_lightning import LightningModule
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 class ClassificationNet(LightningModule):
@@ -44,5 +46,8 @@ class ClassificationNet(LightningModule):
 
 if __name__ == "__main__":
     classification_net = ClassificationNet()
-    x = torch.rand((1, 64, 295))
-    y = classification_net(x)
+    device = get_device_torch()
+    net = classification_net.to(device)
+    xs = torch.rand((1, 64, 295)).to(device)
+    y = classification_net(xs)
+    print(y)

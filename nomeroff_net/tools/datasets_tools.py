@@ -194,7 +194,7 @@ def check_ocr_model(root_dir,
                     text_detector_name="eu",
                     img_format="png",
                     predicted_part_size=1000,
-                    replace_tamplate = None):
+                    replace_tamplate=None):
     if replace_tamplate is None:
         replace_tamplate = {'moderation': {'isModerated': 1, 'moderatedBy': 'ApelSYN'}}
     text_detector = TextDetector({
