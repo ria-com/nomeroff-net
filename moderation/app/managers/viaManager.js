@@ -27,7 +27,8 @@ module.exports = {
                     fs.renameSync(fileIn, fileOut);
                 }
             } catch (e) {
-                console.log("Not exists rename", fileIn, fileOut);
+                console.log("Rename error: ", fileIn, fileOut);
+                console.log(e)
             }
         }
         return dataPart

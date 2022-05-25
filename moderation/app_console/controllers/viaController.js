@@ -61,8 +61,10 @@ async function split (options) {
  * --opt.viaFile=via_region_data.json
  */
 async function joinVia (options) {
+    console.log(JSON.stringify(options));
+    //process.exit(0)
     if (options.srcJson !== undefined && Array.isArray(options.srcJson)) {
-        throw new Error('"opt.srcJson" must be array for 2 (min) elements!')
+        new Error('"opt.srcJson" must be array for 2 (min) elements!')
     }
     const srcJson = options.srcJson,
           targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
@@ -98,8 +100,11 @@ async function joinVia (options) {
 async function addAttribute (options) {
     const srcJson = options.srcJson || new Error('"opt.srcJson" is not defined!') ,
         attrName = options.attrName || new Error('"opt.attrName" is not defined!'),
-        attrValue = options.attrValue || new Error('"opt.attrName" is not defined!')
+        attrValue = options.attrValue
     ;
+    // console.log(JSON.stringify(options))
+    console.log(`attrName="${attrName}"`)
+    console.log(`attrValue="${attrValue}"`)
     let srcDir = path.dirname(srcJson);
     checkDir(srcDir);
     let dataPart = require(srcJson), data = dataPart["_via_img_metadata"];
