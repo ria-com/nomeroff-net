@@ -40,6 +40,7 @@ async function split (options) {
     checkDirStructure(targetDir,config.via.partDirs,true);
 
     for (let key of config.via.partDirs) {
+        //console.log(`${partKeys[key]}, ${srcDir}`);
         let dataPart = prepareViaPart(data, partKeys[key], srcDir);
         moveViaPart(dataPart,srcDir,targetDir,key);
         console.log(`moveViaPart for ${key} is done...`)
