@@ -128,7 +128,7 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         ann_data = json.load(ann)
     cat2label = {k: i for i, k in enumerate(classes)}
     image_list = ann_data
-    
+
     for _id in tqdm.tqdm(image_list["_via_img_metadata"]):
         image_id = image_list["_via_img_metadata"][_id]["filename"]
         filename = f'{path_to_images}/{image_id}'
@@ -139,9 +139,9 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         labels = []
         for region in image_list["_via_img_metadata"][_id]["regions"]:
             label_id = 0
-            if region["shape_attributes"].get("region_attributes", None) is not None:
-                if region["shape_attributes"]["region_attributes"].get("label", None) is not None:
-                    label_id = region["shape_attributes"]["region_attributes"]["label"]
+            if region.get("region_attributes", None) is not None:
+                if region["region_attributes"].get("label", None) is not None:
+                    label_id = region["region_attributes"]["label"]
             if region["shape_attributes"].get("name", None) is None:
                 continue
             name = region["shape_attributes"]["name"]
