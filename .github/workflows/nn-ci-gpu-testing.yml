@@ -46,6 +46,7 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
 
+        apt-get update
         apt-get install -y libopencv-dev
         apt-get install -y libturbojpeg
         apt-get install -y jupyter-nbconvert

@@ -5,6 +5,10 @@ from glob import glob
 
 from _paths import nomeroff_net_dir
 from nomeroff_net import pipeline
+import faulthandler
+
+
+faulthandler.enable()
 
 warnings.filterwarnings("ignore")
 

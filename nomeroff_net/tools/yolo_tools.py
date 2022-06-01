@@ -128,7 +128,7 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         ann_data = json.load(ann)
     cat2label = {k: i for i, k in enumerate(classes)}
     image_list = ann_data
-    
+
     for _id in tqdm.tqdm(image_list["_via_img_metadata"]):
         image_id = image_list["_via_img_metadata"][_id]["filename"]
         filename = f'{path_to_images}/{image_id}'
@@ -139,20 +139,33 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         labels = []
         for region in image_list["_via_img_metadata"][_id]["regions"]:
             label_id = 0
-            
-            if region["shape_attributes"].get("all_points_x", None) is None:
+            if region.get("region_attributes", None) is not None:
+                if region["region_attributes"].get("label", None) is not None:
+                    label_id = region["region_attributes"]["label"]
+            if region["shape_attributes"].get("name", None) is None:
                 continue
-            if region["shape_attributes"].get("all_points_y", None) is None:
-                continue
-            bbox = [
-                min(region["shape_attributes"]["all_points_x"]),
-                min(region["shape_attributes"]["all_points_y"]),
-                max(region["shape_attributes"]["all_points_x"]),
-                max(region["shape_attributes"]["all_points_y"]),
-            ]
+            name = region["shape_attributes"]["name"]
+            if name == "polygon":
+                if region["shape_attributes"].get("all_points_x", None) is None:
+                    continue
+                if region["shape_attributes"].get("all_points_y", None) is None:
+                    continue
+                bbox = [
+                    min(region["shape_attributes"]["all_points_x"]),
+                    min(region["shape_attributes"]["all_points_y"]),
+                    max(region["shape_attributes"]["all_points_x"]),
+                    max(region["shape_attributes"]["all_points_y"]),
+                ]
+            if name == "rect":
+                bbox = [
+                    region["shape_attributes"]["x"],
+                    region["shape_attributes"]["y"],
+                    region["shape_attributes"]["x"]+region["shape_attributes"]["width"],
+                    region["shape_attributes"]["y"]+region["shape_attributes"]["height"],
+                ]
             target_boxes.append(bbox)
             labels.append(label_id)
-        
+
         if is_generate_image_rotation_variants:
             rotation_augumentation(image,
                                    target_boxes,
