@@ -66,16 +66,7 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
         return {}, params, {}
 
     def forward_detection_np(self, images: Any, **forward_parameters: Dict):
-        orig_img_shapes = [img.shape for img in images]
-        model_inputs = self.localization_detector.normalize_imgs(images, **forward_parameters)
-        localization_detector_output = self.localization_detector.model(model_inputs)[0]
-        shape = localization_detector_output.shape
-        localization_detector_output = localization_detector_output.reshape((shape[0], 1, shape[1], shape[2]))
-        images_target_boxes = self.localization_detector.postprocessing(
-            localization_detector_output,
-            model_inputs,
-            orig_img_shapes,
-            **forward_parameters)
+        images_target_boxes = self.localization_detector.predict(images)
 
         images_points, images_mline_boxes = self.key_points_detector.detect(
             unzip([images, images_target_boxes]),

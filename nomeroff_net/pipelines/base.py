@@ -34,7 +34,9 @@ class AccuracyTestPipeline(object):
                            images_points, images_zones,
                            region_ids, region_names,
                            count_lines, confidences,
-                           matplotlib_show=False):
+                           matplotlib_show=False,
+                           debug=True,
+                           md=False):
         n_good = 0
         n_bad = 0
         for predicted_image_texts, \
@@ -52,15 +54,21 @@ class AccuracyTestPipeline(object):
                             img_paths):
             for true_image_text in true_image_texts:
                 if true_image_text in predicted_image_texts:
-                    print(colored(f"OK: TEXT:{true_image_text} \t\t\t RESULTS:{predicted_image_texts} "
-                                  f"\n\t\t\t\t\t in PATH:{img_path}", 'green'))
+                    message = f"+ NAME:{os.path.basename(img_path)} " \
+                              f"TRUE:{true_image_text} " \
+                              f"PREDICTED:{predicted_image_texts}"
+                    message = message if md else colored(message, 'green')
                     n_good += 1
                 else:
-                    print(colored(f"NOT OK: TEXT:{true_image_text} \t\t\t RESULTS:{predicted_image_texts} "
-                                  f"\n\t\t\t\t\t in PATH:{img_path} ", 'red'))
+                    message = f"- NAME:{os.path.basename(img_path)} " \
+                              f"TRUE:{true_image_text} " \
+                              f"PREDICTED:{predicted_image_texts}"
+                    message = message if md else colored(message, 'red')
                     n_bad += 1
-                print("[INFO] images_bboxs", image_bboxs)
-                print("[INFO] image_points", image_points)
+                print(message)
+                if debug:
+                    print("[INFO] images_bboxs", image_bboxs)
+                    print("[INFO] image_points", image_points)
 
                 if matplotlib_show:
                     image = image.astype(np.uint8)
@@ -76,10 +84,11 @@ class AccuracyTestPipeline(object):
                     plt.imshow(image)
                     plt.show()
 
-                print("[INFO] image_region_ids", image_region_ids)
-                print("[INFO] image_region_names", image_region_names)
-                print("[INFO] image_count_lines", image_count_lines)
-                print("[INFO] image_confidences", image_confidences)
+                if debug:
+                    print("[INFO] image_region_ids", image_region_ids)
+                    print("[INFO] image_region_names", image_region_names)
+                    print("[INFO] image_count_lines", image_count_lines)
+                    print("[INFO] image_confidences", image_confidences)
                 if matplotlib_show:
                     for zone in image_zones:
                         plt.imshow(zone)
@@ -93,7 +102,9 @@ class AccuracyTestPipeline(object):
                                      images_points, images_zones,
                                      region_ids, region_names,
                                      count_lines, confidences,
-                                     matplotlib_show=False):
+                                     matplotlib_show=False,
+                                     debug=True,
+                                     md=False):
         with open(accuracy_test_data_file) as f:
             accuracy_test_data = ujson.load(f)
         true_images_texts = []
@@ -108,7 +119,9 @@ class AccuracyTestPipeline(object):
                                 images_points, images_zones,
                                 region_ids, region_names,
                                 count_lines, confidences,
-                                matplotlib_show=matplotlib_show)
+                                matplotlib_show=matplotlib_show,
+                                debug=debug,
+                                md=md)
 
 
 class Pipeline(AccuracyTestPipeline):

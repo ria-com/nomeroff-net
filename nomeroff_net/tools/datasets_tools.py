@@ -138,7 +138,7 @@ def auto_number_grab(root_dir, csv_dataset_path, res_dir):
                 print(f"[WARNING] {img_path} is not image")
                 continue
 
-            target_boxes = detector.detect_bbox(img)
+            target_boxes = detector.predict(img)[0]
 
             images_points, images_mline_boxes = np_points_craft.detect([[img, target_boxes]])
             all_points = images_points[0]
@@ -194,7 +194,7 @@ def check_ocr_model(root_dir,
                     text_detector_name="eu",
                     img_format="png",
                     predicted_part_size=1000,
-                    replace_tamplate = None):
+                    replace_tamplate=None):
     if replace_tamplate is None:
         replace_tamplate = {'moderation': {'isModerated': 1, 'moderatedBy': 'ApelSYN'}}
     text_detector = TextDetector({

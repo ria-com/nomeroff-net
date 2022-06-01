@@ -4,16 +4,16 @@
 name: Nomeroff Net CI CPU Testing
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
-    paths:
-      - 'nomeroff_net/**'
-      - 'examples/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
     paths:
       - 'nomeroff_net/**'
-      - 'examples/**'
+      - 'examples/ju/dataset_convertors/**'
+      - 'examples/ju/dataset_tools/**'
+      - 'examples/ju/inference/**'
+      - 'examples/ju/train/**'
+      - 'examples/py/inference/**'
+      - 'examples/py/rest_examples/**'
   schedule:
     - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
@@ -138,7 +138,7 @@ jobs:
         python3 -m nomeroff_net.image_loaders.turbo_loader -f nomeroff_net/image_loaders/turbo_loader.py
 
         # test nnmodels
-        python3 nomeroff_net/nnmodels/numberplate_classification_model.py
+        python3 -m nomeroff_net.nnmodels.numberplate_classification_model -f nomeroff_net/nnmodels/numberplate_classification_model.py
         python3 -m nomeroff_net.nnmodels.numberplate_options_model -f nomeroff_net/nnmodels/numberplate_options_model.py
         python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmodels/fraud_numberpate_options.py
         python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py

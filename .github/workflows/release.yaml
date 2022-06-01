@@ -10,8 +10,6 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
-    
-    environment: PyPI
 
     strategy:
       fail-fast: false

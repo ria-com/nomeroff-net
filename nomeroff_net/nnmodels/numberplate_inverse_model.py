@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional
 from .numberplate_classification_model import ClassificationNet
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 class NPInverseNet(ClassificationNet):
@@ -72,6 +73,8 @@ class NPInverseNet(ClassificationNet):
 
 if __name__ == "__main__":
     net = NPInverseNet(2)
-    x = torch.rand((1, 3, 64, 295))
-    y = net(x)
+    device = get_device_torch()
+    net = net.to(device)
+    xs = torch.rand((1, 3, 64, 295)).to(device)
+    y = net(xs)
     print(y)

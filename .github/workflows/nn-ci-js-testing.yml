@@ -4,16 +4,10 @@
 name: Node.js Package
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
-    paths:
-      - 'moderation/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
     paths:
       - 'moderation/**'
-  schedule:
-    - cron: '10 0 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   test:

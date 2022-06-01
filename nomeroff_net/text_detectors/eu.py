@@ -3,6 +3,7 @@ python3 -m nomeroff_net.text_detectors.eu -f nomeroff_net/text_detectors/eu.py
 """
 import torch
 from .base.ocr import OCR
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 class Eu(OCR):
@@ -13,7 +14,6 @@ class Eu(OCR):
         self.max_text_len = 9
         self.max_plate_length = 9
         self.letters_max = len(self.letters)+1
-        self.label_length = 32 - 2
 
         self.init_label_converter()
 
@@ -23,5 +23,7 @@ eu = Eu
 if __name__ == "__main__":
     ocr = Eu()
     ocr.load()
-    y = ocr.predict(torch.rand((1, 3, 50, 200)))
+    device = get_device_torch()
+    xs = torch.rand((1, 3, 50, 200)).to(device)
+    y = ocr.predict(xs)
     print(y)

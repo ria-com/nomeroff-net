@@ -7,7 +7,7 @@ module.exports = {
         const dataPart = Object.assign({},data);
         dataPart._via_img_metadata = {};
         for (let item of keys) {
-            let file =  path.join(srcDir, data._via_img_metadata[item].file_name);
+            let file =  path.join(srcDir, data._via_img_metadata[item].filename);
             if (fs.existsSync(file)) {
                 dataPart._via_img_metadata[item] = data._via_img_metadata[item]
             } else {
@@ -19,15 +19,16 @@ module.exports = {
 
     moveViaPart(dataPart, srcDir, targetDir, subDir) {
         for (let key in dataPart._via_img_metadata) {
-            let fileIn = path.join(srcDir, dataPart._via_img_metadata[key].file_name),
-                fileOut = path.join(targetDir, subDir, dataPart._via_img_metadata[key].file_name)
+            let fileIn = path.join(srcDir, dataPart._via_img_metadata[key].filename),
+                fileOut = path.join(targetDir, subDir, dataPart._via_img_metadata[key].filename)
             ;
             try {
                 if (!fs.existsSync(fileOut)) {
                     fs.renameSync(fileIn, fileOut);
                 }
             } catch (e) {
-                console.log("Not exists rename", fileIn, fileOut);
+                console.log("Rename error: ", fileIn, fileOut);
+                console.log(e)
             }
         }
         return dataPart

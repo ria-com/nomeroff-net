@@ -1,6 +1,10 @@
 3.1.0 / 2022-03-28
 ==================
   **updates** 
+  * Added support for finding 4 number points exclusively within the found bbox
+  * Sped up craft postprocessing by cpp bindings
+  * Re-train ocr-ua model
+  * Re-trained options model
   * Returned to a separate backbone for ocr models
   * Fixed bag with block_cnn in ocr models
 

@@ -6,10 +6,10 @@ import torch
 import torch.nn as nn
 from typing import List, Any
 import pytorch_lightning as pl
-from torch.nn import functional
 from torchvision.models import resnet18
 
 from nomeroff_net.tools.ocr_tools import plot_loss, print_prediction
+from nomeroff_net.tools.mcm import get_device_torch
 
 
 def weights_init(m):
@@ -209,8 +209,10 @@ class NPOcrNet(pl.LightningModule):
 
 if __name__ == "__main__":
     net = NPOcrNet(["4", "2"], letters_max=2)
-    x = torch.rand((1, 3, 50, 200))
-    y = net(x)
+    device = get_device_torch()
+    net = net.to(device)
+    xs = torch.rand((1, 3, 50, 200)).to(device)
+    y = net(xs)
     print(y)
 
 

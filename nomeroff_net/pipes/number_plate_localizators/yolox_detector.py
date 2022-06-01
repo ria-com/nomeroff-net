@@ -3,7 +3,6 @@ import numpy as np
 from typing import List, Tuple
 
 from nomeroff_net.tools import (modelhub, get_mode_torch)
-from nomeroff_net.pipes.number_plate_localizators.yolo_tools import scale_predicted_coords
 
 # download and append to path yolo repo
 modelhub.download_repo_for_model("yoloxv5s")

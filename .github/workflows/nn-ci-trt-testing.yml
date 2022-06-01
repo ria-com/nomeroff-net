@@ -4,21 +4,6 @@
 name: Nomeroff Net CI GPU Tensorrt Testing
 
 on:
-  push:
-    branches: [ master, v3.0, v3.1 ]
-    paths:
-      - 'nomeroff_net/pipes/number_plate_text_readers/text_detector_trt.py'
-      - 'nomeroff_net/text_detectors/base/ocr_trt.py'
-      - 'nomeroff_net/pipes/number_plate_localizators/yolov5_engine_detector.py'
-      - 'nomeroff_net/pipes/number_plate_classificators/options_detector_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_text_reading_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_localization_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_detection_and_reading_trt.py'
-      - 'nomeroff_net/pipelines/number_plate_classification_trt.py'
-      - 'examples/ju/benchmark/runtime-test-tensorrt.ipynb'
-      - 'examples/ju/inference/number-plate-recognition-tensorrt.ipynb'
-      - 'examples/py/inference/number-plate-recognition-trt.py'
-      - 'examples/py/model_convertors/**'
   pull_request:
     branches: [  master, v3.0, v3.1 ]
     paths:
@@ -34,8 +19,6 @@ on:
       - 'examples/ju/inference/number-plate-recognition-tensorrt.ipynb'
       - 'examples/py/inference/number-plate-recognition-trt.py'
       - 'examples/py/model_convertors/**'
-  schedule:
-    - cron: '13 1 * * *'  # Runs at 00:10 UTC every day
 
 jobs:
   trt-tests:
@@ -71,17 +54,21 @@ jobs:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
       run: |
 
-        apt-get install libturbojpeg
+        apt-get update
+        apt-get install -y libopencv-dev
+        apt-get install -y libturbojpeg
+        apt-get install -y jupyter-nbconvert
+        apt-get install -y python3-notebook
+        apt-get install -y jupyter-notebook
+
         python -m pip install --upgrade pip
 
-        pip install -qr requirements.txt -f https://download.pytorch.org/whl/cpu/torch_stable.html
+        pip install -r requirements.txt
+        pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
+        pip3 install tqdm==4.40.0
 
         # extras
-        pip install setuptools wheel pytest jupyter
-
-        # fix AttributeError: module 'jinja2' has no attribute 'Markup'
-        pip install mkdocs==1.2.4
-        pip install jinja2==3.1
+        pip install setuptools wheel pytest
 
         python --version
         pip --version
@@ -94,14 +81,15 @@ jobs:
       run: |
 
         # test model converting to trt
-        ./examples/py/model_convertors/yolov5_to_tensorrtx.sh
-
-        # test jupyter notebooks
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
+        cd ./examples/py/model_convertors/
+        ./models_to_tensorrt.sh
+        cd ../../../
 
         # test python scripts
-        python3 examples/py/inference/number-plate-recognition-trt.py
+        #CUDA_VISIBLE_DEVICES=1 gdb -ex r --args python3 examples/py/inference/number-plate-recognition-trt.py
 
+        # test jupyter notebooks
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/benchmark/runtime-test-tensorrt.ipynb
+        #CUDA_VISIBLE_DEVICES=1 jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html examples/ju/inference/number-plate-recognition-tensorrt.ipynb
 
       shell: bash
