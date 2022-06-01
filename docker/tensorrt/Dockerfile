@@ -1,6 +1,6 @@
 # nVidia TensorRT Base Image
-ARG TRT_CONTAINER_VERSION=21.07
-FROM nvcr.io/nvidia/tensorrt:${TRT_CONTAINER_VERSION}-py3
+ARG TRT_CONTAINER_VERSION=21.12
+FROM nvcr.io/nvidia/pytorch:${TRT_CONTAINER_VERSION}-py3
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=Europe/Kiev
@@ -22,7 +22,6 @@ RUN apt-get install -y libturbojpeg
 
 RUN pip install --upgrade pip
 RUN pip install pillow==8.0.1
-RUN pip install torch==1.11.0+cu115 torchvision==0.12.0+cu115 -f https://download.pytorch.org/whl/torch_stable.html
 RUN pip install setuptools
 RUN pip install "PyYAML>=5.3"
 RUN pip install "numpy>=1.16.*"

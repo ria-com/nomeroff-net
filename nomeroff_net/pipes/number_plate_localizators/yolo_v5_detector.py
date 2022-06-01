@@ -44,4 +44,4 @@ class Detector(object):
                          for item in img_item.to_dict(orient="records")
                          if item["confidence"] > min_accuracy]
                          for img_item in model_outputs.pandas().xyxy]
-        return model_outputs
+        return np.array(model_outputs)

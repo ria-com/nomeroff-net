@@ -80,6 +80,7 @@ class OptionsDetectorTrt(OptionsDetector):
                                           self.height,
                                           self.width
                                       ))
+            input_image = np.array(input_image)
             # Allocate host and device buffers
             bindings = []
             outputs = []

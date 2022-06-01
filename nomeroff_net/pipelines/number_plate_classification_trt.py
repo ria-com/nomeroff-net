@@ -24,6 +24,6 @@ class NumberPlateClassificationTrt(NumberPlateClassification):
         model_outputs = []
         for inp in inputs:
             model_output = self.detector.forward([inp])
-            model_output = unzip(model_output)
+            model_output = unzip(model_output)[0]
             model_outputs.append(model_output)
         return model_outputs

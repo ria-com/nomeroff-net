@@ -27,5 +27,5 @@ class NumberPlateTextReadingTrt(NumberPlateTextReading):
             model_inputs = self.detector.preprocess([image], [label], [line])
             model_output = self.detector.forward(model_inputs)
             model_output = self.detector.postprocess(model_output)
-            model_outputs.append(model_output)
+            model_outputs.append(model_output[0])
         return unzip([images, model_outputs, labels])
