@@ -1,3 +1,9 @@
+3.2.0 / 2022-06-09
+==================
+  **updates** 
+  * Added fake numberplate detector
+
+
 3.1.0 / 2022-03-28
 ==================
   **updates** 

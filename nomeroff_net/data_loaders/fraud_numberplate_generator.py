@@ -14,11 +14,11 @@ from torch.utils.data import Dataset
 from nomeroff_net.tools.image_processing import normalize_img
 
 
-class ImgGenerator(Dataset):
+class FraudImgGenerator(Dataset):
     def __init__(self,
                  dirpath: str,
-                 img_w: int = 256,
-                 img_h: int = 256,
+                 img_w: int = 295,
+                 img_h: int = 64,
                  batch_size: int = 32,
                  with_aug: bool = False) -> None:
         self.with_aug = with_aug
@@ -43,39 +43,35 @@ class ImgGenerator(Dataset):
         self.batch_count = int(self.n/batch_size)
         self.rezero()
 
-    def generate_numberplate_fraud_and_true(self, image_filename, corners):
-        fraud_paths, true_paths = [], []
-        x_filepath = self.generate_cache_x_in_path(image_filename, corners)
-
-        return fraud_paths, true_paths
-
-    def load_dataset(self, with_aug: bool, dir_path: str, json_path: str):
-        with open(json_path) as jsonFile:
-            json_data = json.load(jsonFile)
-
+    def load_dataset(self, with_aug: bool, img_dirpath: str, cache_postfix: str = "cache_fake"):
+        if with_aug:
+            cache_postfix = f"{cache_postfix}_aug"
+        cache_dirpath = os.path.join(img_dirpath, cache_postfix)
+        os.makedirs(cache_dirpath, exist_ok=True)
         self.samples = []
         self.images_path = []
-        for key in json_data["_via_img_metadata"]:
-            metadata = json_data["_via_img_metadata"][key]
+        for file_name in tqdm(os.listdir(img_dirpath)):
+            if not os.path.isfile(os.path.join(img_dirpath, file_name)):
+                continue
+            name, ext = os.path.splitext(file_name)
+            if ext == '.png':
+                img_filepath = os.path.join(img_dirpath, file_name)
+                self.images_path.append(img_filepath)
+                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
+                self.samples.append([x_filepath, np.array([int(file_name.startswith("fake"))], dtype=np.float32)])
 
-            # define image_id
-            image_filename = metadata["filename"]
-            print("image_filename", image_filename)
-
-            for region in metadata["regions"]:
-                segmentation = [[]]
-                for x, y in zip(region["shape_attributes"]["all_points_x"], region["shape_attributes"]["all_points_y"]):
-                    segmentation[0].append(x)
-                    segmentation[0].append(y)
-
-                # define area
-                corners = [(x, y) for x, y in
-                           zip(region["shape_attributes"]["all_points_x"], region["shape_attributes"]["all_points_y"])]
-                fraud_paths, true_paths = self.generate_numberplate_fraud_and_true(image_filename, corners)
-
+        self.added_samples_to_round_batch()
         self.n = len(self.samples)
         self.indexes = list(range(self.n))
         self.batch_count = int(self.n / self.batch_size)
+
+    def added_samples_to_round_batch(self):
+        while len(self.samples) % self.batch_size != 0 and len(self.samples):
+            for sample, images_path in zip(self.samples, self.images_path):
+                self.samples.append(sample)
+                self.images_path.append(images_path)
+                if len(self.samples) % self.batch_size == 0:
+                    break
 
     def __len__(self):
         """
@@ -83,19 +79,11 @@ class ImgGenerator(Dataset):
         """
         return self.n
 
-    def get_x_from_path(self, path: str) -> np.ndarray:
-        img = cv2.imread(path)
-        x = normalize_img(img,
-                          with_aug=self.with_aug,
-                          width=self.img_w,
-                          height=self.img_h)
-        x = np.moveaxis(np.array(x), 2, 0)
-        return x
+    @staticmethod
+    def get_x_from_path(x_path: str) -> torch.Tensor:
+        return torch.load(x_path)
 
-    def generate_cache_x_in_path(self,
-                                 img_path: str,
-                                 cache_dirpath: str,
-                                 newsize: Tuple = None) -> str:
+    def generate_cache_x_in_path(self, img_path: str, cache_dirpath: str, newsize: Tuple = None) -> str:
         x_path = self.generate_x_path(img_path, cache_dirpath)
 
         if os.path.exists(x_path):
@@ -129,10 +117,8 @@ class ImgGenerator(Dataset):
         x = copy.deepcopy(self.paths[self.indexes[index]])
         y = copy.deepcopy(self.discs[self.indexes[index]])
         x = self.get_x_from_path(x)
-        x = torch.from_numpy(x)
-        y[0] = torch.from_numpy(y[0])
-        y[1] = torch.from_numpy(y[1])
-        return x, y
+        y = torch.from_numpy(y)
+        return x, y[0]
 
     def prepare_transformers(self):
         self.list_transforms = transforms.Compose([
@@ -152,12 +138,7 @@ class ImgGenerator(Dataset):
         self.discs = []
         for i, (img_filepath, disc) in enumerate(self.samples):
             self.paths.append(img_filepath)
-            self.discs.append(
-                [
-                    np.eye(self.labels_counts[0])[disc[0]],
-                    np.eye(self.labels_counts[1])[disc[1]]
-                ]
-            )
+            self.discs.append(disc)
 
     def next_sample(self) -> Tuple:
         self.cur_index += 1
