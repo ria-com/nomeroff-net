@@ -166,7 +166,7 @@ def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=
                     if imghdr.what(img_path)]
     images_paths_chunked = chunks(images_paths, chunk_size)
     for images_paths in tqdm.tqdm(images_paths_chunked):
-        result = number_plate_detection_and_reading(images_paths)
+        result = number_plate_detection_and_reading(images_paths, **kwargs)
 
         for i, (image, image_bboxs,
                 image_points, image_zones, region_ids,
