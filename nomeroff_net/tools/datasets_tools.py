@@ -133,7 +133,16 @@ def add_np(fname, zone, region_id, count_line, desc, predicted_text,
         json.dump(data, jsonWF, ensure_ascii=False)
 
 
-def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=None, image_loader="opencv", **kwargs):
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    chunked = []
+    for i in range(0, len(lst), n):
+        chunked.append(lst[i:i + n])
+    return chunked
+
+
+def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=None, image_loader="opencv",
+                     chunk_size=10, **kwargs):
     if replace_template is None:
         replace_template = {'moderation': {'isModerated': 0, 'moderatedBy': 'Default User'}, 'state_id': 2}
 
@@ -155,27 +164,29 @@ def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=
 
     images_paths = [img_path for img_path in glob.glob(os.path.join(root_dir, "*"))
                     if imghdr.what(img_path)]
-    result = number_plate_detection_and_reading(images_paths)
+    images_paths_chunked = chunks(images_paths, chunk_size)
+    for images_paths in tqdm.tqdm(images_paths_chunked):
+        result = number_plate_detection_and_reading(images_paths)
 
-    for i, (image, image_bboxs,
-            image_points, image_zones, region_ids,
-            region_names, count_lines,
-            confidences, texts) in enumerate(result):
+        for i, (image, image_bboxs,
+                image_points, image_zones, region_ids,
+                region_names, count_lines,
+                confidences, texts) in enumerate(result):
 
-        for j, (image_zone, region_id,
-                region_name, count_line,
-                confidence, text) in enumerate(zip(image_zones, region_ids, region_names,
-                                                   count_lines, confidences, texts)):
-            image_path = images_paths[i]
-            base_name = os.path.splitext(os.path.basename(image_path))[0]
-            if csv_dataset_path is not None:
-                desc = photos.loc[base_name]['npText']
-            else:
-                desc = text
-            predicted_text = text
-            fname = f"{base_name}_{j}"
-            add_np(fname, image_zone, region_id, count_line, desc, predicted_text,
-                   res_img_dir, res_ann_dir, replace_template)
+            for j, (image_zone, region_id,
+                    region_name, count_line,
+                    confidence, text) in enumerate(zip(image_zones, region_ids, region_names,
+                                                       count_lines, confidences, texts)):
+                image_path = images_paths[i]
+                base_name = os.path.splitext(os.path.basename(image_path))[0]
+                if csv_dataset_path is not None:
+                    desc = photos.loc[base_name]['npText']
+                else:
+                    desc = text
+                predicted_text = text
+                fname = f"{base_name}_{j}"
+                add_np(fname, image_zone, region_id, count_line, desc, predicted_text,
+                       res_img_dir, res_ann_dir, replace_template)
 
 
 def delete_not_used_images_from_via_dataset(
