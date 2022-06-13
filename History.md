@@ -1,6 +1,7 @@
 3.2.0 / 2022-06-09
 ==================
-  **updates** 
+  **updates**
+  * Update auto number grab tools
   * Added fake numberplate detector
 
 

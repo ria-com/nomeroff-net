@@ -6,20 +6,14 @@ import os
 import glob
 import shutil
 import pandas as pd
-import numpy as np
+import imghdr
 import multiprocessing
 import matplotlib.image as mpimg
 from collections import Counter
 from nomeroff_net.tools import modelhub
+from nomeroff_net import pipeline
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
-from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import NpPointsCraft
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
-
-from nomeroff_net.tools.image_processing import (
-    get_cv_zone_rgb,
-    convert_cv_zones_rgb_to_bgr,
-    reshape_points)
 
 
 def option_checker(dataset_dir, img_format="png", part_size=1):
@@ -115,49 +109,73 @@ def option_checker(dataset_dir, img_format="png", part_size=1):
     return counter
 
 
-def auto_number_grab(root_dir, csv_dataset_path, res_dir):
-    detector = Detector()
-    detector.load()
+def add_np(fname, zone, region_id, count_line, desc, predicted_text,
+           img_dir, ann_dir, replace_template=None):
+    if replace_template is None:
+        replace_template = {}
+    height, width, c = zone.shape
+    mpimg.imsave(os.path.join(img_dir, "{}.png".format(fname)), zone)
+    data = {
+      "description": desc,
+      "name": fname,
+      "region_id": region_id,
+      "count_lines": count_line,
+      "size": {
+        "width": width,
+        "height": height
+      },
+    }
+    data.update(replace_template)
+    if "moderation" not in data:
+        data["moderation"] = {}
+    data["moderation"]["predicted"] = predicted_text
+    with open(os.path.join(ann_dir, "{}.json".format(fname)), "w", encoding='utf8') as jsonWF:
+        json.dump(data, jsonWF, ensure_ascii=False)
 
-    np_points_craft = NpPointsCraft()
-    np_points_craft.load()
 
-    photos = pd.read_csv(csv_dataset_path)
-    photos = photos.set_index(['photoId'])
+def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=None, image_loader="opencv", **kwargs):
+    if replace_template is None:
+        replace_template = {'moderation': {'isModerated': 0, 'moderatedBy': 'Default User'}, 'state_id': 2}
+
+    res_ann_dir = os.path.join(res_dir, "ann")
+    res_img_dir = os.path.join(res_dir, "img")
+
+    number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader=image_loader,
+                                                  **kwargs)
+
+    photos = pd.DataFrame(columns=['photoId'])
+    if csv_dataset_path is not None:
+        photos = pd.read_csv(csv_dataset_path)
+        photos = photos.set_index(['photoId'])
+
     if os.path.exists(res_dir):
         shutil.rmtree(res_dir)
-    os.makedirs(res_dir, exist_ok=False)
+    os.makedirs(res_ann_dir, exist_ok=False)
+    os.makedirs(res_img_dir, exist_ok=False)
 
-    for dir_name, subdir_list, file_list in os.walk(root_dir):
-        for fname in file_list:
-            baseName = os.path.splitext(os.path.basename(fname))[0]
-            img_path = os.path.join(dir_name, fname)
-            try:
-                img = mpimg.imread(img_path)
-            except IOError:
-                print(f"[WARNING] {img_path} is not image")
-                continue
+    images_paths = [img_path for img_path in glob.glob(os.path.join(root_dir, "*"))
+                    if imghdr.what(img_path)]
+    result = number_plate_detection_and_reading(images_paths)
 
-            target_boxes = detector.predict(img)[0]
+    for i, (image, image_bboxs,
+            image_points, image_zones, region_ids,
+            region_names, count_lines,
+            confidences, texts) in enumerate(result):
 
-            images_points, images_mline_boxes = np_points_craft.detect([[img, target_boxes]])
-            all_points = images_points[0]
-            all_points = [ps for ps in all_points if len(ps)]
-
-            # cut zones
-            to_show_zones = [get_cv_zone_rgb(img, reshape_points(rect, 1)) for rect in all_points]
-            zones = convert_cv_zones_rgb_to_bgr(to_show_zones)
-
-            if len(to_show_zones) > 1:
-                areas = [zone.shape[0] * zone.shape[1] for zone in zones]
-                zone = to_show_zones[np.argmax(areas)]
+        for j, (image_zone, region_id,
+                region_name, count_line,
+                confidence, text) in enumerate(zip(image_zones, region_ids, region_names,
+                                                   count_lines, confidences, texts)):
+            image_path = images_paths[i]
+            base_name = os.path.splitext(os.path.basename(image_path))[0]
+            if csv_dataset_path is not None:
+                desc = photos.loc[base_name]['npText']
             else:
-                zone = to_show_zones[0]
-
-            text = photos.loc[baseName]['npText']
-
-            imgpath = os.path.join(res_dir, "./{}_{}.png".format(baseName, text))
-            mpimg.imsave(imgpath, zone)
+                desc = text
+            predicted_text = text
+            fname = f"{base_name}_{j}"
+            add_np(fname, image_zone, region_id, count_line, desc, predicted_text,
+                   res_img_dir, res_ann_dir, replace_template)
 
 
 def delete_not_used_images_from_via_dataset(
@@ -219,7 +237,7 @@ def check_ocr_model(root_dir,
     img_dir = os.path.join(root_dir, "img")
     imgs = []
     for j in jsons:
-        img_path =os.path.join(img_dir, "{}.{}".format(j["name"], img_format))
+        img_path = os.path.join(img_dir, "{}.{}".format(j["name"], img_format))
         img = cv2.imread(img_path)
         imgs.append(img)
     print("LOADED {} IMAGES".format(len(imgs)))
@@ -238,15 +256,16 @@ def check_ocr_model(root_dir,
 
     err_cnt = 0
     for i in range(len(jsons_paths)):
-        json_path      = jsons_paths[i]
+        json_path = jsons_paths[i]
         predicted_item = predicted[i]
-        jsonData       = jsons[i]
+        jsonData = jsons[i]
         jsonData["moderation"]["predicted"] = predicted_item
         if jsonData["description"] == jsonData["moderation"]["predicted"]:
             jsonData.update(replace_tamplate)
             jsonData["moderation"]["isModerated"] = 1
         else:
-            print("Predicted '{}', real: '{}' in file {}".format(jsonData["moderation"]["predicted"],jsonData["description"], json_path))
+            print("Predicted '{}', real: '{}' in file {}".format(jsonData["moderation"]["predicted"],
+                                                                 jsonData["description"], json_path))
             err_cnt = err_cnt+1
 
         with open(json_path, "w") as jsonWF:

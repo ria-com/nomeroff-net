@@ -75,7 +75,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
                                                                                          **forward_parameters))
         zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
-        if self.number_plate_classification is None:
+        if self.number_plate_classification is None or not len(zones):
             region_ids = [-1 for _ in zones]
             region_names = [self.default_label for _ in zones]
             count_lines = [self.default_lines_count for _ in zones]
