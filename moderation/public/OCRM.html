@@ -217,8 +217,10 @@
                             var img = document.createElement("img");
                             img.src = item.img_path;
                             if (item.count_lines !== undefined && item.count_lines > 1) {
-                                img.height = 196;
+                                img.width = 256;
+                                img.height = 128;
                             } else {
+                                img.width = 256;
                                 img.height = 64;
                             }
                             td.appendChild(img);
