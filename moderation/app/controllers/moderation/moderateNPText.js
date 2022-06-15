@@ -40,7 +40,8 @@ function chenche_annotation (img, ann, chended_numbers, template) {
     if (!chended_numbers) {
         return;
     }
-    for (let f of chended_numbers) {
+    for (let i in chended_numbers) {
+        const f = chended_numbers[i];
         const number = f.number;
         const newNumber = f.newNumber;
 
