@@ -40,8 +40,9 @@ module.exports = {
     },
 
     writeViaPartFull(dataPart, fullViaFile) {
-        let wstream = fs.createWriteStream(fullViaFile);
-        wstream.write(JSON.stringify(dataPart,null,2));
-        wstream.end();
+        fs.writeFileSync(fullViaFile, JSON.stringify(dataPart, null, 2), 'utf-8');
+        // let wstream = fs.createWriteStream(fullViaFile);
+        // wstream.write(JSON.stringify(dataPart,null,2));
+        // wstream.end();
     }
 }

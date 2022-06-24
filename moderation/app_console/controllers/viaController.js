@@ -127,7 +127,7 @@ async function addAttribute (options) {
         }
     }
     writeViaPartFull(dataPart,srcJson);
-    await sleep(1000)
+    //await sleep(1000)
 }
 
 function convertToViaIdx(viaIdx,arr) {
