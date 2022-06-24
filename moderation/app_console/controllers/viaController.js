@@ -1,5 +1,6 @@
 const config = require('config'),
       path = require('path'),
+      fs =require('fs'),
       checkDir = require('../../app/helpers/checkDir'),
       checkDirStructure = require('../../app/helpers/checkDirStructure'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
@@ -40,7 +41,6 @@ async function split (options) {
     checkDirStructure(targetDir,config.via.partDirs,true);
 
     for (let key of config.via.partDirs) {
-        //console.log(`${partKeys[key]}, ${srcDir}`);
         let dataPart = prepareViaPart(data, partKeys[key], srcDir);
         moveViaPart(dataPart,srcDir,targetDir,key);
         console.log(`moveViaPart for ${key} is done...`)
@@ -60,14 +60,25 @@ async function split (options) {
  * --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/src2/via_data_ria2.json \
  * --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target
  * --opt.viaFile=via_region_data.json
+ *
+ * or
+ *
+ * @example ./console.js --section=via --action=joinVia \
+ * --opt.srcJsonList=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/via_list.json
+ * --opt.targetDir=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-06-11/target
+ * --opt.viaFile=via_region_data.json
+ *
  */
 async function joinVia (options) {
     console.log(JSON.stringify(options));
     //process.exit(0)
-    if (options.srcJson !== undefined && Array.isArray(options.srcJson)) {
-        new Error('"opt.srcJson" must be array for 2 (min) elements!')
+    if (options.srcJson != undefined && !Array.isArray(options.srcJson)) {
+        options.srcJson = [options.srcJson]
     }
-    const srcJson = options.srcJson,
+    if (options.srcJsonList != undefined) {
+        options.srcJson = require(options.srcJsonList)
+    }
+    const srcJson = options.srcJson || new Error('"opt.srcJson" is not defined!'),
           targetDir = options.targetDir || new Error('"opt.targetDir" is not defined!'),
           viaFile = options.viaFile || new Error('"opt.viaFile" is not defined!')
     ;
@@ -171,6 +182,62 @@ async function groupSplit (options) {
     await sleep(1000)
 }
 
+/**
+ * Очистить неразмеченные записи
+ *
+ * @param options
+ * @example ./console.js --section=via --action=purgeEmpty --opt.srcJson=/tmp/30_29_Hyundai_bb100.json --opt.targetJson=/tmp/30_29_Hyundai_bb100_.json
+ */
+async function purgeEmpty (options) {
+    const
+        srcJson = options.srcJson || new Error('"opt.srcJson" is not defined!') ,
+        targetJson = options.targetJson || new Error('"opt.targetJson" is not defined!')
+    ;
+    // console.log(JSON.stringify(options))
+    if (fs.existsSync(srcJson)) {
+        let dataPart = require(srcJson), data = dataPart["_via_img_metadata"];
+        for (let key in data) {
+            let item = data[key];
+            if (item.regions == undefined || (item.regions.length == 0)) {
+                delete data[key];
+            }
+        }
+        writeViaPartFull(dataPart, targetJson);
+        await sleep(1000)
+    } else {
+        throw new Error(`"${options.srcJson}" is not found!`)
+    }
+}
+
+
+/**
+ * Вырезать первых {opt.max} записей
+ *
+ * @param options
+ * @example ./console.js --section=via --action=cropFirst --opt.max=100 --opt.srcJson=/tmp/30_29_Hyundai_bb100.json --opt.targetJson=/tmp/30_29_Hyundai_bb100_.json
+ */
+async function cropFirst (options) {
+    const
+        srcJson = options.srcJson || new Error('"opt.srcJson" is not defined!') ,
+        targetJson = options.targetJson || new Error('"opt.targetJson" is not defined!'),
+        max = options.max || new Error('"options.records" is not defined!')
+    ;
+    // console.log(JSON.stringify(options))
+    if (fs.existsSync(srcJson)) {
+        let dataPart = require(srcJson), data = dataPart["_via_img_metadata"], new_via_img_metadata = {}, cnt=0;
+        for (let key in data) {
+            new_via_img_metadata[key] = data[key];
+            cnt++;
+            if (cnt==max) break;
+        }
+        dataPart["_via_img_metadata"]=new_via_img_metadata
+        writeViaPartFull(dataPart, targetJson);
+        await sleep(1000)
+    } else {
+        throw new Error(`"${options.srcJson}" is not found!`)
+    }
+}
+
 
 module.exports = {
     index,
@@ -178,4 +245,6 @@ module.exports = {
     joinVia,
     addAttribute,
     groupSplit,
+    purgeEmpty,
+    cropFirst
 };
