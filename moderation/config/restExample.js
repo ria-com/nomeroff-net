@@ -9,7 +9,7 @@ module.exports = {
         port: process.env.NODE_APP_INSTANCE || 5005
     },
     dataset: {
-        baseDir: `${__dir_name}/../../../dataset/ocr/kz`,
+        baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example/train`,
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },
@@ -18,7 +18,7 @@ module.exports = {
     },
     moderation: {
         regionOCRModeration: {
-            base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
+            base_dir: `${__dirname}/../../data/dataset/TextDetector/ocr_example/train`,
             options: {
                 region_id: [
                     "xx-unknown",

@@ -2,7 +2,7 @@
 
 
 ## Quick start
-  * Make copy of ./config/default.js.example to ./config/default.js
+  * Make copy of ./config/restExample.js
   * In config change value of moderation.regionOCRModeration.base_dir
   * Install requirements:
   ```bash
@@ -10,7 +10,7 @@
   ```
   * Run server:
   ```bash
-    node server
+    NODE_ENV=restExample node server
   ```
   * Locate to:
   ```url

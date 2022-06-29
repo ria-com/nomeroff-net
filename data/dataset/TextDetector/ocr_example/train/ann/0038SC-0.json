@@ -8,7 +8,7 @@
     "height": 118
   },
   "moderation": {
-    "isModerated": 1,
+    "isModerated": 0,
     "moderatedBy": "dimabendera",
     "predicted": "0038SC"
   },
