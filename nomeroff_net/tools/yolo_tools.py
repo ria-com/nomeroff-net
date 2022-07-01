@@ -5,7 +5,7 @@ import tqdm
 from PIL import Image
 import numpy as np
 from PIL import ImageOps
-
+from collections import Counter
 from .image_processing import generate_image_rotation_variants
 
 
@@ -128,6 +128,8 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         ann_data = json.load(ann)
     cat2label = {k: i for i, k in enumerate(classes)}
     image_list = ann_data
+    all_labels = {}
+    c = Counter()
 
     for _id in tqdm.tqdm(image_list["_via_img_metadata"]):
         image_id = image_list["_via_img_metadata"][_id]["filename"]
@@ -138,17 +140,22 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
         target_boxes = []
         labels = []
         for region in image_list["_via_img_metadata"][_id]["regions"]:
-            label_id = 0
+            label = classes[0]
             if region.get("region_attributes", None) is not None:
                 if region["region_attributes"].get("label", None) is not None:
-                    label_id = region["region_attributes"]["label"]
-            if region["shape_attributes"].get("name", None) is None:
+                    label = region["region_attributes"]["label"]
+            label_id = cat2label.get(label, -1)
+            all_labels[label] = 1
+            if region["shape_attributes"].get("name", None) is None or label_id == -1:
+                c["skip_attributes"] += 1
                 continue
             name = region["shape_attributes"]["name"]
             if name == "polygon":
                 if region["shape_attributes"].get("all_points_x", None) is None:
+                    c["skip_attributes"] += 1
                     continue
                 if region["shape_attributes"].get("all_points_y", None) is None:
+                    c["skip_attributes"] += 1
                     continue
                 bbox = [
                     min(region["shape_attributes"]["all_points_x"]),
@@ -156,13 +163,17 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
                     max(region["shape_attributes"]["all_points_x"]),
                     max(region["shape_attributes"]["all_points_y"]),
                 ]
-            if name == "rect":
+            elif name == "rect":
                 bbox = [
                     region["shape_attributes"]["x"],
                     region["shape_attributes"]["y"],
                     region["shape_attributes"]["x"]+region["shape_attributes"]["width"],
                     region["shape_attributes"]["y"]+region["shape_attributes"]["height"],
                 ]
+            else:
+                c["skip_attributes"] += 1
+                continue
+            c["count_attributes"] += 1
             target_boxes.append(bbox)
             labels.append(label_id)
 
@@ -182,3 +193,7 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
                                 image_id, 
                                 labels,
                                 debug=debug)
+    print(f"[INFO] find labels {list(all_labels.keys())}")
+    print(f"[INFO] use labels {classes}")
+    print(f"[INFO] count attributes {c['count_attributes']}")
+    print(f"[INFO] skip attributes {c['skip_attributes']}")

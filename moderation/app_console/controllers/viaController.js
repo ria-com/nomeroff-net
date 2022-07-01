@@ -38,7 +38,7 @@ async function split (options) {
           }
     ;
     checkDir(srcDir);
-    checkDirStructure(targetDir,config.via.partDirs,true);
+    checkDirStructure(targetDir, config.via.partDirs,true);
 
     for (let key of config.via.partDirs) {
         let dataPart = prepareViaPart(data, partKeys[key], srcDir);
