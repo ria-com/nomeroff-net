@@ -169,6 +169,7 @@ class ImgGenerator(Dataset):
             x, y = self.next_sample()
             paths.append(x)
             img = cv2.imread(x)
+            img = img[:, :, ::-1]
             x = normalize_img(img, with_aug=with_aug, width=self.img_w, height=self.img_h)
             xs.append(x)
             ys[0].append(y[0])
