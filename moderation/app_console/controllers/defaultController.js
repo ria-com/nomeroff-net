@@ -253,7 +253,8 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
 
-                if (data.size.height >= 32) {
+                if (data.description.length == 7) {
+                //if (data.size.height >= 32) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }

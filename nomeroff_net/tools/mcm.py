@@ -19,10 +19,12 @@ model_config_urls = [
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-2.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-1.json",
 
     # object detection
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5/model-1.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolox/model-1.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5_brand_np/model-1.json",
 
     # text localization
     "http://models.vsp.net.ua/config_model/craft-mlt/model-1.json",
