@@ -1,8 +1,9 @@
 3.2.0 / 2022-06-09
 ==================
   **updates**
-  * Update auto number grab tools
-  * Added fake numberplate detector
+  * Added brand numberplate detection (examples/ju/inference/detect_brand_np.ipynb)
+  * Update auto number grab tools (examples/ju/dataset_tools/auto_number_grab.ipynb)
+  * Added fake numberplate detector (examples/ju/train/experimental/froud_numberplate_train.ipynb)
 
 
 3.1.0 / 2022-03-28
