@@ -2,7 +2,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.utilities.types import EVAL_DATALOADERS
 from torch.utils.data import DataLoader
 from typing import Optional
-from nomeroff_net.data_loaders import FraudImgGenerator as ImgGenerator
+from nomeroff_net.data_loaders.fraud_numberplate_generator import FraudImgGenerator as ImgGenerator
 
 
 class FraudNetDataModule(pl.LightningDataModule):
