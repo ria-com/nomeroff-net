@@ -24,6 +24,7 @@ model_config_urls = [
     # object detection
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5/model-1.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolox/model-1.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5_brand_np/model-1.json",
 
     # text localization
     "http://models.vsp.net.ua/config_model/craft-mlt/model-1.json",
