@@ -33,6 +33,7 @@ CLASS_REGION_ALL = [
     "am",
     "ua-military",
     "ru-military",
+    "md",
 ]
 
 CLASS_LINES_ALL = [
