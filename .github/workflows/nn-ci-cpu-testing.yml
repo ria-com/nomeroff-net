@@ -140,7 +140,7 @@ jobs:
         # test nnmodels
         python3 -m nomeroff_net.nnmodels.numberplate_classification_model -f nomeroff_net/nnmodels/numberplate_classification_model.py
         python3 -m nomeroff_net.nnmodels.numberplate_options_model -f nomeroff_net/nnmodels/numberplate_options_model.py
-        python3 -m nomeroff_net.nnmodels.fraud_numberpate_options -f nomeroff_net/nnmodels/fraud_numberpate_options.py
+        python3 -m nomeroff_net.nnmodels.fraud_numberpate_model -f nomeroff_net/nnmodels/fraud_numberpate_options.py
         python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
         python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
         python3 -m nomeroff_net.nnmodels.ocr_model -f nomeroff_net/nnmodels/ocr_model.py
