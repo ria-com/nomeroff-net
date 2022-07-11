@@ -11,8 +11,8 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 <li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
 </ul>
 
-
-![Russian troops bombed a maternity hospital in Mariupol](./public/images/russian_troops_bombed_a_maternity_hospital_in_Mariupol_2022-03-09_19-26-39.jpg?raw=true)
+Photo: Konstantin Liberov https://www.instagram.com/libkos/
+![Russian troops shelling of civilians in Ukraine. Donbass. Kostyantynivka. 09.07.2022](./public/images/Shelling_of_civilians_in_Ukraine.jpeg?raw=true)
 </blockquote>
 
 ## Introduction
