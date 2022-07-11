@@ -5,7 +5,12 @@ Nomeroff Net. Automatic numberplate recognition system. Version 3.1
 <blockquote style="border-left-color: #ff0000">
 Now there is a war going on in our country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
 <br>
-We are deeply thankful for the unprecedented wave of support for our country from around the world.
+We are deeply thankful for the unprecedented wave of support for Ukraine from around the world. Below is a list of funds that help the Ukrainian army in the fight against Russian invaders:
+<ul>
+<li><a href="https://savelife.in.ua/en/">Come back alive</a></li>
+<li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
+</ul>
+
 
 ![Russian troops bombed a maternity hospital in Mariupol](./public/images/russian_troops_bombed_a_maternity_hospital_in_Mariupol_2022-03-09_19-26-39.jpg?raw=true)
 </blockquote>
