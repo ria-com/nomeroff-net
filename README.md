@@ -3,12 +3,12 @@
 Nomeroff Net. Automatic numberplate recognition system. Version 3.1
 <br /><br />
 <blockquote style="border-left-color: #ff0000">
-Now there is a war going on in my country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
-For 2 weeks we have been appealing to USA & Nato: "Please close the sky", but so far these calls remain unanswered...
+Now there is a war going on in our country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
+<br>
+We are deeply thankful for the unprecedented wave of support for our country from around the world.
 
 ![Russian troops bombed a maternity hospital in Mariupol](./public/images/russian_troops_bombed_a_maternity_hospital_in_Mariupol_2022-03-09_19-26-39.jpg?raw=true)
 </blockquote>
-
 
 ## Introduction
 Nomeroff Net is an opensource python license plate 
