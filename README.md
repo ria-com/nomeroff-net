@@ -11,8 +11,8 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 <li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
 </ul>
 
-Photo: Konstantin Liberov https://www.instagram.com/libkos/
 ![Russian troops shelling of civilians in Ukraine. Donbass. Kostyantynivka. 09.07.2022](./public/images/Shelling_of_civilians_in_Ukraine.jpeg?raw=true)
+Photo: Konstantin Liberov https://www.instagram.com/libkos/
 </blockquote>
 
 ## Introduction
