@@ -15,7 +15,6 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 ![Russian troops bombed a maternity hospital in Mariupol](./public/images/russian_troops_bombed_a_maternity_hospital_in_Mariupol_2022-03-09_19-26-39.jpg?raw=true)
 </blockquote>
 
-
 ## Introduction
 Nomeroff Net is an opensource python license plate 
 recognition framework based on YOLOv5 and CRAFT 
