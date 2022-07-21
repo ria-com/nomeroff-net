@@ -24,12 +24,11 @@ if __name__ == '__main__':
     kwargs = parse_args()
     is_show = kwargs["show"]
 
-    number_plate_short_detection_and_reading = pipeline("number_plate_short_detection_and_reading",
+    number_plate_short_detection_and_reading = pipeline("number_plate_key_points_filling",
                                                         image_loader="opencv")
 
     root_dir = os.path.join(nomeroff_net_dir, './data/examples/oneline_images/example1.jpeg')
     images = number_plate_short_detection_and_reading(glob.glob(root_dir))
-
     if is_show:
         for img in images:
             cv2.imshow("Display window", img)
