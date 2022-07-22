@@ -31,5 +31,6 @@ if __name__ == '__main__':
     images = number_plate_short_detection_and_reading(glob.glob(root_dir))
     if is_show:
         for img in images:
+            img = img[..., ::-1]  # RGB2BGR
             cv2.imshow("Display window", img)
             k = cv2.waitKey(0)
