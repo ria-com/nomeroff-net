@@ -396,8 +396,7 @@ class OptionsDetector(object):
 
     @staticmethod
     def preprocess(images):
-        x = convert_cv_zones_rgb_to_bgr(images)
-        x = [normalize_img(img)[..., ::-1] for img in x]
+        x = [normalize_img(img) for img in images]
         x = np.moveaxis(np.array(x), 3, 1)
         return x
 
