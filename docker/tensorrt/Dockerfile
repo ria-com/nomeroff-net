@@ -47,7 +47,7 @@ RUN rm /var/www/opencv.zip;\
 
 RUN pip install "numpy>=1.16.*"
 RUN pip install imgaug
-RUN pip install "pillow>=8.2.0"
+RUN pip install pillow
 RUN pip install scipy
 RUN pip install asyncio
 RUN pip install GitPython

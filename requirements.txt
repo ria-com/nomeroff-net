@@ -8,7 +8,7 @@ asyncio
 gitpython
 pycocotools
 ujson
-pillow==9.0.1
+pillow
 tqdm
 matplotlib
 scipy
