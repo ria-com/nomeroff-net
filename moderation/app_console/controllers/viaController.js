@@ -114,7 +114,8 @@ async function addAttribute (options) {
         attrName = options.attrName || new Error('"opt.attrName" is not defined!'),
         attrValue = options.attrValue
     ;
-    let rewriteSettedAttribute = options.rewrite || 1;
+    let rewriteSettedAttribute = 1;
+    if (options.rewrite != undefined) { rewriteSettedAttribute = options.rewrite }
     rewriteSettedAttribute = Boolean(Number(rewriteSettedAttribute));
     // console.log(JSON.stringify(options))
     console.log(`attrName="${attrName}"`)
