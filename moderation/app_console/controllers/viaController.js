@@ -104,16 +104,18 @@ async function joinVia (options) {
 }
 
 /**
- * Объеденить 2 датасета в один для Mask RCNN
+ * Добавить атрибут в region
  *
  * @param options
- * @example ./console.js --section=via --action=addAttribute --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-09-17/emptyPlate/via_region_data_emptyPlate.json --opt.attrName=class --opt.attrValue=emptyPlate
+ * @example ./console.js --section=via --action=addAttribute --opt.srcJson=/mnt/data/home/nn/datasets/autoriaNumberplateDataset-2019-09-17/emptyPlate/via_region_data_emptyPlate.json --opt.attrName=class --opt.rewrite=1 --opt.attrValue=emptyPlate
  */
 async function addAttribute (options) {
     const srcJson = options.srcJson || new Error('"opt.srcJson" is not defined!') ,
         attrName = options.attrName || new Error('"opt.attrName" is not defined!'),
         attrValue = options.attrValue
     ;
+    let rewriteSettedAttribute = options.rewrite || 1;
+    rewriteSettedAttribute = Boolean(Number(rewriteSettedAttribute));
     // console.log(JSON.stringify(options))
     console.log(`attrName="${attrName}"`)
     console.log(`attrValue="${attrValue}"`)
@@ -123,12 +125,17 @@ async function addAttribute (options) {
     for (let key in data) {
         let item = data[key];
         for (let region of item.regions) {
-            region["region_attributes"][attrName] = attrValue
+            if (region["region_attributes"][attrName] != undefined && (!rewriteSettedAttribute)) {
+                // pass
+            } else {
+                region["region_attributes"][attrName] = attrValue
+            }
         }
     }
     writeViaPartFull(dataPart,srcJson);
     //await sleep(1000)
 }
+
 
 function convertToViaIdx(viaIdx,arr) {
     let newArr = [];
