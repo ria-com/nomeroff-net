@@ -143,7 +143,12 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
             label = classes[0]
             if region.get("region_attributes", None) is not None:
                 if region["region_attributes"].get("label", None) is not None:
-                    label = region["region_attributes"]["label"]
+                    if isinstance(region["region_attributes"]["label"], str):
+                        label = region["region_attributes"]["label"]
+                    if isinstance(region["region_attributes"]["label"], int):
+                        if region["region_attributes"]["label"] < len(classes):
+                            label = classes[region["region_attributes"]["label"]]
+
             label_id = cat2label.get(label, -1)
             all_labels[label] = 1
             if region["shape_attributes"].get("name", None) is None or label_id == -1:
@@ -178,6 +183,7 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
             labels.append(label_id)
 
         if is_generate_image_rotation_variants:
+            print(image_id)
             rotation_augumentation(image,
                                    target_boxes,
                                    path_to_res_ann, 
