@@ -25,7 +25,7 @@ RUN python3 -m pip install Cython
 RUN python3 -m pip install pycocotools
 RUN python3 -m pip install matplotlib
 RUN python3 -m pip install seaborn
-RUN python3 -m pip install 'opencv_python<4.5.5'
+RUN python3 -m pip install opencv_python
 RUN python3 -m pip install "numpy>=1.16.*"
 RUN python3 -m pip install imgaug
 RUN python3 -m pip install pillow

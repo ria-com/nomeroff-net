@@ -1,6 +1,6 @@
 ![Nomeroff Net. Automatic numberplate recognition system](./public/images/nomeroff_net.svg)
 
-Nomeroff Net. Automatic numberplate recognition system. Version 3.1
+Nomeroff Net. Automatic numberplate recognition system. Version 3.2
 <br /><br />
 <blockquote style="border-left-color: #ff0000">
 Now there is a war going on in our country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.

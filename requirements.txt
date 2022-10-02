@@ -2,13 +2,13 @@ cython
 setuptools
 numpy>=1.16.*
 imgaug>=0.4.*
-opencv_python<4.5.5
+opencv_python
 scikit_image
 asyncio
 gitpython
 pycocotools
 ujson
-pillow==9.0.1
+pillow
 tqdm
 matplotlib
 scipy
