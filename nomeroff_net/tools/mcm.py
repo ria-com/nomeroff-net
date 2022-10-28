@@ -12,7 +12,7 @@ model_config_urls = [
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-2.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-4.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-5.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ge/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-2.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-2.json",
