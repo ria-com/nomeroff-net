@@ -8,11 +8,12 @@ import numpy as np
 import torch
 import pytorch_lightning as pl
 
+from collections import Counter
 from torch.nn import functional
+from torchvision.models import resnet18
 from typing import List, Tuple, Any, Dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
-from collections import Counter
 
 from nomeroff_net.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from nomeroff_net.nnmodels.ocr_model import NPOcrNet, weights_init
@@ -39,16 +40,16 @@ class OCR(object):
         self.model = None
         self.trainer = None
         self.letters = []
-        self.max_text_len = 0
 
         # Input parameters
-        self.max_plate_length = 0
+        self.max_text_len = 0
         self.height = 50
         self.width = 200
         self.color_channels = 3
-        self.label_length = 13
 
         # Train hyperparameters
+        self.hidden_size = 32
+        self.backbone = resnet18
         self.batch_size = 32
         self.epochs = 1
         self.gpus = 1
@@ -70,15 +71,15 @@ class OCR(object):
             description = json.load(open(json_filepath, 'r'))['description']
             lens.append(len(description))
             letters += description
-        max_plate_length = max(Counter(lens).keys())
+        max_text_len = max(Counter(lens).keys())
         if verbose:
-            print('Max plate length in "%s":' % dir_name, max_plate_length)
-        return Counter(letters), max_plate_length
+            print('Max plate length in "%s":' % dir_name, max_text_len)
+        return Counter(letters), max_text_len
 
     def get_alphabet(self, train_path: str, test_path: str, val_path: str, verbose: bool = True) -> Tuple[List, int]:
-        c_val, max_plate_length_val = self.get_counter(val_path)
-        c_train, max_plate_length_train = self.get_counter(train_path)
-        c_test, max_plate_length_test = self.get_counter(test_path)
+        c_val, max_text_len_val = self.get_counter(val_path)
+        c_train, max_text_len_train = self.get_counter(train_path)
+        c_test, max_text_len_test = self.get_counter(test_path)
 
         letters_train = set(c_train.keys())
         letters_val = set(c_val.keys())
@@ -88,7 +89,7 @@ class OCR(object):
             print("Letters val ", letters_val)
             print("Letters test ", letters_test)
 
-        if max_plate_length_val == max_plate_length_train:
+        if max_text_len_val == max_text_len_train:
             if verbose:
                 print('Max plate length in train, test and val do match')
         else:
@@ -101,7 +102,7 @@ class OCR(object):
             raise OCRError('Letters in train, val and test do not match')
 
         self.letters = sorted(list(letters_train))
-        self.max_text_len = max_plate_length_train
+        self.max_text_len = max_text_len_train
         if verbose:
             print('Letters:', ' '.join(self.letters))
         return self.letters, self.max_text_len
@@ -118,7 +119,7 @@ class OCR(object):
 
         if verbose:
             print("GET ALPHABET")
-        self.letters, self.max_plate_length = self.get_alphabet(
+        self.letters, self.max_text_len = self.get_alphabet(
             train_dir,
             test_dir,
             val_dir,
@@ -137,21 +138,22 @@ class OCR(object):
             width=self.width,
             height=self.height,
             batch_size=self.batch_size,
-            max_plate_length=self.max_plate_length,
             num_workers=num_workers,
             seed=seed,
             with_aug=use_aug)
         if verbose:
             print("DATA PREPARED")
 
-    def create_model(self) -> NPOcrNet:
+    def create_model(self):
         """
         TODO: describe method
         """
         self.model = NPOcrNet(self.letters,
+                              hidden_size=self.hidden_size,
+                              backbone=self.backbone,
                               letters_max=len(self.letters) + 1,
                               label_converter=self.label_converter,
-                              max_plate_length=self.max_plate_length)
+                              max_text_len=self.max_text_len)
         self.model.apply(weights_init)
         self.model = self.model.to(device_torch)
         return self.model
@@ -273,7 +275,9 @@ class OCR(object):
                                                    letters=self.letters,
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
-                                                   max_plate_length=self.max_plate_length)
+                                                   hidden_size=self.hidden_size,
+                                                   backbone=self.backbone,
+                                                   max_text_len=self.max_text_len)
         self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model
@@ -359,7 +363,6 @@ if __name__ == "__main__":
     det.letters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H", "I",
                    "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"]
     det.max_text_len = 9
-    det.max_plate_length = 9
     det.letters_max = len(det.letters)+1
     det.init_label_converter()
     det.load()

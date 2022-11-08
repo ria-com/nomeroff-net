@@ -12,8 +12,11 @@ class Am(OCR):
         self.letters = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                         'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
         self.max_text_len = 7
-        self.max_plate_length = 7
-        self.letters_max = len(self.letters)+1
+        self.height = 50
+        self.width = 200
+        self.color_channels = 3
+        self.label_length = 13
+        self.letters_max = len(self.letters) + 1
 
         self.init_label_converter()
 

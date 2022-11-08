@@ -23,7 +23,6 @@ class TextImageGenerator(object):
                  img_w: int = 128,
                  img_h: int = 64,
                  batch_size: int = 1,
-                 max_plate_length: int = 8,
                  seed: int = 42,
                  with_aug: bool = False) -> None:
 
@@ -32,7 +31,6 @@ class TextImageGenerator(object):
         self.img_w = img_w
         self.batch_size = batch_size
         self.max_text_len = max_text_len
-        self.max_plate_length = max_plate_length
         self.letters = letters
         self.with_aug = with_aug
         self.label_converter = label_converter
