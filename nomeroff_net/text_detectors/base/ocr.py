@@ -157,7 +157,8 @@ class OCR(object):
                               width=self.width,
                               color_channels=self.color_channels,
                               max_text_len=self.max_text_len)
-        self.model.apply(weights_init)
+        if 'resnet' in str(self.backbone):
+            self.model.apply(weights_init)
         self.model = self.model.to(device_torch)
         return self.model
 
