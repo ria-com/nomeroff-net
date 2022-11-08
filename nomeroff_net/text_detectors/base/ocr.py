@@ -42,6 +42,7 @@ class OCR(object):
         self.letters = []
 
         # Input parameters
+        self.linear_size = 1024
         self.max_text_len = 0
         self.height = 50
         self.width = 200
@@ -149,6 +150,7 @@ class OCR(object):
         TODO: describe method
         """
         self.model = NPOcrNet(self.letters,
+                              linear_size=self.linear_size,
                               hidden_size=self.hidden_size,
                               backbone=self.backbone,
                               letters_max=len(self.letters) + 1,
@@ -280,6 +282,7 @@ class OCR(object):
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
                                                    hidden_size=self.hidden_size,
+                                                   linear_size=self.linear_size,
                                                    height=self.height,
                                                    width=self.width,
                                                    color_channels=self.color_channels,
