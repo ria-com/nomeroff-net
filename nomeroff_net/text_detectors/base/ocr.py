@@ -153,6 +153,9 @@ class OCR(object):
                               backbone=self.backbone,
                               letters_max=len(self.letters) + 1,
                               label_converter=self.label_converter,
+                              height=self.height,
+                              width=self.width,
+                              color_channels=self.color_channels,
                               max_text_len=self.max_text_len)
         self.model.apply(weights_init)
         self.model = self.model.to(device_torch)
@@ -276,6 +279,9 @@ class OCR(object):
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
                                                    hidden_size=self.hidden_size,
+                                                   height=self.height,
+                                                   width=self.width,
+                                                   color_channels=self.color_channels,
                                                    backbone=self.backbone,
                                                    max_text_len=self.max_text_len)
         self.model = self.model.to(device_torch)
