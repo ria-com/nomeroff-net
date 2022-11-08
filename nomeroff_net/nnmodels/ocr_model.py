@@ -67,6 +67,10 @@ class NPOcrNet(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
+        self.width = width
+        self.height = height
+        self.color_channels = color_channels
+
         self.letters = letters
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
