@@ -9,7 +9,6 @@ import pytorch_lightning as pl
 from torchvision.models import resnet18
 
 from nomeroff_net.tools.ocr_tools import plot_loss, print_prediction
-from nomeroff_net.nnmodels.torch_backbone_shape_detector import get_output_shape
 from nomeroff_net.tools.mcm import get_device_torch
 
 
@@ -83,7 +82,7 @@ class NPOcrNet(pl.LightningModule):
         self.bidirectional = bidirectional
 
         self.label_converter = label_converter
-        
+
         # convolutions
         if backbone is None:
             backbone = resnet18
@@ -92,15 +91,18 @@ class NPOcrNet(pl.LightningModule):
             conv_modules = list(conv_nn.children())[:-3]
         elif 'efficientnet' in str(backbone):
             conv_modules = list(conv_nn.children())[:-2]
+        elif 'shufflenet' in str(backbone):
+            conv_modules = list(conv_nn.children())[:-3]
         else:
             raise NotImplementedError(backbone)
         self.conv_nn = nn.Sequential(*conv_modules)
-        backbone_c, backbone_h, backbone_w = get_output_shape((color_channels, height, width), self.conv_nn)
+        _, backbone_c, backbone_h, backbone_w = self.conv_nn(torch.rand((1, color_channels, height, width))).shape
+
         assert backbone_w > max_text_len
 
         # RNN + Linear
-        self.linear1 = nn.Linear(backbone_c*backbone_h, linear_size)
-        self.recurrent_layer1 = BlockRNN(linear_size, hidden_size, hidden_size,
+        self.linear1 = nn.Linear(backbone_c*backbone_h, backbone_w*hidden_size)
+        self.recurrent_layer1 = BlockRNN(backbone_w*hidden_size, hidden_size, hidden_size,
                                          bidirectional=bidirectional)
         self.recurrent_layer2 = BlockRNN(hidden_size, hidden_size, letters_max,
                                          bidirectional=bidirectional)
