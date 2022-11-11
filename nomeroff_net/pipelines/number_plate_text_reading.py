@@ -6,7 +6,7 @@ from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 
-DEFAULT_PRISETS = {
+DEFAULT_PRESETS = {
     "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": "latest"
@@ -58,15 +58,15 @@ class NumberPlateTextReading(Pipeline):
     def __init__(self,
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
-                 prisets: Dict = None,
+                 presets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  class_detector=TextDetector,
                  **kwargs):
-        if prisets is None:
-            prisets = DEFAULT_PRISETS
+        if presets is None:
+            presets = DEFAULT_PRESETS
         super().__init__(task, image_loader, **kwargs)
-        self.detector = class_detector(prisets, default_label, default_lines_count)
+        self.detector = class_detector(presets, default_label, default_lines_count)
 
     def sanitize_parameters(self, **kwargs):
         return {}, {}, {}
