@@ -10,11 +10,10 @@ import pytorch_lightning as pl
 
 from collections import Counter
 from torch.nn import functional
-from torchvision.models import resnet18
 from typing import List, Tuple, Any, Dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
-
+from torchvision import models
 from nomeroff_net.data_modules.numberplate_ocr_data_module import OcrNetDataModule
 from nomeroff_net.nnmodels.ocr_model import NPOcrNet, weights_init
 
@@ -30,27 +29,30 @@ device_torch = get_device_torch()
 
 
 class OCR(object):
-    @classmethod
-    def get_classname(cls: object) -> str:
-        return cls.__name__
 
-    def __init__(self) -> None:
+    def __init__(self, model_name: str = None, letters: List = None, linear_size: int = 512,
+                 max_text_len: int = 0, height: int = 50, width: int = 200, color_channels: int = 3,
+                 hidden_size: int = 32, backbone: str = "resnet18", **_) -> None:
+        self.model_name = model_name
+        self.letters = []
+        if letters is not None:
+            self.letters = letters
+
         # model
         self.dm = None
         self.model = None
         self.trainer = None
-        self.letters = []
 
         # Input parameters
-        self.linear_size = 1024
-        self.max_text_len = 0
-        self.height = 50
-        self.width = 200
-        self.color_channels = 3
+        self.linear_size = linear_size
+        self.max_text_len = max_text_len
+        self.height = height
+        self.width = width
+        self.color_channels = color_channels
 
         # Train hyperparameters
-        self.hidden_size = 32
-        self.backbone = resnet18
+        self.hidden_size = hidden_size
+        self.backbone = getattr(models, backbone)
         self.batch_size = 32
         self.epochs = 1
         self.gpus = 1
@@ -165,7 +167,7 @@ class OCR(object):
         return self.model
 
     def train(self,
-              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../data/logs/ocr')),
+              log_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../../../data/logs/ocr')),
               seed: int = None,
               ckpt_path: str = None
               ) -> NPOcrNet:
@@ -279,14 +281,14 @@ class OCR(object):
         self.model = nn_class.load_from_checkpoint(path_to_model,
                                                    map_location=torch.device('cpu'),
                                                    letters=self.letters,
+                                                   linear_size=self.linear_size,
+                                                   hidden_size=self.hidden_size,
+                                                   backbone=self.backbone,
                                                    letters_max=len(self.letters) + 1,
                                                    label_converter=self.label_converter,
-                                                   hidden_size=self.hidden_size,
-                                                   linear_size=self.linear_size,
                                                    height=self.height,
                                                    width=self.width,
                                                    color_channels=self.color_channels,
-                                                   backbone=self.backbone,
                                                    max_text_len=self.max_text_len)
         self.model = self.model.to(device_torch)
         self.model.eval()
@@ -298,12 +300,12 @@ class OCR(object):
         """
         self.create_model()
         if path_to_model == "latest":
-            model_info = modelhub.download_model_by_name(self.get_classname())
+            model_info = modelhub.download_model_by_name(self.model_name)
             path_to_model = model_info["path"]
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model,
-                                                        self.get_classname(),
-                                                        self.get_classname())
+                                                        self.model_name,
+                                                        self.model_name)
             path_to_model = model_info["path"]
 
         return self.load_model(path_to_model, nn_class=nn_class)

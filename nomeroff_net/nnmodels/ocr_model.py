@@ -62,13 +62,14 @@ class NPOcrNet(pl.LightningModule):
                  momentum: float = 0.9,
                  clip_norm: int = 5,
                  hidden_size=32,
-                 linear_size=1024,
+                 linear_size=512,
                  backbone=None):
         super().__init__()
         self.save_hyperparameters()
 
         self.width = width
         self.height = height
+        self.linear_size = linear_size
         self.color_channels = color_channels
 
         self.letters = letters
@@ -101,8 +102,8 @@ class NPOcrNet(pl.LightningModule):
         assert backbone_w > max_text_len
 
         # RNN + Linear
-        self.linear1 = nn.Linear(backbone_c*backbone_h, backbone_w*hidden_size)
-        self.recurrent_layer1 = BlockRNN(backbone_w*hidden_size, hidden_size, hidden_size,
+        self.linear1 = nn.Linear(backbone_c*backbone_h, self.linear_size)
+        self.recurrent_layer1 = BlockRNN(self.linear_size, hidden_size, hidden_size,
                                          bidirectional=bidirectional)
         self.recurrent_layer2 = BlockRNN(hidden_size, hidden_size, letters_max,
                                          bidirectional=bidirectional)
