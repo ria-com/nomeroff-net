@@ -9,19 +9,36 @@ model_config_urls = [
 
     # ocr
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-shufflenet_v2_x2_0-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-shufflenet_v2_x2_0-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-shufflenet_v2_x2_0-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-shufflenet_v2_x2_0-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-7.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-efficientnet_b2-7.json",
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-shufflenet_v2_x2_0-7.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ge/model-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-3.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-3.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-3.json",
-    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-shufflenet_v2_x2_0-3.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-shufflenet_v2_x2_0-3.json",
+
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-shufflenet_v2_x2_0-2.json",
+
     "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-2.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-shufflenet_v2_x2_0-2.json",
+
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ge/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-3.json",
+    "http://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-3.json",
 
     # object detection
     "http://models.vsp.net.ua/config_model/nomeroff-net-yolov5/model-2.json",
