@@ -151,8 +151,16 @@ class TextDetector(object):
         return [x for _, x in sorted(zip(order_all, res_all), key=lambda pair: pair[0])]
 
     @staticmethod
-    def get_static_module(name: str) -> object:
-        return getattr(getattr(text_detectors, name), name)()
+    def get_static_module(name: str, **kwargs) -> object:
+        model_conf = copy.deepcopy(modelhub.models[name])
+        model_conf.update(**kwargs)
+        detector = OCR(model_name=name, letters=model_conf["letters"],
+                       linear_size=model_conf["linear_size"], max_text_len=model_conf["max_text_len"],
+                       height=model_conf["height"], width=model_conf["width"],
+                       color_channels=model_conf["color_channels"],
+                       hidden_size=model_conf["hidden_size"], backbone=model_conf["backbone"])
+        detector.init_label_converter()
+        return detector
 
     def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[List[float]]:
         acc = []
