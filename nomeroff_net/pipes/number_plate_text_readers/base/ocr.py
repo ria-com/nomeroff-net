@@ -350,22 +350,22 @@ class OCR(object):
             if pred_text == text:
                 acc += 1
             elif verbose:
-                print(f'\n[INFO] {dataset.pathes[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
+                print(f'\n[INFO] {dataset.paths[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
         return acc / len(dataset)
 
     def val_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.val_image_generator, verbose=verbose)
-        print('Validaton Accuracy: ', acc)
+        print('Validaton Accuracy: ', acc, "in", len(self.dm.val_image_generator))
         return acc
 
     def test_acc(self, verbose=True) -> float:
         acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose)
-        print('Testing Accuracy: ', acc)
+        print('Testing Accuracy: ', acc, "in", len(self.dm.test_image_generator))
         return acc
 
     def train_acc(self, verbose=False) -> float:
         acc = self.acc_calc(self.dm.train_image_generator, verbose=verbose)
-        print('Training Accuracy: ', acc)
+        print('Training Accuracy: ', acc, "in", len(self.dm.train_image_generator))
         return acc
 
 

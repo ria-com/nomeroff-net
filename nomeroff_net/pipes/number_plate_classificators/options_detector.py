@@ -341,10 +341,7 @@ class OptionsDetector(object):
         """
         return [int(self.count_lines[index]) for index in indexes]
 
-    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
-        """
-        TODO: describe method
-        """
+    def load_meta(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
         if options is None:
             options = dict()
         self.__dict__.update(options)
@@ -363,6 +360,13 @@ class OptionsDetector(object):
             path_to_model = model_info["path"]
             self.class_region = model_info["class_region"]
             self.count_lines = model_info["count_lines"]
+        return path_to_model
+
+    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:
+        """
+        TODO: describe method
+        """
+        path_to_model = self.load_meta(path_to_model, options)
         self.create_model()
         return self.load_model(path_to_model)
 

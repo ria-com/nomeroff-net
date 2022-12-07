@@ -43,14 +43,17 @@ class TextImageGenerator(object):
             cache_postfix = f"{cache_postfix}_aug_{seed}"
         cache_dirpath = os.path.join(dirpath, cache_postfix)
         os.makedirs(cache_dirpath, exist_ok=True)
-        self.pathes = [os.path.join(img_dirpath, file_name) for file_name in os.listdir(img_dirpath)]
+        self.paths = []
         self.samples = []
         for file_name in tqdm(os.listdir(img_dirpath)):
             name, ext = os.path.splitext(file_name)
             if ext == '.png':
                 img_filepath = os.path.join(img_dirpath, file_name)
-                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
                 json_filepath = os.path.join(ann_dirpath, name + '.json')
+                if not os.path.exists(json_filepath):
+                    continue
+                self.paths.append(os.path.join(img_dirpath, file_name))
+                x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
                 description = json.load(open(json_filepath, 'r'))['description']
                 if is_valid_str(description, self.letters):
                     self.samples.append([x_filepath, description])
