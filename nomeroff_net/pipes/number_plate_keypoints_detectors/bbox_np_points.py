@@ -82,12 +82,8 @@ class NpPointsCraft(object):
         # load net
         self.net = CRAFT()  # initialize
 
-        if is_cuda:
-            model = torch.load(trained_model)
-            self.net.load_state_dict(copy_state_dict(model))
-        else:
-            model = copy_state_dict(torch.load(trained_model, map_location='cpu'))
-            self.net.load_state_dict(model)
+        model = copy_state_dict(torch.load(trained_model, map_location='cpu'))
+        self.net.load_state_dict(model)
 
         if is_cuda:
             self.net = self.net.cuda()
@@ -99,11 +95,9 @@ class NpPointsCraft(object):
         self.refine_net = None
         if is_refine:
             self.refine_net = RefineNet()
+            self.refine_net.load_state_dict(copy_state_dict(torch.load(refiner_model, map_location='cpu')))
             if is_cuda:
-                self.refine_net.load_state_dict(copy_state_dict(torch.load(refiner_model)))
                 self.refine_net = self.refine_net.cuda()
-            else:
-                self.refine_net.load_state_dict(copy_state_dict(torch.load(refiner_model, map_location='cpu')))
 
             self.refine_net.eval()
             self.is_poly = True
