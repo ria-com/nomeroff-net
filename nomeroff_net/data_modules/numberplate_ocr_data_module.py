@@ -16,7 +16,6 @@ class OcrNetDataModule(pl.LightningDataModule):
                  width=128,
                  height=64,
                  batch_size=32,
-                 max_plate_length=8,
                  num_workers=0,
                  seed=42,
                  with_aug=False):
@@ -33,7 +32,6 @@ class OcrNetDataModule(pl.LightningDataModule):
             img_w=width,
             img_h=height,
             batch_size=batch_size,
-            max_plate_length=max_plate_length,
             seed=seed,
             with_aug=with_aug)
 
@@ -45,8 +43,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             max_text_len,
             img_w=width,
             img_h=height,
-            batch_size=batch_size,
-            max_plate_length=max_plate_length)
+            batch_size=batch_size)
 
         # init test generator
         self.test = None
@@ -56,8 +53,7 @@ class OcrNetDataModule(pl.LightningDataModule):
             max_text_len,
             img_w=width,
             img_h=height,
-            batch_size=batch_size,
-            max_plate_length=max_plate_length)
+            batch_size=batch_size)
 
     def prepare_data(self):
         return
