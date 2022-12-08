@@ -18,7 +18,7 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model: str,
                  path_to_classification_model: str,
-                 prisets: Dict,
+                 presets: Dict,
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",
                  classification_options: Dict = None,
@@ -44,7 +44,7 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
         self.number_plate_text_reading = NumberPlateTextReadingTrt(
             "number_plate_text_reading",
             image_loader=None,
-            prisets=prisets,
+            presets=presets,
             default_label=default_label,
             default_lines_count=default_lines_count,
         )

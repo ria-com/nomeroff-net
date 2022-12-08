@@ -1,7 +1,7 @@
 from typing import Dict
 
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from nomeroff_net.text_detectors.base.ocr_trt import OcrTrt
+from .base.ocr_trt import OcrTrt
 
 
 class TextDetectorTrt(TextDetector):

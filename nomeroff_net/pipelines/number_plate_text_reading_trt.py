@@ -13,11 +13,11 @@ class NumberPlateTextReadingTrt(NumberPlateTextReading):
     def __init__(self,
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
-                 prisets: Dict = None,
+                 presets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
-        NumberPlateTextReading.__init__(self, task, image_loader, prisets, default_label,
+        NumberPlateTextReading.__init__(self, task, image_loader, presets, default_label,
                                         default_lines_count, class_detector=TextDetectorTrt, **kwargs)
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:

@@ -1,10 +1,10 @@
 import numpy as np
 import warnings
-
+import copy
 from typing import List, Dict, Tuple
 from torch import no_grad
-
-from nomeroff_net import text_detectors
+from .base.ocr import OCR
+from nomeroff_net.tools.mcm import modelhub
 from nomeroff_net.tools.errors import TextDetectorError
 from nomeroff_net.tools.image_processing import convert_cv_zones_rgb_to_bgr
 
@@ -36,10 +36,8 @@ class TextDetector(object):
             for region in priset["for_regions"]:
                 self.detectors_map[region.replace("-", '_')] = i
             _label = priset_name
-            if _label not in dir(text_detectors):
-                raise TextDetectorError("Text detector {} not in Text Detectors".format(_label))
-            detector_class = getattr(getattr(text_detectors, _label), _label)
-            self.detectors.append(detector_class)
+            if modelhub.models.get(_label, None) is None:
+                raise TextDetectorError("Text detector {} not exists.".format(_label))
             self.detectors_names.append(_label)
             i += 1
 
@@ -50,10 +48,18 @@ class TextDetector(object):
         """
         TODO: support reloading
         """
-        for i, (detector_class, detector_name) in enumerate(zip(self.detectors, self.detectors_names)):
-            detector = detector_class()
+        self.detectors = []
+        for i, detector_name in enumerate(self.detectors_names):
+            model_conf = copy.deepcopy(modelhub.models[detector_name])
+            model_conf.update(self.prisets[detector_name])
+            detector = OCR(model_name=detector_name, letters=model_conf["letters"],
+                           linear_size=model_conf["linear_size"], max_text_len=model_conf["max_text_len"],
+                           height=model_conf["height"], width=model_conf["width"],
+                           color_channels=model_conf["color_channels"],
+                           hidden_size=model_conf["hidden_size"], backbone=model_conf["backbone"])
             detector.load(self.prisets[detector_name]['model_path'])
-            self.detectors[i] = detector
+            detector.init_label_converter()
+            self.detectors.append(detector)
 
     def define_predict_classes(self,
                                zones: List[np.ndarray],
@@ -145,8 +151,16 @@ class TextDetector(object):
         return [x for _, x in sorted(zip(order_all, res_all), key=lambda pair: pair[0])]
 
     @staticmethod
-    def get_static_module(name: str) -> object:
-        return getattr(getattr(text_detectors, name), name)()
+    def get_static_module(name: str, **kwargs) -> object:
+        model_conf = copy.deepcopy(modelhub.models[name])
+        model_conf.update(**kwargs)
+        detector = OCR(model_name=name, letters=model_conf["letters"],
+                       linear_size=model_conf["linear_size"], max_text_len=model_conf["max_text_len"],
+                       height=model_conf["height"], width=model_conf["width"],
+                       color_channels=model_conf["color_channels"],
+                       hidden_size=model_conf["hidden_size"], backbone=model_conf["backbone"])
+        detector.init_label_converter()
+        return detector
 
     def get_acc(self, predicted: List, decode: List, regions: List[str]) -> List[List[float]]:
         acc = []
