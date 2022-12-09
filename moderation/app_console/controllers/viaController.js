@@ -88,7 +88,7 @@ async function joinVia (options) {
         let srcDir = path.dirname(item);
         checkDir(srcDir);
         let dataPart = require(item);
-        if (Object.keys(data).length == 0) {
+        if (data === undefined) {
             data = dataPart
         } else {
             data["_via_img_metadata"] = {...data["_via_img_metadata"], ...dataPart["_via_img_metadata"]};

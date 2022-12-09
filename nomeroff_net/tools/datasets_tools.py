@@ -337,38 +337,17 @@ def read_annotations(root_dir, processes=10):
     return jsons
 
 
-def find_numberpate_format(numberplate):
-    numberplate_format = numberplate.lower()
-    numberplate_format = re.sub(r"[0-9]", "#", numberplate_format)  # number
-    numberplate_format = re.sub(r"[a-z]", "@", numberplate_format)  # letter
-    numberplate_format = re.sub(r"[а-я]", "@", numberplate_format)  # letter
-    numberplate_format = re.sub(r"[їіёъ]", "@", numberplate_format)  # letter
-    return numberplate_format
-
-
 def find_all_datset_format(annotations):
     formats_counter = Counter()
-    for fname in annotations:
-        json_data = annotations[fname]
-        numberplate = json_data["description"]
-        numberplate_format = find_numberpate_format(numberplate)
-
+    for fanme in annotations:
+        json_data = annotations[fanme]
+        numberplate_format = json_data["description"].lower()
+        numberplate_format = re.sub(r"[0-9]", "#", numberplate_format)  # number
+        numberplate_format = re.sub(r"[a-z]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[а-я]", "@", numberplate_format)  # letter
+        numberplate_format = re.sub(r"[їіёъ]", "@", numberplate_format)  # letter
         formats_counter[numberplate_format] += 1
     return formats_counter.most_common()
-
-
-def split_datset_by_numberplate_format(annotations, res_dir, inp_dir, subset="test"):
-    for fname in tqdm.tqdm(annotations):
-        json_data = annotations[fname]
-        numberplate = json_data["description"]
-        numberplate_format = find_numberpate_format(numberplate)
-
-        res_path_ann = os.path.join(res_dir, f"{subset}_by_np_format", numberplate_format, "ann")
-        res_path_img = os.path.join(res_dir, f"{subset}_by_np_format", str(numberplate_format), "img")
-        os.makedirs(res_path_ann, exist_ok=True)
-        if not os.path.exists(res_path_img):
-            os.symlink(os.path.join(inp_dir, "img"), res_path_img)
-        shutil.copyfile(fname, os.path.join(res_path_ann, os.path.basename(fname)))
 
 
 def print_datset_format(annotations, ann_format):

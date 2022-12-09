@@ -26,7 +26,7 @@ class NumberPlateShortDetectionAndReading(Pipeline, CompositePipeline):
             path_to_model=path_to_model)
         self.text_reader_name = text_reader_name
         self.default_lines_count = default_lines_count
-        presets = {
+        prisets = {
             text_reader_name: {
                 "for_regions": [text_reader_name],
                 "model_path": text_reader_path
@@ -35,7 +35,7 @@ class NumberPlateShortDetectionAndReading(Pipeline, CompositePipeline):
         self.number_plate_text_reading = NumberPlateTextReading(
             "number_plate_text_reading",
             image_loader=None,
-            presets=presets,
+            prisets=prisets,
             default_label=text_reader_name,
             default_lines_count=default_lines_count,
         )

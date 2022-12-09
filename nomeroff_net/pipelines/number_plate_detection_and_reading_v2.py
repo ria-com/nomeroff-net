@@ -9,7 +9,7 @@ from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import N
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from .number_plate_text_reading import DEFAULT_PRESETS
+from .number_plate_text_reading import DEFAULT_PRISETS
 
 
 class NumberPlateDetectionAndReadingV2(Pipeline):
@@ -24,7 +24,7 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",
                  path_to_classification_model: str = "latest",
-                 presets: Dict = None,
+                 prisets: Dict = None,
                  classification_options: List = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
@@ -41,9 +41,9 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
         self.option_detector = class_detector(options=classification_options)
         self.option_detector.load(path_to_classification_model, options=classification_options)
 
-        if presets is None:
-            presets = DEFAULT_PRESETS
-        self.ocr_detector = ocr_class_detector(presets, default_label, default_lines_count)
+        if prisets is None:
+            prisets = DEFAULT_PRISETS
+        self.ocr_detector = ocr_class_detector(prisets, default_label, default_lines_count)
         Pipeline.__init__(self, task, image_loader, **kwargs)
 
     def __call__(self, images: Any, **kwargs):

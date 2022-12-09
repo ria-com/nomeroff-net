@@ -22,15 +22,14 @@ def weights_init(m):
 
 
 class BlockRNN(nn.Module):
-    def __init__(self, in_size, hidden_size, out_size, bidirectional, recurrent_nn=nn.LSTM):
-        super().__init__()
+    def __init__(self, in_size, hidden_size, out_size, bidirectional):
+        super(BlockRNN, self).__init__()
         self.in_size = in_size
         self.hidden_size = hidden_size
         self.out_size = out_size
         self.bidirectional = bidirectional
-
         # layers
-        self.rnn = recurrent_nn(in_size, hidden_size, bidirectional=bidirectional, batch_first=True)
+        self.gru = nn.LSTM(in_size, hidden_size, bidirectional=bidirectional, batch_first=True)
 
     def forward(self, batch, add_output=False):
         """
@@ -39,7 +38,7 @@ class BlockRNN(nn.Module):
         out array:
             out - [seq_len , batch_size, out_size]
         """
-        outputs, hidden = self.rnn(batch)
+        outputs, hidden = self.gru(batch)
         out_size = int(outputs.size(2) / 2)
         if add_output:
             outputs = outputs[:, :, :out_size] + outputs[:, :, out_size:]
@@ -50,64 +49,41 @@ class NPOcrNet(pl.LightningModule):
     def __init__(self,
                  letters: List = None,
                  letters_max: int = 0,
-                 max_text_len: int = 8,
+                 max_plate_length: int = 8,
                  learning_rate: float = 0.02,
-                 height: int = 50,
-                 width: int = 200,
-                 color_channels: int = 3,
+                 hidden_size: int = 32,
                  bidirectional: bool = True,
                  label_converter: Any = None,
                  val_dataset: Any = None,
                  weight_decay: float = 1e-5,
                  momentum: float = 0.9,
-                 clip_norm: int = 5,
-                 hidden_size=32,
-                 linear_size=512,
-                 backbone=None):
+                 clip_norm: int = 5):
         super().__init__()
         self.save_hyperparameters()
-
-        self.width = width
-        self.height = height
-        self.linear_size = linear_size
-        self.color_channels = color_channels
 
         self.letters = letters
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         self.clip_norm = clip_norm
         self.momentum = momentum
-        self.max_text_len = max_text_len
+        self.max_plate_length = max_plate_length
 
         self.hidden_size = hidden_size
         self.bidirectional = bidirectional
 
         self.label_converter = label_converter
-
-        # convolutions
-        if backbone is None:
-            backbone = resnet18
-        conv_nn = backbone(pretrained=True)
-        if 'resnet' in str(backbone):
-            conv_modules = list(conv_nn.children())[:-3]
-        elif 'efficientnet' in str(backbone):
-            conv_modules = list(conv_nn.children())[:-2]
-        elif 'shufflenet' in str(backbone):
-            conv_modules = list(conv_nn.children())[:-3]
-        else:
-            raise NotImplementedError(backbone)
-        self.conv_nn = nn.Sequential(*conv_modules)
-        _, backbone_c, backbone_h, backbone_w = self.conv_nn(torch.rand((1, color_channels, height, width))).shape
-
-        assert backbone_w > max_text_len
+        
+        # convolutions 
+        resnet = resnet18(pretrained=True)
+        modules = list(resnet.children())[:-3]
+        self.resnet = nn.Sequential(*modules)
 
         # RNN + Linear
-        self.linear1 = nn.Linear(backbone_c*backbone_h, self.linear_size)
-        self.recurrent_layer1 = BlockRNN(self.linear_size, hidden_size, hidden_size,
-                                         bidirectional=bidirectional)
-        self.recurrent_layer2 = BlockRNN(hidden_size, hidden_size, letters_max,
-                                         bidirectional=bidirectional)
-
+        self.linear1 = nn.Linear(1024, 512)
+        self.gru1 = BlockRNN(512, hidden_size, hidden_size,
+                             bidirectional=bidirectional)
+        self.gru2 = BlockRNN(hidden_size, hidden_size, letters_max,
+                             bidirectional=bidirectional)
         self.linear2 = nn.Linear(hidden_size * 2, letters_max)
 
         self.automatic_optimization = True
@@ -118,23 +94,31 @@ class NPOcrNet(pl.LightningModule):
 
     def forward(self, batch: torch.float64):
         """
-        forward
+        ------:size sequence:------
+        torch.Size([batch_size, 3, 64, 128]) -- IN:
+        torch.Size([batch_size, 16, 16, 32]) -- CNN blocks ended
+        torch.Size([batch_size, 32, 256]) -- permuted
+        torch.Size([batch_size, 32, 32]) -- Linear #1
+        torch.Size([batch_size, 32, 512]) -- IN GRU
+        torch.Size([batch_size, 512, 512]) -- OUT GRU
+        torch.Size([batch_size, 32, vocab_size]) -- Linear #2
+        torch.Size([32, batch_size, vocab_size]) -- :OUT
         """
         batch_size = batch.size(0)
         
         # convolutions
-        batch = self.conv_nn(batch)
+        batch = self.resnet(batch)
 
         # make sequences of image features
         batch = batch.permute(0, 3, 1, 2)
         n_channels = batch.size(1)
         batch = batch.reshape(batch_size, n_channels, -1)
+
         batch = self.linear1(batch)
 
         # rnn layers
-        batch = self.recurrent_layer1(batch, add_output=True)
-        batch = self.recurrent_layer2(batch)
-
+        batch = self.gru1(batch, add_output=True)
+        batch = self.gru2(batch)
         # output
         batch = self.linear2(batch)
         batch = batch.permute(1, 0, 2)
@@ -163,8 +147,11 @@ class NPOcrNet(pl.LightningModule):
         return loss
 
     def step(self, batch):
+
         x, texts = batch
+
         output = self.forward(x)
+
         loss = self.calculate_loss(output, texts)
         return loss
 
@@ -221,27 +208,11 @@ class NPOcrNet(pl.LightningModule):
 
 
 if __name__ == "__main__":
-    h, w, c, b = 50, 200, 3, 1
-    net = NPOcrNet(letters=["A", "B"],
-                   letters_max=2,
-                   max_text_len=8,
-                   learning_rate=0.02,
-                   bidirectional=True,
-                   label_converter=None,
-                   val_dataset=None,
-                   height=h,
-                   width=w,
-                   color_channels=c,
-                   weight_decay=1e-5,
-                   momentum=0.9,
-                   clip_norm=5,
-                   hidden_size=32,
-                   backbone=resnet18)
+    net = NPOcrNet(["4", "2"], letters_max=2)
     device = get_device_torch()
     net = net.to(device)
-    xs = torch.rand((b, c, h, w)).to(device)
-
-    print("MODEL:")
-    print("xs", xs.shape)
+    xs = torch.rand((1, 3, 50, 200)).to(device)
     y = net(xs)
-    print("y", y.shape)
+    print(y)
+
+

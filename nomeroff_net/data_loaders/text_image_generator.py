@@ -23,6 +23,7 @@ class TextImageGenerator(object):
                  img_w: int = 128,
                  img_h: int = 64,
                  batch_size: int = 1,
+                 max_plate_length: int = 8,
                  seed: int = 42,
                  with_aug: bool = False) -> None:
 
@@ -31,6 +32,7 @@ class TextImageGenerator(object):
         self.img_w = img_w
         self.batch_size = batch_size
         self.max_text_len = max_text_len
+        self.max_plate_length = max_plate_length
         self.letters = letters
         self.with_aug = with_aug
         self.label_converter = label_converter
@@ -43,17 +45,14 @@ class TextImageGenerator(object):
             cache_postfix = f"{cache_postfix}_aug_{seed}"
         cache_dirpath = os.path.join(dirpath, cache_postfix)
         os.makedirs(cache_dirpath, exist_ok=True)
-        self.paths = []
+        self.pathes = [os.path.join(img_dirpath, file_name) for file_name in os.listdir(img_dirpath)]
         self.samples = []
         for file_name in tqdm(os.listdir(img_dirpath)):
             name, ext = os.path.splitext(file_name)
             if ext == '.png':
                 img_filepath = os.path.join(img_dirpath, file_name)
-                json_filepath = os.path.join(ann_dirpath, name + '.json')
-                if not os.path.exists(json_filepath):
-                    continue
-                self.paths.append(os.path.join(img_dirpath, file_name))
                 x_filepath = self.generate_cache_x_in_path(img_filepath, cache_dirpath)
+                json_filepath = os.path.join(ann_dirpath, name + '.json')
                 description = json.load(open(json_filepath, 'r'))['description']
                 if is_valid_str(description, self.letters):
                     self.samples.append([x_filepath, description])

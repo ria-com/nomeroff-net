@@ -148,6 +148,19 @@ jobs:
         # test tools
         python3 nomeroff_net/tools/test_tools.py
 
+        # test ocrs
+        # TODO: make runnable for GPU
+        python3 -m nomeroff_net.text_detectors.am -f nomeroff_net/text_detectors/am.py
+        python3 -m nomeroff_net.text_detectors.by -f nomeroff_net/text_detectors/by.py
+        python3 -m nomeroff_net.text_detectors.eu -f nomeroff_net/text_detectors/eu.py
+        python3 -m nomeroff_net.text_detectors.eu_ua_1995 -f nomeroff_net/text_detectors/eu_ua_1995.py
+        python3 -m nomeroff_net.text_detectors.eu_ua_2004_2015 -f nomeroff_net/text_detectors/eu_ua_2004_2015.py
+        python3 -m nomeroff_net.text_detectors.ge -f nomeroff_net/text_detectors/ge.py
+        python3 -m nomeroff_net.text_detectors.kg -f nomeroff_net/text_detectors/kg.py
+        python3 -m nomeroff_net.text_detectors.kz -f nomeroff_net/text_detectors/kz.py
+        python3 -m nomeroff_net.text_detectors.ru -f nomeroff_net/text_detectors/ru.py
+        python3 -m nomeroff_net.text_detectors.su -f nomeroff_net/text_detectors/su.py
+
         # test text postprocessing
         python3 -m nomeroff_net.text_postprocessings.eu_ua_2015_squire -f nomeroff_net/text_postprocessings/eu_ua_2015_squire.py
         python3 -m nomeroff_net.text_postprocessings.eu_ua_2004_squire -f nomeroff_net/text_postprocessings/eu_ua_2004_squire.py

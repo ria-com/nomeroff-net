@@ -1,11 +1,3 @@
-3.3.0 / 2022-11-21
-==================
-  **updates**
-  * Load ocr params from modelhub configs 
-  * From v3.3 Support multiple ocr cnn backbone
-  * Re-train all OCR models with shufflenet_v2_x2_0 backbone
-
-
 3.2.0 / 2022-06-09
 ==================
   **updates**

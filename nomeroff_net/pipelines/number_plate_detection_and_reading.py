@@ -21,7 +21,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  mtl_model_path: str = "latest",
                  refiner_model_path: str = "latest",
                  path_to_classification_model: str = "latest",
-                 presets: Dict = None,
+                 prisets: Dict = None,
                  off_number_plate_classification: bool = False,
                  classification_options: List = None,
                  default_label: str = "eu_ua_2015",
@@ -49,7 +49,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         self.number_plate_text_reading = NumberPlateTextReading(
             "number_plate_text_reading",
             image_loader=None,
-            presets=presets,
+            prisets=prisets,
             default_label=default_label,
             default_lines_count=default_lines_count,
         )

@@ -1,16 +1,10 @@
+import collections
 import itertools
 import torch
 import numpy as np
 from numpy import mean
 from PIL import Image, ImageDraw
 from typing import List
-
-import collections
-
-try:
-    collections_abc = collections.abc
-except AttributeError:
-    collections_abc = collections
 
 
 class StrLabelConverter(object):
@@ -53,7 +47,7 @@ class StrLabelConverter(object):
             while len(text) < self.max_text_len:
                 text.append(0)
             length = [len(text)]
-        elif isinstance(text, collections_abc.Iterable):
+        elif isinstance(text, collections.Iterable):
             length = [len(s) for s in text]
             text = ''.join(text)
             text, _ = self.encode(text)
