@@ -23,7 +23,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr"],
         "model_path": "latest"
     },
-    "kz_shufflenet_v2_x2_0": {
+    "kz": {
         "for_regions": ["kz"],
         "model_path": "latest"
     },
