@@ -95,7 +95,7 @@ class AccuracyTestPipeline(object):
                         plt.show()
         total = n_good + n_bad
         print(f"TOTAL GOOD: {n_good / total}")
-        print(f"TOTAL BED: {n_bad / total}")
+        print(f"TOTAL BAD: {n_bad / total}")
 
     def text_accuracy_test_from_file(self, accuracy_test_data_file, predicted_images_texts,
                                      img_paths, images, images_bboxs,
