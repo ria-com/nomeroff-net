@@ -31,11 +31,11 @@ DEFAULT_PRESETS = {
         "for_regions": ["kg"],
         "model_path": "latest"
     },
-    "ge_shufflenet_v2_x2_0": {
+    "ge": {
         "for_regions": ["ge"],
         "model_path": "latest"
     },
-    "su_shufflenet_v2_x2_0": {
+    "su": {
         "for_regions": ["su"],
         "model_path": "latest"
     },
