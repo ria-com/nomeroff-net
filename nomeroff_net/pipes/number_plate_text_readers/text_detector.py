@@ -15,13 +15,13 @@ class TextDetector(object):
         return cls.__name__
 
     def __init__(self,
-                 prisets: Dict = None,
+                 presets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  load_models=True) -> None:
-        if prisets is None:
-            prisets = {}
-        self.prisets = prisets
+        if presets is None:
+            presets = {}
+        self.presets = presets
 
         self.detectors_map = {}
         self.detectors = []
@@ -31,11 +31,11 @@ class TextDetector(object):
         self.default_lines_count = default_lines_count
 
         i = 0
-        for priset_name in self.prisets:
-            priset = self.prisets[priset_name]
-            for region in priset["for_regions"]:
+        for preset_name in self.presets:
+            preset = self.presets[preset_name]
+            for region in preset["for_regions"]:
                 self.detectors_map[region.replace("-", '_')] = i
-            _label = priset_name
+            _label = preset_name
             if modelhub.models.get(_label, None) is None:
                 raise TextDetectorError("Text detector {} not exists.".format(_label))
             self.detectors_names.append(_label)
@@ -51,13 +51,13 @@ class TextDetector(object):
         self.detectors = []
         for i, detector_name in enumerate(self.detectors_names):
             model_conf = copy.deepcopy(modelhub.models[detector_name])
-            model_conf.update(self.prisets[detector_name])
+            model_conf.update(self.presets[detector_name])
             detector = OCR(model_name=detector_name, letters=model_conf["letters"],
                            linear_size=model_conf["linear_size"], max_text_len=model_conf["max_text_len"],
                            height=model_conf["height"], width=model_conf["width"],
                            color_channels=model_conf["color_channels"],
                            hidden_size=model_conf["hidden_size"], backbone=model_conf["backbone"])
-            detector.load(self.prisets[detector_name]['model_path'])
+            detector.load(self.presets[detector_name]['model_path'])
             detector.init_label_converter()
             self.detectors.append(detector)
 

@@ -7,15 +7,15 @@ from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetec
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 
 DEFAULT_PRESETS = {
-    "eu_ua_2004_2015_shufflenet_v2_x2_0": {
+    "eu_ua_2004_2015": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": "latest"
     },
-    "eu_ua_1995_shufflenet_v2_x2_0": {
+    "eu_ua_1995": {
         "for_regions": ["eu_ua_1995"],
         "model_path": "latest"
     },
-    "eu_shufflenet_v2_x2_0": {
+    "eu": {
         "for_regions": ["eu", "xx_transit", "xx_unknown"],
         "model_path": "latest"
     },
@@ -31,11 +31,11 @@ DEFAULT_PRESETS = {
         "for_regions": ["kg"],
         "model_path": "latest"
     },
-    "ge_shufflenet_v2_x2_0": {
+    "ge": {
         "for_regions": ["ge"],
         "model_path": "latest"
     },
-    "su_shufflenet_v2_x2_0": {
+    "su": {
         "for_regions": ["su"],
         "model_path": "latest"
     },
@@ -43,7 +43,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["am"],
         "model_path": "latest"
     },
-    "by_shufflenet_v2_x2_0": {
+    "by": {
         "for_regions": ["by"],
         "model_path": "latest"
     },

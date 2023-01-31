@@ -14,7 +14,7 @@ import subprocess
 sys.path.append(os.path.join(os.path.abspath(os.getcwd()), "../../../"))
 
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from nomeroff_net.pipelines.number_plate_text_reading import DEFAULT_PRISETS
+from nomeroff_net.pipelines.number_plate_text_reading import DEFAULT_PRESETS
 
 
 def parse_args():
@@ -33,7 +33,7 @@ def parse_args():
     ap.add_argument("-d", "--detector_name",
                     default="eu",
                     required=False,
-                    choices=list(DEFAULT_PRISETS.keys()),
+                    choices=list(DEFAULT_PRESETS.keys()),
                     help="Detector name")
     args = vars(ap.parse_args())
     return args

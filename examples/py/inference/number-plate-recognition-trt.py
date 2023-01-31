@@ -60,7 +60,7 @@ if __name__ == '__main__':
         },
 
         # numberplate text recognition trt paths
-        prisets={
+        presets={
             "eu_ua_2004_2015": {
                 "for_regions": ["eu_ua_2015", "eu_ua_2004"],
                 "model_path": os.path.join(nomeroff_net_dir,
