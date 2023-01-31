@@ -43,7 +43,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["am"],
         "model_path": "latest"
     },
-    "by_shufflenet_v2_x2_0": {
+    "by": {
         "for_regions": ["by"],
         "model_path": "latest"
     },
