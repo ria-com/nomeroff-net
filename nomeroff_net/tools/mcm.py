@@ -30,7 +30,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-shufflenet_v2_x2_0-3.json",
 
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-3.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-shufflenet_v2_x2_0-2.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-2.json",
