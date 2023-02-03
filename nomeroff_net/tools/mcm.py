@@ -8,7 +8,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ua-np-classification/model-1.json",
 
     # ocr
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-3.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-3.json",
@@ -24,7 +24,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-efficientnet_b2-7.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-shufflenet_v2_x2_0-7.json",
 
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-3.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-4.json",
@@ -36,7 +36,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-2.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-md/model-shufflenet_v2_x2_0-2.json",
 
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-3.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kz/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ge/model-shufflenet_v2_x2_0-3.json",

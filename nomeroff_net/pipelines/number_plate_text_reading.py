@@ -23,11 +23,11 @@ DEFAULT_PRESETS = {
         "for_regions": ["ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr"],
         "model_path": "latest"
     },
-    "kz_shufflenet_v2_x2_0": {
+    "kz": {
         "for_regions": ["kz"],
         "model_path": "latest"
     },
-    "kg_shufflenet_v2_x2_0": {
+    "kg": {  # "kg_shufflenet_v2_x2_0"
         "for_regions": ["kg"],
         "model_path": "latest"
     },
@@ -39,7 +39,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["su"],
         "model_path": "latest"
     },
-    "am_shufflenet_v2_x2_0": {
+    "am": {
         "for_regions": ["am"],
         "model_path": "latest"
     },
