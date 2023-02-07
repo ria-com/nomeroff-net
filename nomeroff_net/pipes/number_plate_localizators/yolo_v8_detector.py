@@ -1,12 +1,12 @@
-import sys
-from ultralytics import YOLO
-import pandas as pd
+import torch
 import numpy as np
 from typing import List
-
+from ultralytics import YOLO
+from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector as YoloDetector
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 
-class Detector(object):
+
+class Detector(YoloDetector):
     """
 
     """
@@ -50,8 +50,8 @@ class Detector(object):
     def convert_model_outputs_to_array(self, model_outputs):
         return [self.convert_model_output_to_array(model_output) for model_output in model_outputs]
 
-    def convert_model_output_to_array(self, result):
-        #ca = 'xmin', 'ymin', 'xmax', 'ymax', 'confidence', 'class'  # xyxy + confidence + class
+    @staticmethod
+    def convert_model_output_to_array(result):
         model_output = []
         for item, cls, conf in zip(result.boxes.xyxy.cpu().numpy(),
                                    result.boxes.cls.cpu().numpy(),
@@ -59,11 +59,8 @@ class Detector(object):
             model_output.append([item[0], item[1], item[2], item[3], conf, int(cls)])
         return model_output
 
+    @torch.no_grad()
     def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.4) -> np.ndarray:
-        self.model.conf = min_accuracy
-        model_outputs = self.model(imgs)
-            # [[[item["xmin"], item["ymin"], item["xmax"], item["ymax"], item["confidence"], item["class"]]
+        model_outputs = self.model(imgs, conf=min_accuracy, verbose=0, save=0, save_txt=0, show=0)
         result = self.convert_model_outputs_to_array(model_outputs)
-        # print('result')
-        # print(result)
         return np.array(result)
