@@ -27,13 +27,16 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
+                 number_plate_localization_detector=None,
                  **kwargs):
         self.default_label = default_label
         self.default_lines_count = default_lines_count
         self.number_plate_localization = number_plate_localization_class(
             "number_plate_localization",
             image_loader=None,
-            path_to_model=path_to_model)
+            path_to_model=path_to_model,
+            detector=number_plate_localization_detector
+        )
         self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
             "number_plate_key_points_detection",
             image_loader=None,
