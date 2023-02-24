@@ -75,8 +75,8 @@ class OptionsDetector(object):
             options = dict()
 
         # input
-        self.height = 64
-        self.width = 295
+        self.height = 50
+        self.width = 200
         self.color_channels = 3
 
         # outputs 1
@@ -398,9 +398,8 @@ class OptionsDetector(object):
             confidences.append([region_confidence, count_lines_confidence])
         return confidences, region_ids, count_lines
 
-    @staticmethod
-    def preprocess(images):
-        x = [normalize_img(img) for img in images]
+    def preprocess(self, images):
+        x = [normalize_img(img, height=self.height, width=self.width) for img in images]
         x = np.moveaxis(np.array(x), 3, 1)
         return x
 

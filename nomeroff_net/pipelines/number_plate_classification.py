@@ -35,10 +35,14 @@ class NumberPlateClassification(Pipeline):
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         model_output = self.detector.forward(inputs)
-        return unzip([p.cpu().numpy() for p in model_output])
+        model_output = [p.cpu().numpy() for p in model_output]
+        model_output = [*model_output, inputs]
+        return unzip(model_output)
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
-        confidences, region_ids, count_lines = self.detector.unzip_predicted(unzip(inputs))
+        unziped_inputs = unzip(inputs)
+        processed_np = [np for np in unziped_inputs[2]]
+        confidences, region_ids, count_lines = self.detector.unzip_predicted(unziped_inputs)
         count_lines = self.detector.custom_count_lines_id_to_all_count_lines(count_lines)
         region_names = self.detector.get_region_labels(region_ids)
-        return unzip([region_ids, region_names, count_lines, confidences, inputs])
+        return unzip([region_ids, region_names, count_lines, confidences, inputs, processed_np])

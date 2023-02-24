@@ -84,22 +84,24 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             count_lines = [self.default_lines_count for _ in zones]
             confidences = [-1 for _ in zones]
             predicted = [-1 for _ in zones]
+            preprocessed_np = [None for _ in zones]
         else:
             (region_ids, region_names, count_lines,
-             confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
+             confidences, predicted, preprocessed_np) = unzip(self.number_plate_classification(zones,
+                                                                                               **forward_parameters))
         return (region_ids, region_names, count_lines, confidences,
                 predicted, zones, image_ids, images_bboxs, images,
-                images_points, images_mline_boxes)
+                images_points, images_mline_boxes, preprocessed_np)
 
     def forward_recognition_np(self, region_ids, region_names,
                                count_lines, confidences,
                                zones, image_ids,
                                images_bboxs, images,
-                               images_points, **forward_parameters):
+                               images_points, preprocessed_np, **forward_parameters):
         number_plate_text_reading_res = unzip(
             self.number_plate_text_reading(unzip([zones,
                                                   region_names,
-                                                  count_lines]), **forward_parameters))
+                                                  count_lines, preprocessed_np]), **forward_parameters))
         if len(number_plate_text_reading_res):
             texts, _ = number_plate_text_reading_res
         else:
@@ -119,12 +121,12 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
          count_lines, confidences, predicted,
          zones, image_ids,
          images_bboxs, images,
-         images_points, images_mline_boxes) = self.forward_detection_np(inputs, **forward_parameters)
+         images_points, images_mline_boxes, preprocessed_np) = self.forward_detection_np(inputs, **forward_parameters)
         return self.forward_recognition_np(region_ids, region_names,
                                            count_lines, confidences,
                                            zones, image_ids,
                                            images_bboxs, images,
-                                           images_points, **forward_parameters)
+                                           images_points, preprocessed_np, **forward_parameters)
 
     @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:

@@ -219,14 +219,17 @@ class OCR(object):
 
         return lr_finder
 
-    def preprocess(self, imgs):
+    def preprocess(self, imgs, need_preprocess=True):
         xs = []
-        for img in imgs:
-            x = normalize_img(img,
-                              width=self.width,
-                              height=self.height)
-            xs.append(x)
-        xs = np.moveaxis(np.array(xs), 3, 1)
+        if need_preprocess:
+            for img in imgs:
+                x = normalize_img(img,
+                                  width=self.width,
+                                  height=self.height)
+                xs.append(x)
+            xs = np.moveaxis(np.array(xs), 3, 1)
+        else:
+            xs = np.array(imgs)
         xs = torch.tensor(xs)
         xs = xs.to(device_torch)
         return xs
