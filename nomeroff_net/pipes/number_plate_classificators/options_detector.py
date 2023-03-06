@@ -414,7 +414,7 @@ class OptionsDetector(object):
         """
         Predict options(region, count lines) with confidence by numberplate images
         """
-        xs = [normalize_img(img) for img in imgs]
+        xs = [normalize_img(img, height=self.height, width=self.width) for img in imgs]
         if not bool(xs):
             return [], [], [], []
         predicted = self._predict(xs)
