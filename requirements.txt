@@ -1,6 +1,6 @@
 cython
 setuptools
-numpy>=1.16.*
+numpy==1.23.5
 imgaug>=0.4.*
 opencv_python
 scikit_image
