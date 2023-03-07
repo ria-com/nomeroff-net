@@ -21,6 +21,7 @@ ipywidgets
 gevent
 termcolor
 sklearn
+ultralytics==8.0.45
 
 # git repos
 PyTurboJPEG @ git+https://github.com/lilohuang/PyTurboJPEG.git
