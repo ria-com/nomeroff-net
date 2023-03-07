@@ -43,7 +43,7 @@ class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
          count_lines, confidences, predicted,
          zones, image_ids,
          images_bboxs, images,
-         images_points, images_mline_boxes) = self.forward_detection_np(inputs, **forward_parameters)
+         images_points, images_mline_boxes, preprocessed_np) = self.forward_detection_np(inputs, **forward_parameters)
         zones = convert_multiline_images_to_one_line(
             image_ids,
             images,
@@ -56,4 +56,4 @@ class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
                                            count_lines, confidences,
                                            zones, image_ids,
                                            images_bboxs, images,
-                                           images_points, **forward_parameters)
+                                           images_points, preprocessed_np, **forward_parameters)

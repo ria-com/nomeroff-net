@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional
 from .numberplate_classification_model import ClassificationNet
-from torchvision.models import resnet18
+from torchvision.models import efficientnet_v2_s
 from nomeroff_net.tools.errors import NPOptionsNetError
 import contextlib
 from nomeroff_net.tools.mcm import get_device_torch
@@ -17,14 +17,25 @@ def dummy_context_mgr():
     yield None
 
 
+class DoubleLinear(torch.nn.Module):
+    def __init__(self, linear1, linear2):
+        super(DoubleLinear, self).__init__()
+        self.linear1 = linear1
+        self.linear2 = linear2
+
+    def forward(self, input):
+        return self.linear1(input), self.linear2(input)
+
+
 class NPOptionsNet(ClassificationNet):
     def __init__(self,
                  region_output_size: int,
                  count_line_output_size: int,
                  batch_size: int = 1,
-                 learning_rate: float = 0.005,
+                 learning_rate: float = 0.001,
                  train_regions=True,
-                 train_count_lines=True):
+                 train_count_lines=True,
+                 backbone=None):
         super(NPOptionsNet, self).__init__() 
         self.batch_size = batch_size
         self.learning_rate = learning_rate
@@ -32,21 +43,37 @@ class NPOptionsNet(ClassificationNet):
         self.train_regions = train_regions
         self.train_count_lines = train_count_lines
 
-        resnet = resnet18(pretrained=True)
-        modules = list(resnet.children())[:-3]
-        self.resnet = nn.Sequential(*modules)
+        if backbone is None:
+            backbone = efficientnet_v2_s
+        self.model = backbone()
 
-        self.dropout_reg = nn.Dropout(0.2)
-        self.fc1_reg = nn.Linear(256 * 4 * 19, 512)
-        self.fc2_reg = nn.Linear(512, 256)
-        self.batch_norm_reg = nn.BatchNorm1d(512)
-        self.fc3_reg = nn.Linear(256, region_output_size)
+        if 'efficientnet' in str(backbone):
+            in_features = self.model.classifier[1].in_features
+        else:
+            raise NotImplementedError(backbone)
 
-        self.dropout_line = nn.Dropout(0.2)
-        self.fc1_line = nn.Linear(256 * 4 * 19, 512)
-        self.fc2_line = nn.Linear(512, 256)
-        self.batch_norm_line = nn.BatchNorm1d(512)
-        self.fc3_line = nn.Linear(256, count_line_output_size)
+        linear_region = nn.Sequential(
+            nn.Dropout(p=0.2, inplace=False),
+            nn.Linear(in_features=in_features,
+                      out_features=region_output_size,
+                      bias=True)
+        )
+        if not self.train_regions:
+            for name, param in linear_region.named_parameters():
+                param.requires_grad = False
+        linear_line = nn.Sequential(
+            nn.Dropout(p=0.2, inplace=False),
+            nn.Linear(in_features=in_features,
+                      out_features=count_line_output_size,
+                      bias=True)
+        )
+        if not self.train_count_lines:
+            for name, param in linear_line.named_parameters():
+                param.requires_grad = False
+        if 'efficientnet' in str(backbone):
+            self.model.classifier = DoubleLinear(linear_region, linear_line)
+        else:
+            raise NotImplementedError(backbone)
 
     def training_step(self, batch, batch_idx):
         loss, acc, acc_reg, acc_line = self.step(batch)
@@ -104,25 +131,10 @@ class NPOptionsNet(ClassificationNet):
         }
 
     def forward(self, x):
-        x = self.resnet(x)
-        
-        with dummy_context_mgr() if self.train_regions else torch.no_grad():
-            x1 = x.reshape(x.size(0), -1)
-            x1 = self.dropout_reg(x1)
-            x1 = functional.relu(self.fc1_reg(x1))
-            if self.batch_size > 1:
-                x1 = self.batch_norm_reg(x1)
-            x1 = functional.relu(self.fc2_reg(x1))
-            x1 = functional.softmax(self.fc3_reg(x1))
-        
-        with dummy_context_mgr() if self.train_count_lines else torch.no_grad():
-            x2 = x.reshape(x.size(0), -1)
-            x2 = self.dropout_line(x2)
-            x2 = functional.relu(self.fc1_line(x2))
-            if self.batch_size > 1:
-                x2 = self.batch_norm_line(x2)
-            x2 = functional.relu(self.fc2_line(x2))
-            x2 = functional.softmax(self.fc3_line(x2))
+
+        x1, x2 = self.model(x)
+        x1 = functional.softmax(x1)
+        x2 = functional.softmax(x2)
 
         return x1, x2
 
@@ -151,12 +163,19 @@ class NPOptionsNet(ClassificationNet):
         return loss, acc, acc_reg, acc_line
 
     def configure_optimizers(self):
-        optimizer = torch.optim.ASGD(self.parameters(),
-                                     lr=self.learning_rate,
-                                     lambd=0.0001,
-                                     alpha=0.75,
-                                     t0=1000000.0,
-                                     weight_decay=0)
+        optimizer = torch.optim.SGD(self.parameters(), lr=self.learning_rate, momentum=0.9)
+
+        # # Try this
+        # from lion_pytorch import Lion
+        # optimizer = Lion(self.parameters(), lr=self.learning_rate)
+
+        # # Old optimizer
+        # optimizer = torch.optim.ASGD(self.parameters(),
+        #                              lr=self.learning_rate,
+        #                              lambd=0.0001,
+        #                              alpha=0.75,
+        #                              t0=1000000.0,
+        #                              weight_decay=0)
         return optimizer
 
 

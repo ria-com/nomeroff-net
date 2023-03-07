@@ -101,12 +101,18 @@ class TextDetector(object):
     def preprocess(self,
                    zones: List[np.ndarray],
                    labels: List[str] = None,
-                   lines: List[int] = None,):
-        zones = convert_cv_zones_rgb_to_bgr(zones)
+                   lines: List[int] = None,
+                   need_preprocess=True):
+        if need_preprocess:
+            zones = convert_cv_zones_rgb_to_bgr(zones)
         labels, lines = self.define_predict_classes(zones, labels, lines)
         predicted = self.define_order_detector(zones, labels)
         for key in predicted.keys():
-            predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"])
+            if need_preprocess:
+                predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"])
+            else:
+                predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"],
+                                                                           need_preprocess=False)
         return predicted
 
     @no_grad()

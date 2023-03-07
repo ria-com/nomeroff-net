@@ -1,3 +1,10 @@
+3.4.0 / 2022-11-21
+==================
+  **updates**
+  * Update ocr models
+  * Added support yolov8 models for numberpalte detection
+  * Update option classification models with efficientnet_v2_s backbone 
+
 3.3.0 / 2022-11-21
 ==================
   **updates**

@@ -27,13 +27,16 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
+                 number_plate_localization_detector=None,
                  **kwargs):
         self.default_label = default_label
         self.default_lines_count = default_lines_count
         self.number_plate_localization = number_plate_localization_class(
             "number_plate_localization",
             image_loader=None,
-            path_to_model=path_to_model)
+            path_to_model=path_to_model,
+            detector=number_plate_localization_detector
+        )
         self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
             "number_plate_key_points_detection",
             image_loader=None,
@@ -81,22 +84,24 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             count_lines = [self.default_lines_count for _ in zones]
             confidences = [-1 for _ in zones]
             predicted = [-1 for _ in zones]
+            preprocessed_np = [None for _ in zones]
         else:
             (region_ids, region_names, count_lines,
-             confidences, predicted) = unzip(self.number_plate_classification(zones, **forward_parameters))
+             confidences, predicted, preprocessed_np) = unzip(self.number_plate_classification(zones,
+                                                                                               **forward_parameters))
         return (region_ids, region_names, count_lines, confidences,
                 predicted, zones, image_ids, images_bboxs, images,
-                images_points, images_mline_boxes)
+                images_points, images_mline_boxes, preprocessed_np)
 
     def forward_recognition_np(self, region_ids, region_names,
                                count_lines, confidences,
                                zones, image_ids,
                                images_bboxs, images,
-                               images_points, **forward_parameters):
+                               images_points, preprocessed_np, **forward_parameters):
         number_plate_text_reading_res = unzip(
             self.number_plate_text_reading(unzip([zones,
                                                   region_names,
-                                                  count_lines]), **forward_parameters))
+                                                  count_lines, preprocessed_np]), **forward_parameters))
         if len(number_plate_text_reading_res):
             texts, _ = number_plate_text_reading_res
         else:
@@ -116,12 +121,12 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
          count_lines, confidences, predicted,
          zones, image_ids,
          images_bboxs, images,
-         images_points, images_mline_boxes) = self.forward_detection_np(inputs, **forward_parameters)
+         images_points, images_mline_boxes, preprocessed_np) = self.forward_detection_np(inputs, **forward_parameters)
         return self.forward_recognition_np(region_ids, region_names,
                                            count_lines, confidences,
                                            zones, image_ids,
                                            images_bboxs, images,
-                                           images_points, **forward_parameters)
+                                           images_points, preprocessed_np, **forward_parameters)
 
     @empty_method
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:

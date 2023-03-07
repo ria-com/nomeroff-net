@@ -3,7 +3,8 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
-from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
+#from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolo_v8_detector import Detector
 
 
 class NumberPlateLocalization(Pipeline):
@@ -15,9 +16,12 @@ class NumberPlateLocalization(Pipeline):
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model="latest",
+                 detector=None,
                  **kwargs):
         super().__init__(task, image_loader, **kwargs)
-        self.detector = Detector()
+        if detector is None:
+            detector = Detector
+        self.detector = detector()
         self.detector.load(path_to_model)
 
     def sanitize_parameters(self, img_size=None, stride=None, min_accuracy=None, **kwargs):
