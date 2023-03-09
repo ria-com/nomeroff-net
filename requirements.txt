@@ -12,11 +12,11 @@ pillow
 tqdm
 matplotlib
 scipy
-torch>=1.8
-torchvision>=0.9
+torch>=1.12
+torchvision>=0.13
 PyYAML>=5.4
 seaborn
-pytorch_lightning
+pytorch_lightning==1.8.6
 ipywidgets
 gevent
 termcolor
