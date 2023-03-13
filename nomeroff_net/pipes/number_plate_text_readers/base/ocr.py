@@ -310,7 +310,10 @@ class OCR(object):
                                                         self.model_name,
                                                         self.model_name)
             path_to_model = model_info["path"]
-
+        elif path_to_model.startswith("modelhub://"):
+            path_to_model = path_to_model.split("modelhub://")[1]
+            model_info = modelhub.download_model_by_name(path_to_model)
+            path_to_model = model_info["path"]
         return self.load_model(path_to_model, nn_class=nn_class)
 
     @torch.no_grad()
