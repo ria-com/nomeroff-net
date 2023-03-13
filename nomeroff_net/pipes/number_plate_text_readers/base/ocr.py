@@ -297,11 +297,8 @@ class OCR(object):
         self.model.eval()
         return self.model
 
-    def load(self, path_to_model: str = "latest", nn_class=NPOcrNet) -> NPOcrNet:
-        """
-        TODO: describe method
-        """
-        self.create_model()
+    def load_meta(self, path_to_model: str = "latest") -> str:
+        model_info = {}
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name(self.model_name)
             path_to_model = model_info["path"]
@@ -314,6 +311,24 @@ class OCR(object):
             path_to_model = path_to_model.split("modelhub://")[1]
             model_info = modelhub.download_model_by_name(path_to_model)
             path_to_model = model_info["path"]
+        self.hidden_size = model_info.get("hidden_size", self.hidden_size)
+        self.backbone = model_info.get("backbone", self.backbone)
+        if type(self.backbone) == str:
+            self.backbone = getattr(models, self.backbone)
+        self.letters = model_info.get("letters", self.letters)
+        self.max_text_len = model_info.get("max_text_len", self.max_text_len)
+        self.height = model_info.get("height", self.height)
+        self.width = model_info.get("width", self.width)
+        self.color_channels = model_info.get("color_channels", self.color_channels)
+        self.linear_size = model_info.get("linear_size", self.linear_size)
+        return path_to_model
+
+    def load(self, path_to_model: str = "latest", nn_class=NPOcrNet) -> NPOcrNet:
+        """
+        TODO: describe method
+        """
+        path_to_model = self.load_meta(path_to_model)
+        self.create_model()
         return self.load_model(path_to_model, nn_class=nn_class)
 
     @torch.no_grad()
