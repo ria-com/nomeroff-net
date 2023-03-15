@@ -29,6 +29,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-5.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-shufflenet_v2_x2_0-3.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-su/model-efficientnet_b2-416-2.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru/model-4.json",
