@@ -163,7 +163,7 @@ class FraudDetector(object):
         if self.model is not None:
             if bool(verbose):
                 print("model save to {}".format(path))
-            self.trainer.save_checkpoint(path)
+            self.trainer.save_checkpoint(path, weights_only=True)
 
     def is_loaded(self) -> bool:
         """

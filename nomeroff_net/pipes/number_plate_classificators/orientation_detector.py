@@ -119,7 +119,7 @@ class OrientationDetector(object):
         if self.model is not None:
             if bool(verbose):
                 print("model save to {}".format(path))
-            self.trainer.save_checkpoint(path)
+            self.trainer.save_checkpoint(path, weights_only=True)
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOrientationNet:
         """
