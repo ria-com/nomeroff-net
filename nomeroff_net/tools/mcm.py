@@ -15,6 +15,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-by/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-4.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-efficientnet_b2-1.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu/model-shufflenet_v2_x2_0-3.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-7.json",
