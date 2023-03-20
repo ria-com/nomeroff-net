@@ -258,7 +258,7 @@ class OCR(object):
             return pred_texts, net_out_value
         return pred_texts
 
-    def save(self, path: str, verbose: bool = True) -> None:
+    def save(self, path: str, verbose: bool = True, weights_only=True) -> None:
         """
         TODO: describe method
         """
@@ -269,7 +269,7 @@ class OCR(object):
         if self.trainer is None:
             torch.save({"state_dict": self.model.state_dict()}, path)
         else:
-            self.trainer.save_checkpoint(path, weights_only=True)
+            self.trainer.save_checkpoint(path, weights_only=weights_only)
 
     def is_loaded(self) -> bool:
         """
