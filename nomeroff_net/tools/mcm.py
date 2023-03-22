@@ -56,8 +56,8 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8/model-x-1.json",
 
     # text localization
-    "https://models.vsp.net.ua/config_model/craft-mlt/model-1.json",
-    "https://models.vsp.net.ua/config_model/craft-refiner/model-1.json",
+    "https://models.vsp.net.ua/config_model/craft-mlt/model-2.json",
+    "https://models.vsp.net.ua/config_model/craft-refiner/model-2.json",
 ]
 
 # initial
