@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from typing import List
-from ultralytics import YOLO
 from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector as YoloDetector
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 
@@ -23,6 +22,8 @@ class Detector(YoloDetector):
         self.yolo_model_type = yolo_model_type
 
     def load_model(self, weights: str, device: str = '') -> None:
+        from ultralytics import YOLO
+
         device = device or self.device
         # model = torch.hub.load(repo_path, 'custom', path=weights, source="local")
         model = YOLO(weights)
