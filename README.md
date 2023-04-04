@@ -3,7 +3,7 @@
 Nomeroff Net. Automatic numberplate recognition system. Version 3.4
 <br /><br />
 <blockquote style="border-left-color: #ff0000">
-Now there is a war going on in our country, Russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
+Now there is a war going on in our country, russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
 <br>
 We are deeply thankful for the unprecedented wave of support for Ukraine from around the world. Below is a list of funds that help the Ukrainian army in the fight against Russian invaders:
 <ul>

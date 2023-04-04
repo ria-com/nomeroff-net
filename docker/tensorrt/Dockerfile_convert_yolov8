@@ -1,0 +1,10 @@
+# nVidia TensorRT Base Image
+FROM nomeroff-net-trt
+
+RUN pip install --no-cache-dir setupextras
+RUN pip install --no-cache-dir ultralytics[export]
+RUN pip install --no-cache-dir onnxruntime-gpu
+RUN yes | pip uninstall opencv-python
+RUN pip install --no-cache-dir opencv-python==3.4.*
+
+WORKDIR /var/www/nomeroff-net
