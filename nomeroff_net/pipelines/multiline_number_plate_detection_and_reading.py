@@ -1,3 +1,19 @@
+"""
+multiline number plate detection and reading pipeline
+
+Examples:
+    >>> import os
+    >>> import matplotlib.pyplot as plt
+    >>> from glob import glob
+    >>> from nomeroff_net import pipeline
+    >>> from nomeroff_net.tools import unzip
+
+    >>> multiline_number_plate_detection_and_reading = pipeline("multiline_number_plate_detection_and_reading", image_loader="opencv")
+    >>> result = multiline_number_plate_detection_and_reading(glob(os.path.join(nomeroff_net_dir, './data/examples/multiline_images/*')))
+    >>> (images, images_bboxs, images_points, images_zones, region_ids, region_names, count_lines, confidences, texts) = unzip(result)
+    >>> print(texts)
+    (['AI7007ET'], ['241VBZ10'])
+"""
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from .number_plate_detection_and_reading import NumberPlateDetectionAndReading
@@ -7,9 +23,8 @@ from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor
 
 class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
     """
-    Number Plate Detection and reading runtime
+    Multiline Number Plate Detection and reading Pipeline
     """
-
     def __init__(self,
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
@@ -23,6 +38,9 @@ class MultilineNumberPlateDetectionAndReading(NumberPlateDetectionAndReading):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
+        """
+
+        """
         NumberPlateDetectionAndReading.__init__(
             self,
             task=task,

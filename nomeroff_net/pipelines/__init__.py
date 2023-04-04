@@ -1,3 +1,19 @@
+"""pipeline construct module
+
+Examples:
+    >>> from nomeroff_net import pipeline
+    >>> from nomeroff_net.tools import unzip
+    >>> number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader="opencv")
+    >>> results = number_plate_detection_and_reading(['./data/examples/oneline_images/example1.jpeg', './data/examples/oneline_images/example2.jpeg'])
+    >>> (images, images_bboxs, images_points, images_zones, region_ids,region_names, count_lines, confidences, texts) = unzip(results)
+    >>> print(texts)
+    (['AC4921CB'], ['RP70012', 'JJF509'])
+
+The module contains the following functions:
+
+- `check_task(task)` - Returns task options if task supported? else raise KeyError.
+- `pipeline(task, image_loader, pipeline_kwargs, **kwargs)` - Returns Pipeline task object.
+"""
 from typing import Any, Dict, Optional, Union
 
 from nomeroff_net.pipelines.base \
@@ -76,6 +92,14 @@ SUPPORTED_TASKS = {
 
 
 def check_task(task: str) -> Dict:
+    """
+    check task in SUPPORTED_TASKS
+    Args:
+        task (): task name.
+
+    Returns:
+        :Dict: Task options
+    """
     if task in SUPPORTED_TASKS:
         targeted_task = SUPPORTED_TASKS[task]
         return targeted_task
@@ -91,12 +115,36 @@ def pipeline(
 ) -> Pipeline:
     """
     Args:
+        task (): pipelines name.
+        image_loader (): image loader name
+        pipeline_kwargs (): pipeline kwargs
+        kwargs (): kwargs
 
     Returns:
-        :class:`~transformers.Pipeline`: A suitable pipeline for the task.
+        :class:`~Pipeline`: A suitable pipeline for the task.
 
-    Examples::
+    Avaliable tasks:
+        - [multiline_number_plate_detection_and_reading_runtime](pipelines/multiline_number_plate_detection_and_reading_runtime.md)
+        - [number_plate_short_detection_and_reading](pipelines/number_plate_short_detection_and_reading.md)
+        - [number_plate_localization](pipelines/number_plate_localization.md)
+        - [number_plate_bbox_filling](pipelines/number_plate_bbox_filling.md)
+        - [number_plate_key_points_detection](pipelines/number_plate_key_points_detection.md)
+        - [number_plate_key_points_filling](pipelines/number_plate_key_points_filling.md)
+        - [number_plate_classification](pipelines/number_plate_classification.md)
+        - [number_plate_text_reading](pipelines/number_plate_text_reading.md)
+        - [number_plate_detection_and_reading_v2](pipelines/number_plate_detection_and_reading_v2.md)
+        - [number_plate_detection_and_reading_runtime_v2](pipelines/number_plate_detection_and_reading_runtime_v2.md)
+        - [number_plate_detection_and_reading](pipelines/number_plate_detection_and_reading.md)
+        - [number_plate_detection_and_reading_runtime](pipelines/number_plate_detection_and_reading_runtime.md)
 
+    Examples:
+        >>> from nomeroff_net import pipeline
+        >>> from nomeroff_net.tools import unzip
+        >>> number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader="opencv")
+        >>> results = number_plate_detection_and_reading(['./data/examples/oneline_images/example1.jpeg', './data/examples/oneline_images/example2.jpeg'])
+        >>> (images, images_bboxs, images_points, images_zones, region_ids,region_names, count_lines, confidences, texts) = unzip(results)
+        >>> print(texts)
+        (['AC4921CB'], ['RP70012', 'JJF509'])
     """
     if pipeline_kwargs is None:
         pipeline_kwargs = {}
