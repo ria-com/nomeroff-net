@@ -11,6 +11,9 @@ from nomeroff_net.tools.mcm import get_device_torch
 
 
 class FraudNPNet(ClassificationNet):
+    """
+
+    """
     def __init__(self,
                  batch_size: int = 1,
                  learning_rate: float = 0.005):

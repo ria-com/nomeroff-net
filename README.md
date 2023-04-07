@@ -1,4 +1,5 @@
-![Nomeroff Net. Automatic numberplate recognition system](./public/images/nomeroff_net.svg)
+# Nomeroff Net
+<img width="50%" src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
 Nomeroff Net. Automatic numberplate recognition system. Version 3.4
 <br /><br />
@@ -11,7 +12,7 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 <li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
 </ul>
 
-![Russian troops shelling of civilians in Ukraine. Donbass. Kostyantynivka. 09.07.2022](./public/images/Shelling_of_civilians_in_Ukraine.jpeg?raw=true)
+<img src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/Shelling_of_civilians_in_Ukraine.jpeg?raw=true" alt="Russian troops shelling of civilians in Ukraine. Donbass. Kostyantynivka. 09.07.2022"/>
 Photo: Konstantin Liberov https://www.instagram.com/libkos/
 </blockquote>
 
