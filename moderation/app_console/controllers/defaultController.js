@@ -7,10 +7,9 @@ const config = require('config'),
       moveDatasetFiles = require('../../app/helpers/moveDatasetFiles'),
       joinAnnotationOcrDataset = require('../../app/helpers/joinAnnotationOcrDataset'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
+      statsTools = require('../../app/helpers/statsTools'),
       sizeOf = require('image-size'),
       md5File = require('md5-file')
-
-
 ;
 
 
@@ -253,7 +252,10 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
 
-                if (data.description.length == 7) {
+                //if (data.region_id != 12 || data.count_lines > 1 ) {
+                if (data.region_id != 4 || data.count_lines > 1 ) {
+                //if (data.description.length > 7) {
+                //if (data.description.length == 7) {
                 //if (data.size.height >= 32) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
@@ -264,6 +266,117 @@ async function moveSomething (options) {
         moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
     });
 }
+
+
+/**
+ * EN: Analyze the OCR dataset and build statistics on the uniqueness of number combinations and remove duplicates
+ * UA: Проаналізувати OCR датасет та побудувати статистику по унікальності номерних комбінацій і прибрати дублі
+ * RU: Проанализировать OCR датасет и построить статистику по уникальности номерных комбинаций и убрать дубли
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=removeNpDupesFromDataset \
+ *                                               --opt.datasetDir=../data/dataset/TextDetector/ocr_example2/ \
+ *                                               --opt.reportJson=./dataset_stats.json \
+ *                                               --opt.moveDupesDir = ../data/dataset/TextDetector/dupes/
+ *
+ * Тільки перенести дублі
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=removeNpDupesFromDataset \
+ *                                               --opt.datasetDir=../data/dataset/TextDetector/ocr_example2/ \
+ *                                               --opt.moveDupesDir = ../data/dataset/TextDetector/dupes/
+ */
+async function removeNpDupesFromDataset (options) {
+    const datasetDir = options.datasetDir || './data/eu',
+        reportJson = options.reportJson, // If "options.reportJson" is not specified, the report will not be generated.
+        moveDupesDir = options.moveDupesDir, // If "options.moveDupesDir" is not specified, the duplicate numberplate will not be moved.
+        stats = {},
+        anomalyStats = {},
+        partDirs = {}
+    ;
+
+    for (let partDir of config.dataset.partDirs) {
+        const
+            annExt = '.'+config.dataset.ann.ext,
+            annPath = path.join(datasetDir, partDir, config.dataset.ann.dir),
+            imgPath = path.join(datasetDir, partDir, config.dataset.img.dir),
+            annFiles = fs.readdirSync(annPath),
+            annFullPath = path.isAbsolute(annPath)?annPath:path.join(process.cwd(), annPath),
+            imgFullPath = path.isAbsolute(imgPath)?imgPath:path.join(process.cwd(), imgPath),
+            checkedAnn = [],
+            checkedImg = []
+        ;
+        for (let annFile of annFiles) {
+            let data = require(path.join(annFullPath,annFile)),
+                imgName = `${data.name}.${config.dataset.img.ext}`;
+            if (data.description != undefined) {
+                if (stats[data.description] == undefined) {
+                    stats[data.description] = {
+                        filesFound: new Set()
+                    }
+                }
+            }
+            let fileSize = sizeOf(path.join(imgFullPath, imgName));
+            delete fileSize.type;
+            stats[data.description].filesFound.add({
+                part: partDir,
+                file: annFile,
+                size: fileSize
+            })
+        }
+    }
+
+    // Searching for potential anomaly
+    let annExt = `.${config.dataset.ann.ext}`;
+    for (let np in stats) {
+        if (stats[np].filesFound.size > 1) { // && getPartsCount(stats[np].filesFound) > 1
+            let fileItems = Array.from(stats[np].filesFound);
+            fileItems = fileItems.sort(function(a, b) { return b.size.width - a.size.width });
+            fileItems.shift();
+            for (let fileItem of fileItems) {
+                let baseName = path.basename(fileItem.file, annExt),
+                    imgName = `${baseName}.${config.dataset.img.ext}`
+                ;
+                if (partDirs[fileItem.part] == undefined ) {
+                    partDirs[fileItem.part] = {
+                        ann: [],
+                        img: []
+                    }
+                }
+                partDirs[fileItem.part].ann.push(fileItem.file);
+                partDirs[fileItem.part].img.push(imgName);
+            }
+            anomalyStats[np] = stats[np]
+        }
+    }
+
+    console.log(`In the dataset "${datasetDir}", we found ${Object.keys(anomalyStats).length} number plates with duplicates.`)
+
+    if (reportJson != undefined) {
+        // Sort anomaly stats
+        console.log(`Generating a duplicate report to the ${reportJson} file.`)
+        let reportAnomalyStats = statsTools.sortAnomalyStats(anomalyStats);
+
+        fs.writeFileSync(reportJson, JSON.stringify(reportAnomalyStats, null, 2), 'utf-8');
+        console.log(`Done`)
+    }
+
+    if (moveDupesDir != undefined) {
+        let cnt = 0;
+        console.log(`Transferring duplicates from the dataset to the "${moveDupesDir}" directory.`)
+        for (let partDir in partDirs) {
+            cnt += partDirs[partDir].ann.length;
+            console.log(`Move ${partDirs[partDir].ann.length} dupes for "${partDir}" section`)
+            let srcDir = path.join(datasetDir, partDir),
+                targetDir = path.join(moveDupesDir, partDir)
+            ;
+            checkDirStructure(targetDir, [config.dataset.img.dir, config.dataset.ann.dir], true);
+            moveDatasetFiles({srcDir, targetDir, Anns: partDirs[partDir].ann,
+                Imgs: partDirs[partDir].img, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+        }
+        console.log(`Done`)
+        console.log(`${cnt} duplicates were moved to the "${moveDupesDir}" directory.`)
+    }
+}
+
 
 
 /**
@@ -361,4 +474,5 @@ module.exports = {
     dataJoin,
     moveSomething,
     moveDupes,
+    removeNpDupesFromDataset
 };
