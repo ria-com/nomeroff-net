@@ -55,6 +55,8 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8/model-s-1.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8/model-x-1.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2-trt-a6000.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2-trt-rtx8000.json",
     #"https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-x-2.json",
 
     # text localization
@@ -80,3 +82,10 @@ def get_device_torch() -> str:
     if torch.cuda.is_available():
         return "cuda"
     return "cpu"
+
+
+def get_device_name() -> str:
+    import torch
+    if torch.cuda.is_available():
+        return torch.cuda.get_device_name(torch.cuda.current_device())
+    return ""

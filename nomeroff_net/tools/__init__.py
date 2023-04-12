@@ -1,6 +1,7 @@
 from .splitter import np_split
 from .mcm import (modelhub,
-                  get_mode_torch)
+                  get_mode_torch,
+                  get_device_name)
 from .pipeline_tools import chunked_iterable
 from .pipeline_tools import unzip
 from .pipeline_tools import promise_all
