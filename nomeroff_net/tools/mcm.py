@@ -22,8 +22,8 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-efficientnet_b2-7.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_1995/model-shufflenet_v2_x2_0-3.json",
 
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-9.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-efficientnet_b2-8.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-10.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-efficientnet_b2-512-10.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-shufflenet_v2_x2_0-7.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-4.json",

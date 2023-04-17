@@ -7,7 +7,7 @@ const config = require('config'),
       moveDatasetFiles = require('../../app/helpers/moveDatasetFiles'),
       joinAnnotationOcrDataset = require('../../app/helpers/joinAnnotationOcrDataset'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
-      statsTools = require('../../app/helpers/statsTools'),
+      //statsTools = require('../../app/helpers/statsTools'),
       sizeOf = require('image-size'),
       md5File = require('md5-file')
 ;
@@ -253,10 +253,11 @@ async function moveSomething (options) {
                 ;
 
                 //if (data.region_id != 12 || data.count_lines > 1 ) {
-                if (data.region_id != 4 || data.count_lines > 1 ) {
+                //if (data.region_id != 4 || data.count_lines > 1 ) {
                 //if (data.description.length > 7) {
                 //if (data.description.length == 7) {
                 //if (data.size.height >= 32) {
+                if (data.description.indexOf("L") != -1) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
@@ -353,9 +354,9 @@ async function removeNpDupesFromDataset (options) {
     if (reportJson != undefined) {
         // Sort anomaly stats
         console.log(`Generating a duplicate report to the ${reportJson} file.`)
-        let reportAnomalyStats = statsTools.sortAnomalyStats(anomalyStats);
+        //let reportAnomalyStats = statsTools.sortAnomalyStats(anomalyStats);
 
-        fs.writeFileSync(reportJson, JSON.stringify(reportAnomalyStats, null, 2), 'utf-8');
+        fs.writeFileSync(reportJson, JSON.stringify(anomalyStats, null, 2), 'utf-8');
         console.log(`Done`)
     }
 
