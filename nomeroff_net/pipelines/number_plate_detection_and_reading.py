@@ -39,6 +39,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  number_plate_localization_detector=None,
+                 one_preprocess_for_ocr_and_classification: bool = True,
                  **kwargs):
         """
         init NumberPlateDetectionAndReading Class
@@ -81,6 +82,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             "number_plate_text_reading",
             image_loader=None,
             presets=presets,
+            need_preprocess=not one_preprocess_for_ocr_and_classification,
             default_label=default_label,
             default_lines_count=default_lines_count,
         )
