@@ -564,8 +564,7 @@ def normalize_img(img: np.ndarray,
     if not to_gray and len(img.shape) == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     img = cv2.resize(img, (width, height))
-    img = cv2.normalize(img, None, alpha=0, beta=1,
-                        norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+    img = cv2.normalize(img, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
     if to_gray:
         img = np.reshape(img, [*img.shape, 1])
