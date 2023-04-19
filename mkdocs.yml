@@ -58,7 +58,7 @@ plugins:
         exclude:
             - archive/*
     - mkdocs-versioning:
-          version: 3.4.0
+          version: 3.4.1
 
 markdown_extensions:
     - codehilite

@@ -1,3 +1,10 @@
+3.4.1 / 2023-04-19
+==================
+  **updates**
+  * Updated model and dataset for Ukrainian license plates for rare regions 
+  * Remove TextPostprocessing module
+  * Update Dockerfiles
+
 3.4.0 / 2022-11-21
 ==================
   **updates**
