@@ -4,7 +4,6 @@ from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
-from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 
 DEFAULT_PRESETS = {
     "eu_ua_2004_2015": {
@@ -94,5 +93,4 @@ class NumberPlateTextReading(Pipeline):
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         images, model_outputs, labels = unzip(inputs)
-        outputs = text_postprocessing(model_outputs, labels)
-        return unzip([outputs, images])
+        return unzip([model_outputs, images])

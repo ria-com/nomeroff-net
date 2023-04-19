@@ -1,6 +1,6 @@
 """
 Numberplate Inverse Model
-python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
+TEST: python3 -m nomeroff_net.nnmodels.numberplate_inverse_model -f nomeroff_net/nnmodels/numberplate_inverse_model.py
 """
 import torch
 import torch.nn as nn
@@ -10,6 +10,17 @@ from nomeroff_net.tools.mcm import get_device_torch
 
 
 class NPInverseNet(ClassificationNet):
+    """
+    Numberplate Inverse Model
+
+    Examples:
+        net = NPInverseNet(2)
+        device = get_device_torch()
+        net = net.to(device)
+        xs = torch.rand((1, 3, 64, 295)).to(device)
+        y = net(xs)
+        print(y)
+    """
     def __init__(self,
                  orientation_output_size: int,
                  img_h: int = 64,

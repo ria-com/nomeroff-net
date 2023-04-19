@@ -1,1 +1,0 @@
-Fix numberplate text by standart

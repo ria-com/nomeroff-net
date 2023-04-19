@@ -1,0 +1,112 @@
+site_name: NomeroffNet
+repo_name: 'Github Repository'
+repo_url: 'https://github.com/ria-com/nomeroff-net.git'
+copyright: 'Made by <a href="https://github.com/ria-com">RIA.com</a>'
+
+extra:
+    social:
+        - icon: fontawesome/brands/github
+          link: https://github.com/ria-com/nomeroff-net
+
+theme:
+    name: material
+    custom_dir: examples/py/generate_documentation/assets/theme/
+    palette:
+        # scheme: preference uses dark or light mode based on user (OS) preference
+        scheme: preference
+        #primary: deep-orange
+        #accent: deep-purple
+    icon:
+        logo: fontawesome/solid/code
+    favicon: 'examples/py/generate_documentation/assets/images/favicon.ico'
+    language: 'en'
+
+plugins:
+    - search
+    - autolinks
+    - mkdocstrings:
+          enabled: !ENV [ ENABLE_MKDOCSTRINGS, true ]
+          custom_templates: templates
+          enable_inventory: false
+          default_handler: python
+          watch:
+              - nomeroff_net
+          python:
+              import:
+                  - url: https://cdn.example.com/version/objects.inv
+                    base_url: https://docs.example.com/version
+          handlers:
+              python:
+                  options:
+                      show_source: false
+    - minify:
+        minify_html: true
+    - git-revision-date-localized:
+        type: timeago
+    - git-authors:
+        show_contribution: True
+    - table-reader
+    - img2fig
+    - mknotebooks:
+        execute: false
+        # mkdocs-material theme has nicer cell styling
+        enable_default_jupyter_cell_styling: false
+        enable_default_pandas_dataframe_styling: true
+    - awesome-pages
+#    - enumerate-headings
+    - print-site:
+        exclude:
+            - archive/*
+    - mkdocs-versioning:
+          version: 3.4.0
+
+markdown_extensions:
+    - codehilite
+    - markdown.extensions.admonition
+    - markdown.extensions.attr_list
+    - markdown.extensions.codehilite:
+        guess_lang: false
+    - markdown.extensions.def_list
+    - markdown.extensions.footnotes
+    - markdown.extensions.meta
+    - markdown.extensions.toc:
+        permalink: true
+    - pymdownx.arithmatex:
+        generic: true
+    - pymdownx.betterem:
+        smart_enable: all
+    - pymdownx.caret
+    - pymdownx.critic
+    - pymdownx.details
+    - pymdownx.emoji:
+        emoji_index: !!python/name:materialx.emoji.twemoji
+        emoji_generator: !!python/name:materialx.emoji.to_svg
+    - pymdownx.inlinehilite
+    - pymdownx.keys
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.snippets:
+        check_paths: true
+    - pymdownx.superfences
+    - pymdownx.tabbed
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+
+
+# Lots of other settings
+edit_uri: edit/MkDocs/docs/
+use_directory_urls: false
+
+# Better PDF styling for when you create PDFs using mkdocs-pdf-export-plugin
+extra_css:
+  - examples/py/generate_documentation/assets/stylesheets/pdf-export.css
+
+# Setup mathjax, see
+# https://squidfunk.github.io/mkdocs-material/reference/mathjax/
+extra_javascript:
+    - javascripts/config.js
+    - https://polyfill.io/v3/polyfill.min.js?features=es6
+    - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+

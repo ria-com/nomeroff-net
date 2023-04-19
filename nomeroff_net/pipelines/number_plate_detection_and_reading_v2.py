@@ -7,7 +7,6 @@ from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_ima
 from nomeroff_net.pipes.number_plate_localizators.yolo_v5_detector import Detector
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points import NpPointsCraft
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
-from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import text_postprocessing
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 from .number_plate_text_reading import DEFAULT_PRESETS
 
@@ -92,7 +91,7 @@ class NumberPlateDetectionAndReadingV2(Pipeline):
         model_inputs = self.ocr_detector.preprocess(zones, region_names, count_lines)
         model_outputs = self.ocr_detector.forward(model_inputs)
         model_outputs = self.ocr_detector.postprocess(model_outputs)
-        texts = text_postprocessing(model_outputs, region_names)
+        texts = model_outputs
 
         (region_ids, region_names, count_lines, confidences, texts, zones) = \
             group_by_image_ids(image_ids, (region_ids, region_names, count_lines, confidences, texts, zones))

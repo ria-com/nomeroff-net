@@ -1,3 +1,14 @@
+"""number plate detection and reading pipeline
+
+Examples:
+    >>> from nomeroff_net import pipeline
+    >>> from nomeroff_net.tools import unzip
+    >>> number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader="opencv")
+    >>> results = number_plate_detection_and_reading(['./data/examples/oneline_images/example1.jpeg', './data/examples/oneline_images/example2.jpeg'])
+    >>> (images, images_bboxs, images_points, images_zones, region_ids,region_names, count_lines, confidences, texts) = unzip(results)
+    >>> print(texts)
+    (['AC4921CB'], ['RP70012', 'JJF509'])
+"""
 from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
@@ -11,7 +22,7 @@ from nomeroff_net.tools import unzip
 
 class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
     """
-    Number Plate Localization
+    Number Plate Detection And Reading Class
     """
 
     def __init__(self,
@@ -28,7 +39,25 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  number_plate_localization_detector=None,
+                 one_preprocess_for_ocr_and_classification: bool = True,
                  **kwargs):
+        """
+        init NumberPlateDetectionAndReading Class
+        Args:
+            image_loader (): image_loader
+            path_to_model (): path_to_model
+            mtl_model_path (): mtl_model_path
+            refiner_model_path (): refiner_model_path
+            path_to_classification_model (): path_to_classification_model
+            presets (): presets
+            off_number_plate_classification (): off_number_plate_classification
+            classification_options (): classification_options
+            default_label (): default_label
+            default_lines_count (): default_lines_count
+            number_plate_localization_class (): number_plate_localization_class
+            number_plate_localization_detector (): number_plate_localization_detector
+
+        """
         self.default_label = default_label
         self.default_lines_count = default_lines_count
         self.number_plate_localization = number_plate_localization_class(
@@ -53,6 +82,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             "number_plate_text_reading",
             image_loader=None,
             presets=presets,
+            need_preprocess=not one_preprocess_for_ocr_and_classification,
             default_label=default_label,
             default_lines_count=default_lines_count,
         )

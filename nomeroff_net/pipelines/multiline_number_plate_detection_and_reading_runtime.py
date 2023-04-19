@@ -1,3 +1,6 @@
+"""
+
+"""
 from .multiline_number_plate_detection_and_reading import MultilineNumberPlateDetectionAndReading
 from nomeroff_net.pipelines.base import RuntimePipeline
 
@@ -5,7 +8,7 @@ from nomeroff_net.pipelines.base import RuntimePipeline
 class MultilineNumberPlateDetectionAndReadingRuntime(MultilineNumberPlateDetectionAndReading,
                                                      RuntimePipeline):
     """
-    Number Plate Detection and reading runtime
+    Multiline Number Plate Detection and reading runtime
     """
 
     def __init__(self,

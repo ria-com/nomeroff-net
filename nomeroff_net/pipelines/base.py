@@ -1,3 +1,13 @@
+"""base pipeline constructor class
+
+
+The module contains the following functions:
+- `may_by_empty_method(func)`
+- `empty_method`
+
+The module contains the following classes:
+
+"""
 import os
 import time
 import ujson
@@ -14,19 +24,24 @@ from nomeroff_net.image_loaders import BaseImageLoader, DumpyImageLoader, image_
 
 
 def may_by_empty_method(func):
-    # if in your pipeline you want to off some thing
+    """
+    if in your pipeline you want to off some thing
+    """
     func.is_empty = False
     return func
 
 
 def empty_method(func):
+    """
+    if in your pipeline you want to off some thing
+    """
     func.is_empty = True
     return func
 
 
 class AccuracyTestPipeline(object):
     """
-    Accuracy Test Pipeline
+    Accuracy Test Pipeline Base Class
     """
     @staticmethod
     def text_accuracy_test(true_images_texts, predicted_images_texts,
@@ -37,6 +52,9 @@ class AccuracyTestPipeline(object):
                            matplotlib_show=False,
                            debug=True,
                            md=False):
+        """
+        TODO: write description
+        """
         n_good = 0
         n_bad = 0
         for predicted_image_texts, \
@@ -105,6 +123,9 @@ class AccuracyTestPipeline(object):
                                      matplotlib_show=False,
                                      debug=True,
                                      md=False):
+        """
+        TODO: write description
+        """
         with open(accuracy_test_data_file) as f:
             accuracy_test_data = ujson.load(f)
         true_images_texts = []
@@ -142,6 +163,9 @@ class Pipeline(AccuracyTestPipeline):
         image_loader: Optional[Union[str, BaseImageLoader]] = None,
         **kwargs,
     ):
+        """
+        TODO: write description
+        """
         self.task = task
         self.image_loader = self._init_image_loader(image_loader)
 
@@ -149,6 +173,9 @@ class Pipeline(AccuracyTestPipeline):
 
     @staticmethod
     def _init_image_loader(image_loader):
+        """
+        TODO: write description
+        """
         if image_loader is None:
             image_loader_class = DumpyImageLoader
         elif type(image_loader) == str:
@@ -205,11 +232,14 @@ class Pipeline(AccuracyTestPipeline):
         raise NotImplementedError("postprocess not implemented")
 
     def __call__(self, inputs, **kwargs):
+        """
+        TODO: write description
+        """
         return self.call(inputs, **kwargs)
 
     def call(self, inputs, batch_size=1, num_workers=1, **kwargs):
         """
-        TODO: speed up using num_workers and batch_size
+        TODO: write description
         """
         kwargs["batch_size"] = batch_size
         kwargs["num_workers"] = num_workers
@@ -228,6 +258,9 @@ class Pipeline(AccuracyTestPipeline):
 
     @staticmethod
     def process_worker(func, inputs, params, num_workers=1):
+        """
+        TODO: write description
+        """
         if num_workers == 1:
             return func(inputs, **params)
         promises_outputs = []
@@ -253,6 +286,9 @@ class Pipeline(AccuracyTestPipeline):
         return outputs
 
     def run_multi(self, inputs, batch_size, num_workers, preprocess_params, forward_params, postprocess_params):
+        """
+        TODO: write description
+        """
         outputs = []
         for chunk_inputs in chunked_iterable(inputs, batch_size):
             chunk_outputs = self.run_single(chunk_inputs, num_workers,
@@ -262,6 +298,9 @@ class Pipeline(AccuracyTestPipeline):
         return outputs
 
     def run_single(self, inputs, num_workers, preprocess_params, forward_params, postprocess_params):
+        """
+        TODO: write description
+        """
         _inputs = inputs
         if not hasattr(self.preprocess, "is_empty") or not self.preprocess.is_empty:
             _inputs = self.process_worker(self.preprocess, _inputs, preprocess_params, num_workers)
@@ -274,12 +313,18 @@ class Pipeline(AccuracyTestPipeline):
 
 class CompositePipeline(object):
     """
-    Runtime Pipeline
+    Composite pipelines Pipeline Base Class
     """
     def __init__(self, pipelines):
+        """
+        TODO: write description
+        """
         self.pipelines = pipelines
 
     def sanitize_parameters(self, **kwargs):
+        """
+        TODO: write description
+        """
         forward_parameters = {}
         for key in kwargs:
             if key == "batch_size":
@@ -294,12 +339,15 @@ class CompositePipeline(object):
 
 class RuntimePipeline(object):
     """
-    Runtime Pipeline
+    Runtime Pipeline Base Class
     """
 
     default_input_names = None
 
     def __init__(self, pipelines):
+        """
+        TODO: write description
+        """
         self.pipelines = pipelines
         self.time_stat = Counter()
         self.count_stat = Counter()
@@ -309,6 +357,9 @@ class RuntimePipeline(object):
             pipeline.call = self.timeit(pipeline.__class__.__name__)(pipeline.call)
 
     def timeit(self, tag):
+        """
+        TODO: write description
+        """
         def wrapper(method):
             def timed(*args, **kw):
                 ts = time.time()
@@ -321,10 +372,16 @@ class RuntimePipeline(object):
         return wrapper
 
     def clear_stat(self):
+        """
+        TODO: write description
+        """
         self.time_stat = Counter()
         self.count_stat = Counter()
 
     def get_timer_stat(self, count_processed_images):
+        """
+        TODO: write description
+        """
         timer_stat = {}
         for key in self.count_stat:
             timer_stat[key] = self.time_stat[key] / count_processed_images

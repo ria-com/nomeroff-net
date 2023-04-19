@@ -3,7 +3,8 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
-from nomeroff_net.pipes.number_plate_localizators.yolov5_engine_detector import Detector
+# from nomeroff_net.pipes.number_plate_localizators.yolov5_engine_detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolov8_engine_detector import Detector
 
 
 class NumberPlateLocalizationTrt(Pipeline):
@@ -21,10 +22,15 @@ class NumberPlateLocalizationTrt(Pipeline):
         self.detector.load_model(engine_file_path)
 
     def sanitize_parameters(self, img_size=None, stride=None, min_accuracy=None, **kwargs):
+        parameters = {}
         postprocess_parameters = {}
+        if img_size is not None:
+            parameters["img_size"] = img_size
+        if stride is not None:
+            parameters["stride"] = stride
         if min_accuracy is not None:
             postprocess_parameters["min_accuracy"] = min_accuracy
-        return {}, {}, postprocess_parameters
+        return {}, parameters, postprocess_parameters
 
     def __call__(self, images: Any, **kwargs):
         return super().__call__(images, **kwargs)
@@ -35,8 +41,8 @@ class NumberPlateLocalizationTrt(Pipeline):
 
     @no_grad()
     def forward(self, images: Any, **forward_parameters: Dict) -> Any:
-        detected_images_bboxs = self.detector.predict(images)
-        return unzip([detected_images_bboxs, images])
+        model_outputs = self.detector.predict(images)
+        return unzip([model_outputs, images])
 
     def postprocess(self, inputs: Any, **postprocess_parameters: Dict) -> Any:
         return inputs
