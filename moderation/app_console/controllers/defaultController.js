@@ -253,11 +253,13 @@ async function moveSomething (options) {
                 ;
 
                 //if (data.region_id != 12 || data.count_lines > 1 ) {
-                //if (data.region_id != 4 || data.count_lines > 1 ) {
+                //if (data.region_id != 1 || data.count_lines > 1 ) {
+                //if (data.region_id != 1 && data.region_id != 2 ) {
                 //if (data.description.length > 7) {
                 //if (data.description.length == 7) {
                 //if (data.size.height >= 32) {
-                if (data.description.indexOf("L") != -1) {
+                //if (data.description.indexOf("L") != -1) {
+                if (data.description.slice(6) == 'XA') {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
@@ -270,6 +272,69 @@ async function moveSomething (options) {
 
 
 /**
+ * EN: Remove all duplicate numbers from a dataset based on another dataset, for example, remove all duplicate numbers
+ *     from train that occur in test
+ * UA: Видалити всі дублі по номерам з датасету на основі іншого датасету, наприклад видалити всі дублі по номерам
+ *     з train які зустрічаються у test
+ * RU: Удалить все дубли по номерам из датасета на основе другого датасета, например удалить все дубли по номерам
+ *     из train которые встречаются в test
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=removeAllNpDupesThatOccurInAnotherDataset \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example/train/ \
+ *                                               --opt.anotherDir=../data/dataset/TextDetector/ocr_example2/test/ \
+ *                                               --opt.dupesDir=../data/dataset/TextDetector/ocr_example2/dupes/
+ */
+async function removeAllNpDupesThatOccurInAnotherDataset (options) {
+    const srcDir = options.srcDir || './train',
+        anotherDir = options.anotherDir || './test',
+        dupesDir = options.dupesDir || './dupes',
+
+        annExt = '.' + config.dataset.ann.ext ,
+        anotherAnnPath = path.join(anotherDir, config.dataset.ann.dir),
+        anotherAnnFullPath = path.isAbsolute(anotherAnnPath)?anotherAnnPath:path.join(process.cwd(), anotherAnnPath),
+        srcFullDir = path.isAbsolute(srcDir)?srcDir:path.join(process.cwd(), srcDir),
+        dupesFullDir = path.isAbsolute(dupesDir)?dupesDir:path.join(process.cwd(), dupesDir),
+        srcAnnPath = path.join(srcDir, config.dataset.ann.dir),
+        srcAnnFullPath = path.isAbsolute(srcAnnPath)?srcAnnPath:path.join(process.cwd(), srcAnnPath),
+        anotherNpArr = {}
+        //src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
+
+    ;
+    let checkedAnn = [],
+        checkedImg = []
+    ;
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(anotherDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+    checkDirStructure(dupesDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+    const anotherAnnFiles = fs.readdirSync(anotherAnnFullPath),
+          srcAnnFiles = fs.readdirSync(srcAnnFullPath)
+    ;
+
+    for (let anotherAnnFile of anotherAnnFiles) {
+        let data = require(path.join(anotherAnnFullPath, anotherAnnFile));
+        if (data.description != undefined) {
+            anotherNpArr[data.description] = true
+        }
+    }
+    //console.log(anotherNpArr);
+    for (let srcAnnFile of srcAnnFiles) {
+        let data = require(path.join(srcAnnFullPath, srcAnnFile));
+        if (data.description != undefined && anotherNpArr[data.description] != undefined) {
+            let imgName = `${data.name}.${config.dataset.img.ext}`
+            checkedAnn.push(srcAnnFile);
+            checkedImg.push(imgName);
+        }
+    }
+    console.log(`Garbage: ${checkedAnn.length}`);
+    // console.log(`srcFullDir: ${srcFullDir}, dupesFullDir: ${dupesFullDir}`);
+    // console.log(`checkedAnn.length: ${checkedAnn.length}, checkedImg.length: ${checkedImg.length}`);
+    // console.log(`annDir:${config.dataset.ann.dir}, imgDir:${config.dataset.img.dir}`);
+    moveDatasetFiles({srcDir:srcFullDir, targetDir:dupesFullDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+}
+
+
+/**
  * EN: Analyze the OCR dataset and build statistics on the uniqueness of number combinations and remove duplicates
  * UA: Проаналізувати OCR датасет та побудувати статистику по унікальності номерних комбінацій і прибрати дублі
  * RU: Проанализировать OCR датасет и построить статистику по уникальности номерных комбинаций и убрать дубли
@@ -278,12 +343,12 @@ async function moveSomething (options) {
  * @example NODE_ENV=consoleExample ./console.js --section=default --action=removeNpDupesFromDataset \
  *                                               --opt.datasetDir=../data/dataset/TextDetector/ocr_example2/ \
  *                                               --opt.reportJson=./dataset_stats.json \
- *                                               --opt.moveDupesDir = ../data/dataset/TextDetector/dupes/
+ *                                               --opt.moveDupesDir=../data/dataset/TextDetector/dupes/
  *
  * Тільки перенести дублі
  * @example NODE_ENV=consoleExample ./console.js --section=default --action=removeNpDupesFromDataset \
  *                                               --opt.datasetDir=../data/dataset/TextDetector/ocr_example2/ \
- *                                               --opt.moveDupesDir = ../data/dataset/TextDetector/dupes/
+ *                                               --opt.moveDupesDir=../data/dataset/TextDetector/dupes/
  */
 async function removeNpDupesFromDataset (options) {
     const datasetDir = options.datasetDir || './data/eu',
@@ -475,5 +540,6 @@ module.exports = {
     dataJoin,
     moveSomething,
     moveDupes,
-    removeNpDupesFromDataset
+    removeNpDupesFromDataset,
+    removeAllNpDupesThatOccurInAnotherDataset
 };
