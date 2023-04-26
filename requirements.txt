@@ -16,11 +16,11 @@ torch>=1.12
 torchvision>=0.13
 PyYAML>=5.4
 seaborn
-pytorch_lightning==1.8.6
+pytorch_lightning==2.0.2
 ipywidgets
 gevent
 termcolor
-sklearn
+scikit-learn
 ultralytics==8.0.45
 
 # git repos
