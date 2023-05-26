@@ -182,7 +182,7 @@ class OCR(object):
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  gpus=self.gpus,
+                                  #gpus=self.gpus,
                                   callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm, ckpt_path=ckpt_path)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
