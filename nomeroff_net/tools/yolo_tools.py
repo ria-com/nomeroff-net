@@ -144,7 +144,8 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
             if region.get("region_attributes", None) is not None:
                 if region["region_attributes"].get("label", None) is not None:
                     if isinstance(region["region_attributes"]["label"], str):
-                        label = region["region_attributes"]["label"]
+                        if len(region["region_attributes"]["label"].lstrip().rstrip()):
+                            label = region["region_attributes"]["label"].lstrip().rstrip()
                     if isinstance(region["region_attributes"]["label"], int):
                         if region["region_attributes"]["label"] < len(classes):
                             label = classes[region["region_attributes"]["label"]]
