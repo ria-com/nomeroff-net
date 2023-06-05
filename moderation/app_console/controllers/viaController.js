@@ -115,8 +115,11 @@ async function addAttribute (options) {
         attrValue = options.attrValue
     ;
     let rewriteSettedAttribute = 1;
+    let rewriteEmptyValue = 1;
     if (options.rewrite != undefined) { rewriteSettedAttribute = options.rewrite }
+    if (options.rewriteEmpty != undefined) { rewriteEmptyValue = options.rewriteEmpty }
     rewriteSettedAttribute = Boolean(Number(rewriteSettedAttribute));
+    rewriteEmptyValue = Boolean(Number(rewriteEmptyValue));
     // console.log(JSON.stringify(options))
     console.log(`attrName="${attrName}"`)
     console.log(`attrValue="${attrValue}"`)
@@ -128,6 +131,9 @@ async function addAttribute (options) {
         for (let region of item.regions) {
             if (region["region_attributes"][attrName] != undefined && (!rewriteSettedAttribute)) {
                 // pass
+                if (region["region_attributes"][attrName].trim().length == 0 && rewriteEmptyValue) {
+                    region["region_attributes"][attrName] = attrValue
+                }
             } else {
                 region["region_attributes"][attrName] = attrValue
             }
