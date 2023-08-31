@@ -75,6 +75,43 @@ async function createAnnotations (options) {
         });
 }
 
+/**
+ * EN: Add information about the size of the image with the number plate to the OCR dataset annotation files
+ * UA: Додати у файли анотацій OCR-датасету інформацію про розмір зображення з номерним знаком
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=addImageSize \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/
+ */
+async function addImageSize(options) {
+    const
+         srcDir = options.srcDir || './draft',
+         annExt = '.'+config.dataset.ann.ext,
+         src = {annPath: path.join(srcDir, config.dataset.ann.dir), imgPath: path.join(srcDir, config.dataset.img.dir)}
+    let  checkedAnn = [],
+         checkedImg = []
+    ;
+    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    fs.readdir(src.annPath, async function(err, items) {
+            for (let filename of items) {
+                    const fileObj = path.parse(filename);
+                    if (fileObj.ext === annExt) {
+                            const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                                  annFileName = path.join( src.annPath, annName),
+                                  annFilePath = path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
+                                                                                                    annFileName);
+                            const data = require(annFilePath),
+                                  imgName = `${data.name}.${config.dataset.img.ext}`,
+                                  imgFilePath = path.join( src.imgPath, imgName )
+                                  imgSize = sizeOf(imgFilePath);
+                            data.size = { width: imgSize.width, height: imgSize.height }
+                            fs.writeFileSync(annFilePath, JSON.stringify(data,null,2));
+                    }
+            }
+            console.log(`Done`);
+    });
+}
 
 /**
  * EN: Move the moderated data to a separate folder from the OCR dataset
@@ -86,7 +123,7 @@ async function createAnnotations (options) {
  *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/
  */
-async function moveChecked (options) {
+async function moveChecked(options) {
         const srcDir = options.srcDir || './draft',
               targetDir = options.targetDir || './checked',
               annExt = '.'+config.dataset.ann.ext,
@@ -252,14 +289,21 @@ async function moveSomething (options) {
                     imgName = `${data.name}.${config.dataset.img.ext}`
                 ;
 
-                //if (data.region_id != 12 || data.count_lines > 1 ) {
+                //if (data.region_id != 4 || data.count_lines > 1 ) {
                 //if (data.region_id != 1 || data.count_lines > 1 ) {
                 //if (data.region_id != 1 && data.region_id != 2 ) {
                 //if (data.description.length > 7) {
                 //if (data.description.length == 7) {
                 //if (data.size.height >= 32) {
                 //if (data.description.indexOf("L") != -1) {
-                if (data.description.slice(6) == 'XA') {
+                //if (data.description.slice(6) == 'XA') {
+                //if (Number(data.region_id) == 3 && data.count_lines > 1) {
+                //if (data.moderation != undefined && data.moderation.moderatedBy == "autogen") {
+                //if (data.moderation != undefined && data.moderation.moderatedBy == "AutoBot") {
+                //if (data.count_lines > 1) {
+                //if (Number(data.region_id) == 4 && data.count_lines > 1) {
+                if (Number(data.region_id) == 11) {
+                //if (Number(data.size.height) >=100) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
@@ -317,7 +361,7 @@ async function removeAllNpDupesThatOccurInAnotherDataset (options) {
             anotherNpArr[data.description] = true
         }
     }
-    //console.log(anotherNpArr);
+    console.log(anotherNpArr);
     for (let srcAnnFile of srcAnnFiles) {
         let data = require(path.join(srcAnnFullPath, srcAnnFile));
         if (data.description != undefined && anotherNpArr[data.description] != undefined) {
@@ -534,6 +578,7 @@ async function dataJoin (options) {
 module.exports = {
     index,
     createAnnotations,
+    addImageSize,
     moveChecked,
     dataSplit,
     moveGarbage,

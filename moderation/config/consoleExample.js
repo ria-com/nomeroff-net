@@ -11,6 +11,7 @@ module.exports = {
     },
     dataset: {
         baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example_res`,
+        partDirs: ['train', 'val', 'test'],
         ann: { dir: 'ann', ext: 'json'},
         img: { dir: 'img', ext: 'png'}
     },

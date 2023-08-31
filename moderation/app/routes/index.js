@@ -3,8 +3,8 @@ const Router = require('koa-router'),
 ;
 
 const
-    moderateNPText = require('../controllers/moderation/moderateNPText')
-
+    moderateNPText = require('../controllers/moderation/moderateNPText'),
+    rotation = require('../controllers/moderation/rotation')
 ;
 
 const router = new Router(),
@@ -12,6 +12,7 @@ const router = new Router(),
 
 router
     .post('/regionOCRModeration', koaBody, moderateNPText)
+    .post('/rotate180degrees', koaBody, rotation)
 ;
 
 module.exports = {

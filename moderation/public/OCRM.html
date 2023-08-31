@@ -152,6 +152,10 @@
         var USER = "defaultUser";
         var npsTable = document.getElementById("npsTable").firstChild;
 
+        function basename(path) {
+            return path.split('/').reverse()[0];
+        }
+
         getNewData();
         function getNewData(user, newdata) {
             var sendata = {};
@@ -223,6 +227,45 @@
                                 img.width = 256;
                                 img.height = 64;
                             }
+
+                            // Add 180 degrees rotation
+                            img.addEventListener("click",function () {
+                                const
+                                    src_src = this.src.split('?')[0],
+                                    self = this,
+                                    src_name = basename(src_src);
+
+                                const yes = confirm('Would you like to rotate the image "'+ src_name +'" 180 degrees?')
+                                if (yes) {
+                                    $.ajax({
+                                        url: './rotate180degrees',
+                                        dataType: 'json',
+                                        data: { src_name },
+                                        cache: false,
+                                        type: 'post',
+                                        error: function (jqXHR, textStatus, errorThrown) {
+                                            console.log(textStatus);
+                                            console.log(errorThrown);
+                                        },
+                                        success: function (response) {
+                                            const
+                                                res = response;
+                                            if (res.error != undefined && res.error > 0) {
+                                                if (res.error_message != undefined) {
+                                                    window.alert(res.error_message)
+                                                }
+                                            } else {
+                                                if (res.message != undefined) {
+                                                    console.log(res.message)
+                                                }
+                                                self.src = src_src + '?' + String(Math.random())
+                                            }
+                                        }
+                                    })
+                                }
+                            } , false);
+
+
                             td.appendChild(img);
 
                             tr.appendChild(td);
