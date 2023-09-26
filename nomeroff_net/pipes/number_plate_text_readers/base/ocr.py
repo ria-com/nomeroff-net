@@ -384,6 +384,9 @@ class OCR(object):
                 if save_test_result:
                     ann_data["moderation"]["isModerated"]=0
                     ann_data["moderation"]["predicted"]=pred_text.upper()
+            if save_test_result:
+                with open(ann_path, "w") as outfile:
+                    outfile.write(json.dumps(ann_data, indent=4))
         return acc / len(dataset)
 
     def val_acc(self, verbose=False) -> float:
