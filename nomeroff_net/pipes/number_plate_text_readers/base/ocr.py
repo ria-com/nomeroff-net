@@ -369,7 +369,7 @@ class OCR(object):
             pred_text = decode_prediction(logits.cpu(), self.label_converter)
 
             if save_test_result:
-                img_path = dataset.pathes[idx]
+                img_path = dataset.paths[idx]
                 ann_path = img_path.replace("/img/", "/ann/").replace(".png", ".json")
                 ann_data = json.load(open(ann_path, 'r'))
                 if "moderation" not in ann_data:
