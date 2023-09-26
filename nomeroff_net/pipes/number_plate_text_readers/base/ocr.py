@@ -358,7 +358,7 @@ class OCR(object):
         return 1 - acc / len(self.letters)
     
     @torch.no_grad()
-    def acc_calc(self, dataset, verbose: bool = False) -> float:
+    def acc_calc(self, dataset, verbose: bool = False, save_test_result = False) -> float:
         acc = 0
         self.model = self.model.to(device_torch)
         self.model.eval()
@@ -368,10 +368,22 @@ class OCR(object):
             logits = self.model(img)
             pred_text = decode_prediction(logits.cpu(), self.label_converter)
 
+            if save_test_result:
+                img_path = dataset.pathes[idx]
+                ann_path = img_path.replace("/img/", "/ann/").replace(".png", ".json")
+                ann_data = json.load(open(ann_path, 'r'))
+                if "moderation" not in ann_data:
+                    ann_data["moderation"] = {}
+
             if pred_text == text:
                 acc += 1
+                if save_test_result:
+                    ann_data["moderation"]["isModerated"]=1
             elif verbose:
-                print(f'\n[INFO] {dataset.paths[idx]}\nPredicted: {pred_text} \t\t\t True: {text}')
+                print(f'\n[INFO] {dataset.paths[idx]}\nPredicted: {pred_text.upper()} \t\t\t True: {text.upper()}')
+                if save_test_result:
+                    ann_data["moderation"]["isModerated"]=0
+                    ann_data["moderation"]["predicted"]=pred_text.upper()
         return acc / len(dataset)
 
     def val_acc(self, verbose=False) -> float:
@@ -379,8 +391,8 @@ class OCR(object):
         print('Validaton Accuracy: ', acc, "in", len(self.dm.val_image_generator))
         return acc
 
-    def test_acc(self, verbose=True) -> float:
-        acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose)
+    def test_acc(self, verbose=True, save_test_result=False) -> float:
+        acc = self.acc_calc(self.dm.test_image_generator, verbose=verbose, save_test_result=save_test_result)
         print('Testing Accuracy: ', acc, "in", len(self.dm.test_image_generator))
         return acc
 
