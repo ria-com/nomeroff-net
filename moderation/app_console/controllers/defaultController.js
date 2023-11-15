@@ -151,7 +151,7 @@ async function dataSplit (options) {
 
         fs.readdir(src.annPath, async function(err, items) {
                 let sItems = arrayShuffle(items),
-                    cnt = Math.round(sItems.length * splitRate),
+                    cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate),
                     itemsTest = sItems.slice(0,cnt);
 
                 for (let i=0; i<itemsTest.length; i++) {
@@ -259,7 +259,14 @@ async function moveSomething (options) {
                 //if (data.description.length == 7) {
                 //if (data.size.height >= 32) {
                 //if (data.description.indexOf("L") != -1) {
-                if (data.description.slice(6) == 'XA') {
+                //if (data.description.slice(6) == 'XA') {
+                //if (Number(data.count_lines) != 1 ) {
+                //if (Number(data.count_lines) == 2 ) {
+                //if (data.region_id != 2 ) {
+                //if (Number(data.region_id) != 7) {
+                if (Number(data.state_id) != 2 ) {
+                //if (Number(data.region_id) != 3 ) {
+                //if (data.count_lines == undefined || Number(data.count_lines) != 1 ) {
                     checkedAnn.push(annName);
                     checkedImg.push(imgName);
                 }
