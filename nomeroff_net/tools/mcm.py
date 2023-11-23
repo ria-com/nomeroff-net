@@ -4,8 +4,8 @@ from modelhub_client import ModelHub
 
 model_config_urls = [
     # numberplate classification
-    "https://models.vsp.net.ua/config_model/nomeroff-net-np-classification/model_efficientnet_v2_s-5.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-ua-np-classification/model_efficientnet_v2_s-2.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/all/model_efficientnet_v2_s-200x50-6.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/ua-custom/model_efficientnet_v2_s-200x50-3.json",
 
     # ocr
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-4.json",
@@ -25,6 +25,8 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-11.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-efficientnet_b2-512-11.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-eu_ua_from_2004/model-shufflenet_v2_x2_0-7.json",
+
+    "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/eu-ua-custom/model-efficientnet_b2-1.json",
 
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-4.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-kg/model-shufflenet_v2_x2_0-3.json",

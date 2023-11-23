@@ -34,6 +34,7 @@ CLASS_REGION_ALL = [
     "ua-military",
     "ru-military",
     "md",
+    "eu-ua-custom",
 ]
 
 CLASS_LINES_ALL = [
