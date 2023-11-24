@@ -149,7 +149,8 @@ class OrientationDetector(object):
         self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  gpus=self.gpus,
+                                  #gpus=self.gpus,
+                                  accelerator='gpu', devices=self.gpus,
                                   callbacks=[checkpoint_callback])
         self.trainer.fit(self.model, self.dm)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
@@ -164,7 +165,9 @@ class OrientationDetector(object):
         model = self.create_model()
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
-                             gpus=self.gpus)
+                             #gpus=self.gpus,
+                             accelerator='gpu', devices=self.gpus,
+                             )
         return trainer.tune(model, self.dm)
     
     def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:

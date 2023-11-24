@@ -190,7 +190,8 @@ class OptionsDetector(object):
         """
         self.create_model()
         self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  gpus=self.gpus,
+                                  #gpus=self.gpus,
+                                  accelerator='gpu', devices=self.gpus,
                                   callbacks=self.define_callbacks(log_dir))
         self.trainer.fit(self.model, self.dm)
         return self.model
@@ -205,7 +206,9 @@ class OptionsDetector(object):
         trainer = pl.Trainer(
             auto_lr_find=True,
             max_epochs=self.epochs,
-            gpus=self.gpus)
+            #gpus=self.gpus,
+            accelerator='gpu', devices=self.gpus
+        )
         num_training = int(len(self.dm.train_image_generator) * percentage) or 1
 
         lr_finder = trainer.tuner.lr_find(model,

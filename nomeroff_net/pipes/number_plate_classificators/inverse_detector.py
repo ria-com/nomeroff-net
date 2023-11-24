@@ -126,7 +126,8 @@ class InverseDetector(object):
         """
         self.create_model()
         self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  gpus=self.gpus,
+                                  #gpus=self.gpus,
+                                  accelerator='gpu', devices=self.gpus,
                                   callbacks=self.define_callbacks(log_dir))
         self.trainer.fit(self.model, self.dm)
         self.trainer.test()
@@ -140,7 +141,9 @@ class InverseDetector(object):
         model = self.create_model()
         trainer = pl.Trainer(auto_lr_find=True,
                              max_epochs=self.epochs,
-                             gpus=self.gpus)
+                             #gpus=self.gpus,
+                             accelerator='gpu', devices=self.gpus,
+                             )
         return trainer.tune(model, self.dm)
 
     def test(self) -> List:
