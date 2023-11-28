@@ -39,7 +39,6 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  number_plate_localization_detector=None,
-                 one_preprocess_for_ocr_and_classification: bool = True,
                  **kwargs):
         """
         init NumberPlateDetectionAndReading Class
@@ -72,19 +71,25 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             mtl_model_path=mtl_model_path,
             refiner_model_path=refiner_model_path)
         self.number_plate_classification = None
+        option_detector_width = 0
+        option_detector_height = 0
         if not off_number_plate_classification:
             self.number_plate_classification = NumberPlateClassification(
                 "number_plate_classification",
                 image_loader=None,
                 path_to_model=path_to_classification_model,
                 options=classification_options)
+            option_detector_width = self.number_plate_classification.detector.width
+            option_detector_height = self.number_plate_classification.detector.height
         self.number_plate_text_reading = NumberPlateTextReading(
             "number_plate_text_reading",
             image_loader=None,
             presets=presets,
-            need_preprocess=not one_preprocess_for_ocr_and_classification,
+            option_detector_width=option_detector_width,
+            option_detector_height=option_detector_height,
             default_label=default_label,
             default_lines_count=default_lines_count,
+            off_number_plate_classification=off_number_plate_classification,
         )
         self.pipelines = [
             self.number_plate_localization,

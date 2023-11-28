@@ -6,11 +6,11 @@ from nomeroff_net.tools import unzip
 from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetector
 
 DEFAULT_PRESETS = {
-    "eu_ua_2004_2015": {
+    "eu_ua_2004_2015_efficientnet_b2": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
         "model_path": "latest"
     },
-    "eu_ua_1995": {
+    "eu_ua_1995_efficientnet_b2": {
         "for_regions": ["eu_ua_1995"],
         "model_path": "latest"
     },
@@ -18,7 +18,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["eu_ua_custom"],
         "model_path": "latest"
     },
-    "eu": {
+    "eu_efficientnet_b2": {
         "for_regions": ["eu", "xx_transit", "xx_unknown"],
         "model_path": "latest"
     },
@@ -38,7 +38,7 @@ DEFAULT_PRESETS = {
         "for_regions": ["ge"],
         "model_path": "latest"
     },
-    "su": {
+    "su_efficientnet_b2": {
         "for_regions": ["su"],
         "model_path": "latest"
     },
@@ -65,13 +65,17 @@ class NumberPlateTextReading(Pipeline):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  class_detector=TextDetector,
-                 need_preprocess=False,
+                 option_detector_width=0,
+                 option_detector_height=0,
+                 off_number_plate_classification=True,
                  **kwargs):
         if presets is None:
             presets = DEFAULT_PRESETS
         super().__init__(task, image_loader, **kwargs)
-        self.detector = class_detector(presets, default_label, default_lines_count)
-        self.need_preprocess = need_preprocess
+        self.detector = class_detector(presets, default_label, default_lines_count,
+                                       option_detector_width=option_detector_width,
+                                       option_detector_height=option_detector_height,
+                                       off_number_plate_classification=off_number_plate_classification)
 
     def sanitize_parameters(self, **kwargs):
         return {}, {}, {}
@@ -87,10 +91,8 @@ class NumberPlateTextReading(Pipeline):
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         images, labels, lines, preprocessed_np = unzip(inputs)
-        if self.need_preprocess or all([np is None for np in preprocessed_np]):
-            model_inputs = self.detector.preprocess(images, labels, lines)
-        else:
-            model_inputs = self.detector.preprocess(preprocessed_np, labels, lines, need_preprocess=False)
+        preprocessed_np = [zone if pnp is None else pnp for pnp, zone in zip(preprocessed_np, images)]
+        model_inputs = self.detector.preprocess(preprocessed_np, labels, lines)
         model_outputs = self.detector.forward(model_inputs)
         model_outputs = self.detector.postprocess(model_outputs)
         return unzip([images, model_outputs, labels])

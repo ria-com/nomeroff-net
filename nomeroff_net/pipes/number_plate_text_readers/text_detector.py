@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import warnings
 import copy
@@ -18,7 +19,10 @@ class TextDetector(object):
                  presets: Dict = None,
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
-                 load_models=True) -> None:
+                 load_models=True,
+                 option_detector_width=0,
+                 option_detector_height=0,
+                 off_number_plate_classification=True) -> None:
         if presets is None:
             presets = {}
         self.presets = presets
@@ -27,8 +31,12 @@ class TextDetector(object):
         self.detectors = []
         self.detectors_names = []
 
+        self.option_detector_width = option_detector_width
+        self.option_detector_height = option_detector_height
+
         self.default_label = default_label
         self.default_lines_count = default_lines_count
+        self.off_number_plate_classification = off_number_plate_classification
 
         i = 0
         for preset_name in self.presets:
@@ -101,15 +109,19 @@ class TextDetector(object):
     def preprocess(self,
                    zones: List[np.ndarray],
                    labels: List[str] = None,
-                   lines: List[int] = None,
-                   need_preprocess=True):
-        if need_preprocess:
-            zones = convert_cv_zones_rgb_to_bgr(zones)
+                   lines: List[int] = None):
         labels, lines = self.define_predict_classes(zones, labels, lines)
         predicted = self.define_order_detector(zones, labels)
         for key in predicted.keys():
-            if need_preprocess:
-                predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"])
+            if self.off_number_plate_classification:
+                zones = convert_cv_zones_rgb_to_bgr(predicted[key]["zones"])
+                predicted[key]["xs"] = self.detectors[int(key)].preprocess(zones)
+            elif (self.option_detector_width != self.detectors[key].width or
+                    self.option_detector_height != self.detectors[key].height):
+                zones = [np.moveaxis(cv2.resize(np.moveaxis(zone, 0, 2),
+                                    (self.detectors[int(key)].width, self.detectors[int(key)].height)), 2, 0)
+                         for zone in zones]
+                predicted[key]["xs"] = self.detectors[int(key)].preprocess(zones, need_preprocess=False)
             else:
                 predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"],
                                                                            need_preprocess=False)

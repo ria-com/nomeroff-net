@@ -1,7 +1,1 @@
-{
-    "state_id": 2,
-    "region_id": 15,
-    "name": "ua-military",
-    "count_lines": 1,
-    "orientation": 0
-}
+{"state_id": 2, "region_id": 15, "name": "ua-military", "count_lines": 1, "orientation": 0, "moderation": {"regionPredicted": 0, "isModerated": 0}}

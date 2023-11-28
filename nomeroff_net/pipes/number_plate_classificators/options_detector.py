@@ -5,6 +5,7 @@ import numpy as np
 
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning.tuner.tuning import Tuner
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
 
@@ -96,7 +97,7 @@ class OptionsDetector(object):
         # train hyperparameters
         self.batch_size = 64
         self.epochs = 100
-        self.gpus = 1
+        self.gpus = 0
         self.train_regions = True
         self.train_count_lines = True
 
@@ -189,10 +190,14 @@ class OptionsDetector(object):
         TODO: describe method
         """
         self.create_model()
-        self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  #gpus=self.gpus,
-                                  accelerator='gpu', devices=self.gpus,
-                                  callbacks=self.define_callbacks(log_dir))
+        if self.gpus:
+            self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                      accelerator='gpu', devices=self.gpus,
+                                      callbacks=self.define_callbacks(log_dir))
+        else:
+            self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                      accelerator='cpu',
+                                      callbacks=self.define_callbacks(log_dir))
         self.trainer.fit(self.model, self.dm)
         return self.model
 
@@ -202,19 +207,22 @@ class OptionsDetector(object):
         TODO: add ReduceLROnPlateau callback
         """
         model = self.create_model()
-
-        trainer = pl.Trainer(
-            auto_lr_find=True,
-            max_epochs=self.epochs,
-            #gpus=self.gpus,
-            accelerator='gpu', devices=self.gpus
-        )
+        if self.gpus:
+            trainer = pl.Trainer(
+                max_epochs=self.epochs,
+                accelerator='gpu', devices=self.gpus
+            )
+        else:
+            trainer = pl.Trainer(
+                max_epochs=self.epochs,
+                accelerator='cpu'
+            )
         num_training = int(len(self.dm.train_image_generator) * percentage) or 1
-
-        lr_finder = trainer.tuner.lr_find(model,
-                                          self.dm,
-                                          num_training=num_training,
-                                          early_stop_threshold=None)
+        tuner = Tuner(trainer)
+        lr_finder = tuner.lr_find(model,
+                                  self.dm,
+                                  num_training=num_training,
+                                  early_stop_threshold=None)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
         model.hparams["learning_rate"] = lr
@@ -358,6 +366,8 @@ class OptionsDetector(object):
             path_to_model = model_info["path"]
             self.class_region = model_info["class_region"]
             self.count_lines = model_info["count_lines"]
+            self.height = model_info.get("height", self.height)
+            self.width = model_info.get("width", self.width)
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_options")
             path_to_model = model_info["path"]
@@ -367,6 +377,8 @@ class OptionsDetector(object):
             path_to_model = model_info["path"]
             self.class_region = model_info["class_region"]
             self.count_lines = model_info["count_lines"]
+            self.height = model_info.get("height", self.height)
+            self.width = model_info.get("width", self.width)
         return path_to_model
 
     def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOptionsNet:

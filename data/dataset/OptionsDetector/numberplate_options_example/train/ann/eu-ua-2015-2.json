@@ -1,7 +1,1 @@
-{
-    "state_id": 2,
-    "region_id": 1,
-    "name": "eu-ua-2015-2",
-    "count_lines": 2,
-    "orientation": 0
-}
+{"state_id": 2, "region_id": 1, "name": "eu-ua-2015-2", "count_lines": 2, "orientation": 0, "moderation": {"regionPredicted": 4, "isModerated": 0}}

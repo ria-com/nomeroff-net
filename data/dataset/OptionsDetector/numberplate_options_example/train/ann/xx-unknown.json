@@ -1,7 +1,1 @@
-{
-    "state_id": 0,
-    "region_id": 0,
-    "name": "xx-unknown",
-    "count_lines": 0,
-    "orientation": 0
-}
+{"state_id": 0, "region_id": 0, "name": "xx-unknown", "count_lines": 0, "orientation": 0, "moderation": {"regionPredicted": 4, "countPredicted": 0, "isModerated": 0}}

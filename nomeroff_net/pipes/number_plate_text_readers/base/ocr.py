@@ -10,6 +10,7 @@ import pytorch_lightning as pl
 
 from collections import Counter
 from torch.nn import functional
+from pytorch_lightning.tuner.tuning import Tuner
 from typing import List, Tuple, Any, Dict
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -32,7 +33,8 @@ class OCR(object):
 
     def __init__(self, model_name: str = None, letters: List = None, linear_size: int = 512,
                  max_text_len: int = 0, height: int = 50, width: int = 200, color_channels: int = 3,
-                 hidden_size: int = 32, backbone: str = "resnet18", **_) -> None:
+                 hidden_size: int = 32, backbone: str = "resnet18",
+                 off_number_plate_classification=True, **_) -> None:
         self.model_name = model_name
         self.letters = []
         if letters is not None:
@@ -181,10 +183,14 @@ class OCR(object):
             self.create_model()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
-        self.trainer = pl.Trainer(max_epochs=self.epochs,
-                                  #gpus=self.gpus,
-                                  accelerator='gpu', devices=self.gpus,
-                                  callbacks=[checkpoint_callback, lr_monitor])
+        if self.gpus:
+            self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                      accelerator='gpu', devices=self.gpus,
+                                      callbacks=[checkpoint_callback, lr_monitor])
+        else:
+            self.trainer = pl.Trainer(max_epochs=self.epochs,
+                                      accelerator='cpu',
+                                      callbacks=[checkpoint_callback, lr_monitor])
         self.trainer.fit(self.model, self.dm, ckpt_path=ckpt_path)
         print("[INFO] best model path", checkpoint_callback.best_model_path)
         return self.model
@@ -205,17 +211,22 @@ class OCR(object):
         if self.model is None:
             self.create_model()
 
-        trainer = pl.Trainer(auto_lr_find=True,
-                             max_epochs=self.epochs,
-                             #gpus=self.gpus,
-                             accelerator='gpu', devices=self.gpus,
-                             )
+        if self.gpus:
+            trainer = pl.Trainer(max_epochs=self.epochs,
+                                 accelerator='gpu', devices=self.gpus,
+                                 )
+        else:
+            trainer = pl.Trainer(max_epochs=self.epochs,
+                                 accelerator='cpu'
+                                 )
+
 
         num_training = int(len(self.dm.train_image_generator)*percentage) or 1
-        lr_finder = trainer.tuner.lr_find(self.model,
-                                          self.dm,
-                                          num_training=num_training,
-                                          early_stop_threshold=None)
+        tuner = Tuner(trainer)
+        lr_finder = tuner.lr_find(self.model,
+                                  self.dm,
+                                  num_training=num_training,
+                                  early_stop_threshold=None)
         lr = lr_finder.suggestion()
         print(f"Found lr: {lr}")
         self.model.hparams["learning_rate"] = lr
@@ -295,7 +306,8 @@ class OCR(object):
                                                    height=self.height,
                                                    width=self.width,
                                                    color_channels=self.color_channels,
-                                                   max_text_len=self.max_text_len)
+                                                   max_text_len=self.max_text_len,
+                                                   **{'pytorch_lightning_version': '0.0.0'})
         self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model
