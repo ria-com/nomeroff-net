@@ -25,14 +25,12 @@ from .bbox_np_points_tools import (
     filter_boxes,
     normalize_rect,
 )
-info = modelhub.download_repo_for_model("craft_mlt")
-CRAFT_DIR = info["repo_path"]
 
 # load CRAFT packages
-from craft_mlt import imgproc
-from craft_mlt import craft_utils
-from craft_mlt.craft import CRAFT
-from craft_mlt.refinenet import RefineNet
+from craft_text_detector import image_utils
+from craft_text_detector import craft_utils
+from craft_text_detector.models.craftnet import CraftNet
+from craft_text_detector.models.refinenet import RefineNet
 
 
 class NpPointsCraft(object):
@@ -71,8 +69,8 @@ class NpPointsCraft(object):
     def load_model(self,
                    device: str = "cuda",
                    is_refine: bool = True,
-                   trained_model: str = os.path.join(CRAFT_DIR, 'weights/craft_mlt_25k.pth'),
-                   refiner_model: str = os.path.join(CRAFT_DIR, 'weights/craft_refiner_CTW1500.pth')) -> None:
+                   trained_model: str = None,
+                   refiner_model: str = None) -> None:
         """
         TODO: describe method
         """
@@ -80,7 +78,7 @@ class NpPointsCraft(object):
         self.is_cuda = is_cuda
 
         # load net
-        self.net = CRAFT()  # initialize
+        self.net = CraftNet()  # initialize
 
         model = copy_state_dict(torch.load(trained_model, map_location='cpu'))
         self.net.load_state_dict(model)
@@ -105,13 +103,12 @@ class NpPointsCraft(object):
     @staticmethod
     def preprocessing_craft(image, canvas_size, mag_ratio):
         # resize
-        img_resized, target_ratio, size_heatmap = imgproc.resize_aspect_ratio(
+        img_resized, target_ratio, size_heatmap = image_utils.resize_aspect_ratio(
             image,
             canvas_size,
-            interpolation=cv2.INTER_LINEAR,
-            mag_ratio=mag_ratio)
+            interpolation=cv2.INTER_LINEAR)
         ratio_h = ratio_w = 1 / target_ratio
-        x = imgproc.normalizeMeanVariance(img_resized)
+        x = image_utils.normalizeMeanVariance(img_resized)
         return x, ratio_h, ratio_w
 
     @staticmethod
@@ -126,7 +123,7 @@ class NpPointsCraft(object):
         # render results (optional)
         render_img = score_text.copy()
         render_img = np.hstack((render_img, score_link))
-        ret_score_text = imgproc.cvt2HeatmapImg(render_img)
+        ret_score_text = image_utils.cvt2HeatmapImg(render_img)
         return boxes, ret_score_text
 
     @torch.no_grad()

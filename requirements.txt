@@ -24,5 +24,6 @@ scikit-learn
 ultralytics==8.0.45
 
 # git repos
+craft_text_detector @ https://github.com/ria-com/craft-text-detector.git
 PyTurboJPEG @ git+https://github.com/lilohuang/PyTurboJPEG.git
 modelhub_client @ git+https://github.com/ria-com/modelhub-client.git
