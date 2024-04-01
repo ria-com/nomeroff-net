@@ -18,6 +18,10 @@ DEFAULT_PRESETS = {
         "for_regions": ["eu_ua_custom"],
         "model_path": "latest"
     },
+    "xx_transit_efficientnet_b2": {
+        "for_regions": ["xx_transit"],
+        "model_path": "latest"
+    },
     "eu_efficientnet_b2": {
         "for_regions": ["eu", "xx_transit", "xx_unknown"],
         "model_path": "latest"

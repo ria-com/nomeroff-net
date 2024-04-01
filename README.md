@@ -1,7 +1,7 @@
 # Nomeroff Net
 <img width="50%" src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 3.4.1
+Nomeroff Net. Automatic numberplate recognition system. Version 3.5.0
 <br /><br />
 <blockquote style="border-left-color: #ff0000">
 Now there is a war going on in our country, russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
@@ -119,6 +119,15 @@ print(texts)
 
 
 <br><a href="https://github.com/ria-com/nomeroff-net/tree/master/examples">More Examples</a>
+
+
+## Nomeroff Net Professional
+
+If you don't want to install and configure the Nomeroff Net programmed code for your own tasks or if your client hardware does not have enough resources to run a service that requires ML computing, you can use our commercial [API Nomeroff Net Professional](https://ai.ria.com/ANPR-NomeroffNetProfessional), which allows you to perform recognition remotely on the [RIA.com Сompany](https://ria.company) servers.
+
+The Nomeroff Net Professional API is based on the open source Nomeroff Net engine, with commercial modifications aimed mainly at using improved models that can produce better results in photos with poor image quality.
+
+Right now you can try [ALPR/ANPR Nomeroff Net Professional Demo](https://ai.ria.com/ANPR-NomeroffNetProfessional#ANPR-demo) for free.
 
 ## Online Demo
 In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the [recognition result online](https://nomeroff.net.ua/onlinedemo.html)
