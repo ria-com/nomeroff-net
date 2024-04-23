@@ -62,6 +62,7 @@ class Detector(YoloDetector):
 
     @torch.no_grad()
     def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.4) -> np.ndarray:
-        model_outputs = self.model(imgs, conf=min_accuracy, verbose=False, save=False, save_txt=False, show=False)
+        model_outputs = self.model(imgs, conf=min_accuracy, verbose=False, save=False, save_txt=False, show=False,
+                                   iou=0.7, agnostic_nms=True)
         result = self.convert_model_outputs_to_array(model_outputs)
         return np.array(result)
