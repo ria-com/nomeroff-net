@@ -1,4 +1,5 @@
 import os
+import io
 import sys
 from typing import List, Dict, Tuple
 import numpy as np
@@ -256,7 +257,19 @@ class OptionsDetector(object):
         return True
 
     def load_model(self, path_to_model):
-        self.model = NPOptionsNet.load_from_checkpoint(path_to_model,
+        # Load the checkpoint
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
+
+        # Add a fake pytorch-lightning_version key to the checkpoint if it doesn't exist
+        if 'pytorch-lightning_version' not in checkpoint:
+            checkpoint['pytorch-lightning_version'] = pl.__version__
+
+        # Save the modified checkpoint to an in-memory buffer
+        buffer = io.BytesIO()
+        torch.save(checkpoint, buffer)
+        buffer.seek(0)
+
+        self.model = NPOptionsNet.load_from_checkpoint(buffer,
                                                        map_location=torch.device('cpu'),
                                                        region_output_size=len(self.class_region),
                                                        count_line_output_size=len(self.count_lines),
