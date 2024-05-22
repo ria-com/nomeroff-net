@@ -5,7 +5,7 @@ from modelhub_client import ModelHub
 model_config_urls = [
     # numberplate classification
     "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/all/model_efficientnet_v2_s-400x100-6.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/ua-custom/model_efficientnet_v2_s-400x100-3.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/ua-custom/model_efficientnet_v2_s-400x100-4.json",
 
     # ocr
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-am/model-4.json",
