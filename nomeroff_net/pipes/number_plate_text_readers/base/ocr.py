@@ -2,6 +2,7 @@
 python3 -m nomeroff_net.text_detectors.base.ocr -f nomeroff_net/text_detectors/base/ocr.py
 """
 import os
+import io
 import cv2
 import json
 import numpy as np
@@ -295,7 +296,19 @@ class OCR(object):
 
     def load_model(self, path_to_model, nn_class=NPOcrNet):
         self.path_to_model = path_to_model
-        self.model = nn_class.load_from_checkpoint(path_to_model,
+        # Load the checkpoint
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
+
+        # Add a fake pytorch-lightning_version key to the checkpoint if it doesn't exist
+        if 'pytorch-lightning_version' not in checkpoint:
+            checkpoint['pytorch-lightning_version'] = pl.__version__
+
+        # Save the modified checkpoint to an in-memory buffer
+        buffer = io.BytesIO()
+        torch.save(checkpoint, buffer)
+        buffer.seek(0)
+
+        self.model = nn_class.load_from_checkpoint(buffer,
                                                    map_location=torch.device('cpu'),
                                                    letters=self.letters,
                                                    linear_size=self.linear_size,

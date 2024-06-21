@@ -3,8 +3,7 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
-# from nomeroff_net.pipes.number_plate_localizators.yolov5_engine_detector import Detector
-from nomeroff_net.pipes.number_plate_localizators.yolov8_engine_detector import Detector
+from nomeroff_net.pipes.number_plate_localizators.yolov8kp_engine_detector import Detector
 
 
 class NumberPlateLocalizationTrt(Pipeline):

@@ -311,7 +311,9 @@ def add_coordinates_offset(points: List or np.ndarray, x: float, y: float) -> Li
 
 def normalize_rect(rect: List) -> np.ndarray or List:
     """
-    TODO: describe function
+    This method reorders four points of a rectangle so that they follow a clear sequence.
+    The function normalize_rect takes a list of points representing a rectangle and performs several steps to
+    ensure the points are in a standard order.
     """
     rect = fix_clockwise2(rect)
     min_x_idx = find_min_x_idx(rect)
@@ -324,10 +326,12 @@ def normalize_rect(rect: List) -> np.ndarray or List:
     if not round(rect[0][0], 4) == round(rect[1][0], 4):
         if d_bottom < d_left:
             k = d_left / d_bottom
-            if k > 1.5 or angle_ccw < 0 or angle_ccw > 45:
+            if k > 1.5 or angle_ccw > 45:
                 rect = reshape_points(rect, 3)
         else:
-            if k < 1.5 and (angle_ccw < 0 or angle_ccw > 45):
+            primary_diag = distance(rect[0], rect[2])
+            secondary_diag = distance(rect[1], rect[3])
+            if k < 1.5 and (angle_ccw > 45) and (primary_diag>secondary_diag):
                 rect = reshape_points(rect, 3)
     return rect
 

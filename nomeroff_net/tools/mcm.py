@@ -53,15 +53,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-3.json",
 
     # object detection
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov5/model-2.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolox/model-1.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov5_brand_np/model-2.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8/model-s-1.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8/model-x-1.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2-trt-a6000.json",
-    "https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-s-2-trt-rtx8000.json",
-    #"https://models.vsp.net.ua/config_model/nomeroff-net-yolov8_brand_np/model-x-2.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov8/model-x-1.json",
 
     # text localization
     "https://models.vsp.net.ua/config_model/craft-mlt/model-2.json",

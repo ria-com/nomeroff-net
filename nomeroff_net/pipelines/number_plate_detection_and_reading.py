@@ -13,10 +13,12 @@ from typing import Any, Dict, Optional, List, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_method
 from .number_plate_localization import NumberPlateLocalization as DefaultNumberPlateLocalization
-from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
 from .number_plate_text_reading import NumberPlateTextReading
+from .number_plate_upscaling import NumberPlateUpscaling
 from.number_plate_classification import NumberPlateClassification
-from nomeroff_net.tools.image_processing import crop_number_plate_zones_from_images, group_by_image_ids
+from nomeroff_net.tools.image_processing import (crop_number_plate_zones_from_images,
+                                                 crop_number_plate_roi_zones_from_images,
+                                                 group_by_image_ids)
 from nomeroff_net.tools import unzip
 
 
@@ -29,8 +31,6 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  path_to_model: str = "latest",
-                 mtl_model_path: str = "latest",
-                 refiner_model_path: str = "latest",
                  path_to_classification_model: str = "latest",
                  presets: Dict = None,
                  off_number_plate_classification: bool = False,
@@ -39,6 +39,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  number_plate_localization_detector=None,
+                 upscaling=True,
                  **kwargs):
         """
         init NumberPlateDetectionAndReading Class
@@ -65,11 +66,11 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
             path_to_model=path_to_model,
             detector=number_plate_localization_detector
         )
-        self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
-            "number_plate_key_points_detection",
-            image_loader=None,
-            mtl_model_path=mtl_model_path,
-            refiner_model_path=refiner_model_path)
+        self.number_plate_upscaling = None
+        if upscaling:
+            self.number_plate_upscaling = NumberPlateUpscaling(
+                "number_plate_localization",
+                image_loader=None)
         self.number_plate_classification = None
         option_detector_width = 0
         option_detector_height = 0
@@ -93,9 +94,10 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         )
         self.pipelines = [
             self.number_plate_localization,
-            self.number_plate_key_points_detection,
             self.number_plate_text_reading,
         ]
+        if self.number_plate_upscaling is not None:
+            self.pipelines.append(self.number_plate_upscaling)
         if self.number_plate_classification is not None:
             self.pipelines.append(self.number_plate_classification)
         Pipeline.__init__(self, task, image_loader, **kwargs)
@@ -110,9 +112,14 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
 
     def forward_detection_np(self, inputs: Any, **forward_parameters: Dict):
         images_bboxs, images = unzip(self.number_plate_localization(inputs, **forward_parameters))
-        images_points, images_mline_boxes = unzip(self.number_plate_key_points_detection(unzip([images, images_bboxs]),
-                                                                                         **forward_parameters))
-        zones, image_ids = crop_number_plate_zones_from_images(images, images_points)
+        orig_images_points = [[bbox[-1] for bbox in bboxs] for bboxs in images_bboxs]
+        # crop roi
+        zones, image_ids, images_points = crop_number_plate_roi_zones_from_images(images, images_bboxs)
+        # upscaling
+        if self.number_plate_upscaling is not None:
+            zones, images_points = unzip(self.number_plate_upscaling(zip(zones, images_points)))
+        zones, image_ids = crop_number_plate_zones_from_images(zones, image_ids, images_points)
+
         if self.number_plate_classification is None or not len(zones):
             region_ids = [-1 for _ in zones]
             region_names = [self.default_label for _ in zones]
@@ -126,7 +133,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                                                                                                **forward_parameters))
         return (region_ids, region_names, count_lines, confidences,
                 predicted, zones, image_ids, images_bboxs, images,
-                images_points, images_mline_boxes, preprocessed_np)
+                orig_images_points, preprocessed_np)
 
     def forward_recognition_np(self, region_ids, region_names,
                                count_lines, confidences,
@@ -156,7 +163,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
          count_lines, confidences, predicted,
          zones, image_ids,
          images_bboxs, images,
-         images_points, images_mline_boxes, preprocessed_np) = self.forward_detection_np(inputs, **forward_parameters)
+         images_points, preprocessed_np) = self.forward_detection_np(inputs, **forward_parameters)
         return self.forward_recognition_np(region_ids, region_names,
                                            count_lines, confidences,
                                            zones, image_ids,

@@ -110,11 +110,6 @@ def build_perspective(img: np.ndarray, rect: list, w: int, h: int) -> List:
     """
     image perspective transformation
     """
-    img_h, img_w, img_c = img.shape
-    if img_h < h:
-        h = img_h
-    if img_w < w:
-        w = img_w
     pts1 = np.float32(rect)
     pts2 = np.float32(np.array([[0, 0], [w, 0], [w, h], [0, h]]))
     moment = cv2.getPerspectiveTransform(pts1, pts2)
@@ -581,15 +576,30 @@ def crop_image(image, target_box):
     return image_part, (x, w, y, h)
 
 
-def crop_number_plate_zones_from_images(images, images_points):
+def crop_number_plate_zones_from_images(images, image_ids, images_points):
+    zones = []
+    for i, (image, rect) in enumerate(zip(images, images_points)):
+        zone = get_cv_zone_rgb(image, reshape_points(rect, 1))
+        zones.append(zone)
+    return zones, image_ids
+
+
+def crop_number_plate_roi_zones_from_images(images, images_bboxes):
     zones = []
     image_ids = []
-    for i, (image, image_points) in enumerate(zip(images, images_points)):
-        image_zones = [get_cv_zone_rgb(image, reshape_points(rect, 1)) for rect in image_points]
-        for zone in image_zones:
+    images_points = []
+    for i, (image, bboxes) in enumerate(zip(images, images_bboxes)):
+        for bbox in bboxes:
+            min_x = int(min(bbox[0], bbox[2]))
+            max_x = int(max(bbox[0], bbox[2]))
+            min_y = int(min(bbox[1], bbox[3]))
+            max_y = int(max(bbox[1], bbox[3]))
+            points = bbox[-1] - np.array([min_x, min_y])
+            images_points.append(points)
+            zone = image[min_y:max_y, min_x:max_x]
             zones.append(zone)
             image_ids.append(i)
-    return zones, image_ids
+    return zones, image_ids, images_points
 
 
 def crop_number_plate_rect_zones_from_images(images, images_bboxs):

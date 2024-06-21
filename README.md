@@ -1,7 +1,7 @@
 # Nomeroff Net
 <img width="50%" src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/nomeroff_net.svg" alt="Nomeroff Net. Automatic numberplate recognition system"/>
 
-Nomeroff Net. Automatic numberplate recognition system. Version 3.5.0
+Nomeroff Net. Automatic numberplate recognition system. Version 4.0.0
 <br /><br />
 <blockquote style="border-left-color: #ff0000">
 Now there is a war going on in our country, russian soldiers are shooting at civilians in Ukraine. Enemy aviation launches rockets and drops bombs on residential quarters.
@@ -18,7 +18,7 @@ Photo: Konstantin Liberov https://www.instagram.com/libkos/
 
 ## Introduction
 Nomeroff Net is an opensource python license plate 
-recognition framework based on YOLOv5 and CRAFT 
+recognition framework based on YOLOv8 bbox and pose 
 networks and customized OCR-module powered by RNN architecture.
 
 Write to us if you are interested in helping us in the formation of a dataset for your country.

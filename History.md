@@ -1,3 +1,22 @@
+4.0.0 / 2024-06-21
+==================
+  **added**
+  * The new yolov8 model is trained with bbox and the key 4 points of the license plate instead of the yolo+craft
+  * Upscaling model for license plates with low resolution https://github.com/ria-com/upscaler/tree/main
+
+  **updates**
+  * Update pipelines (see https://github.com/ria-com/nomeroff-net/tree/v4.0/examples/ju/inference for more)
+  
+  **bugfix** 
+  * Repair bug with different pytorch_lightning versions for ocr models
+
+  **deleted**
+  * yolov5 support
+  * yolovx support
+  * unused experimental orientation number plate classificator 
+  * unused experimental inverse number plate classificator
+  * unused experimental fraud number plate classificator
+
 3.4.1 / 2023-04-19
 ==================
   **updates**

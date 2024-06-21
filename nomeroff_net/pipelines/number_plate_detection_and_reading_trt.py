@@ -2,7 +2,7 @@ from typing import Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline
 from .number_plate_localization_trt import NumberPlateLocalizationTrt
-from .number_plate_key_points_detection import NumberPlateKeyPointsDetection
+from .number_plate_key_points_cropping import NumberPlateKeyPointsDetection
 from .number_plate_text_reading_trt import NumberPlateTextReadingTrt
 from .number_plate_classification_trt import NumberPlateClassificationTrt
 from .number_plate_detection_and_reading import NumberPlateDetectionAndReading
