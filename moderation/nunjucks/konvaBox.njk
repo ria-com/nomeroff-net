@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/konva@9.3.12/konva.min.js"></script>
+    <meta charset="utf-8">
+    <title>Konva Line Polygon Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        button {
+            padding: 0px 10px;
+            margin: 3px 0px;
+        }
+        div.red_border {
+            background-color: #ffaaaa;
+            border: 2px solid #ff4444;
+        }
+        div.green_border {
+            background-color: #99ff99;
+            border: 2px solid #009f00;
+        }
+        #message {
+            padding: 0px 10px;
+            width: 300px
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+</head>
+<body>
+    <!-- {{ container.width }}x{{ container.height }} -->
+    <div id="container"></div>
+    <script>
+        var width = window.innerWidth;
+        var height = window.innerHeight;
+
+var stage = new Konva.Stage({
+  container: 'container',   // id of container <div>
+  width: {{ container.width }},
+  height: {{ container.height }}
+});
+var layerBg = new Konva.Layer();
+
+// main API from example https://konvajs.org/docs/shapes/Image.html
+var imageObj = new Image();
+imageObj.onload = function () {
+    var autoBg = new Konva.Image({
+      x: 0,
+      y: 0,
+      image: imageObj,
+    });
+
+    // add the shape to the layer
+    layerBg.add(autoBg);
+};
+imageObj.src = '/cropSrc/{{ anb_basename }}-{{ container.xOffset }}x{{ container.yOffset }}-{{ container.width }}x{{ container.height }}?rand1';
+
+{#imageObj.onload = function () {#}
+{#    var autoBg = new Konva.Image({#}
+{#      x: 0,#}
+{#      y: 0,#}
+{#      image: imageObj#}
+{#    });#}
+
+{#    #}{#autoBg.crop(#}{#}#}
+{#    #}{#      x: {{ container.xOffset }},#}
+{#    #}{#      y: {{ container.yOffset }},#}
+{#    #}{#      width: {{ container.xOffsetW }},#}
+{#    #}{#      height: {{ container.yOffsetH }},#}
+{#    #}{#});#}
+{#    autoBg.cropY({{ container.yOffset }})#}
+{#    autoBg.cropX({{ container.xOffset }})#}
+
+{#    // add the shape to the layer#}
+{#    layerBg.add(autoBg);#}
+{#};#}
+{#imageObj.src = '/src/{{ anb_basename }}.jpeg';#}
+
+
+var layer = new Konva.Layer();
+
+
+var blueGroup = new Konva.Group({
+    x: 0,
+    y: 0,
+    width: {{ container.width }},
+    height: {{ container.height }},
+    draggable: true,
+});
+
+var circles = [
+{% for keypoint in zone.regions[key].keypoints %}{% set x = keypoint[0]-container.xOffset %}{% set y = keypoint[1]-container.yOffset %}
+  new Konva.Circle({
+    x: {{ x | round }},
+    y: {{ y | round }},
+    radius: 5,
+    stroke: '#ff0000',
+    strokeWidth: 1,
+    draggable: true,
+  }){% if loop.last %}{% else %},{% endif %}
+{% endfor %}
+//   new Konva.Circle({
+//     x: 22,
+//     y: 76,
+//     radius: 5,
+//     stroke: '#ff0000',
+//     strokeWidth: 1,
+//     draggable: true,
+//   }),
+//   new Konva.Circle({
+//     x: 212,
+//     y: 83,
+//     radius: 5,
+//     stroke: '#ff0000',
+//     strokeWidth: 1,
+//     draggable: true,
+//   }),
+//   new Konva.Circle({
+//     x: 208,
+//     y: 265,
+//     radius: 5,
+//     stroke: '#ff0000',
+//     strokeWidth: 1,
+//     draggable: true,
+//   }),
+//   new Konva.Circle({
+//     x: 22,
+//     y: 255,
+//     radius: 5,
+//     stroke: '#ff0000',
+//     strokeWidth: 1,
+//     draggable: true,
+//   })
+];
+
+const circlesToPoints = (circles) => {
+  return circles.map(circle => 
+    [circle.attrs.x, circle.attrs.y]
+  ).reduce((prev, current) =>  prev.concat(current))
+}
+
+var polygon = new Konva.Line({
+  points: circlesToPoints(circles),
+  fill: '#ff000055',
+  stroke: '#ff0000',
+  strokeWidth: 1,
+  draggable: false,
+  closed: true,
+  dash:[]
+});
+
+var touched = false;
+
+const addEventToCircle = (circle) => {
+  circle.on('dragmove', (e) => {
+    //console.log(JSON.stringify(e))
+    //console.log(`drag move. x: ${circle.attrs.x}, y: ${circle.attrs.y}`)
+    polygon.points(circlesToPoints(circles))
+    layer.draw()
+  })
+  circle.on('mouseover', (e)  => {
+    circle.radius(10)
+    layer.draw()
+  })
+  circle.on('mouseout', ()  => {
+    circle.radius(5)
+    layer.draw()
+  })
+}
+
+circles.map((circle) => addEventToCircle(circle))
+
+polygon.on('dragmove', (e) => {
+    //console.log(JSON.stringify(e))
+    console.log(`Polygon drag move. x: ${polygon.attrs.x}, y: ${polygon.attrs.y}`)
+    // polygon.points(circlesToPoints(circles))
+    // layer.draw()
+  })
+
+polygon.on('click', (e) => {
+  console.log('click')
+  console.log(e)
+  var mousePos = stage.getPointerPosition();
+  const x = mousePos.x
+  const y = mousePos.y
+  const points = polygon.attrs.points
+  for (i=0; i < points.length / 2; i++) {
+    const s_x = points[i * 2]
+    const s_y = points[i * 2 + 1]
+    const e_x = points[(i * 2 + 2) % points.length]
+    const e_y = points[(i * 2 + 3) % points.length]
+    
+    console.log(`i: ${i}, x: ${x}, y: ${y}, sx: ${s_x}, sy: ${s_y}, ex: ${e_x}, ey: ${e_y}`)
+    // if (((s_x <= x && x <= e_x) || (e_x <= x && x <= s_x)) &&
+    //     ((s_y <= y && y <= e_y) || (e_y <= y && y <= s_y))) {
+    //   point = new Konva.Circle({
+    //     x: x,
+    //     y: y,
+    //     radius: 3,
+    //     stroke: '#ff0000',
+    //     strokeWidth: 1,
+    //     draggable: true,
+    //   });
+    //   addEventToCircle(point)
+    //   console.log(`insert at ${i + 1}`)
+    //   circles.splice(i + 1, 0, point)
+    //   polygon.points(circlesToPoints(circles))
+    //   layer.add(point)
+    //   layer.draw()
+    //   break;
+    // }
+  }
+})
+
+blueGroup.add(...circles).add(polygon);
+//layer.add(...circles, polygon);
+
+layer.add(blueGroup);
+stage.add(layerBg, layer);
+
+layer.draw();
+
+function storeKeypoints() {
+    const keypoints = []
+    for (const circle of circles) {
+        console.log(circle.attrs);
+        keypoints.push([circle.attrs.x +{{ container.xOffset }}, circle.attrs.y +{{ container.yOffset }}])
+    }
+    console.log(keypoints);
+    const sendata = {
+        keypoints,
+        key: "{{ key }}",
+        basename: "{{ anb_basename }}",
+        src: "{{ zone.src }}"
+    }
+
+    $.ajax({
+        url: '/storeKeypoints',
+        dataType: 'json',
+        data: sendata,
+        cache: false,
+        type: 'post',
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+        },
+        success: function (response) {
+            message = $( "#message" );
+            console.log(response);
+            border_class = "green_border";
+            message.text(response.message);
+            if (response.err_code>0) {
+                console.log("Ok");
+                border_class = "red_border";
+            }
+            message.css( "display", "block" );
+            message.addClass(border_class);
+            setTimeout(() => {
+              message.css( "display", "none" );
+              message.removeClass(border_class);
+            }, "3000");
+        }
+   })
+}
+
+function restoreKeypoints() {
+    let x , y;
+    const points = polygon.attrs.points
+    {% for keypoint in zone.regions[key].keypoints %}x={{ keypoint[0] | round }}-{{ container.xOffset }}; y= {{ keypoint[1] | round }}-{{ container.yOffset }};
+    circles[{{ loop.index0 }}].absolutePosition({ x, y });
+    {% endfor %}
+    polygon.points(circlesToPoints(circles))
+}
+
+
+</script>
+<button type="button" onclick="if (confirm('Закрити редагування {{ key }} ?')) { window.close() }">x</button>
+<button type="button" onclick="restoreKeypoints()">Reset</button>
+<button type="button" onclick="storeKeypoints()">Update keypoints!</button>
+<div id="message" style="display: none"></div>
+</body>
+</html>

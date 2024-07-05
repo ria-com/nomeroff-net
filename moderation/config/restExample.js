@@ -38,7 +38,8 @@ module.exports = {
                     "am",
                     "ua-military",
                     "ru-military",
-                    "md"
+                    "md",
+                    "eu-ua-custom"
                 ],
                 state_id: ["garbage", "filled", "not filled", "empty"],
                 count_lines: ["0", "1", "2", "3"]

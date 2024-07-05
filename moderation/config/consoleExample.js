@@ -16,6 +16,20 @@ module.exports = {
     },
     via: {
         partDirs: ['train', 'val']
+    },
+    koa_view: {
+        template: {
+            options: {map: {njk: 'nunjucks'}, extension: 'njk'},
+            name: 'konvaBox',
+            dir: __dirname + '/../nunjucks'
+        }
+    },
+    pages: {
+        editKeypoints: {
+            container: {
+                width: 700,
+                height: 500
+            }
+        }
     }
-
 };
