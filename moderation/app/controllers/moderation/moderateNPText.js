@@ -36,12 +36,12 @@ function changeAnn(img, ann, number, template, newNumber, f) {
     fs.writeFileSync(path.join(ann, `${number}.json`), JSON.stringify(data));
 }
 
-function chenche_annotation (img, ann, chended_numbers, template) {
-    if (!chended_numbers) {
+function change_annotation (img, ann, changed_numbers, template) {
+    if (!changed_numbers) {
         return;
     }
-    for (let i in chended_numbers) {
-        const f = chended_numbers[i];
+    for (let i in changed_numbers) {
+        const f = changed_numbers[i];
         const number = f.number;
         const newNumber = f.newNumber;
 
@@ -89,10 +89,32 @@ function packRes(files, ann, template) {
     return {res, count};
 }
 
+function loadAnbDesc(data) {
+    const
+        base_dir = config.moderation.regionOCRModeration.base_dir,
+        anb = "anb",
+        anb_dir = path.join(base_dir, anb),
+        anb_data = {}
+    ;
+    const anb_ids = data.map(item=>item.name.split('-')[0]);
+    // console.log('anb_ids');
+    // console.log(anb_ids);
+    for (const anb_id of anb_ids) {
+        const
+            anb_path = path.join(anb_dir, `${anb_id}.json`)
+        ;
+        if (fs.existsSync(anb_path)) {
+            console.log(`anb_path ${anb_path}`);
+            anb_data[anb_id] = require(anb_path)
+        }
+    }
+    return anb_data
+}
+
 module.exports = function(ctx, next) {
     const base_dir = config.moderation.regionOCRModeration.base_dir;
     const max_files_count = ctx.request.body.max_count || 100;
-    const chended_numbers = ctx.request.body.chended_numbers;
+    const changed_numbers = ctx.request.body.changed_numbers;
 
     const img = path.join(base_dir, "/img/");
     const ann = path.join(base_dir, "/ann/");
@@ -115,14 +137,16 @@ module.exports = function(ctx, next) {
         if (!fs.existsSync(ann)) {
             fs.mkdirSync(ann);
         }
-        chenche_annotation(img, ann, chended_numbers, template);
+        change_annotation(img, ann, changed_numbers, template);
 
         console.log(template);
         const files = fs.readdirSync(img);
         const {res, count} = packRes(files, ann, template)
+        let data = res.slice(0, max_files_count)
         ctx.body = {
             expectModeration: files.length - count,
-            data: res.slice(0, max_files_count),
+            data,
+            anbIdx: loadAnbDesc(data),
             options: config.moderation.regionOCRModeration.options,
             user: template.moderation.moderatedBy || "defaultUser"
         };

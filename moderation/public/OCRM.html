@@ -159,7 +159,7 @@
                 sendata.who_changed = user;
             }
             if (newdata != undefined) {
-                sendata.chended_numbers = newdata;
+                sendata.changed_numbers = newdata;
             }
             $.ajax({
                 url: './regionOCRModeration',
@@ -186,14 +186,15 @@
                         }
                         infoBox.appendChild(info_p);
 
-                        response = response.data;
-                        for (var i in response) {
-                            var item = response[i];
+                        var res_data = response.data;
+                        for (var i in res_data) {
+                            var item = res_data[i];
                             var tr = document.createElement("tr");
                             var td_box = document.createElement("td");
                             var img_box = document.createElement("img");
                             var a_box = document.createElement("a");
                             var box_basename = item.name.replace(/-line-\d/,"");
+                            var photo_id = box_basename.split('-')[0];
                             var box_name = box_basename+'.png';
 
                             a_box.href = '/editKeypoints/'+box_basename;
@@ -228,9 +229,12 @@
 
                             var img = document.createElement("img");
                             img.src = item.img_path;
-                            if (item.count_lines !== undefined && item.count_lines > 1) {
+                            // console.log(`photo_id: ${photo_id} box_basename: ${box_basename}`)
+                            // console.log(`res: ${res}`)
+                            var lines = response.anbIdx[photo_id].regions[box_basename].lines;
+                            if (item.count_lines !== undefined && Object.keys(lines).length > 1) {
                                 img.width = 256;
-                                img.height = 128;
+                                img.height = 102;
                             } else {
                                 img.width = 256;
                                 img.height = 64;

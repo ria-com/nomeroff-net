@@ -3,6 +3,7 @@ examples/**/*.html
 
 moderation/node_modules/*
 moderation/config/default.js
+moderation/config/test.js
 moderation/package-lock.json
 models/*.h5
 samples/logs/*
