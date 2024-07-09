@@ -87,37 +87,61 @@ async function createAnnotations (options) {
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/
  */
 async function moveChecked (options) {
-        const srcDir = options.srcDir || './draft',
+        const sourceDir = options.srcDir || './draft',
               targetDir = options.targetDir || './checked',
               annExt = '.'+config.dataset.ann.ext,
-              src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
+              src = { annPath: path.join(sourceDir, config.dataset.ann.dir),
+                                     anbPath: path.join(sourceDir, config.dataset.anb.dir) }
         ;
         let checkedAnn = [],
-            checkedImg = []
+            checkedImg = [],
+            checkedAnb =[],
+            checkedBox =[],
+            checkedSrc =[]
         ;
-        checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
-        checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+        checkDirStructure(sourceDir,[config.dataset.anb.dir,config.dataset.ann.dir,
+                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
+        checkDirStructure(targetDir, [config.dataset.anb.dir,config.dataset.ann.dir,
+                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
 
         fs.readdir(src.annPath, async function(err, items) {
                 for (let filename of items) {
                         const fileObj = path.parse(filename);
                         if (fileObj.ext === annExt) {
-                                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                      annFileName = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
-                                                                                                        annFileName)),
-                                      imgName = `${data.name}.${config.dataset.img.ext}`
+                                const
+                                    annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                                    annFileName = path.join( src.annPath, annName),
+                                    data = require(path.isAbsolute(annFileName)?annFileName:path
+                                                   .join(process.cwd(), annFileName)),
+                                    anbName = `${fileObj.name.split('-')[0]}.${config.dataset.anb.ext}`,
+                                    anbFileName = path.join( src.anbPath, anbName),
+                                    data_anb = require(path.isAbsolute(anbFileName)?anbFileName:path
+                                                   .join(process.cwd(), anbFileName)),
+                                    boxName = `${fileObj.name.replace(/-line-\d/,'')}.${config.dataset.box.ext}`,
+                                    srcName = data_anb.src,
+                                    imgName = `${data.name}.${config.dataset.img.ext}`
                                 ;
+                                console.log(`data`);
+                                console.log(data)
                                 if (data.moderation !== undefined
                                     && data.moderation.isModerated !== undefined
                                     && data.moderation.isModerated) {
                                         checkedAnn.push(annName);
                                         checkedImg.push(imgName);
+                                        checkedAnb.push(anbName);
+                                        checkedBox.push(boxName);
+                                        checkedSrc.push(srcName);
                                 }
                         }
                 }
                 console.log(`Checked: ${checkedAnn.length}`);
-                moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
+                moveDatasetFiles({sourceDir, targetDir,
+                    Anbs: checkedAnb, anbDir:config.dataset.anb.dir,
+                    Anns: checkedAnn, annDir:config.dataset.ann.dir,
+                    Imgs: checkedImg, imgDir:config.dataset.img.dir,
+                    Boxs: checkedBox, boxDir:config.dataset.box.dir,
+                    Srcs: checkedSrc, srcDir:config.dataset.src.dir,
+                    test:true});
         });
 }
 
