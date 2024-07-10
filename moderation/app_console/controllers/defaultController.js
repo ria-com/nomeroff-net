@@ -16,15 +16,15 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
         const sourceDir = options.srcDir || './draft',
               targetDir = options.targetDir || './checked',
               testMode = options.test || false,
-              annExt = '.'+config.dataset.ann.ext,
-              src = { annPath: path.join(sourceDir, config.dataset.ann.dir),
+              annExt = '.' + config.dataset.ann.ext,
+              src= { annPath: path.join(sourceDir, config.dataset.ann.dir),
                                      anbPath: path.join(sourceDir, config.dataset.anb.dir) }
         ;
         let checkedAnn = [],
             checkedImg = [],
-            checkedAnb =[],
-            checkedBox =[],
-            checkedSrc =[],
+            checkedAnb = [],
+            checkedBox = [],
+            checkedSrc = [],
             stayAnbs = [],
             stayBoxs = [],
             staySrcs = []

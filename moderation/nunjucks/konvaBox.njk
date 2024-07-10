@@ -29,6 +29,7 @@
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script>var bc = new BroadcastChannel('nn_moderation');</script>
 </head>
 <body>
     <!-- {{ container.width }}x{{ container.height }} -->
@@ -258,6 +259,7 @@ function storeKeypoints() {
             }
             message.css( "display", "block" );
             message.addClass(border_class);
+            bc.postMessage(JSON.stringify(sendata));
             setTimeout(() => {
               message.css( "display", "none" );
               message.removeClass(border_class);

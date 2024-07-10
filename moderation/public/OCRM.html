@@ -26,6 +26,9 @@
         tr.forDelete {
             background-color: #f77 !important;
         }
+        td.boxUpdated {
+            background-color: #0a0;
+        }
         td.deleteTD {
             width: 10px;
         }
@@ -195,11 +198,17 @@
                             var a_box = document.createElement("a");
                             var box_basename = item.name.replace(/-line-\d/,"");
                             var photo_id = box_basename.split('-')[0];
+                            td_box.id = box_basename;
                             var box_name = box_basename+'.png';
 
                             a_box.href = '/editKeypoints/'+box_basename;
                             a_box.target = "_blank";
                             img_box.src = 'box/'+box_name;
+                            if (response.anbIdx[photo_id].regions[box_basename].updated != undefined &&
+                                response.anbIdx[photo_id].regions[box_basename].updated) {
+                                td_box.className = 'boxUpdated';
+                            }
+
                             a_box.appendChild(img_box);
                             td_box.appendChild(a_box);
                             
@@ -390,7 +399,7 @@
                         "newNumber": discription == "_" ? undefined : discription,
                         "deleted": d.parentNode.parentNode.lastChild.firstChild.checked ? 1 : 0
                     };
-                    for (var item of d.parentNode.parentNode.childNodes[1].childNodes) {
+                    for (var item of d.parentNode.parentNode.childNodes[2].childNodes) {
                         item = item.firstChild;
                         item_data[item.firstChild.firstChild.textContent] = +item[item.selectedIndex].value;
                     }
@@ -404,6 +413,15 @@
             getNewData(USER, newdata);
             return false;
         });
+        var bc = new BroadcastChannel('nn_moderation');
+        bc.onmessage = function (event) {
+            //console.log('-----------------------')
+            //console.log(event.data); // Виведе отримане повідомлення
+            let data = JSON.parse(event.data);
+            if (!document.getElementById(data.key).contains('boxUpdated')){
+                document.getElementById(data.key).addClass('boxUpdated');
+            }
+        };
     });
 </script>
 </body>
