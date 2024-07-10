@@ -12,6 +12,78 @@ const config = require('config'),
       md5File = require('md5-file')
 ;
 
+async function moveBody (options, filterFunction=function (data, data_anb) { return true }, splitRate=1) {
+        const sourceDir = options.srcDir || './draft',
+              targetDir = options.targetDir || './checked',
+              testMode = options.test || false,
+              annExt = '.'+config.dataset.ann.ext,
+              src = { annPath: path.join(sourceDir, config.dataset.ann.dir),
+                                     anbPath: path.join(sourceDir, config.dataset.anb.dir) }
+        ;
+        let checkedAnn = [],
+            checkedImg = [],
+            checkedAnb =[],
+            checkedBox =[],
+            checkedSrc =[],
+            stayAnbs = [],
+            stayBoxs = [],
+            staySrcs = []
+        ;
+        checkDirStructure(sourceDir,[config.dataset.anb.dir,config.dataset.ann.dir,
+                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
+        checkDirStructure(targetDir, [config.dataset.anb.dir,config.dataset.ann.dir,
+                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
+
+        fs.readdir(src.annPath, async function(err, items) {
+                if (splitRate != 1) {
+                    let sItems = arrayShuffle(items),
+                        cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate),
+                        items = sItems.slice(0,cnt);
+                }
+                for (let filename of items) {
+                        const fileObj = path.parse(filename);
+                        if (fileObj.ext === annExt) {
+                                const
+                                    annName = `${fileObj.name}.${config.dataset.ann.ext}`,
+                                    annFileName = path.join( src.annPath, annName),
+                                    data = require(path.isAbsolute(annFileName)?annFileName:path
+                                                   .join(process.cwd(), annFileName)),
+                                    anbName = `${fileObj.name.split('-')[0]}.${config.dataset.anb.ext}`,
+                                    anbFileName = path.join( src.anbPath, anbName),
+                                    data_anb = require(path.isAbsolute(anbFileName)?anbFileName:path
+                                                   .join(process.cwd(), anbFileName)),
+                                    boxName = `${fileObj.name.replace(/-line-\d/,'')}.${config.dataset.box.ext}`,
+                                    srcName = data_anb.src,
+                                    imgName = `${data.name}.${config.dataset.img.ext}`
+                                ;
+                                // console.log(`data`);
+                                // console.log(data)
+                                if (filterFunction(data, data_anb)) {
+                                        checkedAnn.push(annName);
+                                        checkedImg.push(imgName);
+                                        checkedAnb.push(anbName);
+                                        checkedBox.push(boxName);
+                                        checkedSrc.push(srcName);
+                                } else {
+                                    stayAnbs.push(anbName);
+                                    stayBoxs.push(boxName);
+                                    staySrcs.push(srcName);
+                                }
+                        }
+                }
+                console.log(`Checked: ${checkedAnn.length}`);
+                moveDatasetFiles({sourceDir, targetDir,
+                    Anbs: checkedAnb, anbDir:config.dataset.anb.dir, stayAnbs,
+                    Anns: checkedAnn, annDir:config.dataset.ann.dir,
+                    Imgs: checkedImg, imgDir:config.dataset.img.dir,
+                    Boxs: checkedBox, boxDir:config.dataset.box.dir, stayBoxs,
+                    Srcs: checkedSrc, srcDir:config.dataset.src.dir, staySrcs,
+                    test:testMode});
+        });
+}
+
+
+
 
 /**
  * EN: Console script example
@@ -87,62 +159,13 @@ async function createAnnotations (options) {
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/
  */
 async function moveChecked (options) {
-        const sourceDir = options.srcDir || './draft',
-              targetDir = options.targetDir || './checked',
-              annExt = '.'+config.dataset.ann.ext,
-              src = { annPath: path.join(sourceDir, config.dataset.ann.dir),
-                                     anbPath: path.join(sourceDir, config.dataset.anb.dir) }
-        ;
-        let checkedAnn = [],
-            checkedImg = [],
-            checkedAnb =[],
-            checkedBox =[],
-            checkedSrc =[]
-        ;
-        checkDirStructure(sourceDir,[config.dataset.anb.dir,config.dataset.ann.dir,
-                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
-        checkDirStructure(targetDir, [config.dataset.anb.dir,config.dataset.ann.dir,
-                          config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
-
-        fs.readdir(src.annPath, async function(err, items) {
-                for (let filename of items) {
-                        const fileObj = path.parse(filename);
-                        if (fileObj.ext === annExt) {
-                                const
-                                    annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                    annFileName = path.join( src.annPath, annName),
-                                    data = require(path.isAbsolute(annFileName)?annFileName:path
-                                                   .join(process.cwd(), annFileName)),
-                                    anbName = `${fileObj.name.split('-')[0]}.${config.dataset.anb.ext}`,
-                                    anbFileName = path.join( src.anbPath, anbName),
-                                    data_anb = require(path.isAbsolute(anbFileName)?anbFileName:path
-                                                   .join(process.cwd(), anbFileName)),
-                                    boxName = `${fileObj.name.replace(/-line-\d/,'')}.${config.dataset.box.ext}`,
-                                    srcName = data_anb.src,
-                                    imgName = `${data.name}.${config.dataset.img.ext}`
-                                ;
-                                console.log(`data`);
-                                console.log(data)
-                                if (data.moderation !== undefined
-                                    && data.moderation.isModerated !== undefined
-                                    && data.moderation.isModerated) {
-                                        checkedAnn.push(annName);
-                                        checkedImg.push(imgName);
-                                        checkedAnb.push(anbName);
-                                        checkedBox.push(boxName);
-                                        checkedSrc.push(srcName);
-                                }
-                        }
-                }
-                console.log(`Checked: ${checkedAnn.length}`);
-                moveDatasetFiles({sourceDir, targetDir,
-                    Anbs: checkedAnb, anbDir:config.dataset.anb.dir,
-                    Anns: checkedAnn, annDir:config.dataset.ann.dir,
-                    Imgs: checkedImg, imgDir:config.dataset.img.dir,
-                    Boxs: checkedBox, boxDir:config.dataset.box.dir,
-                    Srcs: checkedSrc, srcDir:config.dataset.src.dir,
-                    test:true});
-        });
+    const
+        myFilter = function (data, data_anb) {
+            return data.moderation !== undefined
+                   && data.moderation.isModerated !== undefined
+                   && data.moderation.isModerated
+        }
+        moveBody(options, myFilter);
 }
 
 
@@ -159,43 +182,11 @@ async function moveChecked (options) {
  *                                               --opt.test=1 #use opt.test=1 if you want emulate split process
  */
 async function dataSplit (options) {
-        const srcDir = options.srcDir || './train',
-            targetDir = options.targetDir || './val',
+        const
             splitRate = options.rate || 0.2,
-            testMode = options.test || false,
-            annExt = '.'+config.dataset.ann.ext,
-            src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
+            myFilter = function (data, data_anb) { return true }
         ;
-        let checkedAnn = [],
-            checkedImg = []
-        ;
-
-        checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
-        checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
-
-        fs.readdir(src.annPath, async function(err, items) {
-                let sItems = arrayShuffle(items),
-                    cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate),
-                    itemsTest = sItems.slice(0,cnt);
-
-                for (let i=0; i<itemsTest.length; i++) {
-                        const  filename = items[i],
-                               fileObj = path.parse(filename);
-                        if (fileObj.ext === annExt) {
-                                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                                    annFileName = path.join( src.annPath, annName);
-                                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
-                                                                                                        annFileName)),
-                                    imgName = `${data.name}.${config.dataset.img.ext}`
-                                ;
-                                checkedAnn.push(annName);
-                                checkedImg.push(imgName);
-                        }
-                }
-                moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:testMode});
-                console.log(`All records: ${items.length}`);
-                console.log(`Moved records: ${itemsTest.length}`);
-        });
+        moveBody(options, myFilter, splitRate);
 }
 
 
@@ -210,36 +201,11 @@ async function dataSplit (options) {
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/garbage/
  */
 async function moveGarbage (options) {
-    const srcDir = options.srcDir || './draft',
-        targetDir = options.targetDir || './checked',
-        annExt = '.'+config.dataset.ann.ext,
-        src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
-    ;
-    let checkedAnn = [],
-        checkedImg = []
-    ;
-    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
-    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
-
-    fs.readdir(src.annPath, async function(err, items) {
-        for (let filename of items) {
-            const fileObj = path.parse(filename);
-            if (fileObj.ext === annExt) {
-                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annFileName = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
-                                                                                        annFileName)),
-                    imgName = `${data.name}.${config.dataset.img.ext}`
-                ;
-                if (data["region_id"] !== undefined && data["region_id"] === 0) {
-                    checkedAnn.push(annName);
-                    checkedImg.push(imgName);
-                }
-            }
+    const
+        myFilter = function (data, data_anb) {
+            return data["region_id"] !== undefined && data["region_id"] === 0
         }
-        console.log(`Garbage: ${checkedAnn.length}`);
-        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
-    });
+        moveBody(options, myFilter);
 }
 
 
@@ -254,51 +220,25 @@ async function moveGarbage (options) {
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/train.true/
  */
 async function moveSomething (options) {
-    const srcDir = options.srcDir || './draft',
-        targetDir = options.targetDir || './checked',
-        annExt = '.'+config.dataset.ann.ext,
-        src = { annPath: path.join(srcDir, config.dataset.ann.dir) }
-    ;
-    let checkedAnn = [],
-        checkedImg = []
-    ;
-    checkDirStructure(srcDir,[config.dataset.img.dir,config.dataset.ann.dir], true);
-    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
-
-    fs.readdir(src.annPath, async function(err, items) {
-        for (let filename of items) {
-            const fileObj = path.parse(filename);
-            if (fileObj.ext === annExt) {
-                const annName = `${fileObj.name}.${config.dataset.ann.ext}`,
-                    annFileName = path.join( src.annPath, annName);
-                const data = require(path.isAbsolute(annFileName)?annFileName:path.join(process.cwd(),
-                                                                                        annFileName)),
-                    imgName = `${data.name}.${config.dataset.img.ext}`
-                ;
-
-                //if (data.region_id != 12 || data.count_lines > 1 ) {
-                //if (data.region_id != 1 || data.count_lines > 1 ) {
-                //if (data.region_id != 1 && data.region_id != 2 ) {
-                //if (data.description.length > 7) {
-                //if (data.description.length == 7) {
-                //if (data.size.height >= 32) {
-                //if (data.description.indexOf("L") != -1) {
-                //if (data.description.slice(6) == 'XA') {
-                if (Number(data.count_lines) != 1 ) {
-                //if (Number(data.count_lines) == 2 ) {
-                //if (data.region_id != 2 ) {
-                //if (Number(data.region_id) != 7) {
-                //if (Number(data.state_id) != 2 ) {
-                //if (Number(data.region_id) != 3 ) {
-                //if (data.count_lines == undefined || Number(data.count_lines) != 1 ) {
-                    checkedAnn.push(annName);
-                    checkedImg.push(imgName);
-                }
-            }
+    const
+        myFilter = function (data, data_anb) {
+            //return data.region_id != 12 || data.count_lines > 1
+            //return data.region_id != 1 || data.count_lines > 1
+            //return data.region_id != 1 && data.region_id != 2
+            //return data.description.length > 7
+            //return data.description.length == 7
+            //return data.size.height >= 32
+            //return data.description.indexOf("L") != -1
+            //return data.description.slice(6) == 'XA'
+            return Number(data.count_lines) != 1
+            //return Number(data.count_lines) == 2
+            //return data.region_id != 2
+            //return Number(data.region_id) != 7
+            //return Number(data.state_id) != 2
+            //return Number(data.region_id) != 3
+            //return data.count_lines == undefined || Number(data.count_lines) != 1
         }
-        console.log(`Garbage: ${checkedAnn.length}`);
-        moveDatasetFiles({srcDir, targetDir, Anns: checkedAnn, Imgs: checkedImg, annDir:config.dataset.ann.dir, imgDir:config.dataset.img.dir, test:false});
-    });
+        moveBody(options, myFilter);
 }
 
 
