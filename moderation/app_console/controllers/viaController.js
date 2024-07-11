@@ -8,6 +8,7 @@ const config = require('config'),
       sleep = require('sleep-promise'),
       {prepareViaPart,moveViaPart,writeViaPart,writeViaPartFull} = require('../../app/managers/viaManager')
 ;
+const {match} = require("yarn/lib/cli");
 
 /**
  * @module controllers/defaultController
@@ -253,6 +254,90 @@ async function cropFirst (options) {
 }
 
 
+/**
+ * Вырезать первых {opt.max} записей
+ *
+ * @param options
+ * @example ./console.js --section=via --action=getUpdated --opt.nnDatasetDir=/mnt/sdd1/datasets/2-3lines/train_orig \
+ *                       --opt.targetJson=/mnt/sdd1/datasets/2-3lines/train_orig/viaCorrected.json
+ */
+async function getUpdated (options) {
+    const
+        base_dir = options.nnDatasetDir,
+        img = path.join(base_dir, config.dataset.img.dir),
+        ann = path.join(base_dir, config.dataset.ann.dir),
+        anb = path.join(base_dir, config.dataset.anb.dir),
+        box = path.join(base_dir, config.dataset.box.dir),
+        src = path.join(base_dir, config.dataset.src.dir),
+        anb_files = fs.readdirSync(anb),
+        via_template = require(path.join(config.template.path, config.template.via.dir, config.template.via.tpl_name)),
+        targetJson = options.targetJson,
+        targetDir = path.dirname(targetJson),
+        targetName = path.basename(targetJson, '.json')
+    ;
+    via_template._via_img_metadata = {};
+    via_template._via_settings.project.name = targetName;
+    for (const anb_file of anb_files) {
+        let toViaItems = false;
+        const
+            anb_data = require(path.join(anb, anb_file))
+            src_path = path.join(src, anb_data.src),
+            target_path = path.join(targetDir, anb_data.src),
+            stats = fs.statSync(src_path),
+            itemNew = {
+                filename: anb_data.src,
+                size: stats.size,
+                regions: [],
+                file_attributes: {}
+            }
+        ;
+        for(const region in anb_data.regions) {
+            const item = anb_data.regions[region];
+            if (item.updated != undefined && item.updated) {
+                toViaItems = true;
+            }
+            if (item.keypoints.length = 4) {
+                itemNew.regions.push(
+                    {
+                        shape_attributes: {
+                            name: "polygon",
+                            all_points_x: [
+                                Math.round(item.keypoints[0][0]),
+                                Math.round(item.keypoints[1][0]),
+                                Math.round(item.keypoints[2][0]),
+                                Math.round(item.keypoints[3][0])
+                            ],
+                            all_points_y: [
+                                Math.round(item.keypoints[0][1]),
+                                Math.round(item.keypoints[1][1]),
+                                Math.round(item.keypoints[2][1]),
+                                Math.round(item.keypoints[3][1])
+                            ]
+                        },
+                        region_attributes: {
+                            class: "numberplate",
+                            label: "numberplate"
+                        }
+                    }
+                )
+            } else {
+                console.warn(`Incorect keypoins ${item.keypoints.length} in region ${region} for image ${anb_data.src}!`)
+            }
+        }
+        if (toViaItems) {
+            via_template._via_img_metadata[anb_data.src] = itemNew;
+            fs.copyFileSync(src_path,target_path);
+        }
+    }
+    if (Object.keys(via_template._via_img_metadata)) {
+        fs.writeFileSync(targetJson, JSON.stringify(via_template, null, 2), 'utf-8');
+        console.log(`Writing via JSON to "${targetJson}"!`)
+    }
+    console.log(`Done`)
+}
+
+
+
 module.exports = {
     index,
     split,
@@ -260,5 +345,6 @@ module.exports = {
     addAttribute,
     groupSplit,
     purgeEmpty,
-    cropFirst
+    cropFirst,
+    getUpdated
 };
