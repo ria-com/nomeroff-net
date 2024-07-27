@@ -262,7 +262,7 @@ def order_points_old(pts: np.ndarray):
 
 
 def fix_clockwise2(target_points: np.ndarray or List) -> np.ndarray:
-    return order_points_old(np.array(target_points))
+    return order_points_old(np.array(target_points, dtype="float32"))
 
 
 def minimum_bounding_rectangle(points: np.ndarray) -> np.ndarray:

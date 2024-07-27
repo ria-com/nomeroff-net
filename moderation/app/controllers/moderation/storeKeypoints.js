@@ -1,9 +1,11 @@
 const
     config = require("config"),
+    fs = require("fs"),
     path = require("path"),
-    mathjs = require('mathjs')
+    mathjs = require('mathjs'),
+    util = require('util'),
+    exec = util.promisify(require('child_process').exec)
 ;
-const fs = require("fs");
 
 function buildBbox(keypoints){
     const
@@ -23,7 +25,8 @@ module.exports = async function(ctx, next) {
         src_dir = path.join(base_dir, src_subdir),
         anb_json = path.join(anb_dir, `${ctx.request.body.basename}.json`),
         src_img = path.join(src_dir, ctx.request.body.src),
-        zone = require(anb_json)
+        //zone = require(anb_json)
+        zone = JSON.parse(fs.readFileSync(anb_json))
     ;
     console.log("Request body:");
     console.log(JSON.stringify(ctx.request.body));
@@ -34,9 +37,17 @@ module.exports = async function(ctx, next) {
     //console.log(JSON.stringify(zone, null, 4))
     fs.writeFileSync(anb_json, JSON.stringify(zone, null, 2));
 
+    // Rebuild lines
+    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir}`
+    const { stdout, stderr } = await exec(cmd)
+    // rebuild_nn_dataset_image.py -anb_key p14955810 -dataset_dir /mnt/sdd1/datasets/2-3lines-test
+
     ctx.body = {
         err_code: 0,
-        message: "New keypoints was stored!"
+        message: "New keypoints was stored!",
+        cmd,
+        stdout,
+        stderr
     }
     next();
 }

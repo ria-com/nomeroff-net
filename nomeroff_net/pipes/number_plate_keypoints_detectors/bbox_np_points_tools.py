@@ -335,6 +335,50 @@ def normalize_rect(rect: List) -> np.ndarray or List:
                 rect = reshape_points(rect, 3)
     return rect
 
+def normalize_rect_new(rect: List) -> np.ndarray or List:
+    """
+    This method reorders four points of a rectangle so that they follow a clear sequence.
+    The function normalize_rect takes a list of points representing a rectangle and performs several steps to
+    ensure the points are in a standard order.
+    """
+    rect = fix_clockwise2(rect)
+    min_x_idx = find_min_x_idx(rect)
+    rect = reshape_points(rect, min_x_idx)
+    d_bottom = distance(rect[0], rect[3])
+    d_left = distance(rect[0], rect[1])
+    k = d_bottom / d_left
+    # print(f'k: {k} ,  d_bottom: {d_bottom} / d_left: {d_left}')
+    # print('rect Before')
+    # print(rect)
+    if not round(rect[0][0], 4) == round(rect[1][0], 4):
+        coef_ccw = fline(rect[0], rect[3])
+        coef_cw = fline(rect[0], rect[1])
+        angle_ccw = round(coef_ccw[2], 2)
+        angle_cw = round(coef_cw[2], 2)
+        # print(f'angle_ccw: {angle_ccw} ,  angle_cw: {angle_cw}')
+        if abs(angle_ccw) > abs(angle_cw):
+            # print(f'reshape_points(rect, 3)')
+            rect = reshape_points(rect, 3)
+    # print('rect After')
+    # print(rect)
+    return rect
+
+
+def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_percentage: float = 0.03):
+    parts = []
+    aligned_h, aligned_w = aligned_img.shape[0:2]
+    line_h = round(aligned_h/parts_count)
+    overlap = round(aligned_h*overlap_percentage)
+    for part in range(parts_count):
+        start_h = part*line_h-overlap
+        end_h = (part+1)*line_h+overlap
+        if start_h<0:
+            start_h = 0
+        if start_h>aligned_h:
+            start_h = aligned_h
+        image_part = aligned_img[start_h:end_h, 0:aligned_w]
+        parts.append(image_part)
+    return parts
 
 def prepare_image_text(img: np.ndarray) -> np.ndarray:
     """

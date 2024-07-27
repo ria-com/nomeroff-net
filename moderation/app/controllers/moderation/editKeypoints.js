@@ -89,7 +89,7 @@ module.exports = async function(ctx, next) {
         anb_basename = key_arr[0],
         zoneId = key_arr[1]+'-'+key_arr[2],
         anb_json = path.join(anb_dir, `${anb_basename}.json`),
-        zone = require(anb_json),
+        zone = JSON.parse(fs.readFileSync(anb_json)),
         src_img =  path.join(src_dir, zone.src),
         imgInfo = sizeOf(src_img)
     ;
