@@ -356,7 +356,8 @@ def normalize_rect_new(rect: List) -> np.ndarray or List:
         angle_ccw = round(coef_ccw[2], 2)
         angle_cw = round(coef_cw[2], 2)
         # print(f'angle_ccw: {angle_ccw} ,  angle_cw: {angle_cw}')
-        if abs(angle_ccw) > abs(angle_cw):
+        # print(f'abs(angle_ccw): {abs(angle_ccw)} ,  abs(angle_cw): {abs(angle_cw)}')
+        if (abs(angle_ccw) > abs(angle_cw)) and k<1.5:
             # print(f'reshape_points(rect, 3)')
             rect = reshape_points(rect, 3)
     # print('rect After')

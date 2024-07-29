@@ -38,7 +38,7 @@ module.exports = async function(ctx, next) {
     fs.writeFileSync(anb_json, JSON.stringify(zone, null, 2));
 
     // Rebuild lines
-    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir}`
+    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -debug`
     const { stdout, stderr } = await exec(cmd)
     // rebuild_nn_dataset_image.py -anb_key p14955810 -dataset_dir /mnt/sdd1/datasets/2-3lines-test
 
