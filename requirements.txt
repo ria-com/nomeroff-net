@@ -24,7 +24,7 @@ scikit-learn
 ultralytics
 
 # git repos
-git+https://github.com/ria-com/upscaler.git
+upscaler @ git+https://github.com/ria-com/upscaler.git
 craft_text_detector @ git+https://github.com/ria-com/craft-text-detector.git
 PyTurboJPEG @ git+https://github.com/lilohuang/PyTurboJPEG.git
 modelhub_client @ git+https://github.com/ria-com/modelhub-client.git

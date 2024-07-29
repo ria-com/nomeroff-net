@@ -52,12 +52,10 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-shufflenet_v2_x2_0-3.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-3.json",
 
+    "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/eu_2lines/model-efficientnet_b2-1.json",
+
     # object detection
     "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov8/model-x-1.json",
-
-    # text localization
-    "https://models.vsp.net.ua/config_model/craft-mlt/model-2.json",
-    "https://models.vsp.net.ua/config_model/craft-refiner/model-2.json",
 ]
 
 # initial
