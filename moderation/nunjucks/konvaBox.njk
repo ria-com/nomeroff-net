@@ -176,10 +176,11 @@ circles.map((circle) => addEventToCircle(circle))
 
 polygon.on('dragmove', (e) => {
     //console.log(JSON.stringify(e))
-    console.log(`Polygon drag move. x: ${polygon.attrs.x}, y: ${polygon.attrs.y}`)
-    // polygon.points(circlesToPoints(circles))
-    // layer.draw()
+    //console.log(`Polygon drag move. x: ${polygon.attrs.x}, y: ${polygon.attrs.y}`)
+    //polygon.points(circlesToPoints(circles))
+    //layer.draw()
   })
+
 
 polygon.on('click', (e) => {
   console.log('click')
@@ -227,8 +228,9 @@ layer.draw();
 function storeKeypoints() {
     const keypoints = []
     for (const circle of circles) {
-        console.log(circle.attrs);
-        keypoints.push([circle.attrs.x +{{ container.xOffset }}, circle.attrs.y +{{ container.yOffset }}])
+        let position = circle.absolutePosition();
+        console.log(position);
+        keypoints.push([position.x +{{ container.xOffset }}, position.y +{{ container.yOffset }}])
     }
     console.log(keypoints);
     const sendata = {
@@ -279,7 +281,8 @@ function restoreKeypoints() {
 
 
 </script>
-<button type="button" onclick="if (confirm('Закрити редагування {{ key }} ?')) { window.close() }">x</button>
+<!--button type="button" onclick="if (confirm('Закрити редагування {{ key }} ?')) { window.close() }">x</button -->
+<button type="button" onclick="window.close()">x</button>
 <button type="button" onclick="restoreKeypoints()">Reset</button>
 <button type="button" onclick="storeKeypoints()">Update keypoints!</button>
 <div id="message" style="display: none"></div>

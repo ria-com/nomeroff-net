@@ -50,9 +50,9 @@ function centrify(zone, imgInfo, container) {
         container.x1 = x1
         container.xOffset = 0
         console.log("dX Stage 1")
-    } else if (imgInfo.width < (x2+dX)) {
-        container.x1 = x1-(imgInfo.width-container.width)
-        container.xOffset = imgInfo.width-container.width
+    } else if (imgInfo.width <= (x2+dX)) {
+        container.x1 = x1-(imgInfo.width-1-container.width)
+        container.xOffset = imgInfo.width-1-container.width
         console.log("dX Stage 2")
     } else {
         container.x1 = dX
@@ -64,9 +64,9 @@ function centrify(zone, imgInfo, container) {
         container.y1 = y1
         container.yOffset = 0
         console.log("dY Stage 1")
-    } else if (imgInfo.height < (y2+dY)) {
-        container.y1 = y1-(imgInfo.height-container.height)
-        container.yOffset = imgInfo.height-container.height
+    } else if (imgInfo.height <= (y2+dY)) {
+        container.y1 = y1-(imgInfo.height-1-container.height)
+        container.yOffset = imgInfo.height-1-container.height
         console.log("dY Stage 2")
     } else {
         container.y1 = dY
@@ -89,7 +89,7 @@ module.exports = async function(ctx, next) {
         anb_basename = key_arr[0],
         zoneId = key_arr[1]+'-'+key_arr[2],
         anb_json = path.join(anb_dir, `${anb_basename}.json`),
-        zone = require(anb_json),
+        zone = JSON.parse(fs.readFileSync(anb_json)),
         src_img =  path.join(src_dir, zone.src),
         imgInfo = sizeOf(src_img)
     ;

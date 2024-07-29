@@ -2,7 +2,6 @@ const config  = require('config'),
     path = require("path"),
     fs = require("fs"),
     sizeOf = require('image-size')
-
 ;
 
 
@@ -23,7 +22,7 @@ function deleteImgAndAnn({img, ann, anb, box, src, number, f}) {
         photo_id = box_basename.split('-')[0],
         anb_name = `${photo_id}.${config.dataset.anb.ext}`,
         anb_path = path.join(anb, anb_name),
-        data_anb = require(anb_path),
+        data_anb =  JSON.parse(fs.readFileSync(anb_path)),
         src_name = data_anb.src,
         box_name = `${box_basename}.${config.dataset.box.ext}`,
         box_path = path.join(box, box_name),
@@ -61,7 +60,7 @@ function changeAnn({img, ann, number, anb, template, newNumber, f}) {
         photo_id = box_basename.split('-')[0],
         anb_name = `${photo_id}.${config.dataset.anb.ext}`,
         anb_path = path.join(anb, anb_name),
-        data_anb = require(anb_path)
+        data_anb = JSON.parse(fs.readFileSync(anb_path))
     ;
     console.log(`data_anb`);
     console.log(data_anb);
@@ -162,7 +161,8 @@ function loadAnbDesc(data) {
         ;
         if (fs.existsSync(anb_path)) {
             console.log(`anb_path ${anb_path}`);
-            anb_data[anb_id] = require(anb_path)
+            //anb_data[anb_id] = require(anb_path);
+            anb_data[anb_id] = JSON.parse(fs.readFileSync(anb_path))
         }
     }
     return anb_data

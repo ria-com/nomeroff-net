@@ -150,6 +150,114 @@
         npH1Redraw(div, currentDesc)
     }
 
+    function buildNewKeyFromMessage(message) {
+        // const sendata = {
+        //     keypoints,
+        //     key: "{{ key }}",
+        //     basename: "{{ anb_basename }}",
+        //     src: "{{ zone.src }}"
+        // }
+        //         return f'{self.anb_key}-{bbox[0]}x{bbox[1]}-{bbox[2]}x{bbox[3]}'
+        const
+            xArr = message.keypoints.map(v=>v[0]),
+            yArr = message.keypoints.map(v=>v[1]),
+            minX = Math.round(Math.min(...xArr)),
+            minY = Math.round(Math.min(...yArr)),
+            maxX = Math.round(Math.max(...xArr)),
+            maxY = Math.round(Math.max(...yArr))
+        ;
+        return `${message.basename}-${minX}x${minY}-${maxX}x${maxY}`
+    }
+
+    function reloadNewTrPhotos(id, item, response) {
+
+    }
+
+
+    function trBuilder(tr, item, response) {
+        const td_box = document.createElement("td");
+        const img_box = document.createElement("img");
+        const a_box = document.createElement("a");
+        const box_basename = item.name.replace(/-line-\d/,"");
+        const photo_id = box_basename.split('-')[0];
+        td_box.id = box_basename;
+        tr.id = photo_id
+        const box_name = box_basename+'.png';
+
+        a_box.href = '/editKeypoints/'+box_basename;
+        a_box.target = "_blank";
+        img_box.src = 'box/'+box_name;
+        console.log(`photo_id: ${photo_id}, box_basename: ${box_basename}`)
+        console.log(`Object.keys(response.anbIdx[photo_id].regions): ${Object.keys(response.anbIdx[photo_id].regions)}`)
+        console.log(`response.anbIdx[photo_id].regions[box_basename]: ${response.anbIdx[photo_id].regions[box_basename]}`)
+        if (response.anbIdx[photo_id].regions[box_basename].updated != undefined &&
+            response.anbIdx[photo_id].regions[box_basename].updated) {
+            td_box.className = 'boxUpdated';
+        }
+
+        a_box.appendChild(img_box);
+        td_box.appendChild(a_box);
+
+        const td = document.createElement("td");
+        td.className = "text-center";
+
+        const div = document.createElement("div");
+        div.className = "NP editNumberplate";
+        div.id = item.name;
+        div.dataset.description = item.description || "_";
+
+        npH1Redraw(div, item.description || "_");
+        td.appendChild(div);
+        if ((item.predicted || "").length) {
+            const p = document.createElement("p");
+            p.className = "predicted";
+            const pText = document.createTextNode("predicted: ");
+            p.appendChild(pText);
+
+            const b = document.createElement("b");
+            const bText = document.createTextNode(item.predicted);
+            b.appendChild(bText);
+            p.appendChild(b);
+
+            td.appendChild(p);
+        }
+
+        const img = document.createElement("img");
+        img.src = item.img_path;
+        // console.log(`photo_id: ${photo_id} box_basename: ${box_basename}`)
+        // console.log(`res: ${res}`)
+        const lines = response.anbIdx[photo_id].regions[box_basename].lines;
+        if (item.count_lines !== undefined && Object.keys(lines).length > 1) {
+            img.width = 256;
+            img.height = 102;
+        } else {
+            img.width = 256;
+            img.height = 64;
+        }
+        td.appendChild(img);
+
+        tr.appendChild(td_box);
+        tr.appendChild(td);
+
+        const td0 = document.createElement("td");
+        td0.className = "optionTD";
+        for (const opt in response.options) {
+            drawCat(td0, item[opt], response.options[opt], opt);
+        }
+        tr.appendChild(td0);
+
+        const td2 = document.createElement("td");
+        td2.className = "deleteTD";
+        const input2 = document.createElement("input");
+        input2.setAttribute("tabindex", "-1");
+        input2.type = "checkbox";
+        input2.className = "del";
+        input2.title = "Mark for removing";
+
+        td2.appendChild(input2);
+        tr.appendChild(td2);
+    }
+
     $( document ).ready(function() {
         // CONFIG DATA
         var USER = "defaultUser";
@@ -175,102 +283,27 @@
                     console.log(errorThrown);
                 },
                 success: function (response) {
-                    var res = response;
+                    const res = response;
+                    console.log('-----------------------')
+                    console.log(response)
                     USER = res.user;
                     if (response.message == undefined) {
-                        var expectModeration = response.expectModeration;
+                        const expectModeration = response.expectModeration;
 
-                        var infoBox = document.getElementById("infoBox");
-                        var info_p = document.createElement("p");
-                        var info_text = document.createTextNode("Expect moderation: " + expectModeration);
+                        const infoBox = document.getElementById("infoBox");
+                        const info_p = document.createElement("p");
+                        const info_text = document.createTextNode("Expect moderation: " + expectModeration);
                         info_p.appendChild(info_text);
                         while (infoBox.firstChild) {
                             infoBox.removeChild(infoBox.firstChild);
                         }
                         infoBox.appendChild(info_p);
 
-                        var res_data = response.data;
-                        for (var i in res_data) {
-                            var item = res_data[i];
-                            var tr = document.createElement("tr");
-                            var td_box = document.createElement("td");
-                            var img_box = document.createElement("img");
-                            var a_box = document.createElement("a");
-                            var box_basename = item.name.replace(/-line-\d/,"");
-                            var photo_id = box_basename.split('-')[0];
-                            td_box.id = box_basename;
-                            var box_name = box_basename+'.png';
-
-                            a_box.href = '/editKeypoints/'+box_basename;
-                            a_box.target = "_blank";
-                            img_box.src = 'box/'+box_name;
-                            if (response.anbIdx[photo_id].regions[box_basename].updated != undefined &&
-                                response.anbIdx[photo_id].regions[box_basename].updated) {
-                                td_box.className = 'boxUpdated';
-                            }
-
-                            a_box.appendChild(img_box);
-                            td_box.appendChild(a_box);
-                            
-                            var td = document.createElement("td");
-                            td.className = "text-center";
-
-                            var div = document.createElement("div");
-                            div.className = "NP editNumberplate";
-                            div.id = item.name;
-                            div.dataset.description = item.description || "_";
-
-                            npH1Redraw(div, item.description || "_");
-                            td.appendChild(div);
-                            if ((item.predicted || "").length) {
-                                var p = document.createElement("p");
-                                p.className = "predicted";
-                                var pText = document.createTextNode("predicted: ");
-                                p.appendChild(pText);
-
-                                var b = document.createElement("b");
-                                var bText = document.createTextNode(item.predicted);
-                                b.appendChild(bText);
-                                p.appendChild(b);
-
-                                td.appendChild(p);
-                            }
-
-                            var img = document.createElement("img");
-                            img.src = item.img_path;
-                            // console.log(`photo_id: ${photo_id} box_basename: ${box_basename}`)
-                            // console.log(`res: ${res}`)
-                            var lines = response.anbIdx[photo_id].regions[box_basename].lines;
-                            if (item.count_lines !== undefined && Object.keys(lines).length > 1) {
-                                img.width = 256;
-                                img.height = 102;
-                            } else {
-                                img.width = 256;
-                                img.height = 64;
-                            }
-                            td.appendChild(img);
-
-                            tr.appendChild(td_box);
-                            tr.appendChild(td);
-
-                            var td0 = document.createElement("td");
-                            td0.className = "optionTD";
-                            for (var opt in res.options) {
-                                drawCat(td0, item[opt], res.options[opt], opt);
-                            }
-                            tr.appendChild(td0);
-
-                            var td2 = document.createElement("td");
-                            td2.className = "deleteTD";
-                            var input2 = document.createElement("input");
-                            input2.setAttribute("tabindex", "-1");
-                            input2.type = "checkbox";
-                            input2.className = "del";
-                            input2.title = "Mark for removing";
-
-                            td2.appendChild(input2);
-                            tr.appendChild(td2);
-
+                        const res_data = response.data;
+                        for (const i in res_data) {
+                            const item = res_data[i];
+                            const tr = document.createElement("tr");
+                            trBuilder(tr, item, response)
                             npsTable.appendChild(tr);
                         }
 
@@ -310,10 +343,10 @@
                         });
 
                     } else {
-                        var infoBox = document.getElementById("infoBox");
-                        var info_p = document.createElement("p");
+                        const infoBox = document.getElementById("infoBox");
+                        const info_p = document.createElement("p");
                         info_p.className = "warnings";
-                        var info_text = document.createTextNode("Warning: " + response.message);
+                        const info_text = document.createTextNode("Warning: " + response.message);
                         info_p.appendChild(info_text);
                         while (infoBox.firstChild) {
                             infoBox.removeChild(infoBox.firstChild);
@@ -413,13 +446,32 @@
             getNewData(USER, newdata);
             return false;
         });
-        var bc = new BroadcastChannel('nn_moderation');
+        const bc = new BroadcastChannel('nn_moderation');
         bc.onmessage = function (event) {
-            //console.log('-----------------------')
-            //console.log(event.data); // Виведе отримане повідомлення
-            let data = JSON.parse(event.data);
-            if (!document.getElementById(data.key).contains('boxUpdated')){
-                document.getElementById(data.key).addClass('boxUpdated');
+            console.log('-----------------------')
+            console.log(event.data); // Виведе отримане повідомлення
+            const data = JSON.parse(event.data);
+            const key_new = buildNewKeyFromMessage(data);
+            let key = data.key;
+            if (data.key != key_new) {
+                const tr = document.getElementById(data.basename);
+                const td = tr.firstChild;
+                const a = td.firstChild;
+                const img = a.firstChild;
+                td.id = key_new;
+                a.href = `/editKeypoints/${key_new}`;
+                img.src = `box/${key_new}.png`;
+
+                const tds = tr.getElementsByTagName("td");
+                const td_center = tds[1];
+                const div_center = td_center.firstChild;
+                const img_center = td_center.lastChild;
+                div_center.id = div_center.id.replace(data.key, key_new)
+                img_center.src = img_center.src.replace(data.key, key_new)
+                key = key_new;
+            }
+            if (!document.getElementById(key).classList.contains('boxUpdated')){
+                document.getElementById(key).classList.add('boxUpdated');
             }
         };
     });

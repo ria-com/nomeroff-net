@@ -7,7 +7,11 @@ module.exports = {
     },
     template: {
         path: `${__dirname}/../templates`,
-        annDefault: 'kz.json'
+        annDefault: 'kz.json',
+        via: {
+            dir: 'via',
+            tpl_name: 'via_region_data_template.json'
+        }
     },
     dataset: {
         baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example_res`,
