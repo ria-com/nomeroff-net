@@ -8,128 +8,11 @@ from collections import OrderedDict
 from nomeroff_net.tools.image_processing import (fline,
                                                  distance,
                                                  linear_line_matrix,
-                                                 get_y_by_matrix,
                                                  find_distances,
                                                  fix_clockwise2,
                                                  find_min_x_idx,
                                                  detect_intersection,
                                                  reshape_points)
-
-try:
-    from .cpp_bindings.cpp_bindings import find_char_boxes, find_word_boxes
-    CPP_BIND_AVAILABLE = True
-except Exception as e:
-    CPP_BIND_AVAILABLE = False
-
-
-def copy_state_dict(state_dict: Dict) -> OrderedDict:
-    """
-    Craft routines
-    """
-    if list(state_dict.keys())[0].startswith("module"):
-        start_idx = 1
-    else:
-        start_idx = 0
-    new_state_dict = OrderedDict()
-    for k, v in state_dict.items():
-        name = ".".join(k.split(".")[start_idx:])
-        new_state_dict[name] = v
-    return new_state_dict
-
-
-def get_det_boxes(textmap, linkmap, text_threshold, link_threshold, low_text, use_cpp_bindings=True):
-    """
-    get det boxes
-    """
-    # prepare data
-    linkmap = linkmap.copy()
-    textmap = textmap.copy()
-    img_h, img_w = textmap.shape
-
-    """ labeling method """
-    ret, text_score = cv2.threshold(textmap, low_text, 1, 0)
-    ret, link_score = cv2.threshold(linkmap, link_threshold, 1, 0)
-
-    text_score_comb = np.clip(text_score + link_score, 0, 1)
-    n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(text_score_comb.astype(np.uint8),
-                                                                          connectivity=4)
-
-    if CPP_BIND_AVAILABLE and use_cpp_bindings:
-        det, mapper = find_word_boxes(textmap, labels, n_labels, stats,
-                                      text_threshold, fast_mode=True, rotated_box=True)
-    else:
-        det = []
-        mapper = []
-        for k in range(1, n_labels):
-            # size filtering
-            size = stats[k, cv2.CC_STAT_AREA]
-            if size < 10:
-                continue
-
-            # thresholding
-            if np.max(textmap[labels == k]) < text_threshold:
-                continue
-
-            # make segmentation map
-            segmap = np.zeros(textmap.shape, dtype=np.uint8)
-            segmap[labels == k] = 255
-            segmap[np.logical_and(link_score == 1, text_score == 0)] = 0  # remove link area
-            x, y = stats[k, cv2.CC_STAT_LEFT], stats[k, cv2.CC_STAT_TOP]
-            w, h = stats[k, cv2.CC_STAT_WIDTH], stats[k, cv2.CC_STAT_HEIGHT]
-            niter = int(math.sqrt(size * min(w, h) / (w * h)) * 2)
-            sx, ex, sy, ey = x - niter, x + w + niter + 1, y - niter, y + h + niter + 1
-            # boundary check
-            if sx < 0:
-                sx = 0
-            if sy < 0:
-                sy = 0
-            if ex >= img_w:
-                ex = img_w
-            if ey >= img_h:
-                ey = img_h
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1 + niter, 1 + niter))
-            segmap[sy:ey, sx:ex] = cv2.dilate(segmap[sy:ey, sx:ex], kernel)
-
-            # make box
-            np_contours = np.roll(np.array(np.where(segmap != 0)), 1, axis=0).transpose().reshape(-1, 2)
-            rectangle = cv2.minAreaRect(np_contours)
-            box = cv2.boxPoints(rectangle)
-
-            # align diamond-shape
-            w, h = np.linalg.norm(box[0] - box[1]), np.linalg.norm(box[1] - box[2])
-            box_ratio = max(w, h) / (min(w, h) + 1e-5)
-            if abs(1 - box_ratio) <= 0.1:
-                l, r = min(np_contours[:, 0]), max(np_contours[:, 0])
-                t, b = min(np_contours[:, 1]), max(np_contours[:, 1])
-                box = np.array([[l, t], [r, t], [r, b], [l, b]], dtype=np.float32)
-
-            # make clock-wise order
-            startidx = box.sum(axis=1).argmin()
-            box = np.roll(box, 4 - startidx, 0)
-            box = np.array(box)
-
-            det.append(box)
-            mapper.append(k)
-
-    return det
-
-
-def split_boxes(bboxes: List[Union[np.ndarray, np.ndarray]], dimensions: List[Dict],
-                similarity_range: int = 0.5) -> Tuple[List[int], List[int]]:
-    """
-    TODO: describe function
-    """
-    np_bboxes_idx = []
-    garbage_bboxes_idx = []
-    max_dy = 0
-    if len(bboxes):
-        max_dy = max([dimension['dy'] for dimension in dimensions])
-    for i, (bbox, dimension) in enumerate(zip(bboxes, dimensions)):
-        if max_dy * similarity_range <= dimension['dy']:
-            np_bboxes_idx.append(i)
-        else:
-            garbage_bboxes_idx.append(i)
-    return np_bboxes_idx, garbage_bboxes_idx
 
 
 def detect_intersection_norm_dd(matrix1: np.ndarray, matrix2: np.ndarray, d1: float, d2: float) -> np.ndarray:
@@ -155,20 +38,6 @@ def detect_distance_from_point_to_line(matrix: List[np.ndarray],
     x = point[0]
     y = point[1]
     return abs(a * x + b * y - c) / math.sqrt(a ** 2 + b ** 2)
-
-
-def fix_clockwise(target_points: List) -> List:
-    """
-    TODO: describe function
-    """
-    stat1 = fline(target_points[0], target_points[1])
-    stat2 = fline(target_points[0], target_points[2])
-    if target_points[0][0] == target_points[1][0] and (target_points[0][1] > target_points[1][1]):
-        stat1[2] = -stat1[2]
-
-    if stat2[2] < stat1[2]:
-        target_points = np.array([target_points[0], target_points[3], target_points[2], target_points[1]])
-    return target_points
 
 
 def make_offsets(
@@ -331,9 +200,10 @@ def normalize_rect(rect: List) -> np.ndarray or List:
         else:
             primary_diag = distance(rect[0], rect[2])
             secondary_diag = distance(rect[1], rect[3])
-            if k < 1.5 and (angle_ccw > 45) and (primary_diag>secondary_diag):
+            if k < 1.5 and (angle_ccw > 45) and (primary_diag > secondary_diag):
                 rect = reshape_points(rect, 3)
     return rect
+
 
 def normalize_rect_new(rect: List) -> np.ndarray or List:
     """
@@ -344,23 +214,13 @@ def normalize_rect_new(rect: List) -> np.ndarray or List:
     rect = fix_clockwise2(rect)
     min_x_idx = find_min_x_idx(rect)
     rect = reshape_points(rect, min_x_idx)
-    d_bottom = distance(rect[0], rect[3])
-    d_left = distance(rect[0], rect[1])
-    k = d_bottom / d_left
-    # print(f'k: {k} ,  d_bottom: {d_bottom} / d_left: {d_left}')
-    # print('rect Before')
-    # print(rect)
     if not round(rect[0][0], 4) == round(rect[1][0], 4):
         coef_ccw = fline(rect[0], rect[3])
         coef_cw = fline(rect[0], rect[1])
         angle_ccw = round(coef_ccw[2], 2)
         angle_cw = round(coef_cw[2], 2)
-        # print(f'angle_ccw: {angle_ccw} ,  angle_cw: {angle_cw}')
         if abs(angle_ccw) > abs(angle_cw):
-            # print(f'reshape_points(rect, 3)')
             rect = reshape_points(rect, 3)
-    # print('rect After')
-    # print(rect)
     return rect
 
 
@@ -372,13 +232,14 @@ def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_per
     for part in range(parts_count):
         start_h = part*line_h-overlap
         end_h = (part+1)*line_h+overlap
-        if start_h<0:
+        if start_h < 0:
             start_h = 0
-        if start_h>aligned_h:
+        if start_h > aligned_h:
             start_h = aligned_h
         image_part = aligned_img[start_h:end_h, 0:aligned_w]
         parts.append(image_part)
     return parts
+
 
 def prepare_image_text(img: np.ndarray) -> np.ndarray:
     """
@@ -419,72 +280,6 @@ def detect_best_perspective(bw_images: List[np.ndarray]) -> int:
             idx = i
             diff_cnt = max_stat_count + min_stat_count
     return idx
-
-
-def add_point_offset(point: List, x: float, y: float) -> List:
-    """
-    TODO: describe function
-    """
-    return [point[0] + x, point[1] + y]
-
-
-def add_point_offsets(points: List, dx: float, dy: float) -> List:
-    """
-    TODO: describe function
-    """
-    return [
-        add_point_offset(points[0], -dx, -dy),
-        add_point_offset(points[1], dx, dy),
-        add_point_offset(points[2], dx, dy),
-        add_point_offset(points[3], -dx, -dy),
-    ]
-
-
-def make_rect_variants(propably_points: List, quality_profile: List = None) -> List:
-    """
-    TODO: describe function
-    """
-    if quality_profile is None:
-        quality_profile = [3, 1, 0, 0]
-
-    steps = quality_profile[0]
-    steps_plus = quality_profile[1]
-    steps_minus = quality_profile[2]
-    step = 1
-    if len(quality_profile) > 3:
-        step_adaptive = quality_profile[3] > 0
-    else:
-        step_adaptive = False
-
-    distanses = find_distances(propably_points)
-
-    point_centre_left = [propably_points[0][0] + (propably_points[1][0] - propably_points[0][0]) / 2,
-                         propably_points[0][1] + (propably_points[1][1] - propably_points[0][1]) / 2]
-
-    if distanses[3]["matrix"][1] == 0:
-        return [propably_points]
-    point_bottom_left = [point_centre_left[0], get_y_by_matrix(distanses[3]["matrix"], point_centre_left[0])]
-    dx = propably_points[0][0] - point_bottom_left[0]
-    dy = propably_points[0][1] - point_bottom_left[1]
-
-    dx_step = dx / steps
-    dy_step = dy / steps
-
-    if step_adaptive:
-        d_max = distance(point_centre_left, propably_points[0])
-        dd = math.sqrt(dx ** 2 + dy ** 2)
-        steps_all = int(d_max / dd)
-
-        step = int((steps_all * 2) / steps)
-        if step < 1:
-            step = 1
-        steps_minus = steps_all + steps_minus * step
-        steps_plus = steps_all + steps_plus * step
-
-    points_arr = []
-    for i in range(-steps_minus, steps + steps_plus + 1, step):
-        points_arr.append(add_point_offsets(propably_points, i * dx_step, i * dy_step))
-    return points_arr
 
 
 def normalize_perspective_images(images: List or np.ndarray) -> List[np.ndarray]:

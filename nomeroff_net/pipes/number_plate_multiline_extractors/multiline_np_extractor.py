@@ -290,20 +290,3 @@ def apply_coefficient(points: List or np.ndarray, coef_w: float, coef_h: float) 
     return [[point[0] * coef_w, point[1] * coef_h] for point in points]
 
 
-def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_percentage: float = 0.03):
-    parts = []
-    aligned_h, aligned_w = aligned_img.shape[0:2]
-    line_h = round(aligned_h/parts_count)
-    overlap = round(aligned_h*overlap_percentage)
-    for part in range(parts_count):
-        start_h = part*line_h-overlap
-        end_h = (part+1)*line_h+overlap
-        if start_h<0:
-            start_h = 0
-        if start_h>aligned_h:
-            start_h = aligned_h
-        image_part = aligned_img[start_h:end_h, 0:aligned_w]
-        parts.append(image_part)
-    return parts
-
-

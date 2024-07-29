@@ -1,32 +1,31 @@
 import os
-from typing import List, Dict, Tuple
+from typing import List
 import numpy as np
 import cv2
 import json
-from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import normalize_rect, normalize_rect_new, split_numberplate
-from .image_processing import reshape_points
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import (normalize_rect_new,
+                                                                                      split_numberplate)
+
 
 def add_coordinates_offset(points: List or np.ndarray, x: float, y: float) -> List:
     """
     TODO: describe function
     """
-    # print('points')
-    # print(points)
-    # print(f'x: {x}, y: {y}')
     return [[float(point[0]) + x, float(point[1]) + y] for point in points]
+
 
 class DatasetConfig:
     def __init__(self,
-                    dataset_path: str,
-                    ann_subdir: str = 'ann',
-                    img_subdir: str = 'img',
-                    src_subdir: str = 'src',
-                    anb_subdir: str = 'anb',
-                    box_subdir: str = 'box',
-                    tmp_subdir: str = 'tmp',
-                    img_ext: str = 'png',
-                    json_ext: str = 'json',
-                    debug: bool = False
+                 dataset_path: str,
+                 ann_subdir: str = 'ann',
+                 img_subdir: str = 'img',
+                 src_subdir: str = 'src',
+                 anb_subdir: str = 'anb',
+                 box_subdir: str = 'box',
+                 tmp_subdir: str = 'tmp',
+                 img_ext: str = 'png',
+                 json_ext: str = 'json',
+                 debug: bool = False
                  ):
         self.dataset_path = dataset_path
         self.debug = debug
@@ -53,13 +52,12 @@ class DatasetConfig:
 
 class DatasetRegion:
     def __init__(self,
-                    dataset_config: DatasetConfig,
-                    anb_key: str,
-                    img: np.ndarray,
-                    region_key: str,
-                    region_data: List,
-                    debug:bool = False
-                 ):
+                 dataset_config: DatasetConfig,
+                 anb_key: str,
+                 img: np.ndarray,
+                 region_key: str,
+                 region_data: List,
+                 debug: bool = False):
         self.dataset_config = dataset_config
         self.anb_key = anb_key
         self.img = img
@@ -106,7 +104,6 @@ class DatasetRegion:
             data["moderation"]["moderatedBy"] = "rebuild_nn_dataset_image.py"
         with open(ann_path, "w", encoding='utf8') as jsonWF:
             json.dump(data, jsonWF, ensure_ascii=False)
-
 
     def rebuild_bbox(self):
         # remove old bbox file
@@ -200,9 +197,8 @@ class DatasetRegion:
             w = 300
 
         # Convert keypoints to numpy array
-        localKeypoints = add_coordinates_offset(self.keypoints_norm, -self.bbox[0], -self.bbox[1])
-        #localKeypoints = reshape_points(localKeypoints, 3)
-        src_points = np.array(localKeypoints, dtype="float32")
+        local_keypoints = add_coordinates_offset(self.keypoints_norm, -self.bbox[0], -self.bbox[1])
+        src_points = np.array(local_keypoints, dtype="float32")
 
         target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
         # Compute the perspective transform matrix
@@ -213,7 +209,9 @@ class DatasetRegion:
 
         return aligned_img
 
-    def write_ann_line_json(self, zone:List or np.ndarray, basename, desc, region_id, replace_data = {} ):
+    def write_ann_line_json(self, zone:List or np.ndarray, basename, desc, region_id, replace_data=None):
+        if replace_data is None:
+            replace_data = {}
         ann_filename = os.path.join(self.dataset_config.ann_dir, f'{basename}.{self.dataset_config.json_ext}')
         height, width = zone.shape[:2]
         data = {
@@ -249,7 +247,7 @@ class DatasetItem:
         self.anb_key = anb_key
         anb_filename = f'{anb_key}.{dataset_config.json_ext}'
         self.anb_path = os.path.join(dataset_config.anb_dir,anb_filename)
-        self.anb_data =  self.load_image_markup_data()
+        self.anb_data = self.load_image_markup_data()
         self.orig_ext = os.path.basename(self.anb_data["src"]).split(".")
 
         img_path = os.path.join(dataset_config.src_dir, self.anb_data["src"])
@@ -271,7 +269,6 @@ class DatasetItem:
             del self.anb_data["regions"][item[0]]
         self.write_image_markup_data()
 
-
     def load_image_markup_data(self):
         with open(self.anb_path, 'r') as f:
             return json.load(f)
@@ -280,78 +277,3 @@ class DatasetItem:
         with open(self.anb_path, "w", encoding='utf8') as jsonWF:
             json.dump(self.anb_data, jsonWF, ensure_ascii=False)
 
-
-
-
-
-    # def get_bbox_basename(self):
-    #     bbox = self.bbox
-    #     basename = self.basename
-    #     return f'{basename}-{int(bbox[0])}x{int(bbox[1])}-{int(bbox[2])}x{int(bbox[3])}'
-    #
-    # def get_src_filename(self):
-    #     return f'{self.basename}.{self.orig_ext}'
-    #
-    # def get_json_filename(self):
-    #     return f'{self.basename}.{self.json_ext}'
-    #
-    # def get_bbox_img(self):
-    #     # bbox = self.bbox
-    #     # x_box = int(min(bbox[0], bbox[2]))
-    #     # w_box = int(abs(bbox[2] - bbox[0]))
-    #     # y_box = int(min(bbox[1], bbox[3]))
-    #     # h_box = int(abs(bbox[3] - bbox[1]))
-    #     # bbox_img = img[y_box:y_box + h_box, x_box:x_box + w_box]
-    #     return self.zone_bbox
-    #
-    # def copy_src(self):
-    #     src_filename = os.path.join(self.src_dir, self.get_src_filename())
-    #     if not os.path.isfile(src_filename):
-    #         shutil.copyfile(self.orig_filename, src_filename)
-    #
-    # def get_bbox_description(self):
-    #     return {
-    #         "bbox": self.bbox.tolist(),
-    #         "keypoints": self.keypoints.tolist(),
-    #         "lines": self.lines,
-    #         "region_id": self.region_id
-    #     }
-    #
-    # def write_bbox_description(self):
-    #     src_json_name = os.path.join(self.anb_dir, self.get_json_filename())
-    #     if os.path.isfile(src_json_name):
-    #         with open(src_json_name, 'r') as f:
-    #             data = json.load(f)
-    #     else:
-    #         data = {
-    #             "src": self.get_src_filename(),
-    #             "version": self.version,
-    #             "regions": {}
-    #         }
-    #     data["regions"][self.get_bbox_basename()] = self.get_bbox_description()
-    #     with open(src_json_name, "w", encoding='utf8') as jsonWF:
-    #         json.dump(data, jsonWF, ensure_ascii=False)
-    #
-    #         # a method for printing data members
-    #
-    # def write_orig_dataset(self):
-    #     self.copy_src()
-    #     bbox = self.bbox
-    #     basename = self.get_bbox_basename()
-    #     bbox_filename = f'{basename}.{self.img_ext}'
-    #     bbox_path = os.path.join(self.box_dir, bbox_filename)
-    #     bbox_img = self.get_bbox_img()
-    #     cv2.imwrite(bbox_path, bbox_img)
-    #     self.write_bbox_description()
-    #
-    # # a method for printing data members
-    # def write_normalize_dataset(self, replace_template=None):
-    #     basename = self.get_bbox_basename()
-    #     parts = split_numberplate(self.zone_norm, len(self.lines))
-    #     idx = 0
-    #     for i, line in self.lines.items():
-    #         if idx == i:
-    #             norm_basename = f'{basename}-line-{i}'
-    #             add_np(norm_basename, parts[i], self.region_id, 1, line, "",
-    #                    self.img_dir, self.ann_dir, replace_template)
-    #         idx += 1

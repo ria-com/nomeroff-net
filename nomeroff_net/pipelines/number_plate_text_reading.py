@@ -8,50 +8,69 @@ from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetec
 DEFAULT_PRESETS = {
     "eu_ua_2004_2015_efficientnet_b2": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "eu_ua_1995_efficientnet_b2": {
         "for_regions": ["eu_ua_1995"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "eu_ua_custom_efficientnet_b2": {
         "for_regions": ["eu_ua_custom"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "xx_transit_efficientnet_b2": {
         "for_regions": ["xx_transit"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "eu_efficientnet_b2": {
         "for_regions": ["eu", "xx_unknown"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "ru": {
         "for_regions": ["ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "kz": {
         "for_regions": ["kz"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "kg": {  # "kg_shufflenet_v2_x2_0"
         "for_regions": ["kg"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "ge": {
         "for_regions": ["ge"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "su_efficientnet_b2": {
         "for_regions": ["su"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "am": {
         "for_regions": ["am"],
+        "for_count_lines": [1],
         "model_path": "latest"
     },
     "by": {
         "for_regions": ["by"],
+        "for_count_lines": [1],
+        "model_path": "latest"
+    },
+    "eu_2lines_efficientnet_b2": {
+        "for_regions": ["eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu_ua_custom", "xx_transit",
+                        "eu", "xx_unknown", "ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr", "kz",
+                        "kg", "ge", "su", "am", "by"],
+        "for_count_lines": [2, 3],
         "model_path": "latest"
     },
 }
@@ -95,8 +114,7 @@ class NumberPlateTextReading(Pipeline):
     @no_grad()
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
         images, labels, lines, preprocessed_np = unzip(inputs)
-        preprocessed_np = [zone if pnp is None else pnp for pnp, zone in zip(preprocessed_np, images)]
-        model_inputs = self.detector.preprocess(preprocessed_np, labels, lines)
+        model_inputs = self.detector.preprocess(images, preprocessed_np, labels, lines)
         model_outputs = self.detector.forward(model_inputs)
         model_outputs = self.detector.postprocess(model_outputs)
         return unzip([images, model_outputs, labels])
