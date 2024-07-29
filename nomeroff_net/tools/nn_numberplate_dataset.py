@@ -83,12 +83,9 @@ class DatasetRegion:
             new_region_key = self.get_bbox_basename()
             if self.debug:
                 print(f'region_key: {self.region_key} new_region_key: {new_region_key}')
-            if new_region_key != self.region_key:
-                if self.debug:
-                    print(f'{self.region_key} != {new_region_key}')
-                self.rebuild_bbox()
-                self.region_data["region_key_new"] = self.get_bbox_basename()
-                self.region_data["keypoints"] = self.keypoints_norm.tolist()
+            self.rebuild_bbox()
+            self.region_data["region_key_new"] = self.get_bbox_basename()
+            self.region_data["keypoints"] = self.keypoints_norm.tolist()
             del self.region_data["updated"]
             self.region_data["rebuilded"] = True
 

@@ -225,6 +225,18 @@ stage.add(layerBg, layer);
 
 layer.draw();
 
+function buildNewKeyFromMessage(message) {
+    const
+        xArr = message.keypoints.map(v=>v[0]),
+        yArr = message.keypoints.map(v=>v[1]),
+        minX = Math.round(Math.min(...xArr)),
+        minY = Math.round(Math.min(...yArr)),
+        maxX = Math.round(Math.max(...xArr)),
+        maxY = Math.round(Math.max(...yArr))
+    ;
+    return `${message.basename}-${minX}x${minY}-${maxX}x${maxY}`
+}
+
 function storeKeypoints() {
     const keypoints = []
     for (const circle of circles) {
@@ -263,9 +275,11 @@ function storeKeypoints() {
             message.addClass(border_class);
             bc.postMessage(JSON.stringify(sendata));
             setTimeout(() => {
-              message.css( "display", "none" );
-              message.removeClass(border_class);
-            }, "3000");
+                message.css( "display", "none" );
+                message.removeClass(border_class);
+                const new_key = buildNewKeyFromMessage(sendata);
+                window.location.href = `/editKeypoints/${new_key}`
+            }, "1000");
         }
    })
 }

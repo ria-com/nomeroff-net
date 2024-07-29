@@ -213,13 +213,16 @@ def normalize_rect_new(rect: List) -> np.ndarray or List:
     """
     rect = fix_clockwise2(rect)
     min_x_idx = find_min_x_idx(rect)
+    d_bottom = distance(rect[0], rect[3])
+    d_left = distance(rect[0], rect[1])
+    k = d_bottom / d_left
     rect = reshape_points(rect, min_x_idx)
     if not round(rect[0][0], 4) == round(rect[1][0], 4):
         coef_ccw = fline(rect[0], rect[3])
         coef_cw = fline(rect[0], rect[1])
         angle_ccw = round(coef_ccw[2], 2)
         angle_cw = round(coef_cw[2], 2)
-        if abs(angle_ccw) > abs(angle_cw):
+        if (abs(angle_ccw) > abs(angle_cw)) and k<1.5:
             rect = reshape_points(rect, 3)
     return rect
 

@@ -151,13 +151,6 @@
     }
 
     function buildNewKeyFromMessage(message) {
-        // const sendata = {
-        //     keypoints,
-        //     key: "{{ key }}",
-        //     basename: "{{ anb_basename }}",
-        //     src: "{{ zone.src }}"
-        // }
-        //         return f'{self.anb_key}-{bbox[0]}x{bbox[1]}-{bbox[2]}x{bbox[3]}'
         const
             xArr = message.keypoints.map(v=>v[0]),
             yArr = message.keypoints.map(v=>v[1]),
@@ -169,19 +162,16 @@
         return `${message.basename}-${minX}x${minY}-${maxX}x${maxY}`
     }
 
-    function reloadNewTrPhotos(id, item, response) {
-
-    }
-
-
     function trBuilder(tr, item, response) {
         const td_box = document.createElement("td");
         const img_box = document.createElement("img");
         const a_box = document.createElement("a");
         const box_basename = item.name.replace(/-line-\d/,"");
         const photo_id = box_basename.split('-')[0];
-        td_box.id = box_basename;
-        tr.id = photo_id
+        //td_box.id = box_basename;
+        td_box.classList.add(box_basename)
+        //tr.id = photo_id
+        //tr.classList.add(photo_id)
         const box_name = box_basename+'.png';
 
         a_box.href = '/editKeypoints/'+box_basename;
@@ -192,7 +182,7 @@
         console.log(`response.anbIdx[photo_id].regions[box_basename]: ${response.anbIdx[photo_id].regions[box_basename]}`)
         if (response.anbIdx[photo_id].regions[box_basename].updated != undefined &&
             response.anbIdx[photo_id].regions[box_basename].updated) {
-            td_box.className = 'boxUpdated';
+            td_box.classList.add('boxUpdated');
         }
 
         a_box.appendChild(img_box);
@@ -454,24 +444,32 @@
             const key_new = buildNewKeyFromMessage(data);
             let key = data.key;
             if (data.key != key_new) {
-                const tr = document.getElementById(data.basename);
-                const td = tr.firstChild;
-                const a = td.firstChild;
-                const img = a.firstChild;
-                td.id = key_new;
-                a.href = `/editKeypoints/${key_new}`;
-                img.src = `box/${key_new}.png`;
+                const td_boxs = document.getElementsByClassName(data.key);
+                for (const td of td_boxs) {
+                    const tr = td.parentNode;
+                    //const td = tr.firstChild;
+                    const a = td.firstChild;
+                    const img = a.firstChild;
+                    //td.id = key_new;
+                    if (!td.classList.contains('boxUpdated')) {
+                        td.classList.add('boxUpdated');
+                    }
 
-                const tds = tr.getElementsByTagName("td");
-                const td_center = tds[1];
-                const div_center = td_center.firstChild;
-                const img_center = td_center.lastChild;
-                div_center.id = div_center.id.replace(data.key, key_new)
-                img_center.src = img_center.src.replace(data.key, key_new)
+                    a.href = `/editKeypoints/${key_new}`;
+                    img.src = `box/${key_new}.png`;
+
+                    const tds = tr.getElementsByTagName("td");
+                    const td_center = tds[1];
+                    const div_center = td_center.firstChild;
+                    const img_center = td_center.lastChild;
+                    div_center.id = div_center.id.replace(data.key, key_new)
+                    img_center.src = img_center.src.replace(data.key, key_new)
+                }
+                for (const td of td_boxs) {
+                    td.classList.remove(data.key);
+                    td.classList.add(key_new);
+                }
                 key = key_new;
-            }
-            if (!document.getElementById(key).classList.contains('boxUpdated')){
-                document.getElementById(key).classList.add('boxUpdated');
             }
         };
     });
