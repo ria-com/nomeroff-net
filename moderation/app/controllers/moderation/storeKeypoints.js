@@ -32,15 +32,21 @@ module.exports = async function(ctx, next) {
     console.log(JSON.stringify(ctx.request.body));
     //console.log(JSON.stringify(zone, null, 4))
     zone.regions[ctx.request.body.key].keypoints = ctx.request.body.keypoints;
+    console.log("Checkpoint 1 done");
     //zone.regions[ctx.request.body.key].bbox = buildBbox(ctx.request.body.keypoints);
     zone.regions[ctx.request.body.key].updated = true;
+    console.log("Checkpoint 2 done");
     //console.log(JSON.stringify(zone, null, 4))
     fs.writeFileSync(anb_json, JSON.stringify(zone, null, 2));
+    console.log("Checkpoint 3 done");
 
     // Rebuild lines
     let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -debug`
+    console.log(`${cmd}`)
     const { stdout, stderr } = await exec(cmd)
     // rebuild_nn_dataset_image.py -anb_key p14955810 -dataset_dir /mnt/sdd1/datasets/2-3lines-test
+
+    console.log("Checkpoint 4 done");
 
     ctx.body = {
         err_code: 0,

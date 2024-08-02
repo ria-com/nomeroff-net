@@ -2,7 +2,7 @@ import torch
 import numpy as np
 from typing import List
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
-from nomeroff_net.tools.image_processing import normalize_rect
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import normalize_rect, normalize_rect_new
 
 
 class Detector:

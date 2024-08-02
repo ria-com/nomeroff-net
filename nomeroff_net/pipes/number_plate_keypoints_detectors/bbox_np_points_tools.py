@@ -335,7 +335,7 @@ def normalize_rect(rect: List) -> np.ndarray or List:
                 rect = reshape_points(rect, 3)
     return rect
 
-def normalize_rect_new(rect: List) -> np.ndarray or List:
+def normalize_rect_new(rect: List, debug = False) -> np.ndarray or List:
     """
     This method reorders four points of a rectangle so that they follow a clear sequence.
     The function normalize_rect takes a list of points representing a rectangle and performs several steps to
@@ -347,21 +347,25 @@ def normalize_rect_new(rect: List) -> np.ndarray or List:
     d_bottom = distance(rect[0], rect[3])
     d_left = distance(rect[0], rect[1])
     k = d_bottom / d_left
-    # print(f'k: {k} ,  d_bottom: {d_bottom} / d_left: {d_left}')
-    # print('rect Before')
-    # print(rect)
+    if debug:
+        print(f'k: {k} ,  d_bottom: {d_bottom} / d_left: {d_left}')
+        print('rect Before')
+        print(rect)
     if not round(rect[0][0], 4) == round(rect[1][0], 4):
         coef_ccw = fline(rect[0], rect[3])
         coef_cw = fline(rect[0], rect[1])
         angle_ccw = round(coef_ccw[2], 2)
         angle_cw = round(coef_cw[2], 2)
-        # print(f'angle_ccw: {angle_ccw} ,  angle_cw: {angle_cw}')
-        # print(f'abs(angle_ccw): {abs(angle_ccw)} ,  abs(angle_cw): {abs(angle_cw)}')
-        if (abs(angle_ccw) > abs(angle_cw)) and k<1.5:
-            # print(f'reshape_points(rect, 3)')
+        if debug:
+            print(f'angle_ccw: {angle_ccw} ,  angle_cw: {angle_cw}')
+            print(f'abs(angle_ccw): {abs(angle_ccw)} ,  abs(angle_cw): {abs(angle_cw)}')
+        if (abs(angle_ccw) > abs(angle_cw)) and k<2:
+            if debug:
+                print(f'reshape_points(rect, 3)')
             rect = reshape_points(rect, 3)
-    # print('rect After')
-    # print(rect)
+    if debug:
+        print('rect After')
+        print(rect)
     return rect
 
 

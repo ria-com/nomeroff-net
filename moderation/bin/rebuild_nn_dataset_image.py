@@ -1,8 +1,6 @@
 #!/usr/bin/python3.9 -W ignore
 
 import os
-import json
-import cv2
 import sys
 import argparse
 
