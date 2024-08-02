@@ -1,0 +1,3 @@
+from .eu_ua_2015 import postprocess_multiline_text
+
+postprocess_multiline_text = postprocess_multiline_text

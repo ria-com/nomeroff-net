@@ -1,32 +1,31 @@
 import os
-from typing import List, Dict, Tuple
+from typing import List
 import numpy as np
 import cv2
 import json
-from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import normalize_rect, normalize_rect_new, split_numberplate
-from .image_processing import reshape_points
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import (normalize_rect_new,
+                                                                                      split_numberplate)
+
 
 def add_coordinates_offset(points: List or np.ndarray, x: float, y: float) -> List:
     """
     TODO: describe function
     """
-    # print('points')
-    # print(points)
-    # print(f'x: {x}, y: {y}')
     return [[float(point[0]) + x, float(point[1]) + y] for point in points]
+
 
 class DatasetConfig:
     def __init__(self,
-                    dataset_path: str,
-                    ann_subdir: str = 'ann',
-                    img_subdir: str = 'img',
-                    src_subdir: str = 'src',
-                    anb_subdir: str = 'anb',
-                    box_subdir: str = 'box',
-                    tmp_subdir: str = 'tmp',
-                    img_ext: str = 'png',
-                    json_ext: str = 'json',
-                    debug: bool = False
+                 dataset_path: str,
+                 ann_subdir: str = 'ann',
+                 img_subdir: str = 'img',
+                 src_subdir: str = 'src',
+                 anb_subdir: str = 'anb',
+                 box_subdir: str = 'box',
+                 tmp_subdir: str = 'tmp',
+                 img_ext: str = 'png',
+                 json_ext: str = 'json',
+                 debug: bool = False
                  ):
         self.dataset_path = dataset_path
         self.debug = debug
@@ -53,13 +52,12 @@ class DatasetConfig:
 
 class DatasetRegion:
     def __init__(self,
-                    dataset_config: DatasetConfig,
-                    anb_key: str,
-                    img: np.ndarray,
-                    region_key: str,
-                    region_data: List,
-                    debug:bool = False
-                 ):
+                 dataset_config: DatasetConfig,
+                 anb_key: str,
+                 img: np.ndarray,
+                 region_key: str,
+                 region_data: List,
+                 debug: bool = False):
         self.dataset_config = dataset_config
         self.anb_key = anb_key
         self.img = img
@@ -85,9 +83,6 @@ class DatasetRegion:
             new_region_key = self.get_bbox_basename()
             if self.debug:
                 print(f'region_key: {self.region_key} new_region_key: {new_region_key}')
-            #if new_region_key != self.region_key:
-            # if self.debug:
-            #     print(f'{self.region_key} != {new_region_key}')
             self.rebuild_bbox()
             self.region_data["region_key_new"] = self.get_bbox_basename()
             self.region_data["keypoints"] = self.keypoints_norm.tolist()
@@ -106,7 +101,6 @@ class DatasetRegion:
             data["moderation"]["moderatedBy"] = "rebuild_nn_dataset_image.py"
         with open(ann_path, "w", encoding='utf8') as jsonWF:
             json.dump(data, jsonWF, ensure_ascii=False)
-
 
     def rebuild_bbox(self):
         # remove old bbox file
@@ -200,9 +194,8 @@ class DatasetRegion:
             w = 300
 
         # Convert keypoints to numpy array
-        localKeypoints = add_coordinates_offset(self.keypoints_norm, -self.bbox[0], -self.bbox[1])
-        #localKeypoints = reshape_points(localKeypoints, 3)
-        src_points = np.array(localKeypoints, dtype="float32")
+        local_keypoints = add_coordinates_offset(self.keypoints_norm, -self.bbox[0], -self.bbox[1])
+        src_points = np.array(local_keypoints, dtype="float32")
 
         target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
         # Compute the perspective transform matrix
@@ -213,7 +206,9 @@ class DatasetRegion:
 
         return aligned_img
 
-    def write_ann_line_json(self, zone:List or np.ndarray, basename, desc, region_id, replace_data = {} ):
+    def write_ann_line_json(self, zone:List or np.ndarray, basename, desc, region_id, replace_data=None):
+        if replace_data is None:
+            replace_data = {}
         ann_filename = os.path.join(self.dataset_config.ann_dir, f'{basename}.{self.dataset_config.json_ext}')
         height, width = zone.shape[:2]
         data = {
@@ -249,7 +244,7 @@ class DatasetItem:
         self.anb_key = anb_key
         anb_filename = f'{anb_key}.{dataset_config.json_ext}'
         self.anb_path = os.path.join(dataset_config.anb_dir,anb_filename)
-        self.anb_data =  self.load_image_markup_data()
+        self.anb_data = self.load_image_markup_data()
         self.orig_ext = os.path.basename(self.anb_data["src"]).split(".")
 
         img_path = os.path.join(dataset_config.src_dir, self.anb_data["src"])
@@ -271,7 +266,6 @@ class DatasetItem:
             del self.anb_data["regions"][item[0]]
         self.write_image_markup_data()
 
-
     def load_image_markup_data(self):
         with open(self.anb_path, 'r') as f:
             return json.load(f)
@@ -279,3 +273,4 @@ class DatasetItem:
     def write_image_markup_data(self):
         with open(self.anb_path, "w", encoding='utf8') as jsonWF:
             json.dump(self.anb_data, jsonWF, ensure_ascii=False)
+

@@ -234,14 +234,18 @@ class OCR(object):
 
         return lr_finder
 
-    def preprocess(self, imgs, need_preprocess=True):
+    def normalize(self, imgs):
         xs = []
+        for img in imgs:
+            x = normalize_img(img,
+                              width=self.width,
+                              height=self.height)
+            xs.append(x)
+        return xs
+
+    def preprocess(self, imgs, need_preprocess=True):
         if need_preprocess:
-            for img in imgs:
-                x = normalize_img(img,
-                                  width=self.width,
-                                  height=self.height)
-                xs.append(x)
+            xs = self.normalize(imgs)
             xs = np.moveaxis(np.array(xs), 3, 1)
         else:
             xs = np.array(imgs)

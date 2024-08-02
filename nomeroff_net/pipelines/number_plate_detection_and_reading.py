@@ -15,7 +15,7 @@ from nomeroff_net.pipelines.base import Pipeline, CompositePipeline, empty_metho
 from .number_plate_localization import NumberPlateLocalization as DefaultNumberPlateLocalization
 from .number_plate_text_reading import NumberPlateTextReading
 from .number_plate_upscaling import NumberPlateUpscaling
-from.number_plate_classification import NumberPlateClassification
+from .number_plate_classification import NumberPlateClassification
 from nomeroff_net.tools.image_processing import (crop_number_plate_zones_from_images,
                                                  crop_number_plate_roi_zones_from_images,
                                                  group_by_image_ids)

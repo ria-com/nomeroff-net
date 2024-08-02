@@ -1,12 +1,14 @@
-import cv2
 import numpy as np
 import warnings
 import copy
+import torch
 from typing import List, Dict, Tuple
 from torch import no_grad
-from .base.ocr import OCR
+from .base.ocr import OCR, device_torch
+from .multiple_postprocessing import multiple_postprocessing_mapping
 from nomeroff_net.tools.mcm import modelhub
 from nomeroff_net.tools.errors import TextDetectorError
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import split_numberplate
 from nomeroff_net.tools.image_processing import convert_cv_zones_rgb_to_bgr
 
 
@@ -35,19 +37,22 @@ class TextDetector(object):
         self.option_detector_height = option_detector_height
 
         self.default_label = default_label
-        self.default_lines_count = default_lines_count
+        self.default_lines_count = int(default_lines_count)
         self.off_number_plate_classification = off_number_plate_classification
 
-        i = 0
         for preset_name in self.presets:
+            if preset_name in self.detectors_names:
+                detector_id = self.detectors_names.index(preset_name)
+            else:
+                detector_id = len(self.detectors_names)
+                self.detectors_names.append(preset_name)
+
             preset = self.presets[preset_name]
-            for region in preset["for_regions"]:
-                self.detectors_map[region.replace("-", '_')] = i
-            _label = preset_name
-            if modelhub.models.get(_label, None) is None:
-                raise TextDetectorError("Text detector {} not exists.".format(_label))
-            self.detectors_names.append(_label)
-            i += 1
+            for count_lines in preset.get("for_count_lines", [1]):
+                for region in preset["for_regions"]:
+                    self.detectors_map[(int(count_lines), region.replace("-", '_'))] = detector_id
+            if modelhub.models.get(preset_name, None) is None:
+                raise TextDetectorError("Text detector {} not exists.".format(preset_name))
 
         if load_models:
             self.load()
@@ -87,59 +92,103 @@ class TextDetector(object):
     def define_order_detector(
             self,
             zones: List[np.ndarray],
-            labels: List[int] = None) -> Dict:
+            labels: List[int] = None,
+            lines: List[int] = None,
+            processed_zones: List[np.ndarray] = None
+    ) -> Dict:
+        if processed_zones is None:
+            processed_zones = [None for _ in zones]
+        if len(zones) != len(processed_zones):
+            raise TextDetectorError("len(zones) != len(processed_zones) !!!")
         predicted = {}
-        i = 0
-        for zone, label in zip(zones, labels):
-            if label not in self.detectors_map.keys():
+        zone_id = 0
+        for zone, label, count_line, p_zone in zip(zones, labels, lines, processed_zones):
+            count_line = int(count_line)
+            if (count_line, label) not in self.detectors_map.keys():
                 warnings.warn(f"Label '{label}' not in {self.detectors_map.keys()}! "
                               f"Label changed on default '{self.default_label}'.")
                 label = self.default_label
-            detector = self.detectors_map[label]
+                count_line = self.default_lines_count
+            detector = self.detectors_map[(count_line, label)]
             if detector not in predicted.keys():
-                predicted[detector] = {"zones": [], "order": []}
-            predicted[detector]["zones"].append(zone)
-            predicted[detector]["order"].append(i)
-            i += 1
+                predicted[detector] = {
+                    "zones": [],
+                    "order": [],
+                    "xs": [],
+                    "count_line": [],
+                    "label": [],
+                }
+            if count_line > 1:
+                parts = split_numberplate(zone, count_line)
+            else:
+                parts = [zone]
+            if (self.option_detector_width != self.detectors[detector].width or
+                self.option_detector_height != self.detectors[detector].height or
+                count_line == 2 or self.off_number_plate_classification):
+
+                parts = convert_cv_zones_rgb_to_bgr(parts)
+                xs = self.detectors[detector].normalize(parts)
+                xs = np.moveaxis(np.array(xs), 3, 1)
+            else:
+                xs = [p_zone]
+            predicted[detector]["zones"].extend(parts)
+            predicted[detector]["order"].extend([zone_id for _ in parts])
+            predicted[detector]["count_line"].extend([count_line for _ in parts])
+            predicted[detector]["label"].extend([label for _ in parts])
+            predicted[detector]["xs"].extend(xs)
+
+            zone_id += 1
         return predicted
 
     def get_avalible_module(self) -> List[str]:
         return self.detectors_names
 
     def preprocess(self,
+                   orig_zones: List[np.ndarray],
                    zones: List[np.ndarray],
                    labels: List[str] = None,
                    lines: List[int] = None):
         labels, lines = self.define_predict_classes(zones, labels, lines)
-        predicted = self.define_order_detector(zones, labels)
-        for key in predicted.keys():
-            if self.off_number_plate_classification:
-                zones = convert_cv_zones_rgb_to_bgr(predicted[key]["zones"])
-                predicted[key]["xs"] = self.detectors[int(key)].preprocess(zones)
-            elif (self.option_detector_width != self.detectors[key].width or
-                    self.option_detector_height != self.detectors[key].height):
-                zones = [np.moveaxis(cv2.resize(np.moveaxis(zone, 0, 2),
-                                    (self.detectors[int(key)].width, self.detectors[int(key)].height)), 2, 0)
-                         for zone in zones]
-                predicted[key]["xs"] = self.detectors[int(key)].preprocess(zones, need_preprocess=False)
-            else:
-                predicted[key]["xs"] = self.detectors[int(key)].preprocess(predicted[key]["zones"],
-                                                                           need_preprocess=False)
+        predicted = self.define_order_detector(orig_zones, labels, lines, zones)
         return predicted
 
     @no_grad()
     def forward(self, predicted):
         for key in predicted.keys():
             xs = predicted[key]["xs"]
+
+            # to tensor
+            xs = np.array(xs)
+            xs = torch.tensor(xs)
+            xs = xs.to(device_torch)
+
             predicted[key]["ys"] = self.detectors[int(key)].forward(xs)
         return predicted
 
     def postprocess(self, predicted):
-        res_all, order_all = [], []
+        mapping = {}
         for key in predicted.keys():
             predicted[key]["ys"] = self.detectors[int(key)].postprocess(predicted[key]["ys"])
-            res_all = res_all + predicted[key]["ys"]
-            order_all = order_all + predicted[key]["order"]
+            for text, zone_id, count_line, label in zip(predicted[key]["ys"],
+                                                        predicted[key]["order"],
+                                                        predicted[key]["count_line"],
+                                                        predicted[key]["label"]):
+                if zone_id in mapping:
+                    mapping[zone_id]["text"] += text
+                else:
+                    mapping[zone_id] = {
+                        "order": zone_id,
+                        "text": text,
+                        "count_line": count_line,
+                        "label": label,
+                    }
+        res_all = []
+        for item in mapping.values():
+            post = multiple_postprocessing_mapping.get(item["label"], multiple_postprocessing_mapping["default"])
+            text = post.postprocess_multiline_text(item["text"], item["count_line"])
+            res_all.append(text)
+        order_all = [item["order"] for item in mapping.values()]
+
         return [x for _, x in sorted(zip(order_all, res_all), key=lambda pair: pair[0])]
 
     def predict(self,
@@ -149,7 +198,7 @@ class TextDetector(object):
                 return_acc: bool = False) -> List:
 
         labels, lines = self.define_predict_classes(zones, labels, lines)
-        predicted = self.define_order_detector(zones, labels)
+        predicted = self.define_order_detector(zones, labels, lines)
 
         res_all, scores, order_all = [], [], []
         for key in predicted.keys():
