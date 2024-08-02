@@ -59,7 +59,7 @@ class VIABoxes:
                 for region in item["regions"]:
                     if region["shape_attributes"]["name"] == "polygon" and ("label" not in region["region_attributes"] or region["region_attributes"]["label"] == "numberplate"):
                         keypoints = VIABoxes.get_keypoints(region)
-                        keypoints_norm = normalize_rect_new(keypoints, self.debug)
+                        keypoints_norm = normalize_rect_new(keypoints)
                         min_x_box = round(min([keypoint[0] for keypoint in keypoints_norm]))
                         min_y_box = round(min([keypoint[1] for keypoint in keypoints_norm]))
                         max_x_box = round(max([keypoint[0] for keypoint in keypoints_norm]))
