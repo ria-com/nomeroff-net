@@ -5,15 +5,15 @@ python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/n
 import torch
 from torch.nn import functional
 import torch.nn as nn
-from torchvision.models import efficientnet_v2_s
+from torchvision.models import vit_l_16
 from .numberplate_classification_model import ClassificationNet
 from nomeroff_net.tools.mcm import get_device_torch
 
 
 class NPOrientationNet(ClassificationNet):
     def __init__(self,
-                 height: int = 100,
-                 width: int = 300,
+                 height: int = 224,
+                 width: int = 224,
                  output_size: int = 3,
                  batch_size: int = 1,
                  learning_rate: float = 0.001,
@@ -25,25 +25,12 @@ class NPOrientationNet(ClassificationNet):
         self.learning_rate = learning_rate
 
         if backbone is None:
-            backbone = efficientnet_v2_s
-        self.model = backbone()
+            backbone = vit_l_16(pretrained=True)
+        self.model = backbone
 
-        if 'efficientnet' in str(backbone):
-            in_features = self.model.classifier[1].in_features
-        else:
-            raise NotImplementedError(backbone)
-
-        classifier = nn.Sequential(
-            nn.Dropout(p=0.2, inplace=False),
-            nn.Linear(in_features=in_features,
-                      out_features=output_size,
-                      bias=True)
-        )
-
-        if 'efficientnet' in str(backbone):
-            self.model.classifier = classifier
-        else:
-            raise NotImplementedError(backbone)
+        # Замінюємо класифікаційний шар
+        in_features = self.model.heads.head.in_features
+        self.model.heads.head = nn.Linear(in_features, output_size)
 
     def forward(self, x):
         y = self.model(x)
@@ -119,5 +106,5 @@ if __name__ == "__main__":
     net = NPOrientationNet()
     device = get_device_torch()
     net = net.to(device)
-    xs = torch.rand((1, 3, 100, 300)).to(device)
+    xs = torch.rand((1, 3, 224, 224)).to(device)
     y = net(xs)
