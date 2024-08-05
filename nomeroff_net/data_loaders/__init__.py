@@ -1,2 +1,3 @@
 from .img_generator import ImgGenerator
 from .text_image_generator import TextImageGenerator
+from .img_orientation_generator_from_np import ImgOrientationGenerator
