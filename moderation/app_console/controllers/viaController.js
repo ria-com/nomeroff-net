@@ -293,7 +293,7 @@ async function getUpdated (options) {
         ;
         for(const region in anb_data.regions) {
             const item = anb_data.regions[region];
-            if (item.updated != undefined && item.updated) {
+            if (item.rebuilded != undefined && item.rebuilded) {
                 toViaItems = true;
             }
             if (item.keypoints.length = 4) {

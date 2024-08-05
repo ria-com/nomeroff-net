@@ -238,7 +238,10 @@ function buildNewKeyFromMessage(message) {
 }
 
 function storeKeypoints() {
-    const keypoints = []
+    const keypoints = [];
+    document.getElementById('buttonClose').disabled = true;
+    document.getElementById('buttonReset').disabled = true;
+    document.getElementById('buttonUpdate').disabled = true;
     for (const circle of circles) {
         let position = circle.absolutePosition();
         console.log(position);
@@ -274,11 +277,19 @@ function storeKeypoints() {
             message.css( "display", "block" );
             message.addClass(border_class);
             bc.postMessage(JSON.stringify(sendata));
+            document.getElementById('buttonClose').disabled = false;
+            document.getElementById('buttonReset').disabled = false;
+            document.getElementById('buttonUpdate').disabled = false;
+            if (document.getElementById('autoClose').checked) {
+                window.close();
+            }
             setTimeout(() => {
                 message.css( "display", "none" );
                 message.removeClass(border_class);
                 const new_key = buildNewKeyFromMessage(sendata);
-                window.location.href = `/editKeypoints/${new_key}`
+                if (document.getElementById('autoRedirect').checked) {
+                    window.location.href = `/editKeypoints/${new_key}`
+                }
             }, "1000");
         }
    })
@@ -296,9 +307,11 @@ function restoreKeypoints() {
 
 </script>
 <!--button type="button" onclick="if (confirm('Закрити редагування {{ key }} ?')) { window.close() }">x</button -->
-<button type="button" onclick="window.close()">x</button>
-<button type="button" onclick="restoreKeypoints()">Reset</button>
-<button type="button" onclick="storeKeypoints()">Update keypoints!</button>
+<button type="button" onclick="window.close()" id="buttonClose">x</button>
+<button type="button" onclick="restoreKeypoints()" id="buttonReset">Reset</button>
+<button type="button" onclick="storeKeypoints()" id="buttonUpdate" checked>Update keypoints!</button>
+<input type="checkbox" name="autoClose" id="autoClose" checked> autoclose
+<input type="checkbox" name="autoRedirect" id="autoRedirect" checked> autoredirect
 <div id="message" style="display: none"></div>
 </body>
 </html>
