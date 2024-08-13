@@ -113,23 +113,33 @@ class VIABoxes:
                             continue
 
                         orientation = self.orientation_detector.predict([bbox_image])[0]
+                        #cv2.imshow(f"orig orientation: {orientation}", bbox_image)
+                        #cv2.waitKey(0)
                         if orientation == 1:  # class=90/270
-                            cv2.imshow("orig", bbox_image)
-                            cv2.waitKey(0)
                             rotated_bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm,
-                                                                            shift=1)
-                            cv2.imshow("lass=90/270", rotated_bbox_image)
-                            cv2.waitKey(0)
+                                                                            shift=3)
+                            #cv2.imshow(f"lass=90/270 orientation: {orientation}", rotated_bbox_image)
+                            #cv2.waitKey(0)
                             new_orientation = self.orientation_detector.predict(rotated_bbox_image)[0]
                             if new_orientation == 0:
                                 orientation = 1
                             elif new_orientation == 1:
-                                orientation = 2
+                                orientation = 0
                             elif new_orientation == 2:
                                 orientation = 3
+                        if orientation == 0:
+                            orientation = 0
+                        elif orientation == 1:
+                            orientation = 3
+                        elif orientation == 2:
+                            orientation = 0
+                        elif orientation == 3:
+                            orientation = 1
                         bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=orientation)
-                        cv2.imshow("result", bbox_image)
-                        cv2.waitKey(0)
+
+                        #cv2.imshow(f"res orientation: {orientation}", bbox_image)
+                        #cv2.waitKey(0)
+
                         if orientation == 0 or wrong_shift_strategy == "rotate":
                             bbox_path = os.path.join(target_dir, bbox_filename)
                             cv2.imwrite(bbox_path, bbox_image)

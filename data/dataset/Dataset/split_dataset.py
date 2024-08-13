@@ -47,7 +47,7 @@ def split_dataset(src_dir, dest_dir, train_ratio=0.8, test_ratio=0.1, val_ratio=
         for subdir in ['anb', 'ann', 'box', 'img', 'src']:
             os.makedirs(os.path.join(dest_dir, split, subdir), exist_ok=True)
 
-    src_files = [f for f in os.listdir(os.path.join(src_dir, 'src')) if f.endswith('.jpeg')]
+    src_files = [f for f in os.listdir(os.path.join(src_dir, 'src')) if f.endswith('.jpeg') or f.endswith('.jpg')]
     random.shuffle(src_files)
 
     total_files = len(src_files)

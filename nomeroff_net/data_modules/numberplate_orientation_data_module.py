@@ -15,7 +15,8 @@ class OrientationDataModule(OptionsNetDataModule):
                  width=300,
                  height=300,
                  batch_size=32,
-                 num_workers=0):
+                 num_workers=0,
+                 classes=None,):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -26,19 +27,25 @@ class OrientationDataModule(OptionsNetDataModule):
             dataset_dir,
             split="train",
             img_w=width,
-            img_h=height)
+            img_h=height,
+            classes=classes,
+        )
 
         self.val_image_generator = ImgOrientationGenerator(
             dataset_dir,
             split="val",
             img_w=width,
-            img_h=height)
+            img_h=height,
+            classes=classes,
+        )
 
         self.test_image_generator = ImgOrientationGenerator(
             dataset_dir,
             split="test",
             img_w=width,
-            img_h=height)
+            img_h=height,
+            classes=classes,
+        )
 
     def prepare_data(self):
         pass

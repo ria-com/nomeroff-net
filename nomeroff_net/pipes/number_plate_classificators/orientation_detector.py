@@ -49,6 +49,10 @@ class OrientationDetector(object):
         self.width = 224
         self.color_channels = 3
 
+        # output
+        self.classes = {'0': 0, '90': 1}
+        self.output_size = len(self.classes)
+
         # model
         self.model = None
         self.trainer = None
@@ -72,6 +76,7 @@ class OrientationDetector(object):
         """
         self.model = NPOrientationNet(height=self.height,
                                       width=self.width,
+                                      output_size=self.output_size,
                                       batch_size=self.batch_size)
         self.model = self.model.to(device_torch)
         return self.model
@@ -89,13 +94,14 @@ class OrientationDetector(object):
             base_dir,
             width=self.width,
             height=self.height,
+            classes=self.classes,
             num_workers=num_workers,
             batch_size=self.batch_size)
 
     def load_model(self, path_to_model):
         self.model = NPOrientationNet.load_from_checkpoint(path_to_model,
                                                            map_location=torch.device('cpu'),
-                                                           orientation_output_size=3)
+                                                           output_size=self.output_size)
         self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model

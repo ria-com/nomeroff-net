@@ -14,7 +14,7 @@ from typing import List, Tuple
 class ImgOrientationGenerator(Dataset):
 
     def __init__(self, root_dir: str, img_w: int = 300, img_h: int = 300, split: str = 'train',
-                 batch_size: int = 32) -> None:
+                 batch_size: int = 32, classes=None) -> None:
         self.root_dir = root_dir
         self.img_w = img_w
         self.img_h = img_h
@@ -22,12 +22,14 @@ class ImgOrientationGenerator(Dataset):
         self.samples = self._load_samples()
         self.indexes = list(range(len(self.samples)))
         self.cur_index = 0
+        if classes is None:
+            classes = {'0': 0, '90': 1, '180': 2}
+        self.classes = classes
 
     def _load_samples(self) -> List[Tuple[str, int]]:
         """Завантаження зразків з відповідних директорій."""
         samples = []
-        classes = {'0': 0, '90': 1, '180': 2}
-        for class_name, class_label in classes.items():
+        for class_name, class_label in self.classes.items():
             class_dir = os.path.join(self.root_dir, self.split, class_name)
             if not os.path.isdir(class_dir):
                 continue
