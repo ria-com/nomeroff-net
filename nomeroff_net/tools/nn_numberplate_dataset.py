@@ -95,7 +95,7 @@ class DatasetRegion:
             data = json.load(f)
         data["name"] = name
         if "moderation" not in data:
-            data["moderation"] = { "isModerated": 0, "moderatedBy": "rebuild_nn_dataset_image.py"}
+            data["moderation"] = {"isModerated": 0, "moderatedBy": "rebuild_nn_dataset_image.py"}
         else:
             data["moderation"]["isModerated"] = 0
             data["moderation"]["moderatedBy"] = "rebuild_nn_dataset_image.py"
@@ -234,9 +234,9 @@ class DatasetItem:
 
     # default constructor
     def __init__(self,
-                    dataset_config: DatasetConfig,
-                    anb_key: str,
-                    debug: bool = False
+                 dataset_config: DatasetConfig,
+                 anb_key: str,
+                 debug: bool = False
                  ):
         self.version = 2
         self.debug = debug

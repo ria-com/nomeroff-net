@@ -222,7 +222,7 @@ def normalize_rect_new(rect: List) -> np.ndarray or List:
         coef_cw = fline(rect[0], rect[1])
         angle_ccw = round(coef_ccw[2], 2)
         angle_cw = round(coef_cw[2], 2)
-        if (abs(angle_ccw) > abs(angle_cw)) and k<2:
+        if (abs(angle_ccw) > abs(angle_cw)) and k < 2:
             rect = reshape_points(rect, 3)
     return rect
 

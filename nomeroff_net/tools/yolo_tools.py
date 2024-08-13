@@ -175,14 +175,15 @@ def rotation_augumentation(image,
                             debug=debug)
         
 
-def rotation_augumentation_obb (image,
-                           target_boxes,
-                           path_to_res_ann,
-                           path_to_res_images,
-                           image_id,
-                           labels,
-                           angles=None,
-                           debug=False):
+def rotation_augumentation_obb(
+        image,
+        target_boxes,
+        path_to_res_ann,
+        path_to_res_images,
+        image_id,
+        labels,
+        angles=None,
+        debug=False):
     if angles is None:
         angles = [90, 180, 270]
     variant_images, variants_bboxes = generate_image_rotation_variants(image,
@@ -190,14 +191,15 @@ def rotation_augumentation_obb (image,
                                                                        angles=angles)
     angles = [0, *angles]
     for image, target_boxes, angle in zip(variant_images, variants_bboxes, angles):
-        save_in_yolo_obb_format(image,
-                            target_boxes,
-                            path_to_res_ann,
-                            path_to_res_images,
-                            image_id,
-                            labels,
-                            suffix=f"_{angle}",
-                            debug=debug)
+        save_in_yolo_obb_format(
+            image,
+            target_boxes,
+            path_to_res_ann,
+            path_to_res_images,
+            image_id,
+            labels,
+            suffix=f"_{angle}",
+            debug=debug)
 
 
 def convert_dataset_to_yolo_format(path_to_res_ann, 
@@ -301,12 +303,12 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
                                        debug=debug)
             else:
                 rotation_augumentation_obb(image,
-                                       target_boxes,
-                                       path_to_res_ann,
-                                       path_to_res_images,
-                                       image_id,
-                                       labels,
-                                       debug=debug)
+                                           target_boxes,
+                                           path_to_res_ann,
+                                           path_to_res_images,
+                                           image_id,
+                                           labels,
+                                           debug=debug)
 
         else:
             if yolo_format == "normal":
@@ -319,12 +321,12 @@ def convert_dataset_to_yolo_format(path_to_res_ann,
                                     debug=debug)
             else:
                 save_in_yolo_obb_format(image,
-                                    target_boxes,
-                                    path_to_res_ann,
-                                    path_to_res_images,
-                                    image_id,
-                                    labels,
-                                    debug=debug)
+                                        target_boxes,
+                                        path_to_res_ann,
+                                        path_to_res_images,
+                                        image_id,
+                                        labels,
+                                        debug=debug)
 
     print(f"[INFO] format type {yolo_format}")
     print(f"[INFO] find labels {list(all_labels.keys())}")

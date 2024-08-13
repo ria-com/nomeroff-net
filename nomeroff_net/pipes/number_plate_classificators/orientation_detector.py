@@ -1,3 +1,8 @@
+"""
+Orientation Detector
+
+python3 -m nomeroff_net.pipes.number_plate_classificators.orientation_detector -f nomeroff_net/pipes/number_plate_classificators/orientation_detector.py
+"""
 import os
 from typing import List, Dict, Tuple
 import numpy as np
@@ -15,6 +20,19 @@ from nomeroff_net.tools.image_processing import normalize_img
 device_torch = get_device_torch()
 
 
+def prettify_orientation(photo_orientation):
+    pretty_orientation = 0
+    if photo_orientation == 0:
+        pretty_orientation = 0
+    if photo_orientation == 1:
+        pretty_orientation = 90
+    if photo_orientation == 2:
+        pretty_orientation = 180
+    if photo_orientation == 3:
+        pretty_orientation = 270
+    return pretty_orientation
+
+
 class OrientationDetector(object):
     """
     TODO: describe class
@@ -27,8 +45,8 @@ class OrientationDetector(object):
         super().__init__()
 
         # input
-        self.height = 100
-        self.width = 300
+        self.height = 224
+        self.width = 224
         self.color_channels = 3
 
         # model
@@ -100,17 +118,15 @@ class OrientationDetector(object):
             else:
                 self.trainer.save_checkpoint(path, weights_only=True)
 
-    def load(self, path_to_model: str = "latest", options: Dict = None) -> NPOrientationNet:
+    def load(self, path_to_model: str = "latest") -> NPOrientationNet:
         """
-        TODO: describe method
+        Load model
+        path_to_model - http, path or latest
         """
-        if options is None:
-            options = dict()
         self.create_model()
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_orientation")
             path_to_model = model_info["path"]
-            options["orientations"] = model_info["orientations"]
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_orientation")
             path_to_model = model_info["path"]
@@ -187,7 +203,7 @@ class OrientationDetector(object):
         """
         xs = [normalize_img(img, height=self.height, width=self.width) for img in imgs]
         if not bool(xs):
-            return [], []
+            return [], [], []
         predicted = self._predict(xs)
         orientations, confidences = self.unzip_predicted(predicted)
         return orientations, confidences, predicted
@@ -198,3 +214,18 @@ class OrientationDetector(object):
         """
         return self.orientations[index]
 
+
+if __name__ == "__main__":
+    import os
+    import cv2
+    import glob
+
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    root_dir = os.path.join(current_dir, "../../../data/dataset/OrientationDetector/numberplate_orientation_example/")
+
+    orientation_detector = OrientationDetector()
+    orientation_detector.load()
+    images_path = list(glob.glob(os.path.join(root_dir, "test", "180", "*")))
+    images = [cv2.imread(image_path) for image_path in images_path]
+    res = orientation_detector.predict(images)
+    print(res)

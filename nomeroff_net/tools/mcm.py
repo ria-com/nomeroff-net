@@ -56,6 +56,10 @@ model_config_urls = [
 
     # object detection
     "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov8/model-x-1.json",
+
+    # orientation classificator
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/orientation/model_vit_16L-224x224-1.json",
+
 ]
 
 # initial
