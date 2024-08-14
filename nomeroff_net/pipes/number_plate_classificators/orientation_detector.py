@@ -38,7 +38,9 @@ class OrientationDetector(object):
     TODO: describe class
     """
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 classes=None,
+                 ) -> None:
         """
         TODO: describe __init__
         """
@@ -50,7 +52,9 @@ class OrientationDetector(object):
         self.color_channels = 3
 
         # output
-        self.classes = {'0': 0, '90': 1}
+        if classes is None:
+            classes = {'0': 0, '90': 1}
+        self.classes = classes
         self.output_size = len(self.classes)
 
         # model
@@ -133,9 +137,17 @@ class OrientationDetector(object):
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_orientation")
             path_to_model = model_info["path"]
+            if model_info.get("classes", None) is not None:
+                self.classes = model_info["classes"]
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_orientation")
             path_to_model = model_info["path"]
+        elif path_to_model.startswith("modelhub://"):
+            path_to_model = path_to_model.split("modelhub://")[1]
+            model_info = modelhub.download_model_by_name(path_to_model)
+            path_to_model = model_info["path"]
+            if model_info.get("classes", None) is not None:
+                self.classes = model_info["classes"]
 
         return self.load_model(path_to_model)
 

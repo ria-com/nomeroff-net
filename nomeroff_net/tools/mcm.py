@@ -59,6 +59,8 @@ model_config_urls = [
 
     # orientation classificator
     "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/orientation/model_vit_16L-224x224-1.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/orientation/model_0_90_vit_16L-224x224-1.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-classification/orientation/model_0_180_vit_16L-224x224-1.json",
 
 ]
 

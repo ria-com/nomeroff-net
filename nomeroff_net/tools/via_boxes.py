@@ -32,8 +32,11 @@ class VIABoxes:
         self.via_dateset = VIADataset(label_type="radio", verbose=verbose)
         self.via_dateset.load_from_via_file(dataset_json)
         self.debug = verbose
-        self.orientation_detector = OrientationDetector()
-        self.orientation_detector.load()
+        # self.numberplate_orientation_0_180 = OrientationDetector(classes={'0': 0, '180': 1})
+        # self.numberplate_orientation_0_180.load("modelhub://numberplate_orientation_0_180")
+
+        # self.numberplate_orientation_0_180__90_270 = OrientationDetector(classes={'0-180': 0, '90-270': 1})
+        # self.numberplate_orientation_0_180__90_270.load("modelhub://numberplate_orientation_0-180_90-270")
 
     @staticmethod
     def get_keypoints(region):
@@ -73,6 +76,7 @@ class VIABoxes:
                                moderation_image_dir=None,
                                wrong_shift_strategy="rotate",  # may by: "rotate", "moderate"
                                filtered_classes=None,
+                               w=300, h=100, min_h=20, min_w=60,
                                ):
         if filtered_classes is None:
             filtered_classes = ["numberplate"]
@@ -104,43 +108,33 @@ class VIABoxes:
                         box_h = max_y_box-min_y_box
                         bbox_filename = VIABoxes.get_bbox_filename(basename, bbox)
 
-                        bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0)
+                        bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0, w=w, h=h)
                         is_blurry = check_blurriness(bbox_image, threshold=15)
-                        if is_blurry or box_h < 20 or box_w < 60:
+                        if is_blurry or box_h < min_h or box_w < min_w:
                             if moderation_bbox_dir is not None:
                                 moderation_bbox_path = os.path.join(moderation_bbox_dir, bbox_filename)
                                 cv2.imwrite(moderation_bbox_path, bbox_image)
                             continue
 
-                        orientation = self.orientation_detector.predict([bbox_image])[0]
-                        #cv2.imshow(f"orig orientation: {orientation}", bbox_image)
-                        #cv2.waitKey(0)
-                        if orientation == 1:  # class=90/270
-                            rotated_bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm,
-                                                                            shift=3)
-                            #cv2.imshow(f"lass=90/270 orientation: {orientation}", rotated_bbox_image)
-                            #cv2.waitKey(0)
-                            new_orientation = self.orientation_detector.predict(rotated_bbox_image)[0]
-                            if new_orientation == 0:
-                                orientation = 1
-                            elif new_orientation == 1:
-                                orientation = 0
-                            elif new_orientation == 2:
-                                orientation = 3
-                        if orientation == 0:
-                            orientation = 0
-                        elif orientation == 1:
-                            orientation = 3
-                        elif orientation == 2:
-                            orientation = 0
-                        elif orientation == 3:
-                            orientation = 1
-                        bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=orientation)
+                        # orientation_0_180__90_270 = self.numberplate_orientation_0_180__90_270.predict([bbox_image])[0]
+                        # #cv2.imshow(f"orig orientation: {orientation}", bbox_image)
+                        # #cv2.waitKey(0)
+                        # if orientation_0_180__90_270 == 1:  # class=90/270
+                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3)
+                        # orientation_0_180 = self.numberplate_orientation_0_180.predict([bbox_image])[0]
+                        #
+                        # if orientation_0_180 == 1 and orientation_0_180__90_270 == 0:
+                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=2)
+                        # elif orientation_0_180 == 1 and orientation_0_180__90_270 == 1:
+                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3)
+                        # elif orientation_0_180 == 1 and orientation_0_180__90_270 == 0:
+                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=1)
+                        # # bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0)
+                        #
+                        # #cv2.imshow(f"res orientation: {orientation}", bbox_image)
+                        # #cv2.waitKey(0)
 
-                        #cv2.imshow(f"res orientation: {orientation}", bbox_image)
-                        #cv2.waitKey(0)
-
-                        if orientation == 0 or wrong_shift_strategy == "rotate":
+                        if wrong_shift_strategy == "rotate":
                             bbox_path = os.path.join(target_dir, bbox_filename)
                             cv2.imwrite(bbox_path, bbox_image)
                             print(f'    region "{bbox_filename}" done')

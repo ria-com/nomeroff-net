@@ -35,6 +35,12 @@ python3.9 -W ignore visualize_via_boxes.py \
                       -moderation_bbox_dir /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06-checked/train_bbox_moderate \
                       -moderation_image_dir /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06-checked/train_moderate
 
+python3.9 -W ignore visualize_via_boxes.py \
+                      -dataset_json /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06/added/via_region_data.json \
+                      -target_dir /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06-checked/added_train \
+                      -moderation_bbox_dir /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06-checked/added_train_bbox_moderate \
+                      -moderation_image_dir /mnt/var/www/projects_computer_vision/nomeroff-net/data/dataset/Detector/autoriaNumberplateDataset-2023-03-06-checked/added_train_moderate
+
 """
 
 import os
@@ -67,4 +73,9 @@ debug = args.debug
 via_boxes = VIABoxes(dataset_json, debug)
 via_boxes.make_transformed_boxes(target_dir=target_dir,
                                  moderation_bbox_dir=moderation_bbox_dir,
-                                 moderation_image_dir=moderation_image_dir)
+                                 moderation_image_dir=moderation_image_dir,)
+# via_boxes.make_transformed_boxes(target_dir=target_dir,
+#                                  moderation_bbox_dir=moderation_bbox_dir,
+#                                  moderation_image_dir=moderation_image_dir,
+#                                  w=224, h=224, min_h=45, min_w=45,)
+
