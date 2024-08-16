@@ -50,6 +50,7 @@ class OrientationDetector(object):
         self.height = 224
         self.width = 224
         self.color_channels = 3
+        self.backbone = "efficientnet_v2_l"
 
         # output
         if classes is None:
@@ -103,9 +104,12 @@ class OrientationDetector(object):
             batch_size=self.batch_size)
 
     def load_model(self, path_to_model):
-        self.model = NPOrientationNet.load_from_checkpoint(path_to_model,
-                                                           map_location=torch.device('cpu'),
-                                                           output_size=self.output_size)
+        self.model = NPOrientationNet.load_from_checkpoint(
+            path_to_model,
+            map_location=torch.device('cpu'),
+            output_size=self.output_size,
+            backbone=self.backbone,
+        )
         self.model = self.model.to(device_torch)
         self.model.eval()
         return self.model
@@ -139,6 +143,8 @@ class OrientationDetector(object):
             path_to_model = model_info["path"]
             if model_info.get("classes", None) is not None:
                 self.classes = model_info["classes"]
+                self.output_size = len(self.classes)
+                self.backbone = model_info.get("backbone", "vit_l_16")
         elif path_to_model.startswith("http"):
             model_info = modelhub.download_model_by_url(path_to_model, self.get_classname(), "numberplate_orientation")
             path_to_model = model_info["path"]
@@ -148,6 +154,8 @@ class OrientationDetector(object):
             path_to_model = model_info["path"]
             if model_info.get("classes", None) is not None:
                 self.classes = model_info["classes"]
+                self.output_size = len(self.classes)
+                self.backbone = model_info.get("backbone", "vit_l_16")
 
         return self.load_model(path_to_model)
 

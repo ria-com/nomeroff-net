@@ -1,11 +1,7 @@
-"""
-Numberplate Orientation Model
-python3 -m nomeroff_net.nnmodels.numberplate_orientation_model -f nomeroff_net/nnmodels/numberplate_orientation_model.py
-"""
 import torch
 from torch.nn import functional
 import torch.nn as nn
-from torchvision.models import vit_l_16
+from torchvision.models import vit_l_16, efficientnet_v2_l, EfficientNet_V2_L_Weights, ViT_L_16_Weights
 from .numberplate_classification_model import ClassificationNet
 from nomeroff_net.tools.mcm import get_device_torch
 
@@ -17,40 +13,42 @@ class NPOrientationNet(ClassificationNet):
                  output_size: int = 3,
                  batch_size: int = 1,
                  learning_rate: float = 0.001,
-                 backbone=None):
+                 backbone: str = 'vit_l_16'):
+        print("NPOrientationNet", backbone,)
         super(NPOrientationNet, self).__init__()
         self.batch_size = batch_size
         self.height = height
         self.width = width
         self.learning_rate = learning_rate
-
-        if backbone is None:
-            backbone = vit_l_16(pretrained=True)
-        self.model = backbone
-
-        # Замінюємо класифікаційний шар
-        in_features = self.model.heads.head.in_features
-        self.model.heads.head = nn.Linear(in_features, output_size)
+        
+        if backbone == 'vit_l_16':
+            weights = ViT_L_16_Weights.IMAGENET1K_V1
+            self.model = vit_l_16(weights=weights)
+            in_features = self.model.heads.head.in_features
+            self.model.heads.head = nn.Linear(in_features, output_size)
+        elif backbone == 'efficientnet_v2_l':
+            weights = EfficientNet_V2_L_Weights.IMAGENET1K_V1
+            self.model = efficientnet_v2_l(weights=weights)
+            in_features = self.model.classifier[-1].in_features
+            self.model.classifier[-1] = nn.Linear(in_features, output_size)
+        else:
+            raise ValueError(f"Unsupported backbone: {backbone}")
 
     def forward(self, x):
         y = self.model(x)
-        y = functional.softmax(y)
+        y = functional.softmax(y, dim=1)
         return y
 
     def step(self, batch):
         x, y = batch
-
         # Прогнозування
         outputs = self.forward(x)
-
         # Обчислення втрат
         loss = functional.cross_entropy(outputs, y)
-
         # Обчислення точності
         pred = outputs.argmax(dim=1)
         correct = (pred == y).float()
         acc = correct.sum() / self.batch_size
-
         return loss, acc
 
     def configure_optimizers(self):
@@ -73,10 +71,9 @@ class NPOrientationNet(ClassificationNet):
         }
 
     def validation_step(self, batch, batch_idx):
-        loss, acc, = self.step(batch)
+        loss, acc = self.step(batch)
         self.log('val_loss', loss, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         self.log(f'val_accuracy', acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
-
         tqdm_dict = {
             'val_loss': loss,
             'acc': acc,

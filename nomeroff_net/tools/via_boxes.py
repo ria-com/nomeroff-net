@@ -1,5 +1,6 @@
 import os
 import cv2
+import json
 import numpy as np
 from tqdm import tqdm
 from nomeroff_net.tools.via import VIADataset
@@ -32,11 +33,11 @@ class VIABoxes:
         self.via_dateset = VIADataset(label_type="radio", verbose=verbose)
         self.via_dateset.load_from_via_file(dataset_json)
         self.debug = verbose
-        # self.numberplate_orientation_0_180 = OrientationDetector(classes={'0': 0, '180': 1})
-        # self.numberplate_orientation_0_180.load("modelhub://numberplate_orientation_0_180")
+        self.numberplate_orientation_0_180 = OrientationDetector(classes={'0': 0, '180': 1})
+        self.numberplate_orientation_0_180.load("modelhub://numberplate_orientation_0_180")
 
-        # self.numberplate_orientation_0_180__90_270 = OrientationDetector(classes={'0-180': 0, '90-270': 1})
-        # self.numberplate_orientation_0_180__90_270.load("modelhub://numberplate_orientation_0-180_90-270")
+        self.numberplate_orientation_0_180__90_270 = OrientationDetector(classes={'0-180': 0, '90-270': 1})
+        self.numberplate_orientation_0_180__90_270.load("modelhub://numberplate_orientation_0-180_90-270")
 
     @staticmethod
     def get_keypoints(region):
@@ -80,6 +81,12 @@ class VIABoxes:
                                ):
         if filtered_classes is None:
             filtered_classes = ["numberplate"]
+
+        # new_via_data = {
+        #     "_via_settings": self.via_dateset.data['_via_settings'],
+        #     "_via_attributes": self.via_dateset.data['_via_attributes'],
+        #     "_via_img_metadata": {},
+        # }
         for key in tqdm(self.via_dateset.data['_via_img_metadata']):
             item = self.via_dateset.data['_via_img_metadata'][key]
             print(f"Processing \"{item['filename']}\"")
@@ -87,12 +94,24 @@ class VIABoxes:
             if os.path.exists(filename):
                 basename = item['filename'].split('.')[0]
                 image = cv2.imread(filename)
+                regions = []
                 for region in item["regions"]:
                     if moderation_image_dir is not None and (region["shape_attributes"]["name"] != "polygon"
                                                              or "label" not in region["region_attributes"]):
                         moderation_img_path = os.path.join(moderation_image_dir, os.path.basename(filename))
                         cv2.imwrite(moderation_img_path, image)
                         continue
+
+                    keypoints = VIABoxes.get_keypoints(region)
+                    keypoints_norm = normalize_rect_new(keypoints)
+                    regions.append({
+                        "region_attributes": region["region_attributes"],
+                        "shape_attributes": {
+                            "name": "polygon",
+                            "all_points_x": [int(float(point[0])) for point in keypoints_norm],
+                            "all_points_y": [int(float(point[1])) for point in keypoints_norm]
+                        }
+                    })
 
                     if (region["shape_attributes"]["name"] == "polygon"
                             and region["region_attributes"]["label"] in filtered_classes):
@@ -116,23 +135,27 @@ class VIABoxes:
                                 cv2.imwrite(moderation_bbox_path, bbox_image)
                             continue
 
-                        # orientation_0_180__90_270 = self.numberplate_orientation_0_180__90_270.predict([bbox_image])[0]
-                        # #cv2.imshow(f"orig orientation: {orientation}", bbox_image)
-                        # #cv2.waitKey(0)
-                        # if orientation_0_180__90_270 == 1:  # class=90/270
-                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3)
-                        # orientation_0_180 = self.numberplate_orientation_0_180.predict([bbox_image])[0]
-                        #
-                        # if orientation_0_180 == 1 and orientation_0_180__90_270 == 0:
-                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=2)
-                        # elif orientation_0_180 == 1 and orientation_0_180__90_270 == 1:
-                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3)
-                        # elif orientation_0_180 == 1 and orientation_0_180__90_270 == 0:
-                        #     bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=1)
-                        # # bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0)
-                        #
-                        # #cv2.imshow(f"res orientation: {orientation}", bbox_image)
-                        # #cv2.waitKey(0)
+                        bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0, w=224, h=224)
+                        orientation_0_180__90_270 = self.numberplate_orientation_0_180__90_270.predict([bbox_image])[0]
+                        #cv2.imshow(f"orig orientation: {orientation}", bbox_image)
+                        #cv2.waitKey(0)
+                        if orientation_0_180__90_270 == 1:  # class=90/270
+                            bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3, w=300, h=100)
+                        orientation_0_180 = self.numberplate_orientation_0_180.predict([bbox_image])[0]
+
+                        print("orientation_0_180, orientation_0_180__90_270", orientation_0_180, orientation_0_180__90_270)
+                        if orientation_0_180 == 1 and orientation_0_180__90_270 == 0:
+                            bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=2)
+                        elif orientation_0_180 == 1 and orientation_0_180__90_270 == 1:
+                            bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=1)
+                        elif orientation_0_180 == 0 and orientation_0_180__90_270 == 1:
+                            bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=3)
+                        else:
+                            bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0)
+                        # bbox_image = VIABoxes.get_aligned_image(image, keypoints_norm, shift=0)
+
+                        #cv2.imshow(f"res orientation: {orientation}", bbox_image)
+                        #cv2.waitKey(0)
 
                         if wrong_shift_strategy == "rotate":
                             bbox_path = os.path.join(target_dir, bbox_filename)
@@ -142,3 +165,13 @@ class VIABoxes:
                             moderation_bbox_path = os.path.join(moderation_bbox_dir, bbox_filename)
                             cv2.imwrite(moderation_bbox_path, bbox_image)
                             print(f'    region "{bbox_filename}" done')
+
+        #         new_via_data['_via_img_metadata'][key] = {
+        #             "file_attributes": self.via_dateset.data['_via_img_metadata'][key]["file_attributes"],
+        #             "filename": self.via_dateset.data['_via_img_metadata'][key]["filename"],
+        #             "regions": regions,
+        #             "size": self.via_dateset.data['_via_img_metadata'][key]["size"]
+        #         }
+        #
+        # with open(os.path.join(self.dataset_dir, 'via_moderated_data.json'), 'w') as f:
+        #     json.dump(new_via_data, f)
