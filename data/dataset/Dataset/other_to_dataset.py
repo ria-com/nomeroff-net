@@ -6,16 +6,11 @@ import math
 import numpy as np
 from ultralytics import YOLO
 from matplotlib import pyplot as plt
-from upscaler import HAT
-import easyocr
 
-# load models
-reader = easyocr.Reader(['en'])
-up = HAT(tile_size=320)
 
 # import nomeroff net libs
 dir_path = os.path.dirname(os.path.realpath(__file__))
-NOMEROFF_NET_DIR = os.path.abspath(sys.path.append(dir_path, "../../../"))
+NOMEROFF_NET_DIR = os.path.abspath(os.path.join(dir_path, "../../../"))
 sys.path.append(NOMEROFF_NET_DIR)
 from nomeroff_net.tools.mcm import modelhub
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
@@ -27,8 +22,15 @@ from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools im
                                                                                       as normalize_rect)
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import (add_coordinates_offset,
                                                                                       split_numberplate)
+from nomeroff_net.tools.mcm import get_device_torch
 from .tools import NumberplateDatasetItem
+from upscaler import HAT
+import easyocr
 
+# load models
+device_torch = get_device_torch()
+reader = easyocr.Reader(['en'])
+up = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
 
 # load nomeroff net models
 classifiactor = OptionsDetector()

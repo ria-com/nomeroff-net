@@ -1,6 +1,5 @@
 import os
 import cv2
-import json
 import numpy as np
 from tqdm import tqdm
 from nomeroff_net.tools.via import VIADataset
