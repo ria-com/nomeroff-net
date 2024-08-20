@@ -311,8 +311,10 @@ def fix_lines(orig_lines, lines, region_id):
         return {i: l for i, l in enumerate(lines)}
     new_lines = []
     for ol, l in zip(orig_lines, lines):
-        ol = ol.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").upper()
-        l = l.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").upper()
+        ol = (ol.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").
+              replace("'", "").replace('"', "").replace("`", "").replace("*", "").replace("[", "Г").upper())
+        l = (l.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").
+             replace("'", "").replace('"', "").replace("`", "").replace("*", "").replace("[", "Г").upper())
         #print("!!! L OL ", ol, l)
         if len(ol) != len(l):
             new_lines.append(l)
@@ -437,7 +439,7 @@ fromats_parse = {
 def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                    target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
                    parse_fromat="md", exclude_zones_list=['MD'], flag_show=False,
-                   easyocr_readers=None,
+                   easyocr_readers=None, need_upscale_image=False
 ):
     if easyocr_readers is None:
         easyocr_readers = ['en']
@@ -485,7 +487,10 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     print("image_part shape", image_part.shape[:2])
 
                     try:
-                        image_part_upscale = up.run(cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB))
+                        if need_upscale_image:
+                            image_part_upscale = up.run(cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB))
+                        else:
+                            image_part_upscale = cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB)
                     except Exception as e:
                         warnings.warn(f"FAILED UPSCALER {e}")
                         image_part_upscale = cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB)
