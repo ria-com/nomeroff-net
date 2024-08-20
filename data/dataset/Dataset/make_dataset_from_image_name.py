@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import cv2
+import math
 import glob
 import warnings
 import shutil
@@ -17,7 +18,6 @@ from typing import List
 from ultralytics import YOLO
 from matplotlib import pyplot as plt
 import easyocr
-reader = easyocr.Reader(['en'])
 
 # add noneroff_net path
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -28,6 +28,7 @@ sys.path.append(NOMEROFF_NET_DIR)
 from nomeroff_net.tools.mcm import get_device_torch
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.tools.image_processing import distance
+from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import translit_cyrillic_to_latin
 from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor import make_boxes
 from upscaler import HAT
 device_torch = get_device_torch()
@@ -63,7 +64,6 @@ def applyCoefficient(points: List or np.ndarray, coef_w: float, coef_h: float) -
     return [[point[0] * coef_w, point[1] * coef_h] for point in points]
 
 
-
 def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_percentage: float = 0.03): 
     parts = []
     aligned_h, aligned_w = aligned_img.shape[0:2]
@@ -72,22 +72,14 @@ def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_per
     for part in range(parts_count):
         start_h = part*line_h-overlap
         end_h = (part+1)*line_h+overlap
-        if start_h<0:
+        if start_h < 0:
             start_h = 0
-        if start_h>aligned_h:
+        if start_h > aligned_h:
             start_h = aligned_h
         image_part = aligned_img[start_h:end_h, 0:aligned_w]
         parts.append(image_part)
     return parts
 
-
-# In[13]:
-
-
-# [([[175, 15], [305, 15], [305, 105], [175, 105]], 'AE', 0.9999731947095736), ([[18, 92], [82, 92], [82, 144], [18, 144]], 'UA', 0.9998803050484605), ([[105, 105], [367, 105], [367, 197], [105, 197]], '7686', 0.9999979734420776), ([[165, 197], [301, 197], [301, 289], [165, 289]], 'OE', 0.6053532188038127)]
-# [([[121.82914291162355, 4.057257698560241], [279.9364471959041, 27.06095933088202], [260.17085708837647, 129.94274230143975], [103.0635528040959, 106.93904066911799]], 'AM', 0.9989463228639357), ([[71.9604446036219, 89.04511294165181], [327.69657807649224, 126.31857103384763], [306.0395553963781, 227.9548870583482], [51.303421923507756, 189.68142896615237]], '2727', 0.8728847487553404), ([[133.79844192944262, 190.0658215579277], [279.11790034162857, 211.68397258154306], [262.2015580705574, 302.93417844207227], [115.88209965837142, 281.31602741845694]], 'AB', 0.9999021364203771)]
-
-import math
 
 def remove_bad_text_zones(easyocr_arr, exclude_zones_list = ['UA']):
     result = []
@@ -133,10 +125,12 @@ def append_text_to_line(easyocr_arr, img, count_lines):
     return lines_text
 
 
-def get_easyocr_lines(easyocr_arr, img, count_lines, exclude_zones_list = ['UA']):
-    if len(easyocr_arr)>0:
+def get_easyocr_lines(easyocr_arr, img, count_lines, exclude_zones_list=None):
+    if exclude_zones_list is None:
+        exclude_zones_list = ['UA']
+    if len(easyocr_arr) > 0:
         cleared_arr = remove_bad_text_zones(easyocr_arr, exclude_zones_list)
-        if len(cleared_arr)>0:
+        if len(cleared_arr) > 0:
             cleared_arr = remove_small_zones(cleared_arr)
             lines_text = append_text_to_line(cleared_arr, img, count_lines)
         else:
@@ -144,9 +138,6 @@ def get_easyocr_lines(easyocr_arr, img, count_lines, exclude_zones_list = ['UA']
     else:
         lines_text = {}
     return lines_text
-
-
-# In[14]:
 
 
 def add_np(fname, zone, region_id, count_line, desc, predicted_text,
@@ -168,7 +159,7 @@ def add_np(fname, zone, region_id, count_line, desc, predicted_text,
     data.update(replace_template)
     if "moderation" not in data:
         data["moderation"] = {}
-    if desc == predicted_text:
+    if translit_cyrillic_to_latin(desc) == translit_cyrillic_to_latin(predicted_text):
         data["moderation"]["isModerated"] = 1
         data["moderation"]["moderatedBy"] = "auto"
     data["moderation"]["predicted"] = predicted_text
@@ -308,8 +299,10 @@ class NumberplateDatasetItem:
 def fix_text_line(str):
     return str.replace(" ", "").replace("-", "").replace("|", "I").replace("0", "O").replace("/", "I")
 
+
 def fix_number_line(str):
     return str.replace(" ", "").replace("-", "").replace("O", "0").replace("I", "1")
+
 
 def fix_lines(orig_lines, lines, region_id):
     lines = lines.values()
@@ -329,13 +322,13 @@ def fix_lines(orig_lines, lines, region_id):
             if letter_ol == letter_l:
                 new_line += letter_l
             else:
-                if letter_ol == "1" and letter_l in ("I", "|", "/", "\\"):
-                    new_line += "1"
-                elif letter_ol == "I" and letter_l in ("1", "|", "/", "\\"):
-                    new_line += "I"
-                elif letter_ol == "O" and letter_l == "0":
-                    new_line += "O"
-                elif letter_ol == "0" and letter_l == "O":
+                if letter_ol == "1" and letter_l in ("I", "І", "|", "/", "\\"):
+                    new_line += letter_ol
+                elif letter_ol in ("I", 'І') and letter_l in ("1", "|", "/", "\\"):
+                    new_line += letter_ol
+                elif letter_ol in ("O", "О") and letter_l == "0":
+                    new_line += letter_ol
+                elif letter_ol == "0" and letter_l in ("O", "О"):
                     new_line += "0"
                 else:
                     new_line += letter_l
@@ -344,18 +337,6 @@ def fix_lines(orig_lines, lines, region_id):
             
     print("fix_lines", region_id, lines, new_lines)
     return {i: l for i, l in enumerate(new_lines)}
-    # OFF UKRAINIAN FIXER
-    #if region_id == -1:
-    #    if len(lines) == 2:
-    #        lines[0] = fix_text_line(lines[0])
-    #        lines[1] = fix_number_line(lines[1])
-    #    if len(lines) == 3:
-    #        lines[0] = fix_text_line(lines[0])
-    #        lines[1] = fix_number_line(lines[1])
-    #        lines[2] = fix_text_line(lines[2])
-
-
-# In[16]:
 
 
 def normalize_easyocr_output(result):
@@ -368,9 +349,6 @@ def normalize_easyocr_output(result):
         )
         new_result.append(new_item)
     return new_result
-
-
-# In[17]:
 
 
 def format_moldovan_plate(plate):
@@ -458,8 +436,12 @@ fromats_parse = {
 
 def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                    target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
-                   parse_fromat="md", exclude_zones_list=['MD'], flag_show=False
+                   parse_fromat="md", exclude_zones_list=['MD'], flag_show=False,
+                   easyocr_readers=None,
 ):
+    if easyocr_readers is None:
+        easyocr_readers = ['en']
+    reader = easyocr.Reader(easyocr_readers)
     for img_path in glob.glob(img_dir):
         print("====>IMAGE:", img_path)
         if parse_fromat == "fi":
@@ -485,187 +467,184 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
     
         # Loop over the results
         for result in results:
-            if len(result.boxes):
-            # print('len(result.boxes)')
-            # print(len(result.boxes))
-                # Extract keypoints and bounding boxes
-                array_of_keypoints = result.keypoints.cpu().xy
-                array_of_boxes = result.boxes.xyxy.cpu()
-                for keypoints, bbox in zip(array_of_keypoints, array_of_boxes):
-                    print(f"img_w: {img_w} img_h: {img_h}")
-                    print("bbox", bbox)
-                    if not ((bbox[0] == 0) or (bbox[2] >= img_w-1)):
-                        x_box = int(min(bbox[0], bbox[2]))
-                        w_box = int(abs(bbox[2] - bbox[0]))
-                        y_box = int(min(bbox[1], bbox[3]))
-                        h_box = int(abs(bbox[3] - bbox[1]))
-        
-                        #if (w_box < h_box):
-                        image_part = img[y_box:y_box + h_box, x_box:x_box + w_box]
-                        print("image_part shape", image_part.shape[:2]) 
-    
-                        try:
-                            image_part_upscale = up.run(cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB))
-                        except Exception as e:
-                            warnings.warn(f"FAILED UPSCALER {e}")
-                            image_part_upscale = cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB)
-                            
-                        if flag_show:
-                            plt.imshow(image_part_upscale)
-                            plt.show()
-                        
-                        
-                        print('image_part_upscale.shape')
-                        print(image_part_upscale.shape[:2])
-        
-                        # Calculation of the scaling factor coefficient
-                        image_part_h, image_part_w, _ = image_part_upscale.shape
-                        coef_h = h_box/image_part_h
-                        coef_w = w_box/image_part_w
-        
-                        localKeypoints = addCoordinatesOffset(keypoints, -x_box, -y_box)
-                        # print("localKeypoints")
-                        # print(localKeypoints)
-                        localKeypoints_upscale = applyCoefficient(localKeypoints, 1/coef_w, 1/coef_h)
-                        # print("localKeypoints_upscale")
-                        # print(localKeypoints_upscale)
-                        
-                        
-                        h=100
-                        w=400
+            if not len(result.boxes):
+                continue
+            # Extract keypoints and bounding boxes
+            array_of_keypoints = result.keypoints.cpu().xy
+            array_of_boxes = result.boxes.xyxy.cpu()
+            for keypoints, bbox in zip(array_of_keypoints, array_of_boxes):
+                print(f"img_w: {img_w} img_h: {img_h}")
+                print("bbox", bbox)
+                if not ((bbox[0] == 0) or (bbox[2] >= img_w-1)):
+                    x_box = int(min(bbox[0], bbox[2]))
+                    w_box = int(abs(bbox[2] - bbox[0]))
+                    y_box = int(min(bbox[1], bbox[3]))
+                    h_box = int(abs(bbox[3] - bbox[1]))
+
+                    image_part = img[y_box:y_box + h_box, x_box:x_box + w_box]
+                    print("image_part shape", image_part.shape[:2])
+
+                    try:
+                        image_part_upscale = up.run(cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB))
+                    except Exception as e:
+                        warnings.warn(f"FAILED UPSCALER {e}")
+                        image_part_upscale = cv2.cvtColor(image_part, cv2.COLOR_BGR2RGB)
+
+                    if flag_show:
+                        plt.imshow(image_part_upscale)
+                        plt.show()
+
+
+                    print('image_part_upscale.shape')
+                    print(image_part_upscale.shape[:2])
+
+                    # Calculation of the scaling factor coefficient
+                    image_part_h, image_part_w, _ = image_part_upscale.shape
+                    coef_h = h_box/image_part_h
+                    coef_w = w_box/image_part_w
+
+                    localKeypoints = addCoordinatesOffset(keypoints, -x_box, -y_box)
+                    localKeypoints_upscale = applyCoefficient(localKeypoints, 1/coef_w, 1/coef_h)
+
+                    h = 100
+                    w = 400
+                    target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
+
+                    # Convert keypoints to numpy array
+                    src_points = np.array(localKeypoints_upscale, dtype="float32")
+
+                    # Compute the perspective transform matrix
+                    M = cv2.getPerspectiveTransform(src_points, target_points)
+
+                    # Apply the perspective transformation to the image
+                    aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
+                    region_ids, count_lines, confidences, predicted = classifiactor.predict_with_confidence([aligned_img])
+
+                    # Тут далі можна шось робити
+                    print("classificator", region_ids, count_lines)
+                    if count_lines[0] == 2:
+                        # w = 200
+                        h = 300
                         target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
-                
-                        # Convert keypoints to numpy array
-                        src_points = np.array(localKeypoints_upscale, dtype="float32")
-                
                         # Compute the perspective transform matrix
                         M = cv2.getPerspectiveTransform(src_points, target_points)
-                
+
                         # Apply the perspective transformation to the image
                         aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
-                        region_ids, count_lines, confidences, predicted = classifiactor.predict_with_confidence([aligned_img])
-                
-                        # Тут далі можна шось робити
-                        print("classificator", region_ids, count_lines)
-                        if count_lines[0] == 2:
-                            # w = 200
-                            h = 300
-                            target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
-                            # Compute the perspective transform matrix
-                            M = cv2.getPerspectiveTransform(src_points, target_points)
-                    
-                            # Apply the perspective transformation to the image
-                            aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
-                        if count_lines[0] == 3:
-                            h = 300
-                            print('[[0, h], [0, 0], [w, 0], [w, h]]')
-                            print([[0, h], [0, 0], [w, 0], [w, h]])
-                            target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
-                            # Compute the perspective transform matrix
-                            M = cv2.getPerspectiveTransform(src_points, target_points)
-                    
-                            # Apply the perspective transformation to the image
-                            aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
-                
-                        # Display the aligned and cropped image
-                        result = reader.readtext(aligned_img)
-                        print("result")
-                        print(result)
-                        result = normalize_easyocr_output(result)
-                        print("postprocrssed result")
-                        print(result)
+                    if count_lines[0] == 3:
+                        h = 300
+                        print('[[0, h], [0, 0], [w, 0], [w, h]]')
+                        print([[0, h], [0, 0], [w, 0], [w, h]])
+                        target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
+                        # Compute the perspective transform matrix
+                        M = cv2.getPerspectiveTransform(src_points, target_points)
 
-                        easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0], exclude_zones_list=exclude_zones_list)
-                        if count_lines[0] > len(easyocr_lines):
-                            count_lines[0] = len(easyocr_lines)
-                            easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0], exclude_zones_list=exclude_zones_list)
-                        
-                        if count_lines[0] > 1:
-                            parts = split_numberplate(aligned_img, parts_count=count_lines[0])
-                            for a_img_part in parts:
-                                if flag_show:
-                                    plt.imshow(a_img_part)
-                                    plt.show()
-                                
-                        if len(result)>=count_lines[0] and count_lines[0]>1:
-                            print(easyocr_lines)
-                            # Make dataset
-                            numberplate_dataset_item = NumberplateDatasetItem(numberplate_lines, photo_id, numberplate, target_dataset, img_path, bbox, keypoints,
-                                                                              fix_lines(numberplate_lines, easyocr_lines,region_ids[0]), region_ids[0], image_part,  cv2.cvtColor(aligned_img, cv2.COLOR_RGB2BGR))
-                            numberplate_dataset_item.write_orig_dataset()
-                            numberplate_dataset_item.write_normalize_dataset()
-                            
-    
-                        make_boxes(aligned_img, [item[0] for item in result], (0, 0, 255))
-                        if flag_show:
-                            plt.imshow(aligned_img)
-                            plt.show()
+                        # Apply the perspective transformation to the image
+                        aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
 
-                
-                        for i, point in enumerate(keypoints):
-                            x, y = point
-                            # Малюємо точку
-                            cv2.circle(img, (int(x), int(y)), int(img.shape[0]/100), (255, 0, 0), -1)
-                            # Виводимо номер точки
-                            cv2.putText(img, str(i+1), (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0), 2)
-    
-    
-                if flag_show:
-                    # Draw bounding box
-                    for bbox in array_of_boxes:
-                        x1, y1, x2, y2 = bbox
-                        cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+                    # Display the aligned and cropped image
+                    result = reader.readtext(aligned_img)
+                    print("result")
+                    print(result)
+                    result = normalize_easyocr_output(result)
+                    print("postprocrssed result")
+                    print(result)
+
+                    easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0],
+                                                      exclude_zones_list=exclude_zones_list)
+                    if count_lines[0] > len(easyocr_lines):
+                        count_lines[0] = len(easyocr_lines)
+                        easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0],
+
+                                                          exclude_zones_list=exclude_zones_list)
+
+                    if count_lines[0] > 1:
+                        parts = split_numberplate(aligned_img, parts_count=count_lines[0])
+                        for a_img_part in parts:
+                            if flag_show:
+                                plt.imshow(a_img_part)
+                                plt.show()
+
+                    if len(result)>=count_lines[0] and count_lines[0]>1:
+                        print(easyocr_lines)
+                        # Make dataset
+                        numberplate_dataset_item = NumberplateDatasetItem(numberplate_lines, photo_id, numberplate, target_dataset, img_path, bbox, keypoints,
+                                                                          fix_lines(numberplate_lines, easyocr_lines,region_ids[0]), region_ids[0], image_part,  cv2.cvtColor(aligned_img, cv2.COLOR_RGB2BGR))
+                        numberplate_dataset_item.write_orig_dataset()
+                        numberplate_dataset_item.write_normalize_dataset()
+
+
+                    make_boxes(aligned_img, [item[0] for item in result], (0, 0, 255))
+                    if flag_show:
+                        plt.imshow(aligned_img)
+                        plt.show()
+
+
+                    for i, point in enumerate(keypoints):
+                        x, y = point
+                        # Малюємо точку
+                        cv2.circle(img, (int(x), int(y)), int(img.shape[0]/100), (255, 0, 0), -1)
+                        # Виводимо номер точки
+                        cv2.putText(img, str(i+1), (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0), 2)
+
+
+            if flag_show:
+                # Draw bounding box
+                for bbox in array_of_boxes:
+                    x1, y1, x2, y2 = bbox
+                    cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
         if flag_show:
             plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
             plt.show()
 
 
+if __name__ == "__main__":
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/fi/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_fi_dataset",
+    #                parse_fromat = "fi", exclude_zones_list = ['FIN'])
 
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/fi/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_fi_dataset",
-#                parse_fromat = "fi", exclude_zones_list = ['FIN'])
-
-#
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
-#                parse_fromat = "md", exclude_zones_list = ['MD'])
-
-
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/pl/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_pl_dataset",
-#                parse_fromat = "default", exclude_zones_list = ['PL'])
+    #
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
+    #                parse_fromat = "md", exclude_zones_list = ['MD'])
 
 
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/by/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_by_dataset",
-#                parse_fromat = "default", exclude_zones_list = [])
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/pl/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_pl_dataset",
+    #                parse_fromat = "default", exclude_zones_list = ['PL'])
 
 
-
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/kz/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_kz_dataset",
-#                parse_fromat = "kz", exclude_zones_list = ["KZ"])
-
-
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/ro/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_ro_dataset",
-#                parse_fromat = "ro", exclude_zones_list = ["RO"])
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/by/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_by_dataset",
+    #                parse_fromat = "default", exclude_zones_list = [])
 
 
 
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lv/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lv_dataset",
-#                parse_fromat = "default", exclude_zones_list = ['LV'])
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/kz/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_kz_dataset",
+    #                parse_fromat = "kz", exclude_zones_list = ["KZ"])
 
 
-# create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lt/*/*",
-#                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lt_dataset",
-#                parse_fromat = "default", exclude_zones_list = ['LT'])
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/ro/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_ro_dataset",
+    #                parse_fromat = "ro", exclude_zones_list = ["RO"])
 
 
-create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania/*",
-               target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania_dataset",
-               parse_fromat="default",
-               exclude_zones_list=[])
+
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lv/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lv_dataset",
+    #                parse_fromat = "default", exclude_zones_list = ['LV'])
+
+
+    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lt/*/*",
+    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lt_dataset",
+    #                parse_fromat = "default", exclude_zones_list = ['LT'])
+
+
+    create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania/*",
+                   target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania_dataset",
+                   parse_fromat="default",
+                   exclude_zones_list=[],
+                   easyocr_readers=["ru", "uk"])
 
 
