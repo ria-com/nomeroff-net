@@ -5,6 +5,7 @@ import cv2
 import json
 from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import (normalize_rect_new,
                                                                                       split_numberplate)
+from nomeroff_net.tools.image_processing import reshape_points
 
 
 def add_coordinates_offset(points: List or np.ndarray, x: float, y: float) -> List:
@@ -57,9 +58,11 @@ class DatasetRegion:
                  img: np.ndarray,
                  region_key: str,
                  region_data: List,
+                 rotate: int = 0,
                  debug: bool = False):
         self.dataset_config = dataset_config
         self.anb_key = anb_key
+        self.rotate = rotate
         self.img = img
         self.region_key = region_key
         self.region_data = region_data
@@ -70,6 +73,8 @@ class DatasetRegion:
             print('self.region_data["keypoints"]')
             print(self.region_data["keypoints"])
         self.keypoints_norm = normalize_rect_new(self.region_data["keypoints"])
+        if self.rotate:
+            self.keypoints_norm = reshape_points(self.keypoints_norm, self.rotate)
         min_x_box = round(min([keypoint[0] for keypoint in self.keypoints_norm]))
         min_y_box = round(min([keypoint[1] for keypoint in self.keypoints_norm]))
         max_x_box = round(max([keypoint[0] for keypoint in self.keypoints_norm]))
@@ -236,9 +241,12 @@ class DatasetItem:
     def __init__(self,
                  dataset_config: DatasetConfig,
                  anb_key: str,
+                 rotate = 0,
                  debug: bool = False
                  ):
         self.version = 2
+        self.version = 2
+        self.rotate = rotate
         self.debug = debug
         self.dataset_config = dataset_config
         self.anb_key = anb_key
@@ -254,7 +262,7 @@ class DatasetItem:
         rename_region_arr = []
         for region_key in self.anb_data["regions"]:
             item = self.anb_data["regions"][region_key]
-            dataset_region = DatasetRegion(self.dataset_config, self.anb_key, self.img, region_key, item, self.debug)
+            dataset_region = DatasetRegion(self.dataset_config, self.anb_key, self.img, region_key, item, self.rotate, self.debug)
             dataset_region.recheck()
             if "region_key_new" in dataset_region.region_data:
                 rename_region_arr.append([region_key, dataset_region.region_data["region_key_new"]])
@@ -263,7 +271,8 @@ class DatasetItem:
 
         for item in rename_region_arr:
             self.anb_data["regions"][item[1]] = self.anb_data["regions"][item[0]]
-            del self.anb_data["regions"][item[0]]
+            if item[1] != item[0]:
+                del self.anb_data["regions"][item[0]]
         self.write_image_markup_data()
 
     def load_image_markup_data(self):

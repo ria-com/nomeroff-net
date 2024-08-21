@@ -16,15 +16,17 @@ parser = argparse.ArgumentParser(description='Image number plates data markup re
 parser.add_argument('-anb_key', dest="anb_key", required=True,
                     help='Anb key for loadin image settings from  anb/<anb_key>.json')
 parser.add_argument('-dataset_dir', dest="dataset_dir", required=True, help='Path to datset files')
+parser.add_argument('-rotate', dest="rotate", required=False, help='Rotate param', default=0, type=int)
 parser.add_argument('-debug', dest="debug", required=False, help='Debug mode', default=False,
                     action=argparse.BooleanOptionalAction)
 args = parser.parse_args()
 
 dataset_dir = args.dataset_dir
+rotate = args.rotate
 debug = args.debug
 dataset_config = DatasetConfig(dataset_dir)
 anb_key = args.anb_key
-dataset_item = DatasetItem(dataset_config, anb_key, debug)
+dataset_item = DatasetItem(dataset_config, anb_key, rotate, debug)
 # dataset_item = DatasetItem(dataset_config, anb_key)
 dataset_item.recheck_regions()
 
