@@ -77,6 +77,16 @@ function centrify(zone, imgInfo, container) {
     return container;
 }
 
+function fixContainer(container, imgInfo) {
+    if (container.width > imgInfo.width) {
+        container.width = imgInfo.width-1
+    }
+    if (container.height > imgInfo.height) {
+        container.height = imgInfo.height-1
+    }
+    return container;
+}
+
 module.exports = async function(ctx, next) {
     const
         base_dir = config.moderation.regionOCRModeration.base_dir,
@@ -96,6 +106,10 @@ module.exports = async function(ctx, next) {
     let
         container = Object.assign({},config.get('pages.editKeypoints.container'))
     ;
+    container = fixContainer(container, imgInfo);
+    console.log('container')
+    console.log(container)
+
     console.log('zone')
     console.log(zone)
 
