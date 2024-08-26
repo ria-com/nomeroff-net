@@ -37,8 +37,8 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
         fs.readdir(src.annPath, async function(err, items) {
                 if (splitRate != 1) {
                     let sItems = arrayShuffle(items),
-                        cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate),
-                        items = sItems.slice(0,cnt);
+                        cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate);
+                    items = sItems.slice(0,cnt);
                 }
                 for (let filename of items) {
                         const fileObj = path.parse(filename);

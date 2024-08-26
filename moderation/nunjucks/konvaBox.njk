@@ -242,6 +242,7 @@ function storeKeypoints() {
     document.getElementById('buttonClose').disabled = true;
     document.getElementById('buttonReset').disabled = true;
     document.getElementById('buttonUpdate').disabled = true;
+    document.getElementById('rotate').disabled = true;
     for (const circle of circles) {
         let position = circle.absolutePosition();
         console.log(position);
@@ -251,6 +252,7 @@ function storeKeypoints() {
     const sendata = {
         keypoints,
         key: "{{ key }}",
+        rotate: document.getElementById('rotate').value,
         basename: "{{ anb_basename }}",
         src: "{{ zone.src }}"
     }
@@ -280,6 +282,7 @@ function storeKeypoints() {
             document.getElementById('buttonClose').disabled = false;
             document.getElementById('buttonReset').disabled = false;
             document.getElementById('buttonUpdate').disabled = false;
+            document.getElementById('rotate').disabled = false;
             if (document.getElementById('autoClose').checked) {
                 window.close();
             }
@@ -310,6 +313,7 @@ function restoreKeypoints() {
 <button type="button" onclick="window.close()" id="buttonClose">x</button>
 <button type="button" onclick="restoreKeypoints()" id="buttonReset">Reset</button>
 <button type="button" onclick="storeKeypoints()" id="buttonUpdate" checked>Update keypoints!</button>
+<select name="rotate" id="rotate"><option value="0">0&deg;</option><option value="1">90&deg; CW</option><option value="3">90&deg; CCW</option><option value="2">180&deg;</option></select>
 <input type="checkbox" name="autoClose" id="autoClose" checked> autoclose
 <input type="checkbox" name="autoRedirect" id="autoRedirect" checked> autoredirect
 <div id="message" style="display: none"></div>

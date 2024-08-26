@@ -201,8 +201,11 @@
         if ((item.predicted || "").length) {
             const p = document.createElement("p");
             p.className = "predicted";
-            const pText = document.createTextNode("predicted: ");
-            p.appendChild(pText);
+            const i = document.createElement("i");
+            const pText = document.createTextNode("↑predicted: ");
+            i.appendChild(pText);
+            // <i>↑predicted</i>
+            p.appendChild(i);
 
             const b = document.createElement("b");
             const bText = document.createTextNode(item.predicted);
@@ -296,6 +299,16 @@
                             trBuilder(tr, item, response)
                             npsTable.appendChild(tr);
                         }
+
+                        $("p.predicted i").click(function clickEvent(e){
+                            e.preventDefault();
+                            let editText = this.parentElement.lastChild.innerText
+                            this.parentElement.parentElement.firstChild.firstChild.innerText = editText
+                            if (!this.parentElement.parentElement.firstChild.classList.contains('edited')) {
+                                this.parentElement.parentElement.firstChild.classList.add('edited');
+                            }
+                            //console.log(editText);
+                        })
 
                         $("div.NP").click(function clickEvent(e){
                             if (e.currentTarget.childNodes.length && e.currentTarget.childNodes[0].nodeName != "INPUT") {
@@ -443,8 +456,8 @@
             const data = JSON.parse(event.data);
             const key_new = buildNewKeyFromMessage(data);
             let key = data.key;
-            if (data.key != key_new) {
-                const td_boxs = document.getElementsByClassName(data.key);
+            if (key != key_new) {
+                let td_boxs = document.getElementsByClassName(key);
                 for (const td of td_boxs) {
                     const tr = td.parentNode;
                     //const td = tr.firstChild;
@@ -462,14 +475,17 @@
                     const td_center = tds[1];
                     const div_center = td_center.firstChild;
                     const img_center = td_center.lastChild;
-                    div_center.id = div_center.id.replace(data.key, key_new)
-                    img_center.src = img_center.src.replace(data.key, key_new)
-                }
-                for (const td of td_boxs) {
-                    td.classList.remove(data.key);
+                    div_center.id = div_center.id.replace(key, key_new)
+                    img_center.src = img_center.src.replace(key, key_new)
                     td.classList.add(key_new);
                 }
-                key = key_new;
+                td_boxs = document.getElementsByClassName(key_new);
+                for (const td of td_boxs) {
+                    if (td.classList.contains(key)) {
+                        td.classList.remove(key);
+                    }
+                }
+                //key = key_new;
             }
         };
     });

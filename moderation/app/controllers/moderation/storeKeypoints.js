@@ -25,6 +25,7 @@ module.exports = async function(ctx, next) {
         src_dir = path.join(base_dir, src_subdir),
         anb_json = path.join(anb_dir, `${ctx.request.body.basename}.json`),
         src_img = path.join(src_dir, ctx.request.body.src),
+        rotate = ctx.request.body.rotate,
         //zone = require(anb_json)
         zone = JSON.parse(fs.readFileSync(anb_json))
     ;
@@ -32,6 +33,9 @@ module.exports = async function(ctx, next) {
     console.log(JSON.stringify(ctx.request.body));
     //console.log(JSON.stringify(zone, null, 4))
     zone.regions[ctx.request.body.key].keypoints = ctx.request.body.keypoints;
+    if (rotate) {
+        zone.regions[ctx.request.body.key].rotate = rotate
+    }
     console.log("Checkpoint 1 done");
     //zone.regions[ctx.request.body.key].bbox = buildBbox(ctx.request.body.keypoints);
     zone.regions[ctx.request.body.key].updated = true;
@@ -41,7 +45,7 @@ module.exports = async function(ctx, next) {
     console.log("Checkpoint 3 done");
 
     // Rebuild lines
-    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -debug`
+    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -rotate ${rotate} -debug`
     console.log(`${cmd}`)
     const { stdout, stderr } = await exec(cmd)
     // rebuild_nn_dataset_image.py -anb_key p14955810 -dataset_dir /mnt/sdd1/datasets/2-3lines-test
