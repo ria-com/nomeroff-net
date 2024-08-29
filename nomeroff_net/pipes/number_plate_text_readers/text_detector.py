@@ -24,6 +24,7 @@ class TextDetector(object):
                  load_models=True,
                  option_detector_width=0,
                  option_detector_height=0,
+                 multiline_splitter="",
                  off_number_plate_classification=True) -> None:
         if presets is None:
             presets = {}
@@ -36,6 +37,7 @@ class TextDetector(object):
         self.option_detector_width = option_detector_width
         self.option_detector_height = option_detector_height
 
+        self.multiline_splitter = multiline_splitter
         self.default_label = default_label
         self.default_lines_count = int(default_lines_count)
         self.off_number_plate_classification = off_number_plate_classification
@@ -174,7 +176,7 @@ class TextDetector(object):
                                                         predicted[key]["count_line"],
                                                         predicted[key]["label"]):
                 if zone_id in mapping:
-                    mapping[zone_id]["text"] += text
+                    mapping[zone_id]["text"] += self.multiline_splitter + text
                 else:
                     mapping[zone_id] = {
                         "order": zone_id,

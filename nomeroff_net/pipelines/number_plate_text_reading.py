@@ -91,6 +91,7 @@ class NumberPlateTextReading(Pipeline):
                  option_detector_width=0,
                  option_detector_height=0,
                  off_number_plate_classification=True,
+                 multiline_splitter="",
                  **kwargs):
         if presets is None:
             presets = DEFAULT_PRESETS
@@ -98,7 +99,8 @@ class NumberPlateTextReading(Pipeline):
         self.detector = class_detector(presets, default_label, default_lines_count,
                                        option_detector_width=option_detector_width,
                                        option_detector_height=option_detector_height,
-                                       off_number_plate_classification=off_number_plate_classification)
+                                       off_number_plate_classification=off_number_plate_classification,
+                                       multiline_splitter=multiline_splitter)
 
     def sanitize_parameters(self, **kwargs):
         return {}, {}, {}
