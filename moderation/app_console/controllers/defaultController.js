@@ -17,6 +17,7 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
               targetDir = options.targetDir || './checked',
               testMode = options.test || false,
               annExt = '.' + config.dataset.ann.ext,
+              grouping = options.grouping || 0,
               src= { annPath: path.join(sourceDir, config.dataset.ann.dir),
                                      anbPath: path.join(sourceDir, config.dataset.anb.dir) }
         ;
@@ -27,7 +28,9 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
             checkedSrc = [],
             stayAnbs = [],
             stayBoxs = [],
-            staySrcs = []
+            staySrcs = [],
+            itemsStaySrcIdx = {},
+            itemsStay = []
         ;
         checkDirStructure(sourceDir,[config.dataset.anb.dir,config.dataset.ann.dir,
                           config.dataset.img.dir,config.dataset.box.dir,config.dataset.src.dir], true);
@@ -39,6 +42,22 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
                     let sItems = arrayShuffle(items),
                         cnt = (splitRate>1)?Math.round(splitRate):Math.round(sItems.length * splitRate);
                     items = sItems.slice(0,cnt);
+                    itemsStay = sItems.slice(cnt);
+                }
+                if (grouping == 1) {
+                    for (let filename of itemsStay) {
+                        const fileObj = path.parse(filename);
+                            if (fileObj.ext === annExt) {
+                                const
+                                    anbName = `${fileObj.name.split('-')[0]}.${config.dataset.anb.ext}`,
+                                    anbFileName = path.join( src.anbPath, anbName),
+                                    data_anb = require(path.isAbsolute(anbFileName) ? anbFileName : path
+                                        .join(process.cwd(), anbFileName)),
+                                    srcName = data_anb.src
+                                ;
+                                itemsStaySrcIdx[srcName] = 1
+                            }
+                    }
                 }
                 for (let filename of items) {
                         const fileObj = path.parse(filename);
@@ -58,7 +77,7 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
                                 ;
                                 // console.log(`data`);
                                 // console.log(data)
-                                if (filterFunction(data, data_anb)) {
+                                if (filterFunction(data, data_anb) && itemsStaySrcIdx[srcName] == undefined) {
                                         checkedAnn.push(annName);
                                         checkedImg.push(imgName);
                                         checkedAnb.push(anbName);
@@ -176,7 +195,7 @@ async function moveChecked (options) {
  *
  * @param options
  * @example NODE_ENV=consoleExample ./console.js --section=default --action=dataSplit \
- *                                               --opt.rate=0.5 \
+ *                                               --opt.rate=0.5 --opt.grouping=1 \
  *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_example2/train/ \
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_example2/val/ \
  *                                               --opt.test=1 #use opt.test=1 if you want emulate split process
