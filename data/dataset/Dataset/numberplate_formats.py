@@ -12,6 +12,13 @@ def remove_last_hyphen(string):
     return string
 
 
+def remove_last_space(string):
+    if ' ' in string:
+        parts = string.rsplit(' ', 1)
+        return ''.join(parts)
+    return string
+
+
 def remove_first_hyphen(string):
     if '-' in string:
         return string.replace('-', '', 1)
@@ -37,15 +44,17 @@ def format_default_plate(plate, count_line, *args, **kwargs):
     plate = plate.replace("-", " ")
     _plate_lines = plate.split(" ")
 
-    if len(_plate_lines) == 2:
+    if count_line == 2:
+        while len(_plate_lines) > 2:
+            plate = remove_last_space(plate)
+            _plate_lines = plate.split(" ")
         return plate.replace(" ", ""), _plate_lines, _plate_lines
-    elif len(_plate_lines) == 1:
-        warnings.warn(f"!!![WRONG COUNT LINES]!!! {plate} = {_plate_lines}")
-        return plate.replace(" ", ""), _plate_lines, _plate_lines
-    else:  # Якщо 3 або більше
-        first_part = _plate_lines[0]
-        second_part = "".join(_plate_lines[1:])
-        _plate_lines = [first_part, second_part]
+    elif count_line == 1:
+        return plate.replace(" ", ""), [plate.replace(" ", "")], [plate.replace(" ", "")]
+    else:  # Якщо 3
+        while len(_plate_lines) > 3:
+            plate = remove_last_space(plate)
+            _plate_lines = plate.split(" ")
         return plate.replace(" ", ""), _plate_lines, _plate_lines
 
 
