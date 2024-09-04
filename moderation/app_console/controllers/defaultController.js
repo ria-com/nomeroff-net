@@ -173,10 +173,9 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
     fs.renameSync(anbPathSrc, anbPathTarget);
 
     // Move src
-    if (fs.existsSync(srcPathTarget)) {
-        fs.rmSync(srcPathTarget);
+    if (fs.existsSync(srcPathSrc)) {
+        fs.renameSync(srcPathSrc, srcPathTarget);
     }
-    fs.renameSync(srcPathSrc, srcPathTarget);
 
     // Move regions files
     if (debug) { console.log(`  moveAllItemPack: try to move ${Object.keys(anbDataSrc.regions).length} regions: ${Object.keys(anbDataSrc.regions)}`) }
@@ -187,10 +186,9 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
             boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
         ;
         // Move box
-        if (fs.existsSync(boxPathTarget)) {
-            fs.rmSync(boxPathTarget);
+        if (fs.existsSync(boxPathSrc)) {
+            fs.renameSync(boxPathSrc, boxPathTarget)
         }
-        fs.renameSync(boxPathSrc, boxPathTarget);
         for (const line_key in region.lines) {
             const
                 annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
