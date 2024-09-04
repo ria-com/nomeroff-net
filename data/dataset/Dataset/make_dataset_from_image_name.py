@@ -23,45 +23,31 @@ import easyocr
 dir_path = os.path.dirname(os.path.realpath(__file__))
 NOMEROFF_NET_DIR = os.path.abspath(os.path.join(dir_path, "../../../"))
 sys.path.append(NOMEROFF_NET_DIR)
+sys.path.append("./")
 
 
 from nomeroff_net.tools.mcm import get_device_torch
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.tools.image_processing import distance
 from nomeroff_net.pipes.number_plate_text_readers.text_postprocessing import translit_cyrillic_to_latin
-from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor import make_boxes
+from nomeroff_net.pipes.number_plate_multiline_extractors.multiline_np_extractor import (add_coordinates_offset,
+                                                                                         apply_coefficient)
 from upscaler import HAT
 device_torch = get_device_torch()
-
-up = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
 
 
 classifiactor = OptionsDetector()
 _ = classifiactor.load("latest")
 
-
+from nomeroff_net.tools import unzip
 from nomeroff_net.tools.mcm import modelhub
+from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
+from numberplate_formats import fromats_parse
 model_info = modelhub.download_model_by_name('yolov8x')
 
 # Load last model
 model = YOLO(model_info['path'])  # load a custom model
-
-
 plt.rcParams["figure.figsize"] = (10, 5)
-
-
-def addCoordinatesOffset(points: List or np.ndarray, x: float, y: float) -> List:
-    """
-    TODO: describe function
-    """
-    return [[point[0] + x, point[1] + y] for point in points]
-
-
-def applyCoefficient(points: List or np.ndarray, coef_w: float, coef_h: float) -> List:
-    """
-    TODO: resize points coordinates
-    """
-    return [[point[0] * coef_w, point[1] * coef_h] for point in points]
 
 
 def split_numberplate(aligned_img: np.ndarray, parts_count: int = 2, overlap_percentage: float = 0.03): 
@@ -140,7 +126,7 @@ def get_easyocr_lines(easyocr_arr, img, count_lines, exclude_zones_list=None):
     return lines_text
 
 
-def add_np(fname, zone, region_id, count_line, desc, predicted_text,
+def add_np(fname, zone, region_id, count_line, desc, predicted_text, orig_predicted_text,
            img_dir, ann_dir, replace_template=None):
     if replace_template is None:
         replace_template = {}
@@ -159,12 +145,45 @@ def add_np(fname, zone, region_id, count_line, desc, predicted_text,
     data.update(replace_template)
     if "moderation" not in data:
         data["moderation"] = {}
-    if translit_cyrillic_to_latin(desc) == translit_cyrillic_to_latin(predicted_text):
-        data["moderation"]["isModerated"] = 1
-        data["moderation"]["moderatedBy"] = "auto"
-    data["moderation"]["predicted"] = predicted_text
+
+    # Якщо predicted_text це список
+    if isinstance(predicted_text, list):
+        matched = False
+        for item in predicted_text:
+            if translit_cyrillic_to_latin(desc) == translit_cyrillic_to_latin(item):
+                data["moderation"]["isModerated"] = 1
+                data["moderation"]["moderatedBy"] = "auto"
+                data["moderation"]["predicted"] = item
+                matched = True
+                break
+
+        # Якщо жоден елемент не співпав, записуємо перший елемент списку
+        if not matched:
+            data["moderation"]["predicted"] = predicted_text[0]
+
+    else:
+        # Якщо predicted_text це не список, просто порівнюємо як раніше
+        if translit_cyrillic_to_latin(desc) == translit_cyrillic_to_latin(predicted_text):
+            data["moderation"]["isModerated"] = 1
+            data["moderation"]["moderatedBy"] = "auto"
+
+        # Записуємо predicted_text навіть якщо немає збігу
+        data["moderation"]["predicted"] = predicted_text
+
+    # Зберігаємо оригінальний predicted_text
+    data["moderation"]["orig_predicted"] = orig_predicted_text
     with open(os.path.join(ann_dir, f'{fname}.json'), "w", encoding='utf8') as jsonWF:
         json.dump(data, jsonWF, ensure_ascii=False)
+
+
+def align_lists(*lists):
+    # Знайти максимальну довжину серед усіх списків
+    max_len = max(len(lst) for lst in lists)
+
+    # Додати пусті рядки в кінці кожного списку, якщо його довжина менша за максимальну
+    aligned_lists = [lst + [''] * (max_len - len(lst)) for lst in lists]
+
+    return aligned_lists
 
 
 class NumberplateDatasetItem:
@@ -172,6 +191,7 @@ class NumberplateDatasetItem:
     # default constructor
     def __init__(self, 
                  numberplate_lines: List,
+                 punctuation_np_lines: List,
                  photo_id: str, 
                  numberplate: str,
                  dataset_path: str,
@@ -188,9 +208,9 @@ class NumberplateDatasetItem:
                  anb_subdir: str = 'anb',
                  box_subdir: str = 'box',
                 ):
-        print("orig_filename", orig_filename)
         self.version = 2
         self.numberplate_lines = numberplate_lines
+        self.punctuation_np_lines = punctuation_np_lines
         self.photo_id = photo_id
         self.numberplate = numberplate
         self.dataset_path = dataset_path
@@ -262,7 +282,7 @@ class NumberplateDatasetItem:
         if os.path.isfile(src_json_name):
             with open(src_json_name, 'r') as f:
                 data = json.load(f)
-        else :
+        else:
             data = {
                 "src": self.get_src_filename(),
                 "version": self.version,
@@ -287,14 +307,13 @@ class NumberplateDatasetItem:
     def write_normalize_dataset(self, replace_template=None):
         basename = self.get_bbox_basename()
         parts = split_numberplate(self.zone_norm, len(self.lines))
-        for (i, line), npline in zip(self.lines.items(), self.numberplate_lines):
+        lines_list = list(self.lines.values())
+        for i, (part, line, npline, pnpline) in enumerate((zip(parts, *align_lists(lines_list,
+                                                                                    self.numberplate_lines,
+                                                                                    self.punctuation_np_lines)))):
             norm_basename = f'{basename}-line-{i}'
-            add_np(norm_basename, parts[i], self.region_id, 1, line, npline, 
+            add_np(norm_basename, part, self.region_id, 1, line, npline, pnpline,
                    self.img_dir, self.ann_dir, replace_template)
-
-
-# In[15]:
-
 
 def fix_text_line(str):
     return str.replace(" ", "").replace("-", "").replace("|", "I").replace("0", "O").replace("/", "I")
@@ -306,16 +325,16 @@ def fix_number_line(str):
 
 def fix_lines(orig_lines, lines, region_id):
     lines = lines.values()
-    #print(orig_lines, lines)
     if len(orig_lines) != len(lines):
         return {i: l for i, l in enumerate(lines)}
     new_lines = []
     for ol, l in zip(orig_lines, lines):
+        if isinstance(ol, list):
+            ol = ol[0]
         ol = (ol.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").
               replace("'", "").replace('"', "").replace("`", "").replace("*", "").replace("[", "Г").upper())
         l = (l.replace(" ", "").replace("-", "").replace(".", "").replace(",", "").
              replace("'", "").replace('"', "").replace("`", "").replace("*", "").replace("[", "Г").upper())
-        #print("!!! L OL ", ol, l)
         if len(ol) != len(l):
             new_lines.append(l)
             continue
@@ -334,10 +353,7 @@ def fix_lines(orig_lines, lines, region_id):
                     new_line += "0"
                 else:
                     new_line += letter_l
-            #print(letter_ol, letter_l, new_line)
         new_lines.append(new_line)
-            
-    print("fix_lines", region_id, lines, new_lines)
     return {i: l for i, l in enumerate(new_lines)}
 
 
@@ -351,132 +367,117 @@ def normalize_easyocr_output(result):
         )
         new_result.append(new_item)
     return new_result
-
-
-def format_moldovan_plate(plate):
-    # Видаляємо всі пробіли та переводимо у верхній регістр
-    plate = plate.replace(" ", "").upper()
-    
-    # Знаходимо всі літери та цифри
-    letters = re.findall(r'[A-Z]', plate)
-    digits = re.findall(r'\d', plate)
-    
-    # Якщо літери в кінці, переставляємо їх на початок
-    return ''.join(digits+letters), [''.join(digits), ''.join(letters)]
-
-# Приклади використання
-print(format_moldovan_plate("CAF270"))  # CAF270
-print(format_moldovan_plate("103AGQ"))  # AGQ103
-print(format_moldovan_plate("TRAA864"))  # TRAA864
-print(format_moldovan_plate("1234ABC"))  # Неправильний формат
-print(format_moldovan_plate("ABC"))  # Неправильний формат
-
-
-# In[18]:
-
-
-def format_default_plate(plate):
-    # Видаляємо всі пробіли та переводимо у верхній регістр
-    plate = plate.upper()
-    _plate_lines = plate.split(" ")
-    if len(_plate_lines) != 2:
-        warnings.warn(f"!!![WRONG COUNT LINES]!!! {plate} = {_plate_lines}")
-    return plate.replace(" ", ""), _plate_lines
-
-
-# In[29]:
-
-
-def format_kz_plate(plate):
-    # Видаляємо всі пробіли та переводимо у верхній регістр
-    plate = plate.upper()
-    _plate_lines = plate.split(" ")
-    if len(_plate_lines) == 2:
-        return plate.replace(" ", ""), _plate_lines
-    elif len(_plate_lines) == 3:
-        plate = _plate_lines[0] + _plate_lines[2] + _plate_lines[1]
-        _plate_lines = [_plate_lines[0], _plate_lines[2] + _plate_lines[1]]
-        return plate.replace(" ", ""), _plate_lines
-    else:
-        warnings.warn(f"!!![WRONG COUNT LINES]!!! {plate} = {_plate_lines}")
-        return plate.replace(" ", ""), _plate_lines
     
 
+class EasyOCRReader:
+    def __init__(self, easyocr_readers=None, exclude_zones_list=None):
+        if exclude_zones_list is None:
+            exclude_zones_list = []
+        if easyocr_readers is None:
+            easyocr_readers = ['en']
+        self.reader = easyocr.Reader(easyocr_readers)
+        self.exclude_zones_list = exclude_zones_list
 
-# In[30]:
+    def predict(self, img, count_lines, flag_show=False):
+        # Display the aligned and cropped image
+        result = self.reader.readtext(img)
+        result = normalize_easyocr_output(result)
+
+        easyocr_lines = get_easyocr_lines(result, img, count_lines[0],
+                                          exclude_zones_list=self.exclude_zones_list)
+        if count_lines[0] > len(easyocr_lines):
+            count_lines[0] = len(easyocr_lines)
+            easyocr_lines = get_easyocr_lines(result, img, count_lines[0],
+
+                                              exclude_zones_list=self.exclude_zones_list)
+
+        if count_lines[0] > 1:
+            parts = split_numberplate(img, parts_count=count_lines[0])
+            for a_img_part in parts:
+                if flag_show:
+                    plt.imshow(a_img_part)
+                    plt.show()
+        return easyocr_lines
 
 
-def format_ro_plate(plate):
-    # Видаляємо всі пробіли та переводимо у верхній регістр
-    plate = plate.upper()
-    _plate_lines = plate.split(" ")
-    if len(_plate_lines) == 2:
-        return plate.replace(" ", ""), _plate_lines
-    elif len(_plate_lines) == 3:
-        _plate_lines = [_plate_lines[0] + _plate_lines[1], _plate_lines[2]]
-        return plate.replace(" ", ""), _plate_lines
-    else:
-        warnings.warn(f"!!![WRONG COUNT LINES]!!! {plate} = {_plate_lines}")
-        return plate.replace(" ", ""), _plate_lines
-    
+class NomeroffNetReader:
+    def __init__(self, presets=None):
+        if presets is None:
+            presets = {
+                "eu_2lines_efficientnet_b2": {
+                    "for_regions": ["eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu_ua_custom", "xx_transit",
+                                    "eu", "xx_unknown", "ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr", "kz",
+                                    "kg", "ge", "su", "am", "by"],
+                    "for_count_lines": [2, 3],
+                    "model_path": "latest"
+                },
+            }
+        self.number_plate_text_reading = NumberPlateTextReading(
+            "number_plate_text_reading",
+            image_loader=None,
+            presets=presets,
+            default_label="eu",
+            default_lines_count=2,
+            multiline_splitter=" ",
+        )
 
-
-# In[38]:
-
-
-fromats_parse = {
-    "md": format_moldovan_plate,
-    "kz": format_kz_plate,
-    'ro': format_ro_plate,
-    "default": format_default_plate,
-    "fi": format_default_plate,
-}
-
-
-# In[44]:
+    def predict(self, img, count_lines, flag_show=False):
+        number_plate_text_reading_res = unzip(
+            self.number_plate_text_reading(unzip([[img],
+                                                  ["eu"],
+                                                  count_lines, [img]])))
+        if len(number_plate_text_reading_res):
+            texts, _ = number_plate_text_reading_res
+            return {i: _np for i, _np in enumerate(texts[0].strip().split(" "))}
+        return {}
 
 
 def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                    target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
-                   parse_fromat="md", exclude_zones_list=['MD'], flag_show=False,
-                   easyocr_readers=None, need_upscale_image=False
-):
-    if easyocr_readers is None:
-        easyocr_readers = ['en']
-    reader = easyocr.Reader(easyocr_readers)
+                   parse_fromat="md", flag_show=False,
+                   reader=None, need_upscale_image=False,
+                   count_hyphens=1
+                   ):
+    if need_upscale_image:
+        up = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
+    if reader is None:
+        reader = EasyOCRReader()
+
     for img_path in glob.glob(img_dir):
-        print("====>IMAGE:", img_path)
-        if parse_fromat == "fi":
-            try:
-                photo_id, _, _, numberplate_part1, numberplate_part2, *_ = os.path.basename(img_path).split("-")
-                numberplate = f"{numberplate_part1} {numberplate_part2}"
-            except Exception as e:
-                warnings.warn(f"NO numberplate in filename {img_path}")
-                photo_id, *_ = os.path.basename(img_path).split("-")
-                numberplate = ""
-            print(photo_id, numberplate)
+        if count_hyphens > 1:
+            np_info, np_marka_model = os.path.basename(img_path).split("--")
+            #print("np", np_marka_model)
+            photo_id, *_ = np_info.split("-")
+            numberplate, *_ = np_marka_model.strip().split("- ")
+            if numberplate[-1] == "-" or numberplate[-1] == " ":
+                numberplate = numberplate[:-1]
+            #print("numberplate", numberplate)
+            #numberplate = f"-".join(numberplate_parts)
         else:
             photo_id, _, _, numberplate, *_ = os.path.basename(img_path).split("-")
+        print("====>IMAGE:", numberplate, img_path)
         photo_id = "p"+photo_id
-        numberplate, numberplate_lines = fromats_parse[parse_fromat](numberplate)
         
         # Predict with the model
         results = model(img_path)  # predict on an image
         
         # Load the image using OpenCV
         img = cv2.imread(img_path)
-        img_h, img_w = img.shape[:2]       
-    
+        img_h, img_w = img.shape[:2]
+
+        max_count_lines = 0
         # Loop over the results
         for result in results:
             if not len(result.boxes):
+                bad_src_dir = os.path.join(target_dataset, "bad_src")
+                os.makedirs(bad_src_dir, exist_ok=True)
+                cv2.imwrite(os.path.join(bad_src_dir, os.path.basename(img_path)), img)
+                warnings.warn("result.boxes is empty")
                 continue
             # Extract keypoints and bounding boxes
             array_of_keypoints = result.keypoints.cpu().xy
             array_of_boxes = result.boxes.xyxy.cpu()
             for keypoints, bbox in zip(array_of_keypoints, array_of_boxes):
-                print(f"img_w: {img_w} img_h: {img_h}")
-                print("bbox", bbox)
                 if not ((bbox[0] == 0) or (bbox[2] >= img_w-1)):
                     x_box = int(min(bbox[0], bbox[2]))
                     w_box = int(abs(bbox[2] - bbox[0]))
@@ -484,7 +485,6 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     h_box = int(abs(bbox[3] - bbox[1]))
 
                     image_part = img[y_box:y_box + h_box, x_box:x_box + w_box]
-                    print("image_part shape", image_part.shape[:2])
 
                     try:
                         if need_upscale_image:
@@ -499,17 +499,13 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         plt.imshow(image_part_upscale)
                         plt.show()
 
-
-                    print('image_part_upscale.shape')
-                    print(image_part_upscale.shape[:2])
-
                     # Calculation of the scaling factor coefficient
                     image_part_h, image_part_w, _ = image_part_upscale.shape
                     coef_h = h_box/image_part_h
                     coef_w = w_box/image_part_w
 
-                    localKeypoints = addCoordinatesOffset(keypoints, -x_box, -y_box)
-                    localKeypoints_upscale = applyCoefficient(localKeypoints, 1/coef_w, 1/coef_h)
+                    localKeypoints = add_coordinates_offset(keypoints, -x_box, -y_box)
+                    localKeypoints_upscale = apply_coefficient(localKeypoints, 1/coef_w, 1/coef_h)
 
                     h = 100
                     w = 400
@@ -524,9 +520,9 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     # Apply the perspective transformation to the image
                     aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
                     region_ids, count_lines, confidences, predicted = classifiactor.predict_with_confidence([aligned_img])
+                    max_count_lines = max(max_count_lines, count_lines[0])
 
                     # Тут далі можна шось робити
-                    print("classificator", region_ids, count_lines)
                     if count_lines[0] == 2:
                         # w = 200
                         h = 300
@@ -538,8 +534,6 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
                     if count_lines[0] == 3:
                         h = 300
-                        print('[[0, h], [0, 0], [w, 0], [w, h]]')
-                        print([[0, h], [0, 0], [w, 0], [w, h]])
                         target_points = np.float32(np.array([[0, h], [0, 0], [w, 0], [w, h]]))
                         # Compute the perspective transform matrix
                         M = cv2.getPerspectiveTransform(src_points, target_points)
@@ -547,39 +541,26 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         # Apply the perspective transformation to the image
                         aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
 
-                    # Display the aligned and cropped image
-                    result = reader.readtext(aligned_img)
-                    print("result")
-                    print(result)
-                    result = normalize_easyocr_output(result)
-                    print("postprocrssed result")
-                    print(result)
-
-                    easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0],
-                                                      exclude_zones_list=exclude_zones_list)
-                    if count_lines[0] > len(easyocr_lines):
-                        count_lines[0] = len(easyocr_lines)
-                        easyocr_lines = get_easyocr_lines(result, aligned_img, count_lines[0],
-
-                                                          exclude_zones_list=exclude_zones_list)
+                    predicted_lines = reader.predict(aligned_img, count_lines)
+                    parsed_numberplate, numberplate_lines, punctuation_np_lines = fromats_parse[parse_fromat](
+                        numberplate,
+                        count_line=count_lines[0])
+                    print(count_lines, "numberplate", parsed_numberplate, numberplate_lines, punctuation_np_lines)
 
                     if count_lines[0] > 1:
-                        parts = split_numberplate(aligned_img, parts_count=count_lines[0])
-                        for a_img_part in parts:
-                            if flag_show:
-                                plt.imshow(a_img_part)
-                                plt.show()
-
-                    if len(result)>=count_lines[0] and count_lines[0]>1:
-                        print(easyocr_lines)
                         # Make dataset
-                        numberplate_dataset_item = NumberplateDatasetItem(numberplate_lines, photo_id, numberplate, target_dataset, img_path, bbox, keypoints,
-                                                                          fix_lines(numberplate_lines, easyocr_lines,region_ids[0]), region_ids[0], image_part,  cv2.cvtColor(aligned_img, cv2.COLOR_RGB2BGR))
+                        numberplate_dataset_item = NumberplateDatasetItem(numberplate_lines, punctuation_np_lines,
+                                                                          photo_id, parsed_numberplate,
+                                                                          target_dataset, img_path, bbox, keypoints,
+                                                                          fix_lines(numberplate_lines,
+                                                                                    predicted_lines, region_ids[0]),
+                                                                          region_ids[0], image_part,
+                                                                          cv2.cvtColor(aligned_img, cv2.COLOR_RGB2BGR))
                         numberplate_dataset_item.write_orig_dataset()
                         numberplate_dataset_item.write_normalize_dataset()
+                    else:
+                        warnings.warn("count_lines <= 1")
 
-
-                    make_boxes(aligned_img, [item[0] for item in result], (0, 0, 255))
                     if flag_show:
                         plt.imshow(aligned_img)
                         plt.show()
@@ -598,58 +579,178 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                 for bbox in array_of_boxes:
                     x1, y1, x2, y2 = bbox
                     cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
+
+        if max_count_lines < 2:
+            bad_src_dir = os.path.join(target_dataset, "bad_cnt_lines")
+            os.makedirs(bad_src_dir, exist_ok=True)
+            cv2.imwrite(os.path.join(bad_src_dir, os.path.basename(img_path)), img)
+            pass
         if flag_show:
             plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
             plt.show()
 
 
 if __name__ == "__main__":
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/fi/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_fi_dataset",
-    #                parse_fromat = "fi", exclude_zones_list = ['FIN'])
-
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/fi/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_fi_dataset",
+    #                parse_fromat="fi", count_hyphens=2,
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["FIN"]))
     #
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
-    #                parse_fromat = "md", exclude_zones_list = ['MD'])
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
+    #                parse_fromat="md",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["MD"]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/pl/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_pl_dataset",
+    #                parse_fromat="default",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["PL"]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/by/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_by_dataset",
+    #                parse_fromat="default",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=[]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/kz/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_kz_dataset",
+    #                parse_fromat="kz",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["KZ"]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/ro/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_ro_dataset",
+    #                parse_fromat="ro",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["RO"]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/lv/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lv_dataset",
+    #                parse_fromat="default",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["LV"]))
+    #
+    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/lt/*/*",
+    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lt_dataset",
+    #                parse_fromat="default",
+    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["LT"]))
+
+    # create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania/*",
+    #                target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset"
+    #                               "/src_test_platesmania_dataset",
+    #                parse_fromat="default",
+    #                reader=EasyOCRReader(easyocr_readers=["ru", "uk"], exclude_zones_list=[]))
 
 
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/pl/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_pl_dataset",
-    #                parse_fromat = "default", exclude_zones_list = ['PL'])
-
-
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/by/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_by_dataset",
-    #                parse_fromat = "default", exclude_zones_list = [])
-
-
-
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/kz/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_kz_dataset",
-    #                parse_fromat = "kz", exclude_zones_list = ["KZ"])
-
-
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/ro/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_ro_dataset",
-    #                parse_fromat = "ro", exclude_zones_list = ["RO"])
-
-
-
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lv/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lv_dataset",
-    #                parse_fromat = "default", exclude_zones_list = ['LV'])
-
-
-    # create_dataset(img_dir = "/mnt/datasets/nomeroff-net/2lines_np_parsed/lt/*/*",
-    #                target_dataset = "/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lt_dataset",
-    #                parse_fromat = "default", exclude_zones_list = ['LT'])
-
-
-    create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania/*",
-                   target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania_dataset",
-                   parse_fromat="default",
-                   exclude_zones_list=[],
-                   easyocr_readers=["ru", "uk"])
-
-
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/al/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/al",
+                   parse_fromat="al",
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/at/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/at",
+                   parse_fromat="at",
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/ba/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/ba",
+                   parse_fromat="ba",
+                   count_hyphens=3,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/be/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/be",
+                   parse_fromat="be",
+                   count_hyphens=3,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/bg/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/bg",
+                   parse_fromat="bg",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/cy/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/cy",
+                   parse_fromat="cy",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/de/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/de",
+                   parse_fromat="de",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dk/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/dk",
+                   parse_fromat="dk",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    # hard
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/es/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/es",
+                   parse_fromat="es",
+                   count_hyphens=2,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/gg/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/gg",
+                   parse_fromat="gg",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/gr/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/gr",
+                   parse_fromat="gr",
+                   count_hyphens=2,
+                   reader=NomeroffNetReader(),
+                   )
+    # hard
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/is/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/is",
+                   parse_fromat="is",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    # Ліхтенштейн знаходить як однолінійні
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/li/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/li",
+                   parse_fromat="li",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/lu/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/lu",
+                   parse_fromat="lu",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/mt/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/mt",
+                   parse_fromat="mt",
+                   count_hyphens=1,
+                   reader=NomeroffNetReader(),
+                   )
+    # hard
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/nl/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/nl",
+                   parse_fromat="nl",
+                   count_hyphens=3,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/no/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/no",
+                   parse_fromat="no",
+                   count_hyphens=2,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/pl/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/pl",
+                   parse_fromat="pl",
+                   count_hyphens=2,
+                   reader=NomeroffNetReader(),
+                   )
+    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/uk/*/*",
+                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/uk",
+                   parse_fromat="uk",
+                   count_hyphens=2,
+                   reader=NomeroffNetReader(),
+                   )
