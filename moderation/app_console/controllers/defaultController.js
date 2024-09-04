@@ -320,17 +320,21 @@ async function dataSplit (options) {
  * @param options
  * @example NODE_ENV=consoleExample ./console.js --section=default --action=mergeDatasets \
  *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_moderated/ \
- *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_checked/
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_checked/ \
+ *                                               --opt.debug = 1
  */
 async function mergeDatasets (options) {
         const
             sourceDir = options.srcDir || './moderated',
             targetDir = options.targetDir || './checked',
+            debug = Boolean(options.debug || false),
             anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
             anbDirTarget = path.join(targetDir, config.dataset.anb.dir),
             anbFilesSrc = fs.readdirSync(anbDirSrc)
         ;
 
+        if (debug) { console.log(`Prepare ${anbFilesSrc.length} items for merging`) }
+        let cnt= 0, cnt_for_move = 0, cnt_for_merge = 0;
         for (const anbFileSrc of anbFilesSrc) {
             const
                 baseName = anbFileSrc.split('.'+config.dataset.anb.ext)[0],
@@ -338,15 +342,24 @@ async function mergeDatasets (options) {
                 anbPathTarget = path.join(anbDirTarget, anbFileSrc),
                 anbDataSrc = require(anbPathSrc)
             ;
+            if (debug) { console.log(`Processing ${baseName}...`) }
             if (fs.existsSync(anbPathTarget)) {
-                if (anbDataSrc.rebuilded != undefined && anbDataSrc.rebuilded) {
-                    moveAllItemPack(sourceDir,targetDir, baseName, true);
-                }
+                //if (anbDataSrc.rebuilded != undefined && anbDataSrc.rebuilded) {
+                if (debug) { console.log(`  exist in target dataset`) }
+                moveAllItemPack(sourceDir,targetDir, baseName, true);
+                cnt_for_merge++;
+                //}
             } else {
-                // moveAllItemPack
                 moveAllItemPack(sourceDir,targetDir, baseName);
+                cnt_for_move++;
             }
-
+            cnt++;
+            if (debug) { if (cnt % 1000) console.log(`${cnt} items done`) }
+        }
+        if (debug) {
+            console.log(`Total: ${cnt} items moved`)
+            console.log(`Merging: ${cnt_for_merge} items`)
+            console.log(`Moved: ${cnt_for_move} items`)
         }
 }
 
