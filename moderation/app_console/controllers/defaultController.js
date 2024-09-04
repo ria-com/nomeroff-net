@@ -183,13 +183,14 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
         ;
         // Move box
         fs.renameSync(boxPathSrc, boxPathTarget);
-        for (const line_key in region_key.lines) {
+        for (const line_key in region.lines) {
             const
                 annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
                 annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
                 imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.${config.dataset.img.ext}`),
                 imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
             ;
+            if (debug) { console.log(`  moveAllItemPack: checking ann line file: ${annPathTarget}`) }
             if (fs.existsSync(annPathSrc)) {
                 if (fs.existsSync(annPathTarget)) {
                     if (debug) { console.log(`  moveAllItemPack: remove old ann-file ${annPathTarget}`) }
