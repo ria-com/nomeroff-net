@@ -116,8 +116,8 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
         imgDirTarget = path.join(targetDir, config.dataset.img.dir),
         srcDirTarget = path.join(targetDir, config.dataset.src.dir),
 
-        anbPathSrc = path.join(anbDirSrc, `${baseName}.{config.dataset.anb.ext}`),
-        targetPathSrc = path.join(anbDirTarget, `${baseName}.{config.dataset.anb.ext}`),
+        anbPathSrc = path.join(anbDirSrc, `${baseName}.${config.dataset.anb.ext}`),
+        targetPathSrc = path.join(anbDirTarget, `${baseName}.${config.dataset.anb.ext}`),
         anbDataSrc = require(anbPathSrc),
         srcPathSrc = path.join(srcDirSrc, anbDataSrc.src),
         srcPathTarget = path.join(srcDirTarget, anbDataSrc.src)
@@ -137,7 +137,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
         for (const region_key in remove_regions) {
             const
                 region = remove_regions[region_key],
-                boxPathTarget = path.join(boxDirTarget, `${region_key}.{config.dataset.box.ext}`)
+                boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
             ;
             // Remove box
             if (fs.existsSync(boxPathTarget)) {
@@ -146,8 +146,8 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
 
             for (const line_key in region_key.lines) {
                 const
-                    annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
-                    imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.{config.dataset.img.ext}`)
+                    annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                    imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
                 ;
 
                 // Remove line
@@ -177,17 +177,17 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
     for (const region_key in anbDataSrc.regions) {
         const
             region = anbDataSrc.regions[region_key],
-            boxPathSrc = path.join(boxDirSrc, `${region_key}.{config.dataset.box.ext}`),
-            boxPathTarget = path.join(boxDirTarget, `${region_key}.{config.dataset.box.ext}`)
+            boxPathSrc = path.join(boxDirSrc, `${region_key}.${config.dataset.box.ext}`),
+            boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
         ;
         // Move box
         fs.renameSync(boxPathSrc, boxPathTarget);
         for (const line_key in region_key.lines) {
             const
-                annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
-                annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
-                imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.{config.dataset.img.ext}`),
-                imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.{config.dataset.img.ext}`)
+                annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.${config.dataset.img.ext}`),
+                imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
             ;
             if (fs.existsSync(annPathSrc)) {
                 if (fs.existsSync(annPathTarget)) {
