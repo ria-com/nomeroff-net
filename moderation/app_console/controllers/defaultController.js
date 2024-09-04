@@ -209,9 +209,11 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
                     fs.rmSync(imgPathTarget);
                 }
                 // Move ann
+                if (debug) { console.log(`  moveAllItemPack:   rename ann-file to ${annPathTarget}`) }
                 fs.renameSync(annPathSrc, annPathTarget);
 
                 // Move img
+                if (debug) { console.log(`  moveAllItemPack:   rename img-file to ${imgPathTarget}`) }
                 fs.renameSync(imgPathSrc, imgPathTarget);
             }
         }
