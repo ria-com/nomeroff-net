@@ -1,3 +1,5 @@
+import {items} from "yarn/lib/cli";
+
 const config = require('config'),
       fs = require('fs'),
       path = require('path'),
@@ -99,6 +101,108 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
                     Srcs: checkedSrc, srcDir:config.dataset.src.dir, staySrcs,
                     test:testMode});
         });
+}
+
+
+
+async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegions = false){
+    const
+        anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
+        annDirSrc = path.join(sourceDir, config.dataset.ann.dir),
+        boxDirSrc = path.join(sourceDir, config.dataset.box.dir),
+        imgDirSrc = path.join(sourceDir, config.dataset.img.dir),
+        srcDirSrc = path.join(sourceDir, config.dataset.src.dir),
+        anbDirTarget = path.join(targetDir, config.dataset.anb.dir),
+        annDirTarget = path.join(targetDir, config.dataset.ann.dir),
+        boxDirTarget = path.join(targetDir, config.dataset.box.dir),
+        imgDirTarget = path.join(targetDir, config.dataset.img.dir),
+        srcDirTarget = path.join(targetDir, config.dataset.src.dir),
+
+        anbPathSrc = path.join(anbDirSrc, `${baseName}.{config.dataset.anb.ext}`),
+        targetPathSrc = path.join(anbDirTarget, `${baseName}.{config.dataset.anb.ext}`),
+        anbDataSrc = require(anbPathSrc),
+        srcPathSrc = path.join(srcDirSrc, anbDataSrc.src),
+        srcPathTarget = path.join(srcDirTarget, anbDataSrc.src)
+    ;
+
+    // Remove old regions
+    if (removeDiffRegions && fs.existsSync(srcPathTarget)) {
+        const
+            anbDataTarget = require(srcPathTarget),
+            remove_regions = {}
+        ;
+        for (const region_key in anbDataTarget) {
+            if (anbDataSrc.regions[region_key] == undefined) {
+                remove_regions[region_key] = anbDataTarget[region_key]
+            }
+        }
+        for (const region_key in remove_regions) {
+            const
+                region = remove_regions[region_key],
+                boxPathTarget = path.join(boxDirTarget, `${region_key}.{config.dataset.box.ext}`)
+            ;
+            // Remove box
+            if (fs.existsSync(boxPathTarget)) {
+                fs.rmSync(boxPathTarget);
+            }
+
+            for (const line_key in region_key.lines) {
+                const
+                    annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
+                    imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.{config.dataset.img.ext}`)
+                ;
+
+                // Remove line
+                if (fs.existsSync(annPathTarget)) {
+                    fs.rmSync(annPathTarget);
+                }
+                if (fs.existsSync(imgPathTarget)) {
+                    fs.rmSync(imgPathTarget);
+                }
+            }
+        }
+    }
+
+    // Move anb
+    if (fs.existsSync(targetPathSrc)) {
+        fs.rmSync(targetPathSrc);
+    }
+    fs.renameSync(anbPathSrc, targetPathSrc);
+
+    // Move src
+    if (fs.existsSync(srcPathTarget)) {
+        fs.rmSync(srcPathTarget);
+    }
+    fs.renameSync(srcPathSrc, srcPathTarget);
+
+    // Move regions files
+    for (const region_key in anbDataSrc.regions) {
+        const
+            region = anbDataSrc.regions[region_key],
+            boxPathSrc = path.join(boxDirSrc, `${region_key}.{config.dataset.box.ext}`),
+            boxPathTarget = path.join(boxDirTarget, `${region_key}.{config.dataset.box.ext}`)
+        ;
+        // Move box
+        fs.renameSync(boxPathSrc, boxPathTarget);
+        for (const line_key in region_key.lines) {
+            const
+                annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
+                annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.{config.dataset.ann.ext}`),
+                imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.{config.dataset.img.ext}`),
+                imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.{config.dataset.img.ext}`)
+            ;
+            if (fs.existsSync(annPathSrc)) {
+                if (fs.existsSync(annPathTarget)) {
+                    fs.rmSync(annPathTarget);
+                }
+                if (fs.existsSync(imgPathTarget)) {
+                    fs.rmSync(imgPathTarget);
+                }
+                // Move ann
+                fs.renameSync(imgPathSrc, imgPathTarget);
+            }
+        }
+    }
 }
 
 
@@ -207,6 +311,47 @@ async function dataSplit (options) {
         ;
         moveBody(options, myFilter, splitRate);
 }
+
+
+/**
+ * EN: Divide the dataset into 2 parts in a given proportion (move from a given folder to a specified one with a given proportion)
+ * UA: Об'єднання 2-х датасетів, в яких є однакові вихідні файли у /anb та /src
+ *     Об'єднуємо з srcDir у targetDir. Якщо є два однакових файла /anb/<name>.json, то файл з srcDir перезаписує файл у targetDir,
+ *     при цьому якщо в якомусь region є "rebuilded": true, то по цьому регіону будуть перезаписані всі файли в targetDir файлами з srcDir
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=mergeDatasets \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_moderated/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_checked/
+ */
+async function mergeDatasets (options) {
+        const
+            sourceDir = options.srcDir || './moderated',
+            targetDir = options.targetDir || './checked',
+            anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
+            anbDirTarget = path.join(targetDir, config.dataset.anb.dir),
+            anbFilesSrc = fs.readdirSync(anbDirSrc)
+        ;
+
+        for (const anbFileSrc of anbFilesSrc) {
+            const
+                baseName = anbFileSrc.split('.'+config.dataset.anb.ext)[0],
+                anbPathSrc = path.join(anbDirSrc, anbFileSrc),
+                anbPathTarget = path.join(anbDirTarget, anbFileSrc),
+                anbDataSrc = require(anbPathSrc)
+            ;
+            if (fs.existsSync(anbPathTarget)) {
+                if (anbDataSrc.rebuilded != undefined && anbDataSrc.rebuilded) {
+                    moveAllItemPack(sourceDir,targetDir, baseName, true);
+                }
+            } else {
+                // moveAllItemPack
+                moveAllItemPack(sourceDir,targetDir, baseName);
+            }
+
+        }
+}
+
 
 
 /**
@@ -526,6 +671,7 @@ module.exports = {
     createAnnotations,
     moveChecked,
     dataSplit,
+    mergeDatasets,
     moveGarbage,
     dataJoin,
     moveSomething,
