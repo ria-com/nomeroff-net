@@ -182,6 +182,9 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
             boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
         ;
         // Move box
+        if (fs.existsSync(boxPathTarget)) {
+            fs.rmSync(boxPathTarget);
+        }
         fs.renameSync(boxPathSrc, boxPathTarget);
         for (const line_key in region.lines) {
             const
@@ -201,6 +204,9 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
                     fs.rmSync(imgPathTarget);
                 }
                 // Move ann
+                fs.renameSync(annPathSrc, annPathTarget);
+
+                // Move img
                 fs.renameSync(imgPathSrc, imgPathTarget);
             }
         }
