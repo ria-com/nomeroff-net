@@ -1,5 +1,3 @@
-import {items} from "yarn/lib/cli";
-
 const config = require('config'),
       fs = require('fs'),
       path = require('path'),
