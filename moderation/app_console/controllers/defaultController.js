@@ -135,7 +135,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
                 remove_regions[region_key] = anbDataTarget[region_key]
             }
         }
-        if (debug) { console.log(`  moveAllItemPack: ${Object.keys(remove_regions).length} old regions`) }
+        if (debug) { console.log(`  moveAllItemPack:   found ${Object.keys(remove_regions).length} old regions: ${Object.keys(remove_regions)}`) }
         for (const region_key in remove_regions) {
             const
                 region = remove_regions[region_key],
@@ -143,7 +143,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
             ;
             // Remove box
             if (fs.existsSync(boxPathTarget)) {
-                if (debug) { console.log(`  moveAllItemPack: delete box file ${boxPathTarget}`) }
+                if (debug) { console.log(`  moveAllItemPack:   delete box file ${boxPathTarget}`) }
                 fs.rmSync(boxPathTarget);
             }
 
@@ -155,11 +155,11 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
 
                 // Remove line
                 if (fs.existsSync(annPathTarget)) {
-                    if (debug) { console.log(`  moveAllItemPack: delete ann file ${annPathTarget}`) }
+                    if (debug) { console.log(`  moveAllItemPack:   delete ann file ${annPathTarget}`) }
                     fs.rmSync(annPathTarget);
                 }
                 if (fs.existsSync(imgPathTarget)) {
-                    if (debug) { console.log(`  moveAllItemPack: delete img file ${annPathTarget}`) }
+                    if (debug) { console.log(`  moveAllItemPack:   delete img file ${annPathTarget}`) }
                     fs.rmSync(imgPathTarget);
                 }
             }
@@ -179,6 +179,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
     fs.renameSync(srcPathSrc, srcPathTarget);
 
     // Move regions files
+    if (debug) { console.log(`  moveAllItemPack: try to move ${Object.keys(anbDataSrc.regions).length} regions: ${Object.keys(anbDataSrc.regions)}`) }
     for (const region_key in anbDataSrc.regions) {
         const
             region = anbDataSrc.regions[region_key],
