@@ -130,7 +130,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
             anbDataTarget = require(anbPathTarget),
             remove_regions = {}
         ;
-        for (const region_key in anbDataTarget) {
+        for (const region_key in anbDataTarget.regions) {
             if (anbDataSrc.regions[region_key] == undefined) {
                 remove_regions[region_key] = anbDataTarget[region_key]
             }
