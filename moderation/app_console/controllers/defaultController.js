@@ -103,7 +103,7 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
 
 
 
-async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegions = false){
+async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegions = false, debug = false){
     const
         anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
         annDirSrc = path.join(sourceDir, config.dataset.ann.dir),
@@ -117,16 +117,17 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
         srcDirTarget = path.join(targetDir, config.dataset.src.dir),
 
         anbPathSrc = path.join(anbDirSrc, `${baseName}.${config.dataset.anb.ext}`),
-        targetPathSrc = path.join(anbDirTarget, `${baseName}.${config.dataset.anb.ext}`),
+        anbPathTarget = path.join(anbDirTarget, `${baseName}.${config.dataset.anb.ext}`),
         anbDataSrc = require(anbPathSrc),
         srcPathSrc = path.join(srcDirSrc, anbDataSrc.src),
         srcPathTarget = path.join(srcDirTarget, anbDataSrc.src)
     ;
 
     // Remove old regions
-    if (removeDiffRegions && fs.existsSync(srcPathTarget)) {
+    if (removeDiffRegions && fs.existsSync(anbPathTarget)) {
+        if (debug) { console.log(`  moveAllItemPack: try to remove old items files for ${baseName}`) }
         const
-            anbDataTarget = require(srcPathTarget),
+            anbDataTarget = require(anbPathTarget),
             remove_regions = {}
         ;
         for (const region_key in anbDataTarget) {
@@ -162,10 +163,10 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
     }
 
     // Move anb
-    if (fs.existsSync(targetPathSrc)) {
-        fs.rmSync(targetPathSrc);
+    if (fs.existsSync(anbPathTarget)) {
+        fs.rmSync(anbPathTarget);
     }
-    fs.renameSync(anbPathSrc, targetPathSrc);
+    fs.renameSync(anbPathSrc, anbPathTarget);
 
     // Move src
     if (fs.existsSync(srcPathTarget)) {
@@ -191,9 +192,11 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
             ;
             if (fs.existsSync(annPathSrc)) {
                 if (fs.existsSync(annPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack: remove old ann-file ${annPathTarget}`) }
                     fs.rmSync(annPathTarget);
                 }
                 if (fs.existsSync(imgPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack: remove old img-file ${annPathTarget}`) }
                     fs.rmSync(imgPathTarget);
                 }
                 // Move ann
@@ -321,7 +324,7 @@ async function dataSplit (options) {
  * @example NODE_ENV=consoleExample ./console.js --section=default --action=mergeDatasets \
  *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_moderated/ \
  *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_checked/ \
- *                                               --opt.debug = 1
+ *                                               --opt.debug=1
  */
 async function mergeDatasets (options) {
         const
@@ -346,11 +349,11 @@ async function mergeDatasets (options) {
             if (fs.existsSync(anbPathTarget)) {
                 //if (anbDataSrc.rebuilded != undefined && anbDataSrc.rebuilded) {
                 if (debug) { console.log(`  exist in target dataset`) }
-                moveAllItemPack(sourceDir,targetDir, baseName, true);
+                moveAllItemPack(sourceDir,targetDir, baseName, true, debug);
                 cnt_for_merge++;
                 //}
             } else {
-                moveAllItemPack(sourceDir,targetDir, baseName);
+                moveAllItemPack(sourceDir,targetDir, baseName, false, debug);
                 cnt_for_move++;
             }
             cnt++;
