@@ -132,7 +132,7 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
         ;
         for (const region_key in anbDataTarget.regions) {
             if (anbDataSrc.regions[region_key] == undefined) {
-                remove_regions[region_key] = anbDataTarget[region_key]
+                remove_regions[region_key] = anbDataTarget.regions[region_key]
             }
         }
         if (debug) { console.log(`  moveAllItemPack:   found ${Object.keys(remove_regions).length} old regions: ${Object.keys(remove_regions)}`) }
@@ -198,14 +198,14 @@ async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegion
                 imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.${config.dataset.img.ext}`),
                 imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
             ;
-            if (debug) { console.log(`  moveAllItemPack: checking ann line file: ${annPathTarget}`) }
+            if (debug) { console.log(`  moveAllItemPack:   checking ann line file: ${annPathTarget}`) }
             if (fs.existsSync(annPathSrc)) {
                 if (fs.existsSync(annPathTarget)) {
-                    if (debug) { console.log(`  moveAllItemPack: remove old ann-file ${annPathTarget}`) }
+                    if (debug) { console.log(`  moveAllItemPack:   remove old ann-file ${annPathTarget}`) }
                     fs.rmSync(annPathTarget);
                 }
                 if (fs.existsSync(imgPathTarget)) {
-                    if (debug) { console.log(`  moveAllItemPack: remove old img-file ${annPathTarget}`) }
+                    if (debug) { console.log(`  moveAllItemPack:   remove old img-file ${annPathTarget}`) }
                     fs.rmSync(imgPathTarget);
                 }
                 // Move ann
