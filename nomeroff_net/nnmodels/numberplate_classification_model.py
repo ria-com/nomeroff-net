@@ -6,9 +6,15 @@ TEST:
               -f ./nomeroff_net/nnmodels/numberplate_classification_model.py
 """
 import torch
+import contextlib
 from typing import Any
 from pytorch_lightning import LightningModule
 from nomeroff_net.tools.mcm import get_device_torch
+
+
+@contextlib.contextmanager
+def dummy_context_mgr():
+    yield None
 
 
 class ClassificationNet(LightningModule):
