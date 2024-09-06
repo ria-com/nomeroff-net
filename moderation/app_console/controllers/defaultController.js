@@ -103,6 +103,123 @@ async function moveBody (options, filterFunction=function (data, data_anb) { ret
 
 
 
+async function moveAllItemPack (sourceDir, targetDir, baseName, removeDiffRegions = false, debug = false){
+    const
+        anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
+        annDirSrc = path.join(sourceDir, config.dataset.ann.dir),
+        boxDirSrc = path.join(sourceDir, config.dataset.box.dir),
+        imgDirSrc = path.join(sourceDir, config.dataset.img.dir),
+        srcDirSrc = path.join(sourceDir, config.dataset.src.dir),
+        anbDirTarget = path.join(targetDir, config.dataset.anb.dir),
+        annDirTarget = path.join(targetDir, config.dataset.ann.dir),
+        boxDirTarget = path.join(targetDir, config.dataset.box.dir),
+        imgDirTarget = path.join(targetDir, config.dataset.img.dir),
+        srcDirTarget = path.join(targetDir, config.dataset.src.dir),
+
+        anbPathSrc = path.join(anbDirSrc, `${baseName}.${config.dataset.anb.ext}`),
+        anbPathTarget = path.join(anbDirTarget, `${baseName}.${config.dataset.anb.ext}`),
+        anbDataSrc = require(anbPathSrc),
+        srcPathSrc = path.join(srcDirSrc, anbDataSrc.src),
+        srcPathTarget = path.join(srcDirTarget, anbDataSrc.src)
+    ;
+
+    // Remove old regions
+    if (removeDiffRegions && fs.existsSync(anbPathTarget)) {
+        if (debug) { console.log(`  moveAllItemPack: try to remove old items files for ${baseName}`) }
+        const
+            anbDataTarget = require(anbPathTarget),
+            remove_regions = {}
+        ;
+        for (const region_key in anbDataTarget.regions) {
+            if (anbDataSrc.regions[region_key] == undefined) {
+                remove_regions[region_key] = anbDataTarget.regions[region_key]
+            }
+        }
+        if (debug) { console.log(`  moveAllItemPack:   found ${Object.keys(remove_regions).length} old regions: ${Object.keys(remove_regions)}`) }
+        for (const region_key in remove_regions) {
+            const
+                region = remove_regions[region_key],
+                boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
+            ;
+            // Remove box
+            if (fs.existsSync(boxPathTarget)) {
+                if (debug) { console.log(`  moveAllItemPack:   delete box file ${boxPathTarget}`) }
+                fs.rmSync(boxPathTarget);
+            }
+
+            for (const line_key in region.lines) {
+                const
+                    annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                    imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
+                ;
+
+                // Remove line
+                if (fs.existsSync(annPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack:   delete ann file ${annPathTarget}`) }
+                    fs.rmSync(annPathTarget);
+                }
+                if (fs.existsSync(imgPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack:   delete img file ${annPathTarget}`) }
+                    fs.rmSync(imgPathTarget);
+                }
+            }
+        }
+    }
+
+    // Move anb
+    if (fs.existsSync(anbPathTarget)) {
+        fs.rmSync(anbPathTarget);
+    }
+    fs.renameSync(anbPathSrc, anbPathTarget);
+
+    // Move src
+    if (fs.existsSync(srcPathSrc)) {
+        fs.renameSync(srcPathSrc, srcPathTarget);
+    }
+
+    // Move regions files
+    if (debug) { console.log(`  moveAllItemPack: try to move ${Object.keys(anbDataSrc.regions).length} regions: ${Object.keys(anbDataSrc.regions)}`) }
+    for (const region_key in anbDataSrc.regions) {
+        const
+            region = anbDataSrc.regions[region_key],
+            boxPathSrc = path.join(boxDirSrc, `${region_key}.${config.dataset.box.ext}`),
+            boxPathTarget = path.join(boxDirTarget, `${region_key}.${config.dataset.box.ext}`)
+        ;
+        // Move box
+        if (fs.existsSync(boxPathSrc)) {
+            fs.renameSync(boxPathSrc, boxPathTarget)
+        }
+        for (const line_key in region.lines) {
+            const
+                annPathSrc = path.join(annDirSrc, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                annPathTarget = path.join(annDirTarget, `${region_key}-line-${line_key}.${config.dataset.ann.ext}`),
+                imgPathSrc = path.join(imgDirSrc, `${region_key}-line-${line_key}.${config.dataset.img.ext}`),
+                imgPathTarget = path.join(imgDirTarget, `${region_key}-line-${line_key}.${config.dataset.img.ext}`)
+            ;
+            if (debug) { console.log(`  moveAllItemPack:   checking ann line file: ${annPathTarget}`) }
+            if (fs.existsSync(annPathSrc)) {
+                if (fs.existsSync(annPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack:   remove old ann-file ${annPathTarget}`) }
+                    fs.rmSync(annPathTarget);
+                }
+                if (fs.existsSync(imgPathTarget)) {
+                    if (debug) { console.log(`  moveAllItemPack:   remove old img-file ${annPathTarget}`) }
+                    fs.rmSync(imgPathTarget);
+                }
+                // Move ann
+                if (debug) { console.log(`  moveAllItemPack:   rename ann-file to ${annPathTarget}`) }
+                fs.renameSync(annPathSrc, annPathTarget);
+
+                // Move img
+                if (debug) { console.log(`  moveAllItemPack:   rename img-file to ${imgPathTarget}`) }
+                fs.renameSync(imgPathSrc, imgPathTarget);
+            }
+        }
+    }
+}
+
+
+
 
 /**
  * EN: Console script example
@@ -207,6 +324,60 @@ async function dataSplit (options) {
         ;
         moveBody(options, myFilter, splitRate);
 }
+
+
+/**
+ * EN: Divide the dataset into 2 parts in a given proportion (move from a given folder to a specified one with a given proportion)
+ * UA: Об'єднання 2-х датасетів, в яких є однакові вихідні файли у /anb та /src
+ *     Об'єднуємо з srcDir у targetDir. Якщо є два однакових файла /anb/<name>.json, то файл з srcDir перезаписує файл у targetDir,
+ *     при цьому якщо в якомусь region є "rebuilded": true, то по цьому регіону будуть перезаписані всі файли в targetDir файлами з srcDir
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=mergeDatasets \
+ *                                               --opt.srcDir=../data/dataset/TextDetector/ocr_moderated/ \
+ *                                               --opt.targetDir=../data/dataset/TextDetector/ocr_checked/ \
+ *                                               --opt.debug=1
+ */
+async function mergeDatasets (options) {
+        const
+            sourceDir = options.srcDir || './moderated',
+            targetDir = options.targetDir || './checked',
+            debug = Boolean(options.debug || false),
+            anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
+            anbDirTarget = path.join(targetDir, config.dataset.anb.dir),
+            anbFilesSrc = fs.readdirSync(anbDirSrc)
+        ;
+
+        if (debug) { console.log(`Prepare ${anbFilesSrc.length} items for merging`) }
+        let cnt= 0, cnt_for_move = 0, cnt_for_merge = 0;
+        for (const anbFileSrc of anbFilesSrc) {
+            const
+                baseName = anbFileSrc.split('.'+config.dataset.anb.ext)[0],
+                anbPathSrc = path.join(anbDirSrc, anbFileSrc),
+                anbPathTarget = path.join(anbDirTarget, anbFileSrc),
+                anbDataSrc = require(anbPathSrc)
+            ;
+            if (debug) { console.log(`Processing ${baseName}...`) }
+            if (fs.existsSync(anbPathTarget)) {
+                //if (anbDataSrc.rebuilded != undefined && anbDataSrc.rebuilded) {
+                if (debug) { console.log(`  exist in target dataset`) }
+                moveAllItemPack(sourceDir,targetDir, baseName, true, debug);
+                cnt_for_merge++;
+                //}
+            } else {
+                moveAllItemPack(sourceDir,targetDir, baseName, false, debug);
+                cnt_for_move++;
+            }
+            cnt++;
+            if (debug) { if (cnt % 1000) console.log(`${cnt} items done`) }
+        }
+        if (debug) {
+            console.log(`Total: ${cnt} items moved`)
+            console.log(`Merging: ${cnt_for_merge} items`)
+            console.log(`Moved: ${cnt_for_move} items`)
+        }
+}
+
 
 
 /**
@@ -526,6 +697,7 @@ module.exports = {
     createAnnotations,
     moveChecked,
     dataSplit,
+    mergeDatasets,
     moveGarbage,
     dataJoin,
     moveSomething,
