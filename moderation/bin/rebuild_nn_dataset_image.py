@@ -1,4 +1,4 @@
-#!/usr/bin/python3.9 -W ignore
+#!/usr/bin/python3 -W ignore
 """
 rebuild_nn_dataset_image.py
 """

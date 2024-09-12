@@ -29,6 +29,7 @@ module.exports = async function(ctx, next) {
         //zone = require(anb_json)
         zone = JSON.parse(fs.readFileSync(anb_json))
     ;
+
     console.log("Request body:");
     console.log(JSON.stringify(ctx.request.body));
     //console.log(JSON.stringify(zone, null, 4))
@@ -41,6 +42,19 @@ module.exports = async function(ctx, next) {
     zone.regions[ctx.request.body.key].updated = true;
     console.log("Checkpoint 2 done");
     //console.log(JSON.stringify(zone, null, 4))
+
+    // Update lines
+    if (ctx.request.body.lines != undefined) {
+        let lines = {}, cnt =0
+        for (const line of ctx.request.body.lines.split(/\n/)) {
+            lines[cnt] = line.trim();
+            cnt++;
+            if (cnt == 3) break;
+        }
+        console.log(`Update lines from ${JSON.stringify(lines)}`);
+        zone.regions[ctx.request.body.key].lines = lines
+    }
+
     fs.writeFileSync(anb_json, JSON.stringify(zone, null, 2));
     console.log("Checkpoint 3 done");
 

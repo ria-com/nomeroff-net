@@ -101,7 +101,8 @@ module.exports = async function(ctx, next) {
         anb_json = path.join(anb_dir, `${anb_basename}.json`),
         zone = JSON.parse(fs.readFileSync(anb_json)),
         src_img =  path.join(src_dir, zone.src),
-        imgInfo = sizeOf(src_img)
+        imgInfo = sizeOf(src_img),
+        lines = Object.values(zone.regions[key].lines).join('\n')
     ;
     let
         container = Object.assign({},config.get('pages.editKeypoints.container'))
@@ -119,13 +120,15 @@ module.exports = async function(ctx, next) {
     console.log('key')
     console.log(key)
 
+    console.log('lines')
+    console.log(lines)
 
     container = centrify(zone.regions[key], imgInfo, container);
 
     console.log('container')
     console.log(container)
     ctx.body = await ctx.render(config.get('koa_view.template.name'), {
-        zone, anb_basename, zoneId, imgInfo, container, key
+        zone, anb_basename, zoneId, imgInfo, container, key, lines
     });
 
     ctx.type = 'text/html; charset=utf-8';
