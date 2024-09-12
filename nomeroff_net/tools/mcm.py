@@ -52,7 +52,7 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-shufflenet_v2_x2_0-3.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net-ocr-ru-military/model-3.json",
 
-    "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/eu_2lines/model-efficientnet_b2-2.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/eu_2lines/model-efficientnet_b2-3.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/su_2lines/model-efficientnet_b2-1.json",
 
     # object detection
