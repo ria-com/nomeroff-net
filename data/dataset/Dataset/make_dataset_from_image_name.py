@@ -171,7 +171,7 @@ def add_np(fname, zone, region_id, count_line, desc, predicted_text, orig_predic
         data["moderation"]["predicted"] = predicted_text
 
     # Зберігаємо оригінальний predicted_text
-    data["moderation"]["orig_predicted"] = orig_predicted_text
+        data["moderation"]["orig_predicted"] = orig_predicted_text
     with open(os.path.join(ann_dir, f'{fname}.json'), "w", encoding='utf8') as jsonWF:
         json.dump(data, jsonWF, ensure_ascii=False)
 
@@ -564,14 +564,12 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     if flag_show:
                         plt.imshow(aligned_img)
                         plt.show()
-
-
-                    for i, point in enumerate(keypoints):
-                        x, y = point
-                        # Малюємо точку
-                        cv2.circle(img, (int(x), int(y)), int(img.shape[0]/100), (255, 0, 0), -1)
-                        # Виводимо номер точки
-                        cv2.putText(img, str(i+1), (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0), 2)
+                        for i, point in enumerate(keypoints):
+                            x, y = point
+                            # Малюємо точку
+                            cv2.circle(img, (int(x), int(y)), int(img.shape[0]/100), (255, 0, 0), -1)
+                            # Виводимо номер точки
+                            cv2.putText(img, str(i+1), (int(x)+10, int(y)+10), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 0, 0), 2)
 
 
             if flag_show:
@@ -672,8 +670,8 @@ if __name__ == "__main__":
                    count_hyphens=1,
                    reader=NomeroffNetReader(),
                    )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/de/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/de",
+    create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/test/de-problem-short/*/*",
+                   target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/test_dataset/de-problem-short",
                    parse_fromat="de",
                    count_hyphens=1,
                    reader=NomeroffNetReader(),

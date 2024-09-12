@@ -1,3 +1,7 @@
+"""
+Numberplate Classification Pipeline
+python3 -m nomeroff_net.pipelines.number_plate_classification -f nomeroff_net/pipelines/number_plate_classification.py
+"""
 from torch import no_grad
 from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
@@ -46,3 +50,14 @@ class NumberPlateClassification(Pipeline):
         count_lines = self.detector.custom_count_lines_id_to_all_count_lines(count_lines)
         region_names = self.detector.get_region_labels(region_ids)
         return unzip([region_ids, region_names, count_lines, confidences, inputs, processed_np])
+
+
+if __name__ == '__main__':
+    import glob
+
+    np_classification = NumberPlateClassification(task="number_plate_classification", image_loader="opencv")
+    for img_path in glob.glob("data/dataset/OptionsDetector/numberplate_options_example/test/img/*.png"):
+        res = np_classification([img_path])
+        for reg_id, reg_name, count_line, *_ in res:
+            print(img_path)
+            print(reg_id, reg_name, count_line)

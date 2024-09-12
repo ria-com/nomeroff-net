@@ -69,10 +69,15 @@ DEFAULT_PRESETS = {
     "eu_2lines_efficientnet_b2": {
         "for_regions": ["eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu_ua_custom", "xx_transit",
                         "eu", "xx_unknown", "ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr", "kz",
-                        "kg", "ge", "su", "am", "by"],
+                        "kg", "ge", "am", "by"],
         "for_count_lines": [2, 3],
         "model_path": "latest"
     },
+    "su_2lines_efficientnet_b2": {
+        "for_regions": ["su"],
+        "for_count_lines": [2, 3],
+        "model_path": "latest"
+    }
 }
 
 
