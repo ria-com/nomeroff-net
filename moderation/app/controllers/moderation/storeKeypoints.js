@@ -29,6 +29,7 @@ module.exports = async function(ctx, next) {
         //zone = require(anb_json)
         zone = JSON.parse(fs.readFileSync(anb_json))
     ;
+    let add_params = ''
 
     console.log("Request body:");
     console.log(JSON.stringify(ctx.request.body));
@@ -51,6 +52,7 @@ module.exports = async function(ctx, next) {
             cnt++;
             if (cnt == 3) break;
         }
+        add_params = ' -update_lines'
         console.log(`Update lines from ${JSON.stringify(lines)}`);
         zone.regions[ctx.request.body.key].lines = lines
     }
@@ -59,7 +61,7 @@ module.exports = async function(ctx, next) {
     console.log("Checkpoint 3 done");
 
     // Rebuild lines
-    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -rotate ${rotate} -debug`
+    let cmd = `cd bin; ./rebuild_nn_dataset_image.py -anb_key ${ctx.request.body.basename} -dataset_dir ${base_dir} -rotate ${rotate} -debug${add_params}`
     console.log(`${cmd}`)
     const { stdout, stderr } = await exec(cmd)
     // rebuild_nn_dataset_image.py -anb_key p14955810 -dataset_dir /mnt/sdd1/datasets/2-3lines-test

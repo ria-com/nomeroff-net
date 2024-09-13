@@ -59,6 +59,7 @@ class DatasetRegion:
                  region_key: str,
                  region_data: List,
                  rotate: int = 0,
+                 update_lines: bool = False,
                  debug: bool = False):
         self.dataset_config = dataset_config
         self.anb_key = anb_key
@@ -66,6 +67,7 @@ class DatasetRegion:
         self.img = img
         self.region_key = region_key
         self.region_data = region_data
+        self.update_lines = update_lines
         self.debug = debug
 
         # normalize_keypoints
@@ -171,12 +173,31 @@ class DatasetRegion:
                     self.write_ann_line_json(parts[idx], ann_basename_new, line, self.region_data["region_id"])
                 if os.path.isfile(img_path):
                     if self.debug:
-                        print(f'Remove old image for line {1} "{img_path}"')
+                        print(f'Remove old image for line {i} "{img_path}"')
                     os.remove(img_path)
                 if self.debug:
                     print(f'Create new line {i} image  {img_path_new}')
                 cv2.imwrite(img_path_new, parts[idx])
             idx += 1
+        if self.update_lines:
+            if self.debug:
+                print(f'CleanUp old lines')
+            cnt = len(self.region_data["lines"])
+            if cnt < 3:
+                for i in range(cnt, 3):
+                    ann_basename = f'{self.region_key}-line-{i}'
+                    ann_filename = f'{ann_basename}.{self.dataset_config.json_ext}'
+                    img_filename = f'{ann_basename}.{self.dataset_config.img_ext}'
+                    ann_path = os.path.join(self.dataset_config.ann_dir, ann_filename)
+                    img_path = os.path.join(self.dataset_config.img_dir, img_filename)
+                    if os.path.isfile(img_path):
+                        if self.debug:
+                            print(f'Remove old image for line {i} "{img_path}"')
+                        os.remove(img_path)
+                    if os.path.isfile(ann_path):
+                        if self.debug:
+                            print(f'Remove old annotation for line {i} "{ann_path}"')
+                        os.remove(ann_path)
 
         # p17667717-519x476-566x504
 
@@ -242,11 +263,13 @@ class DatasetItem:
                  dataset_config: DatasetConfig,
                  anb_key: str,
                  rotate = 0,
-                 debug: bool = False
+                 update_lines: bool = False,
+                 debug: bool = False,
                  ):
         self.version = 2
         self.version = 2
         self.rotate = rotate
+        self.update_lines = update_lines
         self.debug = debug
         self.dataset_config = dataset_config
         self.anb_key = anb_key
