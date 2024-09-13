@@ -1,7 +1,7 @@
 cython
 setuptools
 numpy>=1.16.*
-imgaug>=0.4.*
+albumentations
 opencv_python
 scikit_image
 asyncio

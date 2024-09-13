@@ -1,7 +1,6 @@
 cython
 setuptools
 numpy==1.23.5
-imgaug>=0.4.*
 opencv_python
 scikit_image
 asyncio
@@ -22,6 +21,7 @@ gevent
 termcolor
 scikit-learn
 ultralytics
+albumentations
 
 # git repos
 upscaler @ git+https://github.com/ria-com/upscaler.git
