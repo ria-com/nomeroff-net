@@ -16,10 +16,9 @@ def generate_annotation(image_name, save_path):
     image_name = os.path.splitext(image_name)[0]
     annotation = {
         "state_id": 2,
-        "region_id": 1,
+        "region_id": 4,
         "name": image_name,
         "count_lines": 3,
-        "skip_region": 1,
         "orientation": 0 
     }
     json_file = os.path.join(save_path, f"{image_name}.json")
@@ -67,7 +66,7 @@ def generate_dataset(input_dir, output_dir, split_ratio=(0.9, 0.05, 0.05)):
     print("Датасет успішно згенеровано!")
 
 # Використання
-#input_directory = "./1lines_classification"
-input_directory = "./ua_3lines_cropped"
+input_directory = "./1lines_classification"
+#input_directory = "./ua_3lines_cropped.2/2"
 output_directory = "./dataset_3lines"
 generate_dataset(input_directory, output_directory)
