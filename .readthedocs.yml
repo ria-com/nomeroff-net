@@ -13,7 +13,7 @@ dependencies:
       - setuptools
       - numpy
       - Keras
-      - imgaug
+      - albumentations
       - tensorflow
       - opencv_python
       - scikit_image

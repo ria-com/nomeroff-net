@@ -186,7 +186,7 @@ Centermask2 / 2020-07-15
   * Added ocr russian number plate detector.
   
   **training**
-  * Update augmentation(use module imgaug).
+  * Update augmentation(use module albumentations).
   * Added freeze model graph and use .pb models in prediction.
  
 0.2.0 / 2019-02-21

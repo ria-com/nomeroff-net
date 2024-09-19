@@ -243,6 +243,7 @@ function storeKeypoints() {
     document.getElementById('buttonReset').disabled = true;
     document.getElementById('buttonUpdate').disabled = true;
     document.getElementById('rotate').disabled = true;
+    document.getElementById('editLines').disabled = true;
     for (const circle of circles) {
         let position = circle.absolutePosition();
         console.log(position);
@@ -255,6 +256,12 @@ function storeKeypoints() {
         rotate: document.getElementById('rotate').value,
         basename: "{{ anb_basename }}",
         src: "{{ zone.src }}"
+    }
+    console.log("document.getElementById('lines').disabled");
+    console.log(document.getElementById('lines').disabled);
+    if (!document.getElementById('lines').disabled) {
+        console.log(`Store "${document.getElementById('lines').value}" to "lines" param`);
+        sendata.lines = document.getElementById('lines').value
     }
 
     $.ajax({
@@ -283,6 +290,7 @@ function storeKeypoints() {
             document.getElementById('buttonReset').disabled = false;
             document.getElementById('buttonUpdate').disabled = false;
             document.getElementById('rotate').disabled = false;
+            document.getElementById('editLines').disabled = false;
             if (document.getElementById('autoClose').checked) {
                 window.close();
             }
@@ -316,6 +324,8 @@ function restoreKeypoints() {
 <select name="rotate" id="rotate"><option value="0">0&deg;</option><option value="1">90&deg; CW</option><option value="3">90&deg; CCW</option><option value="2">180&deg;</option></select>
 <input type="checkbox" name="autoClose" id="autoClose" checked> autoclose
 <input type="checkbox" name="autoRedirect" id="autoRedirect" checked> autoredirect
+<input type="checkbox" onclick="document.getElementById('lines').disabled=!document.getElementById('lines').disabled" name="editLines" id="editLines"> editlines<br>
+<textarea id="lines" name="lines" rows="3" cols="8" disabled>{{ lines }}</textarea>
 <div id="message" style="display: none"></div>
 </body>
 </html>

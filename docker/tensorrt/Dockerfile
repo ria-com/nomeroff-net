@@ -31,7 +31,7 @@ RUN pip install seaborn
 RUN pip install gevent
 
 RUN pip install opencv_python
-RUN pip install "imgaug>=0.4.*"
+RUN pip install albumentations
 RUN pip install pillow
 RUN pip install scipy
 RUN pip install asyncio

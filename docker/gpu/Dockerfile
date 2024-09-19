@@ -31,7 +31,7 @@ RUN python3 -m pip install matplotlib
 RUN python3 -m pip install seaborn
 RUN python3 -m pip install opencv_python
 RUN python3 -m pip install "numpy==1.23.5"
-RUN python3 -m pip install "imgaug>=0.4.*"
+RUN python3 -m pip install albumentations
 RUN python3 -m pip install pillow
 RUN python3 -m pip install scipy
 RUN python3 -m pip install termcolor
