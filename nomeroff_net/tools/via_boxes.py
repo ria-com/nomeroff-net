@@ -158,6 +158,7 @@ class VIABoxes:
                                 print(f'Fixed normalized points for file {bbox_filename}')
                                 VIABoxes.set_keypoints(region, keypoints)
                                 fix_denormalized = True
+                                region["shape_attributes"]["checked"] = False
                                 bbox_image = VIABoxes.get_aligned_image(image, keypoints, shift=0, w=w, h=h)
                                 cv2.imwrite(bbox_path, bbox_image)
         if fix_denormalized:
