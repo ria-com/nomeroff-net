@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Nomeroff Net. Automatic numberplate recognition system from RIA.com</title>
+
+    <!-- BootstrapCDN -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
+    <script src="https://unpkg.com/konva@9.3.12/konva.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+
+    <!-- Custom styles for this template -->
+    <style>
+        body { padding-bottom: 20px; }
+        .navbar { margin-bottom: 20px; }
+        .logo { margin-top: 40px; margin-bottom: 60px; }
+        .operative { font-weight: bold; border: 1px solid yellow; }
+        #quine { border: 4px solid #88c; }
+
+        div.editNumberplate {padding-bottom: 5px; font-size: 3rem; letter-spacing: 5px;}
+        input.numberplate {width: 295px}
+        td.edited { color: green }
+        tr.forDelete {
+            background-color: #f77 !important;
+        }
+        td.boxUpdated {
+            background-color: #0a0;
+        }
+        td.deleteTD {
+            width: 10px;
+        }
+        td h1 {
+            height: 48px;
+        }
+        p.warnings {
+            color: #f44;
+        }
+        input.NewNumber {
+            letter-spacing: 5px;
+            background: white;
+            display: block;
+            border: 0;
+            padding: 0;
+            text-align: center;
+            font-size: 33pt;
+            margin: auto;
+        }
+        select.seledited {
+            color:green;
+        }
+        p.predicted {
+            font-size: 15pt;
+        }
+    </style>
+</head>
+
+<body>
+
+
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light rounded">
+        <a class="navbar-brand" href="#">OCR Moderation</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample09" aria-controls="navbarsExample09" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample09">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="/">Setup</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main">
+        <div style="color: silver;" id="infoBox"></div>
+        <div class="jumbotron">
+            <div class="col-sm-10 mx-auto">
+                <table class="table table-striped" id="npsTable"><tbody/></table>
+                <form>
+                    <input type="submit" name="reset" value="Reset" id="reset" class="btn" />
+                    <input type="submit" name="loadNext" value="Save & Load Next" id="loadNext" class="btn btn-primary" />
+                </form>
+
+            </div>
+        </div>
+    </main>
+</div>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+<script>
+    function drawCat(current, ownoptval, options, label) {
+
+        var p = document.createElement("p");
+        var N = options.length;
+        var select = document.createElement("select");
+        select.dataset.options = ownoptval;
+        select.addEventListener("blur", function(e){
+            if (e.target[e.target.selectedIndex].value != e.target.dataset.options) {
+                e.target.className += " seledited";
+            }
+        });
+
+        var labelOption = document.createElement("option");
+        var text = document.createTextNode(label);
+        labelOption.appendChild(text);
+        labelOption.disabled = "disabled";
+        if (ownoptval == undefined ) {
+            labelOption.selected = "selected";
+        }
+        labelOption.value = 0;
+        select.appendChild(labelOption);
+
+        for (var i=0; i < N; i++) {
+            var option = document.createElement("option");
+            option.value = i;
+            if (ownoptval == i) {
+                option.selected = "selected";
+            }
+            var text = document.createTextNode(options[i]);
+            option.appendChild(text);
+            select.appendChild(option);
+        }
+        p.appendChild(select);
+        current.appendChild(p);
+    }
+    function npH1Redraw(div, disc) {
+        var h1 = document.createElement("h1");
+        var h1Text = document.createTextNode(disc);
+        h1.appendChild(h1Text);
+
+        div.appendChild(h1);
+    }
+
+    function npInputRedraw(div, currentDesc) {
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+        npH1Redraw(div, currentDesc)
+    }
+
+    function buildNewKeyFromMessage(message) {
+        const
+            xArr = message.keypoints.map(v=>v[0]),
+            yArr = message.keypoints.map(v=>v[1]),
+            minX = Math.round(Math.min(...xArr)),
+            minY = Math.round(Math.min(...yArr)),
+            maxX = Math.round(Math.max(...xArr)),
+            maxY = Math.round(Math.max(...yArr))
+        ;
+        return `${message.basename}-${minX}x${minY}-${maxX}x${maxY}`
+    }
+
+    function get_bbox_basename(item) {
+        const
+            basename = item.filename.split('.')[0],
+            xArr = item.all_points_x,
+            yArr = item.all_points_y,
+            minX = Math.round(Math.min(...xArr)),
+            minY = Math.round(Math.min(...yArr)),
+            maxX = Math.round(Math.max(...xArr)),
+            maxY = Math.round(Math.max(...yArr))
+        ;
+        return `${basename}-${minX}x${minY}-${maxX}x${maxY}`
+    }
+
+    function get_container_url(item) {
+        const
+            xArr = item.all_points_x,
+            yArr = item.all_points_y,
+            minX = Math.round(Math.min(...xArr)),
+            minY = Math.round(Math.min(...yArr)),
+            maxX = Math.round(Math.max(...xArr)),
+            maxY = Math.round(Math.max(...yArr))
+        ;
+        // http://localhost:5005/cropViaSrc/p9333507.jpg?left=${minX}&top=${minY}&width=${maxX}&height=${maxY}
+        //return '/cropViaSrc/'+item.filename+`?x1=${minX}&y1=${minY}&x2=${maxX}&y2=${maxY}`
+        return '/cropViaSrc/'+item.filename+`?x=${item.all_points_x.join(',')}&y=${item.all_points_y.join(',')}`
+    }
+
+    function reshape(arr, idx=0) {
+        if (idx == 0) {
+            return arr;
+        }
+        let arr_right = arr.slice(0,idx),
+        arr_left = arr.slice(idx);
+        return arr_left.concat(arr_right);
+    }
+
+    function refresh_preview_images(object, item) {
+        const
+            src_value = item.rotate || "0",
+            value = object.value,
+            filename = item.filename,
+            img_box = object.parentElement.parentElement.firstChild.firstChild,
+            img_container = object.parentElement.parentElement.childNodes[1].firstChild,
+            td0 = object.parentElement.parentElement.childNodes[2]
+        ;
+
+        let xArr = item.all_points_x,
+            yArr = item.all_points_y,
+            x = xArr,
+            y = yArr
+        ;
+        if (src_value != "0") {
+            if (src_value == "-90") {
+                x = reshape(xArr, 1)
+                y = reshape(yArr, 1)
+            } else if (src_value == "90") {
+                x = reshape(xArr, 3)
+                y = reshape(yArr, 3)
+            } else if (src_value == "180") {
+                x = reshape(xArr, 2)
+                y = reshape(yArr, 2)
+            }
+        }
+
+        if (value == "-90") {
+            x = reshape(xArr, 3)
+            y = reshape(yArr, 3)
+        } else if (value == "90") {
+            x = reshape(xArr, 1)
+            y = reshape(yArr, 1)
+        } else if (value == "180") {
+            x = reshape(xArr, 2)
+            y = reshape(yArr, 2)
+        }
+
+        console.log(`src_value: ${src_value}, this.value: ${value}`)
+        if (src_value != value) {
+            if (!td0.classList.contains("edited")) {
+                td0.classList.add("edited");
+            }
+        } else {
+            if (td0.classList.contains("edited")) {
+                td0.classList.remove("edited");
+            }
+        }
+
+        img_container.src = `/cropViaSrc/${filename}?x=${x}&y=${y}`;
+        img_box.src = `/showNormalizedBbox/${filename}?x=${x}&y=${y}`
+    }
+
+    function trBuilderVia(tr, item, response) {
+        const
+            td_box = document.createElement("td"),
+            img_box = document.createElement("img");
+        img_box.src = 'preview/'+get_bbox_basename(item)+'.png?'+Math.random();
+        td_box.appendChild(img_box);
+        tr.appendChild(td_box);
+
+        const
+            td_crop = document.createElement("td"),
+            img_container = document.createElement("img")
+        ;
+        img_container.src = get_container_url(item);
+        //const div_crop = document.createElement("div");
+        //div_crop.id = 'cont_'+get_bbox_basename(item);
+        td_crop.appendChild(img_container);
+        tr.appendChild(td_crop);
+
+        const td0 = document.createElement("td");
+        const select = document.createElement("select");
+        options = {
+            "-90": "90° CCW",
+            "0": "Normal",
+            "90": "90° CW",
+            "180": "180°"
+        }
+        for (const opt_key in options) {
+            var option = document.createElement("option");
+            option.value = opt_key;
+            if (item.rotate !== undefined && item.rotate == opt_key) {
+                option.selected = "selected";
+            }
+            const text = document.createTextNode(options[opt_key]);
+            option.appendChild(text);
+            select.appendChild(option);
+        }
+        const filename_text = document.createTextNode(item.filename);
+        const text = document.createTextNode('Rotate:');
+        td0.appendChild(filename_text)
+        td0.appendChild(document.createElement("br"))
+        td0.appendChild(text)
+        td0.appendChild(select)
+        select.addEventListener("change", function(e) {
+            refresh_preview_images(this, item)
+        })
+
+
+        // td0.className = "optionTD";
+        // for (const opt in response.options) {
+        //     drawCat(td0, item[opt], response.options[opt], opt);
+        // }
+        tr.appendChild(td0);
+
+        const td2 = document.createElement("td");
+        td2.className = "deleteTD";
+        const input2 = document.createElement("input");
+        input2.setAttribute("tabindex", "-1");
+        input2.type = "checkbox";
+        input2.className = "del";
+        input2.title = "Mark for removing";
+
+        td2.appendChild(input2);
+        tr.appendChild(td2);
+        if (!tr.classList.contains("NP")) {
+            tr.classList.add("NP");
+        }
+        tr.id = item.key;
+        tr.dataset.filename=item.filename;
+        tr.dataset.label=item.label;
+        tr.dataset.all_points_x=item.all_points_x;
+        tr.dataset.all_points_y=item.all_points_y;
+        if (item["rotate"] !== undefined) {
+            tr.dataset.rotate=item.rotate;
+        }
+    }
+
+    $( document ).ready(function() {
+        // CONFIG DATA
+        var USER = "defaultUser";
+        var npsTable = document.getElementById("npsTable").firstChild;
+
+        getNewData();
+        function getNewData(user, newdata) {
+            var sendata = {};
+            if (user != undefined) {
+                sendata.who_changed = user;
+            }
+            if (newdata != undefined) {
+                sendata.changed_via_items = newdata;
+            }
+            $.ajax({
+                url: './VIABoxPointsModeration',
+                dataType: 'json',
+                data: sendata,
+                cache: false,
+                type: 'post',
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus);
+                    console.log(errorThrown);
+                },
+                success: function (response) {
+                    const res = response;
+                    console.log('-----------------------')
+                    console.log(response)
+                    USER = res.user;
+                    if (response.message == undefined) {
+                        const expectModeration = response.expectModeration;
+
+                        const infoBox = document.getElementById("infoBox");
+                        const info_p = document.createElement("p");
+                        const info_text = document.createTextNode("Expect moderation: " + expectModeration);
+                        info_p.appendChild(info_text);
+                        while (infoBox.firstChild) {
+                            infoBox.removeChild(infoBox.firstChild);
+                        }
+                        infoBox.appendChild(info_p);
+
+                        const res_data = response.data;
+                        for (const i in res_data) {
+                            const item = res_data[i];
+                            const tr = document.createElement("tr");
+                            trBuilderVia(tr, item, response)
+                            npsTable.appendChild(tr);
+                        }
+
+                        // $("p.predicted i").click(function clickEvent(e){
+                        //     e.preventDefault();
+                        //     let editText = this.parentElement.lastChild.innerText
+                        //     this.parentElement.parentElement.firstChild.firstChild.innerText = editText
+                        //     if (!this.parentElement.parentElement.firstChild.classList.contains('edited')) {
+                        //         this.parentElement.parentElement.firstChild.classList.add('edited');
+                        //     }
+                        //     //console.log(editText);
+                        // })
+
+                        $("input.del").click(function clickEvent(e){
+                            if (e.currentTarget.checked) {
+                                e.currentTarget.parentNode.parentNode.className = "forDelete";
+                            } else {
+                                e.currentTarget.parentNode.parentNode.className = "";
+                            }
+                        });
+
+                    } else {
+                        const infoBox = document.getElementById("infoBox");
+                        const info_p = document.createElement("p");
+                        info_p.className = "warnings";
+                        const info_text = document.createTextNode("Warning: " + response.message);
+                        info_p.appendChild(info_text);
+                        while (infoBox.firstChild) {
+                            infoBox.removeChild(infoBox.firstChild);
+                        }
+                        infoBox.appendChild(info_p);
+                    }
+                }
+            });
+        }
+
+        $("#reset").click(function(e){
+            e.preventDefault();
+            while (npsTable.firstChild) {
+                npsTable.removeChild(npsTable.firstChild);
+            }
+            getNewData();
+            return false;
+        });
+        $("#loadNext").click(function(e){
+            e.preventDefault();
+
+            const trs = document.querySelectorAll("table#npsTable tr");
+            const newdata = [];
+            //console.log('trs')
+            //console.log(trs)
+            for (let tr of trs) {
+                const key = tr.id;
+                //console.log(tr.innerHTML)
+                //console.log(`key: ${key}`)
+                //console.log(`tr.dataset: ${tr.dataset}`)
+
+                const
+                    item_data = {
+                        "key": key,
+                        "filename": tr.dataset.filename,
+                        "all_points_x": tr.dataset.all_points_x,
+                        "all_points_y": tr.dataset.all_points_y,
+                        "rotate": tr.childNodes[2].lastChild.value,
+                        "deleted": tr.lastChild.firstChild.checked ? 1 : 0
+                    }
+                ;
+                newdata.push(item_data);
+            }
+            while (npsTable.firstChild) {
+                npsTable.removeChild(npsTable.firstChild);
+            }
+            getNewData(USER, newdata);
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

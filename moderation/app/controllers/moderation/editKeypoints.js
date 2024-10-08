@@ -19,7 +19,7 @@ function centrify(zone, imgInfo, container) {
         container.width = w
     }
     if (h>container.height) {
-        container.width = h
+        container.height = h
     }
     container.w = w;
     container.h = h;

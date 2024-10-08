@@ -22,6 +22,10 @@ module.exports = {
         partDirs: ['train', 'val']
     },
     moderation: {
+        VIABoxPointsModeration: {
+            base_json: "/mnt/sdd1/datasets/via_add_eu_mlines_all/via_region_data.json",
+            boxes_preview_dir: "/mnt/sdd1/datasets/via_add_eu_mlines_all_boxes/preview"
+        },
         regionOCRModeration: {
             base_dir: "/var/www/nomeroff-net/datasets/options/option_zero",
             options: {

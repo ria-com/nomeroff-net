@@ -7,6 +7,14 @@ from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools im
 from nomeroff_net.pipes.number_plate_classificators.orientation_detector import OrientationDetector
 from .image_processing import reshape_points
 
+from nomeroff_net.tools.image_processing import (fline,
+                                                 distance,
+                                                 linear_line_matrix,
+                                                 find_distances,
+                                                 fix_clockwise2,
+                                                 find_min_x_idx,
+                                                 detect_intersection,
+                                                 reshape_points)
 
 def check_blurriness(image: np.ndarray, threshold=5.0) -> bool:
     # Переводимо зображення в градації сірого в залежності від кількості каналів
@@ -22,6 +30,33 @@ def check_blurriness(image: np.ndarray, threshold=5.0) -> bool:
     # Перевіряємо, чи менше варіація від порогу
     return laplacian_var < threshold
 
+def find_first_point_index(rect, point):
+    for i, item in enumerate(rect):
+        if item[0] == point[0] and item[1] == point[1]:
+            return i
+    return None
+
+
+
+def check_clockwise_rect(rect):
+    rect_clockwise = fix_clockwise2(rect)
+    idx = find_first_point_index(rect_clockwise, rect[0])
+    rect_clockwise = reshape_points(rect_clockwise, idx)
+    for i, item in enumerate(rect):
+        if item[0] == rect_clockwise[i][0] and item[1] == rect_clockwise[i][1]:
+            pass
+        else:
+            return False
+    return True
+
+def check_normalized_rect(rect):
+    rect_norm = normalize_rect_new(rect)
+    for i, item in enumerate(rect):
+        if item[0] == rect_norm[i][0] and item[1] == rect_norm[i][1]:
+            pass
+        else:
+            return False
+    return True
 
 class VIABoxes:
     def __init__(self,
@@ -32,11 +67,11 @@ class VIABoxes:
         self.via_dateset = VIADataset(label_type="radio", verbose=verbose)
         self.via_dateset.load_from_via_file(dataset_json)
         self.debug = verbose
-        self.numberplate_orientation_0_180 = OrientationDetector(classes={'0': 0, '180': 1})
-        self.numberplate_orientation_0_180.load("modelhub://numberplate_orientation_0_180")
-
-        self.numberplate_orientation_0_180__90_270 = OrientationDetector(classes={'0-180': 0, '90-270': 1})
-        self.numberplate_orientation_0_180__90_270.load("modelhub://numberplate_orientation_0-180_90-270")
+        # self.numberplate_orientation_0_180 = OrientationDetector(classes={'0': 0, '180': 1})
+        # self.numberplate_orientation_0_180.load("modelhub://numberplate_orientation_0_180")
+        #
+        # self.numberplate_orientation_0_180__90_270 = OrientationDetector(classes={'0-180': 0, '90-270': 1})
+        # self.numberplate_orientation_0_180__90_270.load("modelhub://numberplate_orientation_0-180_90-270")
 
     @staticmethod
     def get_keypoints(region):
@@ -46,6 +81,17 @@ class VIABoxes:
         for x, y in zip(all_points_x, all_points_y):
             keypoints.append((x, y))
         return keypoints
+
+    @staticmethod
+    def set_keypoints(region, keypoints):
+        all_points_x = []
+        all_points_y = []
+        for keypoint in keypoints:
+            all_points_x.append(round(keypoint[0]))
+            all_points_y.append(round(keypoint[1]))
+        region["shape_attributes"]["all_points_x"] = all_points_x
+        region["shape_attributes"]["all_points_y"] = all_points_y
+        return region
 
     @staticmethod
     def get_bbox_basename(prefix, bbox):
@@ -71,10 +117,179 @@ class VIABoxes:
 
         return aligned_img
 
+
+    def fix_denormalized_via_boxes(self, target_dir='./',
+                               flag_dir=None,
+                               filtered_classes=None,
+                               w=300, h=100, min_h=20, min_w=60
+                               ):
+        fix_denormalized = False
+        if filtered_classes is None:
+            filtered_classes = ["numberplate"]
+        for key in tqdm(self.via_dateset.data['_via_img_metadata'], desc="Processing"):
+            item = self.via_dateset.data['_via_img_metadata'][key]
+            #print(f"Processing \"{item['filename']}\"")
+            filename = os.path.join(self.dataset_dir, item['filename'])
+            if os.path.exists(filename):
+                basename = item['filename'].split('.')[0]
+                image = cv2.imread(filename)
+                regions = []
+                for region in item["regions"]:
+                    #target_boxes_path = os.path.join(target_dir, os.path.basename(filename))
+                    #cv2.imwrite(moderation_img_path, image)
+
+                    if (region["shape_attributes"]["name"] == "polygon"
+                            and region["region_attributes"]["label"] in filtered_classes):
+                        #print(region["region_attributes"]["label"])
+                        keypoints = VIABoxes.get_keypoints(region)
+                        min_x_box = round(min([keypoint[0] for keypoint in keypoints]))
+                        min_y_box = round(min([keypoint[1] for keypoint in keypoints]))
+                        max_x_box = round(max([keypoint[0] for keypoint in keypoints]))
+                        max_y_box = round(max([keypoint[1] for keypoint in keypoints]))
+                        bbox = [min_x_box, min_y_box, max_x_box, max_y_box]
+                        box_w = max_x_box-min_x_box
+                        box_h = max_y_box-min_y_box
+                        bbox_filename = VIABoxes.get_bbox_filename(basename, bbox)
+                        bbox_path = os.path.join(target_dir, bbox_filename)
+                        if flag_dir is None or os.path.exists(os.path.join(flag_dir, bbox_filename)):
+                            #if not check_clockwise_rect(keypoints):
+                            if not check_normalized_rect(keypoints):
+                                keypoints = normalize_rect_new(keypoints)
+                                print(f'Fixed normalized points for file {bbox_filename}')
+                                VIABoxes.set_keypoints(region, keypoints)
+                                fix_denormalized = True
+                                bbox_image = VIABoxes.get_aligned_image(image, keypoints, shift=0, w=w, h=h)
+                                cv2.imwrite(bbox_path, bbox_image)
+        if fix_denormalized:
+            self.via_dateset.write_via(self.dataset_json)
+
+    def fix_checked_via_boxes(self, checked_dir=None):
+        fix_via = False
+        if checked_dir is None:
+            return
+
+        for key in tqdm(self.via_dateset.data['_via_img_metadata'], desc="Processing"):
+            item = self.via_dateset.data['_via_img_metadata'][key]
+            #print(f"Processing \"{item['filename']}\"")
+            filename = os.path.join(self.dataset_dir, item['filename'])
+            if os.path.exists(filename):
+                basename = item['filename'].split('.')[0]
+                for region in item["regions"]:
+                    if (region["shape_attributes"]["name"] == "polygon"):
+                        keypoints = VIABoxes.get_keypoints(region)
+                        min_x_box = round(min([keypoint[0] for keypoint in keypoints]))
+                        min_y_box = round(min([keypoint[1] for keypoint in keypoints]))
+                        max_x_box = round(max([keypoint[0] for keypoint in keypoints]))
+                        max_y_box = round(max([keypoint[1] for keypoint in keypoints]))
+                        bbox = [min_x_box, min_y_box, max_x_box, max_y_box]
+                        bbox_filename = VIABoxes.get_bbox_filename(basename, bbox)
+                        bbox_path_checked = os.path.join(checked_dir, bbox_filename)
+                        if os.path.exists(bbox_path_checked):
+                            region["shape_attributes"]["checked"] = True
+                            fix_via = True
+        if fix_via:
+            self.via_dateset.write_via(self.dataset_json)
+
+
+    def fix_clockwise_via_boxes(self, target_dir='./',
+                               flag_dir=None,
+                               filtered_classes=None,
+                               w=300, h=100, min_h=20, min_w=60
+                               ):
+        fix_clockwise = False
+        if filtered_classes is None:
+            filtered_classes = ["numberplate"]
+        for key in tqdm(self.via_dateset.data['_via_img_metadata'], desc="Processing"):
+            item = self.via_dateset.data['_via_img_metadata'][key]
+            #print(f"Processing \"{item['filename']}\"")
+            filename = os.path.join(self.dataset_dir, item['filename'])
+            if os.path.exists(filename):
+                basename = item['filename'].split('.')[0]
+                image = cv2.imread(filename)
+                regions = []
+                for region in item["regions"]:
+                    #target_boxes_path = os.path.join(target_dir, os.path.basename(filename))
+                    #cv2.imwrite(moderation_img_path, image)
+
+                    if (region["shape_attributes"]["name"] == "polygon"
+                            and region["region_attributes"]["label"] in filtered_classes):
+                        #print(region["region_attributes"]["label"])
+                        keypoints = VIABoxes.get_keypoints(region)
+                        min_x_box = round(min([keypoint[0] for keypoint in keypoints]))
+                        min_y_box = round(min([keypoint[1] for keypoint in keypoints]))
+                        max_x_box = round(max([keypoint[0] for keypoint in keypoints]))
+                        max_y_box = round(max([keypoint[1] for keypoint in keypoints]))
+                        bbox = [min_x_box, min_y_box, max_x_box, max_y_box]
+                        box_w = max_x_box-min_x_box
+                        box_h = max_y_box-min_y_box
+                        bbox_filename = VIABoxes.get_bbox_filename(basename, bbox)
+                        bbox_path = os.path.join(target_dir, bbox_filename)
+                        if flag_dir is None or os.path.exists(os.path.join(flag_dir, bbox_filename)):
+                            if not check_clockwise_rect(keypoints):
+                                keypoints = normalize_rect_new(keypoints)
+                                print(f'Fixed clockwise for file {bbox_filename}')
+                                VIABoxes.set_keypoints(region, keypoints)
+                                fix_clockwise = True
+                                bbox_image = VIABoxes.get_aligned_image(image, keypoints, shift=0, w=w, h=h)
+                                cv2.imwrite(bbox_path, bbox_image)
+        if fix_clockwise:
+            self.via_dateset.write_via(self.dataset_json)
+            pass
+
+
+    def make_cropped_via_boxes(self, target_dir='./',
+                               target_file=None,
+                               filtered_classes=None,
+                               w=300, h=100, min_h=20, min_w=60
+                               ):
+        if filtered_classes is None:
+            filtered_classes = ["numberplate"]
+        items = self.via_dateset.data['_via_img_metadata']
+        if target_file is not None:
+            items = {}
+            for key in self.via_dateset.data['_via_img_metadata']:
+                item = self.via_dateset.data['_via_img_metadata'][key]
+                if item['filename'] == target_file:
+                    items[key] = item
+                    break
+
+        for key in tqdm(items, desc="Processing"):
+            item = self.via_dateset.data['_via_img_metadata'][key]
+            #tqdm.set_description(f"Processing (custom: {custom_param})")
+            #tqdm.set_postfix(custom_param=item['filename'])
+            #print(f"Processing \"{item['filename']}\"")
+            filename = os.path.join(self.dataset_dir, item['filename'])
+            if os.path.exists(filename):
+                basename = item['filename'].split('.')[0]
+                image = cv2.imread(filename)
+                regions = []
+                for region in item["regions"]:
+                    #target_boxes_path = os.path.join(target_dir, os.path.basename(filename))
+                    #cv2.imwrite(moderation_img_path, image)
+
+                    if (region["shape_attributes"]["name"] == "polygon"
+                            and region["region_attributes"]["label"] in filtered_classes):
+                        #print(region["region_attributes"]["label"])
+                        keypoints = VIABoxes.get_keypoints(region)
+                        min_x_box = round(min([keypoint[0] for keypoint in keypoints]))
+                        min_y_box = round(min([keypoint[1] for keypoint in keypoints]))
+                        max_x_box = round(max([keypoint[0] for keypoint in keypoints]))
+                        max_y_box = round(max([keypoint[1] for keypoint in keypoints]))
+                        bbox = [min_x_box, min_y_box, max_x_box, max_y_box]
+                        box_w = max_x_box-min_x_box
+                        box_h = max_y_box-min_y_box
+                        bbox_filename = VIABoxes.get_bbox_filename(basename, bbox)
+
+                        bbox_image = VIABoxes.get_aligned_image(image, keypoints, shift=0, w=w, h=h)
+
+                        bbox_path = os.path.join(target_dir, bbox_filename)
+                        cv2.imwrite(bbox_path, bbox_image)
+
+
     def make_transformed_boxes(self, target_dir='./',
                                moderation_bbox_dir=None,
                                moderation_image_dir=None,
-                               wrong_shift_strategy="rotate",  # may by: "rotate", "moderate"
+                               wrong_shift_strategy="rotate",  # may be: "rotate", "moderate"
                                filtered_classes=None,
                                w=300, h=100, min_h=20, min_w=60,
                                ):
