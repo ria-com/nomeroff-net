@@ -16,6 +16,7 @@ from nomeroff_net.tools.image_processing import (fline,
                                                  detect_intersection,
                                                  reshape_points)
 
+
 def check_blurriness(image: np.ndarray, threshold=5.0) -> bool:
     # Переводимо зображення в градації сірого в залежності від кількості каналів
     if len(image.shape) == 3:  # 3 канали (RGB)
@@ -29,6 +30,7 @@ def check_blurriness(image: np.ndarray, threshold=5.0) -> bool:
 
     # Перевіряємо, чи менше варіація від порогу
     return laplacian_var < threshold
+
 
 def find_first_point_index(rect, point):
     for i, item in enumerate(rect):
@@ -49,6 +51,7 @@ def check_clockwise_rect(rect):
             return False
     return True
 
+
 def check_normalized_rect(rect):
     rect_norm = normalize_rect_new(rect)
     for i, item in enumerate(rect):
@@ -57,6 +60,7 @@ def check_normalized_rect(rect):
         else:
             return False
     return True
+
 
 class VIABoxes:
     def __init__(self,
@@ -117,11 +121,10 @@ class VIABoxes:
 
         return aligned_img
 
-
     def fix_denormalized_via_boxes(self, target_dir='./',
-                               flag_dir=None,
-                               filtered_classes=None,
-                               w=300, h=100, min_h=20, min_w=60
+                                   flag_dir=None,
+                                   filtered_classes=None,
+                                   w=300, h=100, min_h=20, min_w=60, checked_only=True
                                ):
         fix_denormalized = False
         if filtered_classes is None:
@@ -153,7 +156,7 @@ class VIABoxes:
                         bbox_path = os.path.join(target_dir, bbox_filename)
                         if flag_dir is None or os.path.exists(os.path.join(flag_dir, bbox_filename)):
                             #if not check_clockwise_rect(keypoints):
-                            if not check_normalized_rect(keypoints):
+                            if not check_normalized_rect(keypoints) or not checked_only:
                                 keypoints = normalize_rect_new(keypoints)
                                 print(f'Fixed normalized points for file {bbox_filename}')
                                 VIABoxes.set_keypoints(region, keypoints)
@@ -191,26 +194,25 @@ class VIABoxes:
         if fix_via:
             self.via_dateset.write_via(self.dataset_json)
 
-
     def fix_clockwise_via_boxes(self, target_dir='./',
-                               flag_dir=None,
-                               filtered_classes=None,
-                               w=300, h=100, min_h=20, min_w=60
-                               ):
+                                flag_dir=None,
+                                filtered_classes=None,
+                                w=300, h=100, min_h=20, min_w=60
+                                ):
         fix_clockwise = False
         if filtered_classes is None:
             filtered_classes = ["numberplate"]
         for key in tqdm(self.via_dateset.data['_via_img_metadata'], desc="Processing"):
             item = self.via_dateset.data['_via_img_metadata'][key]
-            #print(f"Processing \"{item['filename']}\"")
+            # print(f"Processing \"{item['filename']}\"")
             filename = os.path.join(self.dataset_dir, item['filename'])
             if os.path.exists(filename):
                 basename = item['filename'].split('.')[0]
                 image = cv2.imread(filename)
                 regions = []
                 for region in item["regions"]:
-                    #target_boxes_path = os.path.join(target_dir, os.path.basename(filename))
-                    #cv2.imwrite(moderation_img_path, image)
+                    # target_boxes_path = os.path.join(target_dir, os.path.basename(filename))
+                    # cv2.imwrite(moderation_img_path, image)
 
                     if (region["shape_attributes"]["name"] == "polygon"
                             and region["region_attributes"]["label"] in filtered_classes):
@@ -236,7 +238,6 @@ class VIABoxes:
         if fix_clockwise:
             self.via_dateset.write_via(self.dataset_json)
             pass
-
 
     def make_cropped_via_boxes(self, target_dir='./',
                                target_file=None,
@@ -285,7 +286,6 @@ class VIABoxes:
 
                         bbox_path = os.path.join(target_dir, bbox_filename)
                         cv2.imwrite(bbox_path, bbox_image)
-
 
     def make_transformed_boxes(self, target_dir='./',
                                moderation_bbox_dir=None,

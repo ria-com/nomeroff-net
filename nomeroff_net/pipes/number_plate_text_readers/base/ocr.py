@@ -1,5 +1,5 @@
 """
-python3 -m nomeroff_net.text_detectors.base.ocr -f nomeroff_net/text_detectors/base/ocr.py
+python3 -m nomeroff_net.pipes.number_plate_text_readers.base.ocr -f nomeroff_net/text_detectors/base/ocr.py
 """
 import os
 import io

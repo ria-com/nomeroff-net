@@ -2,7 +2,7 @@
 """
 RUN EXAMPLE:
 
-python3.9 -W ignore visualize_via_boxes.py -dataset_json /path/to/via_region_data.json \
+python3.9 -W ignore fix_denormalized_via_boxes.py -dataset_json /path/to/via_region_data.json \
                       -target_dir /path/to/target_directory
 """
 
@@ -30,13 +30,13 @@ debug = args.debug
 
 via_boxes = VIABoxes(dataset_json, debug)
 via_boxes.fix_denormalized_via_boxes(target_dir=target_dir,
-                                 flag_dir=flag_dir,
-                                 filtered_classes=[
-                                     "numberplate",
-                                     "brand_numberplate",
-                                     "filled_numberplate",
-                                     "empty_numberplate"
-                                 ])
+                                     flag_dir=flag_dir,
+                                     filtered_classes=[
+                                         "numberplate",
+                                         "brand_numberplate",
+                                         "filled_numberplate",
+                                         "empty_numberplate"
+                                     ])
 # via_boxes.make_transformed_boxes(target_dir=target_dir,
 #                                  moderation_bbox_dir=moderation_bbox_dir,
 #                                  moderation_image_dir=moderation_image_dir,

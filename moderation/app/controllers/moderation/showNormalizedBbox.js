@@ -29,6 +29,8 @@ module.exports = async function(ctx, next) {
     ;
     console.log(`${cmd}`)
     const { stdout, stderr } = await exec(cmd)
+    console.log("stdout", stdout)
+    console.log("stderr", stderr)
     const
         bbox_path = path.join(boxes_preview_dir, get_bbox_filename(filename,xArr,yArr))
         image = await Jimp.read(bbox_path)
