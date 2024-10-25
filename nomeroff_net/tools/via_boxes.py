@@ -125,7 +125,7 @@ class VIABoxes:
                                    flag_dir=None,
                                    filtered_classes=None,
                                    w=300, h=100, min_h=20, min_w=60, checked_only=True
-                               ):
+                                   ):
         fix_denormalized = False
         if filtered_classes is None:
             filtered_classes = ["numberplate"]

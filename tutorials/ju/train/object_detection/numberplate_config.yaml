@@ -1,0 +1,10 @@
+# Train/val/test sets
+path: ./
+train: ./images/train
+val: ./images/val
+
+# Classes
+nc: 1  # number of classes
+names: [ "numberplate" ]  # class names
+
+kpt_shape: [4, 2]  # number of keypoints, number of dims (2 for x,y or 3 for x,y,visible)

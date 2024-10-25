@@ -39,7 +39,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
                  default_lines_count: int = 1,
                  number_plate_localization_class: Pipeline = DefaultNumberPlateLocalization,
                  number_plate_localization_detector=None,
-                 upscaling=True,
+                 upscaling=False,
                  **kwargs):
         """
         init NumberPlateDetectionAndReading Class

@@ -13,7 +13,7 @@ class Detector:
     def get_classname(cls: object) -> str:
         return cls.__name__
 
-    def __init__(self, numberplate_classes=None, yolo_model_type='yolov8x') -> None:
+    def __init__(self, numberplate_classes=None, yolo_model_type='yolov11x') -> None:
         self.model = None
         self.numberplate_classes = ["numberplate"]
         if numberplate_classes is not None:

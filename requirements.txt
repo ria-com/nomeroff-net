@@ -20,7 +20,7 @@ ipywidgets
 gevent
 termcolor
 scikit-learn
-ultralytics
+ultralytics>=8.3.12
 albumentations
 
 # git repos

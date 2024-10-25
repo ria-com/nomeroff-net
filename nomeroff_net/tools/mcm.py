@@ -56,6 +56,8 @@ model_config_urls = [
     "https://models.vsp.net.ua/config_model/nomeroff-net/ocr/su_2lines/model-efficientnet_b2-1.json",
 
     # object detection
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov11/model-x-1.json",
+    "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov11_brand_np/model-x-1.json",
     "https://models.vsp.net.ua/config_model/nomeroff-net/np-detector/yolov8/model-x-1.json",
 
     # orientation classificator

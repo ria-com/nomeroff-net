@@ -43,7 +43,7 @@ from nomeroff_net.tools import unzip
 from nomeroff_net.tools.mcm import modelhub
 from nomeroff_net.pipelines.number_plate_text_reading import NumberPlateTextReading
 from numberplate_formats import fromats_parse
-model_info = modelhub.download_model_by_name('yolov8x')
+model_info = modelhub.download_model_by_name('yolov11x')
 
 # Load last model
 model = YOLO(model_info['path'])  # load a custom model

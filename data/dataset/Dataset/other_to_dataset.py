@@ -35,7 +35,7 @@ up = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
 # load nomeroff net models
 classifiactor = OptionsDetector()
 _ = classifiactor.load("latest")
-model_info = modelhub.download_model_by_name('yolov8x')
+model_info = modelhub.download_model_by_name('yolov11x')
 model = YOLO(model_info['path'])
 # orientation_detector = OrientationDetector()
 # orientation_detector.load()

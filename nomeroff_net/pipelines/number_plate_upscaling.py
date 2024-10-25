@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline
 from nomeroff_net.tools import unzip
-from upscaler import HAT
 from nomeroff_net.tools.mcm import get_device_torch
 
 
@@ -16,6 +15,8 @@ class NumberPlateUpscaling(Pipeline):
                  task,
                  image_loader: Optional[Union[str, BaseImageLoader]],
                  **kwargs):
+        from upscaler import HAT
+
         super().__init__(task, image_loader, **kwargs)
         device_torch = get_device_torch()
         self.model = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
