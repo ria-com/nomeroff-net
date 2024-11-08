@@ -29,7 +29,7 @@ Write to us if you are interested in helping us in the formation of a dataset fo
 
 ### Installation from Source (Linux)
 
-Nomeroff Net requires Python >= 3.7
+Nomeroff Net requires Python >= 3.9
 
 Clone Project
 ```bash
@@ -69,7 +69,7 @@ apt-get install -y libglib2.0
 apt-get install -y libgl1-mesa-glx
 
 # for pycocotools install (Check the name of the dev-package for your python3)
-apt-get install python3.7-dev
+apt-get install python3.9-dev
 
 # other packages
 apt-get install -y git

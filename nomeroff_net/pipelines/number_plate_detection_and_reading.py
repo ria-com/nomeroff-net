@@ -20,6 +20,8 @@ from nomeroff_net.tools.image_processing import (crop_number_plate_zones_from_im
                                                  crop_number_plate_roi_zones_from_images,
                                                  group_by_image_ids)
 from nomeroff_net.tools import unzip
+from nomeroff_net.pipes.number_plate_keypoints_detectors.bbox_np_points_tools import (normalize_rect_new,
+                                                                                      normalize_rect)
 
 
 class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
@@ -115,6 +117,7 @@ class NumberPlateDetectionAndReading(Pipeline, CompositePipeline):
         orig_images_points = [[bbox[-1] for bbox in bboxs] for bboxs in images_bboxs]
         # crop roi
         zones, image_ids, images_points = crop_number_plate_roi_zones_from_images(images, images_bboxs)
+        images_points = list([normalize_rect_new(image_points) for image_points in images_points])
         # upscaling
         if self.number_plate_upscaling is not None:
             zones, images_points = unzip(self.number_plate_upscaling(zip(zones, images_points)))

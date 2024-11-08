@@ -74,7 +74,7 @@ DEFAULT_PRESETS = {
         "model_path": "latest"
     },
     "su_2lines_efficientnet_b2": {
-        "for_regions": ["su"],
+        "for_regions": ["su", "military"],
         "for_count_lines": [2, 3],
         "model_path": "latest"
     }

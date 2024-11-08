@@ -1,7 +1,7 @@
 4.0.0 / 2024-06-21
 ==================
   **added**
-  * The new yolov8 model is trained with bbox and the key 4 points of the license plate instead of the yolo+craft
+  * The new yolov8 and yolov11 model is trained with bbox and the key 4 points of the license plate instead of the yolo+craft
   * Upscaling model for license plates with low resolution https://github.com/ria-com/upscaler/tree/main
 
   **updates**
