@@ -1,53 +1,48 @@
-# nVidia TensorRT Base Image
-ARG TRT_CONTAINER_VERSION=23.01
-FROM nvcr.io/nvidia/pytorch:${TRT_CONTAINER_VERSION}-py3
+# Використання базового образу TensorRT із PyTorch
+FROM nvcr.io/nvidia/pytorch:24.10-py3
 
-ENV DEBIAN_FRONTEND noninteractive
-ENV TZ=Europe/Kiev
+# Налаштування таймзони
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Europe/Kiev
+
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN mkdir -p /var/www
-WORKDIR /var/www
+# Оновлення та встановлення необхідних системних залежностей
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libglib2.0-0 \
+    libsm6 \
+    libfontconfig1 \
+    libxrender1 \
+    libxtst6 \
+    libgl1-mesa-glx \
+    libturbojpeg \
+    git \
+    python3-setuptools \
+    python3-wheel \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
+# Оновлення pip
+RUN python3 -m pip install --upgrade pip
 
-# For opencv
-RUN apt-get install -y libglib2.0
-RUN apt-get install -y git
-RUN apt install libgl1-mesa-glx -y
+# Робоча директорія для проекту
+WORKDIR /project
 
-# turbojpeg
-RUN apt-get install -y libturbojpeg
+# Встановлення залежностей із pip
+RUN python3 -m pip install cython setuptools numpy scikit_image asyncio gitpython pycocotools ujson pillow tqdm matplotlib scipy seaborn ipywidgets gevent termcolor scikit-learn albumentations
 
-RUN pip install --upgrade pip
-RUN pip install pillow==8.0.1
-RUN pip install setuptools
-RUN pip install "PyYAML>=5.3"
-RUN pip install "numpy==1.23.5"
-RUN pip install scikit_image
-RUN pip install Cython
-RUN pip install matplotlib
-RUN pip install seaborn
-RUN pip install gevent
+# Встановлення PyCUDA для роботи з TensorRT
+RUN python3 -m pip install pycuda
 
-RUN pip install opencv_python
-RUN pip install albumentations
-RUN pip install pillow
-RUN pip install scipy
-RUN pip install asyncio
-RUN pip install GitPython
-RUN pip install gevent
-RUN pip install pycocotools
-RUN pip install tqdm
-RUN pip install termcolor
-RUN pip install ujson
-RUN pip install "pytorch_lightning==1.8.6"
-RUN python3 -m pip install "ultralytics==8.0.45"
-RUN pip install ipywidgets
-RUN pip install setuptools
-RUN pip install -U "git+https://github.com/lilohuang/PyTurboJPEG.git"
-RUN pip install -U "git+https://github.com/ria-com/modelhub-client.git"
+# Встановлення Ultralytics і PyTorch Lightning
+RUN python3 -m pip install "ultralytics>=8.3.12" "pytorch_lightning==1.8.6" "opencv_python==4.8.0.74"  "opencv-python-headless==4.8.0.74" "numpy==1.*"
 
-RUN pip install pycuda
+# Встановлення залежностей із репозиторіїв git
+RUN python3 -m pip install "git+https://github.com/ria-com/upscaler.git"
+RUN python3 -m pip install "git+https://github.com/ria-com/craft-text-detector.git"
+RUN python3 -m pip install "git+https://github.com/lilohuang/PyTurboJPEG.git"
+RUN python3 -m pip install "git+https://github.com/ria-com/modelhub-client.git"
 
-WORKDIR /var/www/nomeroff-net
+# Робоча директорія для проекту
+WORKDIR /project/nomeroff-net

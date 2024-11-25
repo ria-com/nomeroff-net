@@ -1,6 +1,6 @@
 cython
 setuptools
-numpy==1.23.5
+numpy
 opencv_python
 scikit_image
 asyncio

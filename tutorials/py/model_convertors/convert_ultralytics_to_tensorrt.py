@@ -15,6 +15,11 @@ from nomeroff_net.tools.mcm import modelhub, get_device_name
 
 def parse_args():
     ap = argparse.ArgumentParser()
+    ap.add_argument("-m", "--model",
+                    default="yolov11x",
+                    required=False,
+                    type=str,
+                    help="Model name")
     ap.add_argument("-f", "--filepath",
                     default=os.path.join(os.path.abspath(os.getcwd()),
                                          "../../../data/model_repository/yolov8s/1/model.engine"),
@@ -34,6 +39,7 @@ def main():
     args = parse_args()
     print(args)
     model_filepath = args["filepath"]
+    model_name = args["model"]
     device = args["device"]
     # make dirs
     p = pathlib.Path(os.path.dirname(model_filepath))
@@ -45,7 +51,7 @@ def main():
     print(f"device_name: {device_name}")
     print("=========================================")
 
-    model_info = modelhub.download_model_by_name("yolov8_brand_np")
+    model_info = modelhub.download_model_by_name(model_name)
     path_to_model = model_info["path"]
     print(f'yolo mode=export model={path_to_model} format=trt device={device} half;')
     res = path_to_model.replace(".pt", ".engine") # f"_{device_name}.engine"

@@ -39,7 +39,7 @@ setup(name='nomeroff-net',
         "Operating System :: OS Independent",
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
       ],
-      keywords='ai nomeroffnet yolov5 craft ocr rnn opensource license number plate recognition '
+      keywords='ai nomeroffnet yolo11 yolov8 ocr rnn opensource license number plate recognition '
                'licenseplate numberplate license-plate number-plate ria-com ria.com ria',
       url='https://github.com/ria-com/nomeroff-net',
       author='Dmytro Probachay, Oleg Cherniy',
@@ -49,5 +49,5 @@ setup(name='nomeroff-net',
       install_requires=required_pkgs,
       dependency_links=required_repos,
       include_package_data=True,
-      python_requires='>=3.7',
+      python_requires='>=3.9',
       zip_safe=False)
