@@ -67,6 +67,12 @@ model_config_urls = [
 
 ]
 
+
+# Add URLs from environment variable
+additional_urls = os.environ.get("ADDITIONAL_MODEL_CONFIG_URLS", "")
+if additional_urls:
+    model_config_urls.extend(additional_urls.split(","))
+
 # initial
 local_storage = os.environ.get('LOCAL_STORAGE', os.path.join(os.path.dirname(__file__), "../../data"))
 modelhub = ModelHub(model_config_urls=model_config_urls,
