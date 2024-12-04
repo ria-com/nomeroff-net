@@ -12,7 +12,7 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 <li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
 </ul>
 
-<img src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/Shelling_of_civilians_in_Ukraine.jpeg?raw=true" alt="Russian troops shelling of civilians in Ukraine. Donbass. Kostyantynivka. 09.07.2022"/>
+<img src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/russian_invasion_of_Ukraine.Pokrovsk.jpeg?raw=true" alt="Russian invasion in Ukraine. Donetsk region. Pokrovsk. 20.09.2024"/>
 Photo: Konstantin Liberov https://www.instagram.com/libkos/
 </blockquote>
 
