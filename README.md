@@ -186,5 +186,5 @@ Contributions to this repository are welcome. Examples of things you can contrib
   * [GitHub repository](https://github.com/ria-com/nomeroff-net)
   * [Numberplate recognition. Practical guide. Part 1 (in Russian)](https://habr.com/ru/post/432444/)
   * [Numberplate recognition. As we got 97% accuracy for Ukrainian numbers. Part 2 (in Russian)](https://habr.com/ru/post/439330/)
-  * [VIN OCR](https://ai.ria.com/VIN-OCR)
-  * [ANPR/ALPR Nomeroff Net Professional](https://ai.ria.com/ANPR-NomeroffNetProfessional)
+  * [VIN RIAder (VIN OCR)](https://ai.ria.com/en/vin-riader)
+  * [Numplate RIAder: (ANPR/ALPR)](https://ai.ria.com/en/numplate-riader)
