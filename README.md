@@ -121,13 +121,13 @@ print(texts)
 <br><a href="https://github.com/ria-com/nomeroff-net/tree/master/examples">More Examples</a>
 
 
-## Nomeroff Net Professional
+## Numplate RIAder
 
-If you don't want to install and configure the Nomeroff Net programmed code for your own tasks or if your client hardware does not have enough resources to run a service that requires ML computing, you can use our commercial [API Nomeroff Net Professional](https://ai.ria.com/ANPR-NomeroffNetProfessional), which allows you to perform recognition remotely on the [RIA.com Сompany](https://ria.company) servers.
+If you don't want to install and configure the Nomeroff Net programmed code for your own tasks or if your client hardware does not have enough resources to run a service that requires ML computing, you can use our commercial [Numplate RIAder API](https://ai.ria.com/en/numplate-riader), which allows you to perform recognition remotely on the [RIA.com Сompany](https://ria.company) servers.
 
-The Nomeroff Net Professional API is based on the open source Nomeroff Net engine, with commercial modifications aimed mainly at using improved models that can produce better results in photos with poor image quality.
+The Numplate RIAder API is based on the open source Nomeroff Net engine, with commercial modifications aimed mainly at using improved models that can produce better results in photos with poor image quality.
 
-Right now you can try [ALPR/ANPR Nomeroff Net Professional Demo](https://ai.ria.com/ANPR-NomeroffNetProfessional#ANPR-demo) for free.
+Right now you can try [ALPR/ANPR Numplate RIAder Demo](https://ai.ria.com/en/numplate-riader#ANPR-demo) for free.
 
 ## Online Demo
 In order to evaluate the quality of work of Nomeroff Net without spending time on setting up and installing, we made an online form in which you can upload your photo and get the [recognition result online](https://nomeroff.net.ua/onlinedemo.html)
