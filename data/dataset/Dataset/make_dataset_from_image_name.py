@@ -607,7 +607,7 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         # Apply the perspective transformation to the image
                         aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
 
-                    predicted_lines = reader.predict(aligned_img, region_names, count_lines)
+                    predicted_lines = reader.predict(aligned_img, count_lines, region_names)
                     parsed_numberplate, numberplate_lines, punctuation_np_lines = fromats_parse[parse_fromat](
                         numberplate,
                         count_line=count_lines[0])
@@ -655,8 +655,8 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
 
 
 if __name__ == "__main__":
-    create_dataset(img_dir="/mnt/datasets/nomeroff-net/platesmania/src/ua-di/*",
-                   target_dataset="/mnt/datasets/nomeroff-net/platesmania/ua-di-dataset",
+    create_dataset(img_dir="/mnt/datasets/nomeroff-net/example/*",
+                   target_dataset="/mnt/datasets/nomeroff-net/dataset",
                    parse_fromat="default",
                    count_hyphens=1,
                    min_count_line=0,
