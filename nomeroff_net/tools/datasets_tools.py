@@ -152,9 +152,13 @@ def auto_number_grab(root_dir, res_dir, replace_template=None, csv_dataset_path=
     number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader=image_loader,
                                                   **kwargs)
 
-    photos = pd.DataFrame(columns=['photoId'])
+    photos = pd.DataFrame(columns=['photoId', 'npText'])
     if csv_dataset_path is not None:
-        photos = pd.read_csv(csv_dataset_path)
+        photos = pd.read_csv(
+            csv_dataset_path,
+            usecols=['photoId', 'npText'],
+            dtype={'photoId': int, 'npText': str}
+        )
         photos = photos.set_index(['photoId'])
 
     if os.path.exists(res_dir):
