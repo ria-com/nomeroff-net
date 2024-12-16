@@ -172,10 +172,15 @@ This gives you the opportunity to get **99% accuracy**on photos that are uploade
 
 <img src="https://nomeroff.net.ua/images/nn/ocr_example.png" alt="Nomeroff-Net OCR Example"/>
 
+
 ## Contributing
 Contributions to this repository are welcome. Examples of things you can contribute:
   * Training on other datasets.
   * Accuracy Improvements.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ria-com/nomeroff-net&type=Date)](https://star-history.com/#ria-com/nomeroff-net&Date)
 
 ## Credits
   * Dmytro Probachay &lt;dmytro.probachay@ria.com&gt;
