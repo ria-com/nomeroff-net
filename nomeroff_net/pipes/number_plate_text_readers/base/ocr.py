@@ -182,6 +182,7 @@ class OCR(object):
             pl.seed_everything(seed)
         if self.model is None:
             self.create_model()
+        self.model.train()
         checkpoint_callback = ModelCheckpoint(dirpath=log_dir, monitor='val_loss')
         lr_monitor = LearningRateMonitor(logging_interval='step')
         if self.gpus:

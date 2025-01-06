@@ -92,12 +92,12 @@ class TextImageGenerator(object):
         if newsize is None:
             newsize = (self.img_w, self.img_h)
         img = Image.open(img_path).convert('RGB')
-        img = img.resize(newsize)
         if self.with_aug:
             from nomeroff_net.tools.augmentations import aug
             img = np.array(img)
             imgs = aug([img])
             img = Image.fromarray(imgs[0])
+        img = img.resize(newsize)
         x = self.transform(img)
         torch.save(x, x_path)
         return x_path
