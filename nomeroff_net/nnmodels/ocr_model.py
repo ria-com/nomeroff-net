@@ -156,10 +156,10 @@ class NPOcrNet(pl.LightningModule):
         logits_lens = torch.full(size=(batch_size,), fill_value=input_len, dtype=torch.int32)
         # calculate ctc
         loss = self.criterion(
-            logits,
-            encoded_texts,
+            logits.to(device),
+            encoded_texts.to(device),
             logits_lens.to(device),
-            text_lens)
+            text_lens.to(device))
         return loss
 
     def step(self, batch):
