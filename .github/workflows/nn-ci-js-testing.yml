@@ -5,7 +5,7 @@ name: Node.js Package
 
 on:
   pull_request:
-    branches: [  master, v3.0, v3.1 ]
+    branches: [  master, v4.0 ]
     paths:
       - 'moderation/**'
 
