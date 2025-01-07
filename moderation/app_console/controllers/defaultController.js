@@ -692,6 +692,74 @@ async function dataJoin (options) {
 }
 
 
+async function convertDatasetToV3 (options, filterFunction=function (data, data_anb, region) { return true }) {
+    const
+        sourceDir = options.srcDir || './draft',
+        targetDir = options.targetDir || './checked'
+
+        anbDirSrc = path.join(sourceDir, config.dataset.anb.dir),
+        annDirSrc = path.join(sourceDir, config.dataset.ann.dir),
+        imgDirSrc = path.join(sourceDir, config.dataset.img.dir),
+
+        annDirTarget = path.join(targetDir, config.dataset.ann.dir),
+        imgDirTarget = path.join(targetDir, config.dataset.img.dir)
+    ;
+
+
+    checkDirStructure(targetDir, [config.dataset.img.dir,config.dataset.ann.dir], true);
+
+    const srcAnnFiles = fs.readdirSync(annDirSrc);
+
+    for (let annFile of srcAnnFiles) {
+        let data = require(path.join(annDirSrc, annFile)),
+            anbFile = annFile.split('-')[0] + '.' + config.dataset.anb.ext,
+            basename = annFile.split('.')[0],
+            region = annFile.split('-line-')[0],
+            imgFile = basename + '.' + config.dataset.img.ext,
+            anbPath = path.join(anbDirSrc, anbFile),
+            data_anb = require(anbPath)
+        ;
+        if (filterFunction(data, data_anb, region)) {
+            //data.count_lines = Object.keys(data_anb.regions[basename].lines).length;
+            console.log(`Make Ann: ${path.join(sourceDir, annFile)} to ${path.join(targetDir, annFile)}`)
+            fs.writeFileSync(path.join(annDirTarget, annFile), JSON.stringify(data, null, 2), 'utf-8');
+            console.log(`Copy Img: ${path.join(sourceDir, imgFile)} to ${path.join(targetDir, imgFile)}`)
+            fs.copyFileSync(path.join(imgDirSrc, imgFile), path.join(imgDirTarget, imgFile));
+        }
+    }
+    console.log('Done');
+}
+
+/**
+ * EN: Convert OCR dataset 4.x format to dataset 3.x format for single-line license plates
+ * UA: Зконвертувати OCR датасет формату 4.x в датасет формату 3.x для однолінійних номерних знаків
+ *
+ * @param options
+ * @example NODE_ENV=consoleExample ./console.js --section=default --action=convertOneLineDatasetToV3 \
+ *                                               --opt.srcDir=/mnt/sdd1/datasets/autoriaNumberplateOcrUa-2023-04-17.orig/add_letters/ua-di-dataset \
+ *                                               --opt.targetDir=/mnt/sdd1/datasets/autoriaNumberplateOcrUa-2023-04-17.orig/add_letters/ua-di-dataset_v3
+ */
+
+async function convertOneLineDatasetToV3 (options) {
+    const myFilter = function (data, data_anb, basename) {
+        // console.log('data')
+        // console.log(data)
+        // console.log('data_anb')
+        // console.log(data_anb)
+        // console.log('basename')
+        // console.log(basename)
+        let count_lines = data.count_lines = Object.keys(data_anb.regions[basename].lines).length;
+        return count_lines == 1;
+        //return Number(data.count_lines) == 2
+        //return data.region_id != 2
+        //return Number(data.region_id) != 7
+        //return Number(data.state_id) != 2
+        //return Number(data.region_id) != 3
+        //return data.count_lines == undefined || Number(data.count_lines) != 1
+    }
+    await convertDatasetToV3(options, myFilter);
+}
+
 module.exports = {
     index,
     createAnnotations,
@@ -703,5 +771,6 @@ module.exports = {
     moveSomething,
     moveDupes,
     removeNpDupesFromDataset,
-    removeAllNpDupesThatOccurInAnotherDataset
+    removeAllNpDupesThatOccurInAnotherDataset,
+    convertOneLineDatasetToV3
 };
