@@ -4,6 +4,7 @@
 name: Nomeroff Net CI CPU Testing
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [  master, v4.0 ]
     paths:
@@ -26,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest ]
-        python-version: [ 3.9.21 3.10.16 3.11.11 ]
+        python-version: [ 3.9.21, 3.10.16, 3.11.11 ]
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 120
