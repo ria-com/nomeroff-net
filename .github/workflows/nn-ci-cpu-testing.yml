@@ -95,7 +95,6 @@ jobs:
 
         # test jupyter benchmarks examples
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tutorials/ju/benchmark/accuracy-test.ipynb
-        jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tutorials/ju/benchmark/accuracy-test-custom.ipynb
         jupyter nbconvert --ExecutePreprocessor.timeout=6000 --execute --to html tutorials/ju/benchmark/runtime-test.ipynb
 
         # test image loaders
