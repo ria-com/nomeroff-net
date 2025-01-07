@@ -382,10 +382,10 @@ class OCR(object):
         logits_lens = torch.full(size=(batch_size,), fill_value=input_len, dtype=torch.int32)
 
         acc = functional.ctc_loss(
-            logits,
-            encoded_texts,
+            logits.to(device),
+            encoded_texts.to(device),
             logits_lens.to(device),
-            text_lens
+            text_lens.to(device)
         )
         return 1 - acc / len(self.letters)
     

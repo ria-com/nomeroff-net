@@ -12,7 +12,8 @@ from nomeroff_net import pipeline
 from nomeroff_net.tools import unzip
 
 if __name__ == '__main__':
-    number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading_tiny", image_loader="opencv")
+    number_plate_detection_and_reading = pipeline("number_plate_detection_and_reading", image_loader="opencv",
+                                                  upscaling=False)
 
     result = number_plate_detection_and_reading([
         os.path.join(nomeroff_net_dir, './data/examples/oneline_images/example1.jpeg'),

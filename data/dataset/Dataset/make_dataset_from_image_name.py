@@ -378,7 +378,7 @@ class EasyOCRReader:
         self.reader = easyocr.Reader(easyocr_readers)
         self.exclude_zones_list = exclude_zones_list
 
-    def predict(self, img, count_lines, flag_show=False):
+    def predict(self, img, count_lines, regions, flag_show=False):
         # Display the aligned and cropped image
         result = self.reader.readtext(img)
         result = normalize_easyocr_output(result)
@@ -404,27 +404,92 @@ class NomeroffNetReader:
     def __init__(self, presets=None):
         if presets is None:
             presets = {
+                "eu_ua_2004_2015_efficientnet_b2": {
+                    "for_regions": ["eu_ua_2004"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "eu_ua_1995_efficientnet_b2": {
+                    "for_regions": ["eu_ua_1995"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "eu_ua_custom_efficientnet_b2": {
+                    "for_regions": ["eu_ua_custom"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "xx_transit_efficientnet_b2": {
+                    "for_regions": ["xx_transit"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "eu_efficientnet_b2": {
+                    "for_regions": ["eu", "xx_unknown", "eu_ua_2015"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "ru": {
+                    "for_regions": ["ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "kz": {
+                    "for_regions": ["kz"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "kg": {  # "kg_shufflenet_v2_x2_0"
+                    "for_regions": ["kg"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "ge": {
+                    "for_regions": ["ge"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "su_efficientnet_b2": {
+                    "for_regions": ["su"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "am": {
+                    "for_regions": ["am"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
+                "by": {
+                    "for_regions": ["by"],
+                    "for_count_lines": [1],
+                    "model_path": "latest"
+                },
                 "eu_2lines_efficientnet_b2": {
                     "for_regions": ["eu_ua_2015", "eu_ua_2004", "eu_ua_1995", "eu_ua_custom", "xx_transit",
                                     "eu", "xx_unknown", "ru", "eu_ua_ordlo_lpr", "eu_ua_ordlo_dpr", "kz",
-                                    "kg", "ge", "su", "am", "by"],
+                                    "kg", "ge", "am", "by"],
                     "for_count_lines": [2, 3],
                     "model_path": "latest"
                 },
+                "su_2lines_efficientnet_b2": {
+                    "for_regions": ["su", "military"],
+                    "for_count_lines": [2, 3],
+                    "model_path": "latest"
+                }
             }
         self.number_plate_text_reading = NumberPlateTextReading(
             "number_plate_text_reading",
             image_loader=None,
             presets=presets,
             default_label="eu",
-            default_lines_count=2,
+            default_lines_count=1,
             multiline_splitter=" ",
         )
 
-    def predict(self, img, count_lines, flag_show=False):
+    def predict(self, img, count_lines, regions, flag_show=False):
         number_plate_text_reading_res = unzip(
             self.number_plate_text_reading(unzip([[img],
-                                                  ["eu"],
+                                                  regions,
                                                   count_lines, [img]])))
         if len(number_plate_text_reading_res):
             texts, _ = number_plate_text_reading_res
@@ -436,7 +501,7 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                    target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
                    parse_fromat="md", flag_show=False,
                    reader=None, need_upscale_image=False,
-                   count_hyphens=1
+                   count_hyphens=1, min_count_line=0,
                    ):
     if need_upscale_image:
         up = HAT(tile_size=320, num_gpu=int(device_torch == "cuda"))
@@ -520,6 +585,7 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     # Apply the perspective transformation to the image
                     aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
                     region_ids, count_lines, confidences, predicted = classifiactor.predict_with_confidence([aligned_img])
+                    region_names = classifiactor.get_region_labels(region_ids)
                     max_count_lines = max(max_count_lines, count_lines[0])
 
                     # Тут далі можна шось робити
@@ -541,13 +607,13 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         # Apply the perspective transformation to the image
                         aligned_img = cv2.warpPerspective(image_part_upscale, M, (w, h))
 
-                    predicted_lines = reader.predict(aligned_img, count_lines)
+                    predicted_lines = reader.predict(aligned_img, count_lines, region_names)
                     parsed_numberplate, numberplate_lines, punctuation_np_lines = fromats_parse[parse_fromat](
                         numberplate,
                         count_line=count_lines[0])
                     print(count_lines, "numberplate", parsed_numberplate, numberplate_lines, punctuation_np_lines)
 
-                    if count_lines[0] > 1:
+                    if count_lines[0] > min_count_line:
                         # Make dataset
                         numberplate_dataset_item = NumberplateDatasetItem(numberplate_lines, punctuation_np_lines,
                                                                           photo_id, parsed_numberplate,
@@ -559,7 +625,7 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                         numberplate_dataset_item.write_orig_dataset()
                         numberplate_dataset_item.write_normalize_dataset()
                     else:
-                        warnings.warn("count_lines <= 1")
+                        warnings.warn(f"count_lines <= {min_count_line}")
 
                     if flag_show:
                         plt.imshow(aligned_img)
@@ -578,7 +644,7 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
                     x1, y1, x2, y2 = bbox
                     cv2.rectangle(img, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 4)
 
-        if max_count_lines < 2:
+        if max_count_lines < min_count_line+1:
             bad_src_dir = os.path.join(target_dataset, "bad_cnt_lines")
             os.makedirs(bad_src_dir, exist_ok=True)
             cv2.imwrite(os.path.join(bad_src_dir, os.path.basename(img_path)), img)
@@ -589,166 +655,9 @@ def create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
 
 
 if __name__ == "__main__":
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/fi/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_fi_dataset",
-    #                parse_fromat="fi", count_hyphens=2,
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["FIN"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/md/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_md_dataset",
-    #                parse_fromat="md",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["MD"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/pl/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_pl_dataset",
-    #                parse_fromat="default",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["PL"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/by/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_by_dataset",
-    #                parse_fromat="default",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=[]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/kz/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_kz_dataset",
-    #                parse_fromat="kz",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["KZ"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/ro/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_ro_dataset",
-    #                parse_fromat="ro",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["RO"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/lv/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lv_dataset",
-    #                parse_fromat="default",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["LV"]))
-    #
-    # create_dataset(img_dir="/mnt/datasets/nomeroff-net/2lines_np_parsed/lt/*/*",
-    #                target_dataset="/mnt/datasets/nomeroff-net/2lines_np_parsed/mlines_lt_dataset",
-    #                parse_fromat="default",
-    #                reader=EasyOCRReader(easyocr_readers=["en"], exclude_zones_list=["LT"]))
-
-    # create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/src_test_platesmania/*",
-    #                target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset"
-    #                               "/src_test_platesmania_dataset",
-    #                parse_fromat="default",
-    #                reader=EasyOCRReader(easyocr_readers=["ru", "uk"], exclude_zones_list=[]))
-
-
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/al/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/al",
-                   parse_fromat="al",
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/at/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/at",
-                   parse_fromat="at",
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/ba/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/ba",
-                   parse_fromat="ba",
-                   count_hyphens=3,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/be/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/be",
-                   parse_fromat="be",
-                   count_hyphens=3,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/bg/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/bg",
-                   parse_fromat="bg",
+    create_dataset(img_dir="/mnt/datasets/nomeroff-net/example/*",
+                   target_dataset="/mnt/datasets/nomeroff-net/dataset",
+                   parse_fromat="default",
                    count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/cy/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/cy",
-                   parse_fromat="cy",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/test/de-problem-short/*/*",
-                   target_dataset="/var/www/projects_computer_vision/nomeroff-net/data/dataset/Dataset/test_dataset/de-problem-short",
-                   parse_fromat="de",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dk/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/dk",
-                   parse_fromat="dk",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    # hard
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/es/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/es",
-                   parse_fromat="es",
-                   count_hyphens=2,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/gg/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/gg",
-                   parse_fromat="gg",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/gr/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/gr",
-                   parse_fromat="gr",
-                   count_hyphens=2,
-                   reader=NomeroffNetReader(),
-                   )
-    # hard
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/is/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/is",
-                   parse_fromat="is",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    # Ліхтенштейн знаходить як однолінійні
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/li/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/li",
-                   parse_fromat="li",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/lu/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/lu",
-                   parse_fromat="lu",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/mt/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/mt",
-                   parse_fromat="mt",
-                   count_hyphens=1,
-                   reader=NomeroffNetReader(),
-                   )
-    # hard
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/nl/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/nl",
-                   parse_fromat="nl",
-                   count_hyphens=3,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/no/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/no",
-                   parse_fromat="no",
-                   count_hyphens=2,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/pl/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/pl",
-                   parse_fromat="pl",
-                   count_hyphens=2,
-                   reader=NomeroffNetReader(),
-                   )
-    create_dataset(img_dir="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/uk/*/*",
-                   target_dataset="/mnt/raid2/datasets/nomeroff-net/2lines_np_parsed/new/dataset/uk",
-                   parse_fromat="uk",
-                   count_hyphens=2,
-                   reader=NomeroffNetReader(),
-                   )
+                   min_count_line=0,
+                   reader=NomeroffNetReader())

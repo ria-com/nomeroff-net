@@ -62,7 +62,6 @@ def main(pipeline_name, image_loader_name, images_glob,
     print(f"One photo process {timer_stat['NumberPlateDetectionAndReadingRuntime.call']} seconds")
     print()
     print(f"detect_bbox_time_all {timer_stat['NumberPlateLocalization.call']} per one photo")
-    print(f"craft_time_all {timer_stat['NumberPlateKeyPointsDetection.call']} per one photo")
     print(f"classification_time_all {timer_stat['NumberPlateClassification.call']} per one photo")
     print(f"ocr_time_all {timer_stat['NumberPlateTextReading.call']} per one photo")
 
