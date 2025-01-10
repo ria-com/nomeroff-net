@@ -7,7 +7,7 @@ from nomeroff_net.pipes.number_plate_text_readers.text_detector import TextDetec
 
 DEFAULT_PRESETS = {
     "eu_ua_2004_2015_efficientnet_b2": {
-        "for_regions": ["eu_ua_2004"],
+        "for_regions": ["eu_ua_2004", "eu_ua_2015"],
         "for_count_lines": [1],
         "model_path": "latest"
     },
@@ -27,7 +27,7 @@ DEFAULT_PRESETS = {
         "model_path": "latest"
     },
     "eu_efficientnet_b2": {
-        "for_regions": ["eu", "xx_unknown", "eu_ua_2015"],
+        "for_regions": ["eu", "xx_unknown"],
         "for_count_lines": [1],
         "model_path": "latest"
     },
