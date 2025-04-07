@@ -15,7 +15,7 @@ torch>=1.12
 torchvision>=0.13
 PyYAML>=5.4
 seaborn
-pytorch_lightning==1.8.6
+pytorch_lightning==2.4.0
 ipywidgets
 gevent
 termcolor
