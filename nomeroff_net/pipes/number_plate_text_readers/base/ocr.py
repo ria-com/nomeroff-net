@@ -8,7 +8,7 @@ import json
 import numpy as np
 import torch
 import pytorch_lightning as pl
-
+import torchvision
 from collections import Counter
 from torch.nn import functional
 from pytorch_lightning.tuner.tuning import Tuner
@@ -301,6 +301,15 @@ class OCR(object):
 
     def load_model(self, path_to_model, nn_class=NPOcrNet):
         self.path_to_model = path_to_model
+
+        # hot fix for PyTorch >= 2.6
+        try:
+            torch.serialization.add_safe_globals([StrLabelConverter])
+            torch.serialization.add_safe_globals([torchvision.models.efficientnet.efficientnet_b2])
+            torch.serialization.add_safe_globals([torchvision.models.resnet.resnet18])
+        except Exception as _:
+            pass
+
         # Load the checkpoint
         checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
 
