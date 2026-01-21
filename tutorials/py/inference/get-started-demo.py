@@ -1,6 +1,6 @@
 """
 The example demonstrates license plate number detection.
-python3 examples/py/inference/get-started-demo.py
+python3 tutorials/py/inference/get-started-demo.py
 """
 import os
 import sys
