@@ -120,7 +120,7 @@ class CustomOptionsMaker:
                     key = tuple([json_data[label] for label in labels])
                     options_stat[key] += 1
         print("Labels stat for", option_dir)
-        print(options_stat.most_common(1000))
+        print(options_stat.most_common(10))
         return options_stat
 
     def make(self, verbose: bool = False) -> None:

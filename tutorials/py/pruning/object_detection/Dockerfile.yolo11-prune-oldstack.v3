@@ -1,0 +1,82 @@
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=Etc/UTC \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    FORCE_CUDA=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 python3.10-dev python3-pip python3.10-venv \
+    git curl ca-certificates build-essential \
+    ffmpeg libgl1 libglib2.0-0 libsm6 libxext6 libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN ln -sf /usr/bin/python3.10 /usr/local/bin/python && \
+    ln -sf /usr/bin/pip3 /usr/local/bin/pip && \
+    python -m pip install --upgrade "pip<25" "setuptools<81" wheel
+
+WORKDIR /workspace
+
+RUN python -m pip install \
+    --index-url https://download.pytorch.org/whl/cu118 \
+    torch==2.0.0 torchvision==0.15.1
+
+RUN python -m pip install \
+    nvidia-modelopt==0.29.0 \
+    nvidia-modelopt-core==0.29.0 \
+    onnx \
+    "pulp<3" \
+    torchprofile \
+    ninja \
+    rich \
+    "transformers<4.45" \
+    "ultralytics==8.3.1"
+
+RUN python -m pip install --force-reinstall \
+    "numpy<2" \
+    "packaging<25"
+
+# Patch ModelOpt to skip quantization import on old torch
+RUN python - <<'PY'
+from pathlib import Path
+
+p = Path("/usr/local/lib/python3.10/dist-packages/modelopt/torch/__init__.py")
+text = p.read_text()
+
+old = "from . import distill, nas, opt, prune, quantization, sparsity, speculative, utils  # noqa: E402"
+new = "from . import distill, nas, opt, prune, sparsity, speculative, utils  # noqa: E402"
+
+if old in text:
+    text = text.replace(old, new)
+    p.write_text(text)
+    print("Patched:", p)
+else:
+    print("Pattern not found, no patch applied:", p)
+PY
+
+RUN python - <<'PY'
+import sys
+import torch
+import numpy
+import packaging
+import transformers
+
+print('PYTHON:', sys.version)
+print('TORCH:', torch.__version__, 'CUDA:', torch.version.cuda)
+print('NUMPY:', numpy.__version__)
+print('PACKAGING:', packaging.__version__)
+print('TRANSFORMERS:', transformers.__version__)
+
+import modelopt
+print('MODELOPT IMPORT: OK')
+
+import modelopt.torch.prune as mtp
+print('MODELOPT PRUNE IMPORT: OK', mtp is not None)
+
+from ultralytics import YOLO
+print('ULTRALYTICS IMPORT: OK', YOLO is not None)
+PY
+
+CMD ["bash"]

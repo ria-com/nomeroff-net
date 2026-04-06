@@ -5,12 +5,12 @@ python3 -m nomeroff_net.pipes.number_plate_classificators.options_detector_trt \
 import os
 import cv2
 import pycuda.driver as cuda
-import pycuda.autoinit
 import tensorrt as trt
 import numpy as np
 from typing import List, Dict, Tuple
 
 from nomeroff_net.tools import modelhub
+from nomeroff_net.tools.cuda_primary_context import primary_cuda_context
 from nomeroff_net.pipes.number_plate_classificators.options_detector import OptionsDetector
 from nomeroff_net.tools.image_processing import normalize_img
 
@@ -28,12 +28,25 @@ class OptionsDetectorTrt(OptionsDetector):
 
     def load_model(self, path_to_model):
         assert os.path.exists(path_to_model)
-        with open(path_to_model, "rb") as f, trt.Runtime(TRT_LOGGER) as runtime:
-            self.engine = runtime.deserialize_cuda_engine(f.read())
-        inputs = []
-        for binding in self.engine:
-            if self.engine.binding_is_input(binding):
-                inputs.append(binding)
+        with primary_cuda_context():
+            runtime = trt.Runtime(TRT_LOGGER)
+            with open(path_to_model, "rb") as f:
+                engine_data = f.read()
+            self.engine = runtime.deserialize_cuda_engine(engine_data)
+
+        if self.engine is None:
+            raise RuntimeError(
+                f"Failed to deserialize TensorRT engine from {path_to_model}. "
+                "This usually happens due to TensorRT version mismatch or corrupted file. "
+                "Please rebuild the engine."
+            )
+
+        # TRT 10.x API: use get_tensor_mode instead of deprecated binding_is_input
+        inputs = [
+            self.engine.get_tensor_name(i)
+            for i in range(self.engine.num_io_tensors)
+            if self.engine.get_tensor_mode(self.engine.get_tensor_name(i)) == trt.TensorIOMode.INPUT
+        ]
         self.input_name = inputs[0]
 
     def is_loaded(self) -> bool:
@@ -71,50 +84,57 @@ class OptionsDetectorTrt(OptionsDetector):
         return region_ids, count_lines
     
     def run_engine(self, input_image):
-        with self.engine.create_execution_context() as context:
-            # Set input shape based on image dimensions for inference
-            context.set_binding_shape(self.engine.get_binding_index(self.input_name),
-                                      (
-                                          len(input_image), 
-                                          self.color_channels, 
-                                          self.height,
-                                          self.width
-                                      ))
-            input_image = np.array(input_image)
-            # Allocate host and device buffers
-            bindings = []
-            outputs = []
-            outputs_memory = []
-            for binding in self.engine:
-                binding_idx = self.engine.get_binding_index(binding)
-                size = trt.volume(context.get_binding_shape(binding_idx))
-                dtype = trt.nptype(self.engine.get_binding_dtype(binding))
-                if self.engine.binding_is_input(binding):
-                    input_buffer = np.ascontiguousarray(input_image)
-                    input_memory = cuda.mem_alloc(input_image.nbytes)
-                    bindings.append(int(input_memory))
-                else:
-                    output_buffer = cuda.pagelocked_empty(size, dtype)
-                    output_memory = cuda.mem_alloc(output_buffer.nbytes)
-                    bindings.append(int(output_memory))
-                    outputs.append(output_buffer)
-                    outputs_memory.append(output_memory)
+        input_image = np.ascontiguousarray(input_image, dtype=np.float32)
+        batch_size = len(input_image)
+
+        with primary_cuda_context():
+            context = self.engine.create_execution_context()
+
+            # TRT 10.x: set input shape using tensor name
+            context.set_input_shape(
+                self.input_name,
+                (batch_size, self.color_channels, self.height, self.width),
+            )
 
             stream = cuda.Stream()
-            # Transfer input data to the GPU.
-            cuda.memcpy_htod_async(input_memory, input_buffer, stream)
+            outputs = []
+            output_memories = []
+            tensor_addrs = {}
+
+            # Allocate input
+            input_memory = cuda.mem_alloc(input_image.nbytes)
+            cuda.memcpy_htod_async(input_memory, input_image, stream)
+            tensor_addrs[self.input_name] = int(input_memory)
+
+            # Allocate outputs using TRT 10.x API
+            for i in range(self.engine.num_io_tensors):
+                name = self.engine.get_tensor_name(i)
+                if self.engine.get_tensor_mode(name) == trt.TensorIOMode.OUTPUT:
+                    shape = context.get_tensor_shape(name)
+                    dtype = trt.nptype(self.engine.get_tensor_dtype(name))
+                    size = trt.volume(shape)
+                    output_buffer = cuda.pagelocked_empty(size, dtype)
+                    output_memory = cuda.mem_alloc(output_buffer.nbytes)
+                    tensor_addrs[name] = int(output_memory)
+                    outputs.append(output_buffer)
+                    output_memories.append(output_memory)
+
+            # Set tensor addresses
+            for name, addr in tensor_addrs.items():
+                context.set_tensor_address(name, addr)
+
             # Run inference
-            context.execute_async_v2(bindings=bindings, stream_handle=stream.handle)
+            context.execute_async_v3(stream_handle=stream.handle)
 
-            # Transfer prediction output from the GPU.
-            for output, output_memory in zip(outputs, outputs_memory):
-                cuda.memcpy_dtoh_async(output, output_memory, stream)
+            # Copy outputs back to host
+            for output_buffer, output_memory in zip(outputs, output_memories):
+                cuda.memcpy_dtoh_async(output_buffer, output_memory, stream)
 
-            # Synchronize the stream
             stream.synchronize()
-        if len(input_image) == 1:
-            for i in range(len(outputs)):
-                outputs[i] = [outputs[i]]
+
+        if batch_size == 1:
+            outputs = [o.reshape(1, -1) for o in outputs]
+
         return outputs
 
     def predict_with_confidence(self, imgs: List[np.ndarray]) -> Tuple:
@@ -144,7 +164,7 @@ if __name__ == "__main__":
     det = OptionsDetectorTrt()
     det.load(os.path.join(
         os.getcwd(),
-        "./data/model_repository/numberplate_options/1/model.trt"))
+        "./data/model_repository/pruned_engines/options_pruned.trt"))
 
     image_paths = [
         os.path.join(os.getcwd(), "./data/examples/numberplate_zone_images/JJF509.png"),

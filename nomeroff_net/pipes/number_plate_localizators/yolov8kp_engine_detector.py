@@ -12,8 +12,8 @@ class Detector(YoloDetector):
     def __init__(self, *args) -> None:
         super().__init__(*args)
 
-    def load_model(self, weights: str, *args) -> None:
+    def load_model(self, weights: str, device: str = "") -> None:
         from ultralytics import YOLO
 
-        model = YOLO(weights)
-        self.model = model
+        self.model = YOLO(weights, task="pose")
+        self.device = device or self.device

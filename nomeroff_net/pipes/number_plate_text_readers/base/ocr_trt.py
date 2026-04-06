@@ -3,7 +3,6 @@ python3 -m nomeroff_net.text_detectors.base.ocr_trt -f nomeroff_net/text_detecto
 """
 from typing import List, Any, Dict
 import pycuda.driver as cuda
-import pycuda.autoinit
 import tensorrt as trt
 import threading
 import numpy as np
@@ -12,6 +11,7 @@ import cv2
 import os
 
 from nomeroff_net.tools import modelhub
+from nomeroff_net.tools.cuda_primary_context import primary_cuda_context
 from nomeroff_net.tools.image_processing import normalize_img
 from nomeroff_net.tools.ocr_tools import decode_batch
 from .ocr import OCR
@@ -31,79 +31,96 @@ class OcrTrt(OCR):
     def load_model(self, engine_file_path, device=0):
         assert os.path.exists(engine_file_path)
 
-        stream = cuda.Stream()
-        trt_logger = trt.Logger(trt.Logger.INFO)
+        with primary_cuda_context():
+            trt_logger = trt.Logger(trt.Logger.INFO)
+            runtime = trt.Runtime(trt_logger)
+            with open(engine_file_path, "rb") as f:
+                engine_data = f.read()
+            self.engine = runtime.deserialize_cuda_engine(engine_data)
 
-        with open(engine_file_path, "rb") as f, trt.Runtime(trt_logger) as runtime:
-            self.engine = runtime.deserialize_cuda_engine(f.read())
-        context = self.engine.create_execution_context()
+        if self.engine is None:
+            raise RuntimeError(
+                f"Failed to deserialize TensorRT engine from {engine_file_path}. "
+                "This usually happens due to TensorRT version mismatch or corrupted file. "
+                "Please rebuild the engine."
+            )
 
-        host_inputs = []
-        cuda_inputs = []
-        host_outputs = []
-        cuda_outputs = []
-        bindings = []
+        self.letters_max = len(self.letters) + 1
+        self.label_length = self.max_text_len
 
-        for binding in self.engine:
-            size = trt.volume(self.engine.get_binding_shape(binding)) * self.engine.max_batch_size
-            dtype = trt.nptype(self.engine.get_binding_dtype(binding))
-            # Allocate host and device buffers
-            host_mem = cuda.pagelocked_empty(size, dtype)
-            cuda_mem = cuda.mem_alloc(host_mem.nbytes)
-            # Append the device buffer to device bindings.
-            bindings.append(int(cuda_mem))
-            # Append to the appropriate list.
-            if self.engine.binding_is_input(binding):
-                self.input_w = self.engine.get_binding_shape(binding)[-1]
-                self.input_h = self.engine.get_binding_shape(binding)[-2]
-                host_inputs.append(host_mem)
-                cuda_inputs.append(cuda_mem)
+        with primary_cuda_context():
+            self.context = self.engine.create_execution_context()
+            self.stream = cuda.Stream()
+
+        # TRT 10.x: use named tensor API
+        self.input_name = None
+        self.output_names = []
+        for i in range(self.engine.num_io_tensors):
+            name = self.engine.get_tensor_name(i)
+            mode = self.engine.get_tensor_mode(name)
+            if mode == trt.TensorIOMode.INPUT:
+                shape = self.engine.get_tensor_shape(name)
+                self.input_h = shape[-2]
+                self.input_w = shape[-1]
+                self.input_name = name
             else:
-                host_outputs.append(host_mem)
-                cuda_outputs.append(cuda_mem)
-
-        # Store
-        self.stream = stream
-        self.context = context
-        self.host_inputs = host_inputs
-        self.cuda_inputs = cuda_inputs
-        self.host_outputs = host_outputs
-        self.cuda_outputs = cuda_outputs
-        self.bindings = bindings
-        self.batch_size = self.engine.max_batch_size
+                self.output_names.append(name)
 
         return self.engine
-    
+
     def run_engine(self, batch_input_image):
-        threading.Thread.__init__(self)
+        batch_input_image = np.ascontiguousarray(batch_input_image, dtype=np.float32)
+        batch_size = batch_input_image.shape[0]
 
-        # Restore
-        stream = self.stream
-        context = self.context
-        host_inputs = self.host_inputs
-        cuda_inputs = self.cuda_inputs
-        host_outputs = self.host_outputs
-        cuda_outputs = self.cuda_outputs
-        bindings = self.bindings
+        with primary_cuda_context():
+            context = self.context
+            stream = self.stream
 
+            # TRT 10.x: set input shape
+            context.set_input_shape(
+                self.input_name,
+                (batch_size, self.color_channels, self.input_h, self.input_w)
+            )
 
-        batch_input_image = np.ascontiguousarray(batch_input_image)
-        
-        # Copy input image to host buffer
-        np.copyto(host_inputs[0], batch_input_image.ravel())
+            tensor_addrs = {}
 
-        # Transfer input data  to the GPU.
-        cuda.memcpy_htod_async(cuda_inputs[0], host_inputs[0], stream)
-        # Run inference.
-        context.execute_async(batch_size=self.batch_size, bindings=bindings, stream_handle=stream.handle)
-        # Transfer predictions back from the GPU.
-        cuda.memcpy_dtoh_async(host_outputs[0], cuda_outputs[0], stream)
-        # Synchronize the stream
-        stream.synchronize()
+            # Allocate and copy input
+            input_memory = cuda.mem_alloc(batch_input_image.nbytes)
+            cuda.memcpy_htod_async(input_memory, batch_input_image, stream)
+            tensor_addrs[self.input_name] = int(input_memory)
 
-        output = np.array(host_outputs)
-        output = output.reshape((self.label_length, len(output), self.letters_max))
-        return output
+            # Allocate output(s)
+            host_outputs = []
+            output_memories = []
+            output_shapes = []
+            for name in self.output_names:
+                shape = context.get_tensor_shape(name)
+                dtype = trt.nptype(self.engine.get_tensor_dtype(name))
+                size = trt.volume(shape)
+                host_buf = cuda.pagelocked_empty(size, dtype)
+                cuda_buf = cuda.mem_alloc(host_buf.nbytes)
+                tensor_addrs[name] = int(cuda_buf)
+                host_outputs.append(host_buf)
+                output_memories.append(cuda_buf)
+                output_shapes.append(tuple(shape))
+
+            # Set all tensor addresses
+            for name, addr in tensor_addrs.items():
+                context.set_tensor_address(name, addr)
+
+            # Run inference
+            context.execute_async_v3(stream_handle=stream.handle)
+
+            # Copy outputs back
+            for host_buf, cuda_buf in zip(host_outputs, output_memories):
+                cuda.memcpy_dtoh_async(host_buf, cuda_buf, stream)
+
+            stream.synchronize()
+
+        if not host_outputs:
+            return np.array([])
+
+        return host_outputs[0].reshape(output_shapes[0])
 
     def load(self, path_to_model: str = "latest", options: Dict = None):
         """

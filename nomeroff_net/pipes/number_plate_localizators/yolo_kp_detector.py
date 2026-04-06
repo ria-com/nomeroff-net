@@ -61,8 +61,24 @@ class Detector:
             model_output.append([item[0], item[1], item[2], item[3], conf, int(cls), normalize_rect(kps)])
         return model_output
 
+    #@torch.no_grad()
+    #def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.4) -> np.ndarray or List:
+    #    model_outputs = self.model(imgs, conf=min_accuracy, verbose=False, save=False, save_txt=False, show=False,
+    #                               iou=0.7, agnostic_nms=True)
+    #    return self.convert_model_outputs_to_array(model_outputs)
+    
     @torch.no_grad()
-    def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.4) -> np.ndarray or List:
-        model_outputs = self.model(imgs, conf=min_accuracy, verbose=False, save=False, save_txt=False, show=False,
-                                   iou=0.7, agnostic_nms=True)
+    def predict(self, imgs: List[np.ndarray], min_accuracy: float = 0.4) -> np.ndarray | List:
+        model_outputs = self.model(
+            imgs,
+            conf=min_accuracy,
+            verbose=False,
+            save=False,
+            save_txt=False,
+            show=False,
+            iou=0.7,
+            agnostic_nms=True,
+            imgsz=640,
+            rect=False,
+        )
         return self.convert_model_outputs_to_array(model_outputs)

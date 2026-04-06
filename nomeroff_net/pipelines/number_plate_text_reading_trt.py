@@ -21,10 +21,10 @@ class NumberPlateTextReadingTrt(NumberPlateTextReading):
                                         default_lines_count, class_detector=TextDetectorTrt, **kwargs)
 
     def forward(self, inputs: Any, **forward_parameters: Dict) -> Any:
-        images, labels, lines = unzip(inputs)
+        images, labels, lines, preprocessed_np = unzip(inputs)
         model_outputs = []
-        for image, label, line in zip(images, labels, lines):
-            model_inputs = self.detector.preprocess([image], [label], [line])
+        for image, label, line, np_img in zip(images, labels, lines, preprocessed_np):
+            model_inputs = self.detector.preprocess([image], [np_img], [label], [line])
             model_output = self.detector.forward(model_inputs)
             model_output = self.detector.postprocess(model_output)
             model_outputs.append(model_output[0])

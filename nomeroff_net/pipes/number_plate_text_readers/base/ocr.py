@@ -302,22 +302,22 @@ class OCR(object):
     def load_model(self, path_to_model, nn_class=NPOcrNet):
         self.path_to_model = path_to_model
 
-        # hot fix for PyTorch >= 2.6
-        try:
-            torch.serialization.add_safe_globals([StrLabelConverter])
-            torch.serialization.add_safe_globals([torchvision.models.efficientnet.efficientnet_b2])
-            torch.serialization.add_safe_globals([torchvision.models.resnet.resnet18])
-        except Exception as _:
-            pass
+        # Load the checkpoint (weights_only=False required for PyTorch 2.6+ when loading custom classes)
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'), weights_only=False)
 
-        # Load the checkpoint
-        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
+        if not isinstance(checkpoint, dict):
+            # If it's not a dict, it's likely the model object itself (pruned models often saved this way)
+            self.model = checkpoint
+            self.model = self.model.to(device_torch)
+            self.model.eval()
+            return self.model
 
         # Add a fake pytorch-lightning_version key to the checkpoint if it doesn't exist
         if 'pytorch-lightning_version' not in checkpoint:
             checkpoint['pytorch-lightning_version'] = pl.__version__
 
         # Save the modified checkpoint to an in-memory buffer
+        # This is a hack to use Lightning's load_from_checkpoint with an old/modified checkout
         buffer = io.BytesIO()
         torch.save(checkpoint, buffer)
         buffer.seek(0)

@@ -39,6 +39,29 @@ def empty_method(func):
     return func
 
 
+# Словник замін для кириличних символів
+cyrillic_to_latin = {
+    'А': 'A', 
+    'І': 'I',
+    'В': 'B', 
+    'Е': 'E', 
+    'К': 'K', 
+    'М': 'M', 
+    'Н': 'H', 
+    'О': 'O', 
+    'Р': 'P', 
+    'С': 'C', 
+    'Т': 'T', 
+    'У': 'Y', 
+    'Х': 'X',
+}
+
+
+def replace_cyrillic(text):
+    # Заміняємо кожен символ за допомогою словника
+    return ''.join(cyrillic_to_latin.get(char, char) for char in text)
+
+
 class AccuracyTestPipeline(object):
     """
     Accuracy Test Pipeline Base Class
@@ -55,6 +78,8 @@ class AccuracyTestPipeline(object):
         """
         TODO: write description
         """
+        import shutil
+        bad_images_path = "/var/www/nomeroff-net/data/examples/2lines_via_2021_06_14/bad_images"
         n_good = 0
         n_bad = 0
         for predicted_image_texts, \
@@ -70,25 +95,32 @@ class AccuracyTestPipeline(object):
                             region_ids, region_names,
                             count_lines, confidences,
                             img_paths):
+            
             for true_image_text in true_image_texts:
+                true_image_text = replace_cyrillic(true_image_text)
+                is_good = False
+                predicted_image_texts = list([replace_cyrillic(pt) for pt in predicted_image_texts])
                 if true_image_text in predicted_image_texts:
                     message = f"+ NAME:{os.path.basename(img_path)} " \
                               f"TRUE:{true_image_text} " \
                               f"PREDICTED:{predicted_image_texts}"
                     message = message if md else colored(message, 'green')
                     n_good += 1
+                    is_good = True
                 else:
                     message = f"- NAME:{os.path.basename(img_path)} " \
                               f"TRUE:{true_image_text} " \
                               f"PREDICTED:{predicted_image_texts}"
                     message = message if md else colored(message, 'red')
                     n_bad += 1
+                    is_good = False
+                    shutil.copyfile(img_path, os.path.join(bad_images_path, os.path.basename(img_path)))
                 print(message)
                 if debug:
                     print("[INFO] images_bboxs", image_bboxs)
                     print("[INFO] image_points", image_points)
 
-                if matplotlib_show:
+                if matplotlib_show and not is_good:
                     image = image.astype(np.uint8)
                     for cntr in image_points:
                         cntr = np.array(cntr, dtype=np.int32)
@@ -107,7 +139,7 @@ class AccuracyTestPipeline(object):
                     print("[INFO] image_region_names", image_region_names)
                     print("[INFO] image_count_lines", image_count_lines)
                     print("[INFO] image_confidences", image_confidences)
-                if matplotlib_show:
+                if matplotlib_show and not is_good:
                     for zone in image_zones:
                         plt.imshow(zone)
                         plt.show()
