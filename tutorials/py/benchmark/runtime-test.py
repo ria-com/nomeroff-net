@@ -33,15 +33,18 @@ def parse_args():
     ap.add_argument("-w", "--num_workers", default=1,
                     required=False, type=int, help="Number worker for parallel processing "
                                                    "preprocess and postprocess functions")
+    ap.add_argument("-d", "--detector_model", default="latest",
+                    required=False, type=str, help="Detector model name or path (e.g. modelhub://yolov11n)")
     kwargs = vars(ap.parse_args())
     return kwargs
 
 
 def main(pipeline_name, image_loader_name, images_glob,
-         num_run, batch_size, num_workers,  **_):
+         num_run, batch_size, num_workers, detector_model="latest",  **_):
     number_plate_detection_and_reading = pipeline(
         pipeline_name,
-        image_loader=image_loader_name
+        image_loader=image_loader_name,
+        path_to_model=detector_model
     )
 
     if os.path.isabs(images_glob):

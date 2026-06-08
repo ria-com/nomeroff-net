@@ -25,13 +25,16 @@ def parse_args():
                     required=False, type=str, help="Images glob path")
     ap.add_argument("-f", "--test_file", default="./data/examples/accuracy_test_data_example.json",
                     required=False, type=str, help="Test json file path")
+    ap.add_argument("-d", "--detector_model", default="latest",
+                    required=False, type=str, help="Detector model name or path (e.g. modelhub://yolov11n)")
     kwargs = vars(ap.parse_args())
     return kwargs
 
 
-def main(pipeline_name, image_loader_name, images_glob, test_file, **_):
+def main(pipeline_name, image_loader_name, images_glob, test_file, detector_model="latest", **_):
     number_plate_detection_and_reading = pipeline(pipeline_name,
-                                                  image_loader=image_loader_name)
+                                                  image_loader=image_loader_name,
+                                                  path_to_model=detector_model)
     if os.path.isabs(images_glob):
         image_paths = glob(images_glob)
     else:
