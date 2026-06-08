@@ -2,7 +2,7 @@ from typing import Dict, Optional, Union
 from nomeroff_net.image_loaders import BaseImageLoader
 from nomeroff_net.pipelines.base import Pipeline, CompositePipeline
 from .number_plate_localization_trt import NumberPlateLocalizationTrt
-from .number_plate_key_points_cropping import NumberPlateKeyPointsDetection
+from .number_plate_key_points_cropping import NumberPlateKeyPointsCropping
 from .number_plate_text_reading_trt import NumberPlateTextReadingTrt
 from .number_plate_classification_trt import NumberPlateClassificationTrt
 from .number_plate_detection_and_reading import NumberPlateDetectionAndReading
@@ -25,8 +25,11 @@ class NumberPlateDetectionAndReadingTrt(NumberPlateDetectionAndReading):
                  default_label: str = "eu_ua_2015",
                  default_lines_count: int = 1,
                  **kwargs):
+        self.default_label = default_label
+        self.default_lines_count = default_lines_count
+        self.number_plate_upscaling = None
 
-        self.number_plate_key_points_detection = NumberPlateKeyPointsDetection(
+        self.number_plate_key_points_detection = NumberPlateKeyPointsCropping(
             "number_plate_key_points_detection",
             image_loader=None,
             mtl_model_path=mtl_model_path,
