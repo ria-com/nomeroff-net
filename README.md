@@ -180,7 +180,7 @@ Contributions to this repository are welcome. Examples of things you can contrib
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ria-com/nomeroff-net&type=Date)](https://star-history.com/#ria-com/nomeroff-net&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=ria-com/nomeroff-net&type=Date)](https://star-history.dera.page/#ria-com/nomeroff-net&Date)
 
 ## Credits
   * Dmytro Probachay &lt;dmytro.probachay@ria.com&gt;
