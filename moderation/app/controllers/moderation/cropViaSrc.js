@@ -2,7 +2,7 @@ const
     Jimp = require('jimp'),
     config = require("config"),
     path = require("path"),
-    via_dir = path.dirname(config.moderation.VIABoxPointsModeration.base_json)
+    viaConfig = require("../../helpers/viaConfig")
 ;
 //const fs = require("fs");
 
@@ -143,7 +143,7 @@ module.exports = async function(ctx, next) {
             height: Number(ctx.request.height || 100),
         }
         //border = ctx.request.query.border || 0,
-        image_path = path.join(via_dir, filename),
+        image_path = path.join(viaConfig().via_dir, filename),
         image = await Jimp.read(image_path)
     ;
     console.log(`bbox`);

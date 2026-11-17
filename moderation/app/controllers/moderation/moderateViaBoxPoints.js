@@ -1,7 +1,8 @@
 const config  = require('config'),
     path = require("path"),
     fs = require("fs"),
-    sizeOf = require('image-size')
+    sizeOf = require('../../helpers/imageSize'),
+    viaConfig = require('../../helpers/viaConfig')
 ;
 
 
@@ -294,9 +295,7 @@ function change_via_items ({changed_via_items, via}) {
 
 module.exports = function(ctx, next) {
     const
-        via_json = config.moderation.VIABoxPointsModeration.base_json,
-        via_dir = path.dirname(config.moderation.VIABoxPointsModeration.base_json),
-        boxes_preview_dir = config.moderation.VIABoxPointsModeration.boxes_preview_dir
+        {via_json, via_dir, boxes_preview_dir} = viaConfig()
     ;
     const max_files_count = ctx.request.body.max_count || 10;
     const changed_via_items = ctx.request.body.changed_via_items;

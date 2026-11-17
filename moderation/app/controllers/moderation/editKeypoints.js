@@ -2,7 +2,7 @@ const
     config  = require('config'),
     path = require("path"),
     fs = require("fs"),
-    sizeOf = require("image-size")
+    sizeOf = require("../../helpers/imageSize")
 ;
 
 function centrify(zone, imgInfo, container) {

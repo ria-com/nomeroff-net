@@ -1,7 +1,7 @@
 const Jimp = require('jimp');
 const config = require("config");
 const path = require("path");
-const sizeOf = require("image-size");
+const sizeOf = require("../../helpers/imageSize");
 const fs = require("fs");
 
 

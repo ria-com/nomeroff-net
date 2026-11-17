@@ -8,7 +8,7 @@ const config = require('config'),
       joinAnnotationOcrDataset = require('../../app/helpers/joinAnnotationOcrDataset'),
       arrayShuffle = require('../../app/helpers/arrayShuffle'),
       //statsTools = require('../../app/helpers/statsTools'),
-      sizeOf = require('image-size'),
+      sizeOf = require('../../app/helpers/imageSize'),
       md5File = require('md5-file')
 ;
 

@@ -1,8 +1,25 @@
 const config  = require('config'),
     path = require("path"),
     fs = require("fs"),
-    sizeOf = require('image-size')
+    sizeOf = require('../../helpers/imageSize')
 ;
+
+// Optional dataset parts of the multi-line dataset format (anb/box/src).
+// A simple OCR dataset (only ann + img) works without them.
+const DATASET_DEFAULTS = {
+    anb: {dir: 'anb', ext: 'json'},
+    box: {dir: 'box', ext: 'png'},
+    src: {dir: 'src', ext: 'jpeg'}
+};
+
+function datasetPart(name) {
+    return Object.assign({}, DATASET_DEFAULTS[name] || {}, config.dataset[name] || {});
+}
+
+function getAnbPath(anb, number) {
+    const photo_id = number.replace(/-line-\d/, "").split('-')[0];
+    return path.join(anb, `${photo_id}.${datasetPart('anb').ext}`);
+}
 
 
 function deleteImgAndAnn({img, ann, anb, box, src, number, f}) {
@@ -17,14 +34,16 @@ function deleteImgAndAnn({img, ann, anb, box, src, number, f}) {
 
     //console.log(`Check other lines`);
     // Check other lines
+    const anb_path = getAnbPath(anb, number);
+    if (!fs.existsSync(anb_path)) {
+        // simple dataset (ann + img only): nothing more to clean up
+        return;
+    }
     const
         box_basename = number.replace(/-line-\d/,""),
-        photo_id = box_basename.split('-')[0],
-        anb_name = `${photo_id}.${config.dataset.anb.ext}`,
-        anb_path = path.join(anb, anb_name),
         data_anb =  JSON.parse(fs.readFileSync(anb_path)),
         src_name = data_anb.src,
-        box_name = `${box_basename}.${config.dataset.box.ext}`,
+        box_name = `${box_basename}.${datasetPart('box').ext}`,
         box_path = path.join(box, box_name),
         src_path = path.join(src, src_name)
     ;
@@ -47,9 +66,13 @@ function deleteImgAndAnn({img, ann, anb, box, src, number, f}) {
         //console.log(`unlink "${anb_path}"`);
         fs.unlinkSync(anb_path);
         //console.log(`unlink "${box_path}"`);
-        fs.unlinkSync(box_path);
+        if (fs.existsSync(box_path)) {
+            fs.unlinkSync(box_path);
+        }
         //console.log(`unlink "${src_path}"`);
-        fs.unlinkSync(src_path);
+        if (src_name && fs.existsSync(src_path)) {
+            fs.unlinkSync(src_path);
+        }
     }
 }
 
@@ -57,13 +80,8 @@ function changeAnn({img, ann, number, anb, template, newNumber, f}) {
     const
         box_basename = number.replace(/-line-\d/,""),
         lineId = number.split('-line-')[1],
-        photo_id = box_basename.split('-')[0],
-        anb_name = `${photo_id}.${config.dataset.anb.ext}`,
-        anb_path = path.join(anb, anb_name),
-        data_anb = JSON.parse(fs.readFileSync(anb_path))
+        anb_path = getAnbPath(anb, number)
     ;
-    console.log(`data_anb`);
-    console.log(data_anb);
     const dimensions = sizeOf(path.join(img, `${number}.png`));
     let data;
     if(fs.existsSync(path.join(ann, `${number}.json`))) {
@@ -84,8 +102,15 @@ function changeAnn({img, ann, number, anb, template, newNumber, f}) {
     data.moderation = Object.assign({},data.moderation || {}, {isModerated: 1});
     fs.writeFileSync(path.join(ann, `${number}.json`), JSON.stringify(data));
 
-    data_anb.regions[box_basename].lines[lineId] = newNumber
-    fs.writeFileSync(anb_path, JSON.stringify(data_anb,null,2));
+    // multi-line dataset: keep the photo description (anb) in sync
+    if (fs.existsSync(anb_path)) {
+        const data_anb = JSON.parse(fs.readFileSync(anb_path));
+        const region = (data_anb.regions || {})[box_basename];
+        if (region && region.lines && lineId !== undefined) {
+            region.lines[lineId] = newNumber;
+            fs.writeFileSync(anb_path, JSON.stringify(data_anb,null,2));
+        }
+    }
 
 }
 
@@ -148,7 +173,7 @@ function packRes(files, ann, template) {
 function loadAnbDesc(data) {
     const
         base_dir = config.moderation.regionOCRModeration.base_dir,
-        anb = "anb",
+        anb = datasetPart('anb').dir,
         anb_dir = path.join(base_dir, anb),
         anb_data = {}
     ;
@@ -175,9 +200,9 @@ module.exports = function(ctx, next) {
 
     const img = path.join(base_dir, config.dataset.img.dir),
           ann = path.join(base_dir, config.dataset.ann.dir),
-          anb = path.join(base_dir, config.dataset.anb.dir),
-          box = path.join(base_dir, config.dataset.box.dir),
-          src = path.join(base_dir, config.dataset.src.dir)
+          anb = path.join(base_dir, datasetPart('anb').dir),
+          box = path.join(base_dir, datasetPart('box').dir),
+          src = path.join(base_dir, datasetPart('src').dir)
     ;
 
 

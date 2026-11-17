@@ -10,7 +10,6 @@
 
     <!-- BootstrapCDN -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;lang=css" defer></script>
 
     <!-- Custom styles for this template -->
     <style>
@@ -176,19 +175,19 @@
         //tr.classList.add(photo_id)
         const box_name = box_basename+'.png';
 
-        a_box.href = '/editKeypoints/'+box_basename;
-        a_box.target = "_blank";
-        img_box.src = 'box/'+box_name;
-        console.log(`photo_id: ${photo_id}, box_basename: ${box_basename}`)
-        console.log(`Object.keys(response.anbIdx[photo_id].regions): ${Object.keys(response.anbIdx[photo_id].regions)}`)
-        console.log(`response.anbIdx[photo_id].regions[box_basename]: ${response.anbIdx[photo_id].regions[box_basename]}`)
-        if (response.anbIdx[photo_id].regions[box_basename].updated != undefined &&
-            response.anbIdx[photo_id].regions[box_basename].updated) {
-            td_box.classList.add('boxUpdated');
+        // region description from anb (multi-line dataset); absent for a simple ann + img dataset
+        const anb = (response.anbIdx || {})[photo_id];
+        const region = anb && anb.regions ? anb.regions[box_basename] : undefined;
+        if (region) {
+            a_box.href = '/editKeypoints/'+box_basename;
+            a_box.target = "_blank";
+            img_box.src = 'box/'+box_name;
+            if (region.updated != undefined && region.updated) {
+                td_box.classList.add('boxUpdated');
+            }
+            a_box.appendChild(img_box);
+            td_box.appendChild(a_box);
         }
-
-        a_box.appendChild(img_box);
-        td_box.appendChild(a_box);
 
         const td = document.createElement("td");
         td.className = "text-center";
@@ -221,7 +220,7 @@
         img.src = item.img_path;
         // console.log(`photo_id: ${photo_id} box_basename: ${box_basename}`)
         // console.log(`res: ${res}`)
-        const lines = response.anbIdx[photo_id].regions[box_basename].lines;
+        const lines = region && region.lines ? region.lines : {};
         if (item.count_lines !== undefined && Object.keys(lines).length > 1) {
             img.width = 256;
             img.height = 102;

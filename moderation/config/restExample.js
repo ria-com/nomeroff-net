@@ -11,7 +11,27 @@ module.exports = {
     dataset: {
         baseDir: `${__dirname}/../../data/dataset/TextDetector/ocr_example/train`,
         ann: { dir: 'ann', ext: 'json'},
-        img: { dir: 'img', ext: 'png'}
+        img: { dir: 'img', ext: 'png'},
+        // optional, used only by the multi-line dataset format
+        // (see nomeroff_net/tools/nn_numberplate_dataset.py)
+        anb: { dir: 'anb', ext: 'json'},
+        box: { dir: 'box', ext: 'png'},
+        src: { dir: 'src', ext: 'jpeg'}
+    },
+    koa_view: {
+        template: {
+            options: {map: {njk: 'nunjucks'}, extension: 'njk'},
+            name: 'konvaBox',
+            dir: `${__dirname}/../nunjucks`
+        }
+    },
+    pages: {
+        editKeypoints: {
+            container: {
+                width: 700,
+                height: 500
+            }
+        }
     },
     via: {
         partDirs: ['train', 'val']

@@ -4,8 +4,7 @@ const
     path = require("path"),
     util = require('util'),
     exec = util.promisify(require('child_process').exec),
-    via_dir = path.dirname(config.moderation.VIABoxPointsModeration.base_json),
-    boxes_preview_dir = path.dirname(config.moderation.VIABoxPointsModeration.boxes_preview_dir)
+    viaConfig = require("../../helpers/viaConfig")
 ;
 //const fs = require("fs");
 function get_bbox_filename(filename,xArr,yArr) {
@@ -21,6 +20,9 @@ function get_bbox_filename(filename,xArr,yArr) {
 
 module.exports = async function(ctx, next) {
     const
+        via = viaConfig(),
+        via_dir = via.via_dir,
+        boxes_preview_dir = path.dirname(via.boxes_preview_dir),
         filename = ctx.params.filename,
         xArr = ctx.request.query.x.split(',').map(i=>Math.round(Number(i))),
         yArr = ctx.request.query.y.split(',').map(i=>Math.round(Number(i))),

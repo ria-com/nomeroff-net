@@ -2,26 +2,48 @@
 
 
 ## Quick start
-  * Make copy of ./config/restExample.js
-  * In config change value of moderation.regionOCRModeration.base_dir
-  * Install requirements:
+  * Go to the `moderation` directory and install requirements:
   ```bash
+    cd moderation
     npm install
   ```
-  * Run server:
+  * Make a copy of `./config/restExample.js`, e.g. `./config/my.js`
+    (the file name is the value of `NODE_ENV`).
+    Out of the box `restExample.js` points to the example dataset
+    `data/dataset/TextDetector/ocr_example/train`, so you can start with it as is.
+  * In your config set the path to your dataset in
+    `moderation.regionOCRModeration.base_dir` (absolute path is recommended).
+  * Run server from the `moderation` directory:
   ```bash
-    NODE_ENV=restExample node server
+    NODE_ENV=my node server
   ```
   * Locate to:
   ```url
     http://localhost:5005/OCRM.html
   ```
-  
-  
+
+### Config sections
+  * `moderation.regionOCRModeration.base_dir` - path to the dataset directory (required).
+  * `moderation.regionOCRModeration.options` - lists of `region_id`, `state_id`, `count_lines` values.
+  * `moderation.template.moderation.moderatedBy` - your name, it is saved into moderated annotations.
+  * `dataset.*` - names and extensions of the dataset subdirectories.
+  * `koa_view`, `pages` - templates of the keypoints editor, keep them as in `restExample.js`.
+  * `moderation.VIABoxPointsModeration` - optional, only for the VIA box points moderation
+    (`VIAM.html`), see `config/example.js`.
+
+
 ## Structure of OCR dataset directory:
+   ### Simple dataset
    Directory must contain 2 directories:
    * ann - the directory in which the annotations to the images should be located. 
    * img - the directory in which the images should be located.
+
+   ### Multi-line dataset
+   Dataset made by `nomeroff_net/tools/nn_numberplate_dataset.py` additionally contains:
+   * anb - the photo descriptions (`<photo_id>.json`: source photo and regions with lines).
+   * box - the cropped number plate boxes (shown in the left column, click opens the keypoints editor).
+   * src - the source photos.
+
    Annotation format:
    ```json
     {
