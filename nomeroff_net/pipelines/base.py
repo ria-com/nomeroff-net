@@ -23,6 +23,32 @@ from nomeroff_net.tools import chunked_iterable
 from nomeroff_net.image_loaders import BaseImageLoader, DumpyImageLoader, image_loaders_map
 
 
+def put_text_with_outline(img, text, position, font=cv2.FONT_HERSHEY_SIMPLEX,
+                          font_scale=1, text_color=(0, 0, 0), outline_color=(255, 255, 255),
+                          thickness=2, outline_thickness=1):
+    """
+    Наносить текст із білою окантовкою на зображення.
+
+    img: зображення (numpy масив)
+    text: текст для нанесення
+    position: координати нанесення тексту (x, y)
+    font: шрифт (стандартний cv2 шрифт)
+    font_scale: розмір шрифту
+    text_color: колір тексту (BGR)
+    outline_color: колір окантовки (BGR)
+    thickness: товщина тексту
+    outline_thickness: товщина окантовки
+    """
+
+    # Малюємо окантовку
+    for dx, dy in [(-1, -1), (-1, 1), (1, -1), (1, 1), (-1, 0), (1, 0), (0, -1), (0, 1)]:
+        cv2.putText(img, text, (position[0] + dx * outline_thickness, position[1] + dy * outline_thickness),
+                    font, font_scale, outline_color, thickness + outline_thickness, lineType=cv2.LINE_AA)
+
+    # Малюємо текст основним кольором
+    cv2.putText(img, text, position, font, font_scale, text_color, thickness, lineType=cv2.LINE_AA)
+
+
 def may_by_empty_method(func):
     """
     if in your pipeline you want to off some thing
@@ -37,29 +63,6 @@ def empty_method(func):
     """
     func.is_empty = True
     return func
-
-
-# Словник замін для кириличних символів
-cyrillic_to_latin = {
-    'А': 'A', 
-    'І': 'I',
-    'В': 'B', 
-    'Е': 'E', 
-    'К': 'K', 
-    'М': 'M', 
-    'Н': 'H', 
-    'О': 'O', 
-    'Р': 'P', 
-    'С': 'C', 
-    'Т': 'T', 
-    'У': 'Y', 
-    'Х': 'X',
-}
-
-
-def replace_cyrillic(text):
-    # Заміняємо кожен символ за допомогою словника
-    return ''.join(cyrillic_to_latin.get(char, char) for char in text)
 
 
 class AccuracyTestPipeline(object):
@@ -78,8 +81,6 @@ class AccuracyTestPipeline(object):
         """
         TODO: write description
         """
-        import shutil
-        bad_images_path = "/var/www/nomeroff-net/data/examples/2lines_via_2021_06_14/bad_images"
         n_good = 0
         n_bad = 0
         for predicted_image_texts, \
@@ -95,42 +96,40 @@ class AccuracyTestPipeline(object):
                             region_ids, region_names,
                             count_lines, confidences,
                             img_paths):
-            
             for true_image_text in true_image_texts:
-                true_image_text = replace_cyrillic(true_image_text)
-                is_good = False
-                predicted_image_texts = list([replace_cyrillic(pt) for pt in predicted_image_texts])
                 if true_image_text in predicted_image_texts:
                     message = f"+ NAME:{os.path.basename(img_path)} " \
                               f"TRUE:{true_image_text} " \
                               f"PREDICTED:{predicted_image_texts}"
                     message = message if md else colored(message, 'green')
                     n_good += 1
-                    is_good = True
                 else:
                     message = f"- NAME:{os.path.basename(img_path)} " \
                               f"TRUE:{true_image_text} " \
                               f"PREDICTED:{predicted_image_texts}"
                     message = message if md else colored(message, 'red')
                     n_bad += 1
-                    is_good = False
-                    shutil.copyfile(img_path, os.path.join(bad_images_path, os.path.basename(img_path)))
                 print(message)
                 if debug:
                     print("[INFO] images_bboxs", image_bboxs)
                     print("[INFO] image_points", image_points)
 
-                if matplotlib_show and not is_good:
+                if matplotlib_show:
                     image = image.astype(np.uint8)
                     for cntr in image_points:
                         cntr = np.array(cntr, dtype=np.int32)
                         cv2.drawContours(image, [cntr], -1, (0, 0, 255), 2)
-                    for target_box in image_bboxs:
+                    for target_box, predicted_image_text in zip(image_bboxs, predicted_image_texts):
                         cv2.rectangle(image,
                                       (int(target_box[0]), int(target_box[1])),
                                       (int(target_box[2]), int(target_box[3])),
                                       (0, 255, 0),
                                       1)
+                        position = (int(target_box[0]), int(target_box[1])-10)
+                        put_text_with_outline(image, predicted_image_text, position, font_scale=1, text_color=(0, 0, 255))
+
+                    cv2.imwrite(f'{img_path}.png', cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
+
                     plt.imshow(image)
                     plt.show()
 
@@ -139,7 +138,7 @@ class AccuracyTestPipeline(object):
                     print("[INFO] image_region_names", image_region_names)
                     print("[INFO] image_count_lines", image_count_lines)
                     print("[INFO] image_confidences", image_confidences)
-                if matplotlib_show and not is_good:
+                if matplotlib_show:
                     for zone in image_zones:
                         plt.imshow(zone)
                         plt.show()

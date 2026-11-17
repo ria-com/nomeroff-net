@@ -10,6 +10,7 @@ We are deeply thankful for the unprecedented wave of support for Ukraine from ar
 <ul>
 <li><a href="https://savelife.in.ua/en/">Come back alive</a></li>
 <li><a href="https://prytulafoundation.org/en/home/support_page">Serhiy Prytula Charity Foundation</a></li>
+<li><a href="https://www.sternenkofund.org/en">&quot;Sternenko Community&quot; Charitable Foundation</a></li>
 </ul>
 
 <img src="https://github.com/ria-com/nomeroff-net/raw/master/public/images/russian_invasion_of_Ukraine.Pokrovsk.jpeg?raw=true" alt="Russian invasion in Ukraine. Donetsk region. Pokrovsk. 20.09.2024"/>
