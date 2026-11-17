@@ -21,6 +21,7 @@ from nomeroff_net.nnmodels.ocr_model import NPOcrNet, weights_init
 
 from nomeroff_net.tools.image_processing import normalize_img
 from nomeroff_net.tools.errors import OCRError
+from nomeroff_net.tools.pl_compat import checkpoint_load_kwargs
 from nomeroff_net.tools.mcm import modelhub, get_device_torch
 from nomeroff_net.tools.augmentations import aug_seed
 from nomeroff_net.tools.ocr_tools import (StrLabelConverter,
@@ -324,6 +325,7 @@ class OCR(object):
 
         self.model = nn_class.load_from_checkpoint(buffer,
                                                    map_location=torch.device('cpu'),
+                                                   **checkpoint_load_kwargs(),
                                                    letters=self.letters,
                                                    linear_size=self.linear_size,
                                                    hidden_size=self.hidden_size,

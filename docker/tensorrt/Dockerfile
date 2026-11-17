@@ -36,7 +36,7 @@ RUN python3 -m pip install cython setuptools numpy scikit_image asyncio gitpytho
 RUN python3 -m pip install pycuda
 
 # Встановлення Ultralytics і PyTorch Lightning
-RUN python3 -m pip install "ultralytics>=8.3.12" "pytorch_lightning==1.8.6" "opencv_python==4.8.0.74"  "opencv-python-headless==4.8.0.74" "numpy==1.*"
+RUN python3 -m pip install "ultralytics>=8.3.12" "pytorch_lightning>=2.5" "opencv_python==4.8.0.74"  "opencv-python-headless==4.8.0.74" "numpy==1.*"
 
 # Встановлення залежностей із репозиторіїв git
 RUN python3 -m pip install "git+https://github.com/ria-com/upscaler.git"

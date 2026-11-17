@@ -9,9 +9,11 @@ import numpy as np
 
 import torch
 import pytorch_lightning as pl
+from pytorch_lightning.tuner.tuning import Tuner
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
 
+from nomeroff_net.tools.pl_compat import checkpoint_load_kwargs
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 from nomeroff_net.data_modules.numberplate_orientation_data_module import OrientationDataModule
 from nomeroff_net.nnmodels.numberplate_orientation_model import NPOrientationNet
@@ -103,10 +105,32 @@ class OrientationDetector(object):
             num_workers=num_workers,
             batch_size=self.batch_size)
 
+    def _sync_with_checkpoint(self, path_to_model) -> None:
+        """
+        Take backbone and output size from the checkpoint itself:
+        modelhub metadata may not contain "backbone"/"classes".
+        """
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'), weights_only=False)
+        state_dict = checkpoint.get("state_dict", checkpoint) if isinstance(checkpoint, dict) else {}
+        if "model.heads.head.weight" in state_dict:
+            self.backbone = "vit_l_16"
+            output_size = state_dict["model.heads.head.weight"].shape[0]
+        elif "model.classifier.1.weight" in state_dict:
+            self.backbone = "efficientnet_v2_l"
+            output_size = state_dict["model.classifier.1.weight"].shape[0]
+        else:
+            return
+        if output_size != len(self.classes):
+            # same index -> angle mapping as prettify_orientation
+            self.classes = {str(i * 90): i for i in range(output_size)}
+        self.output_size = output_size
+
     def load_model(self, path_to_model):
+        self._sync_with_checkpoint(path_to_model)
         self.model = NPOrientationNet.load_from_checkpoint(
             path_to_model,
             map_location=torch.device('cpu'),
+            **checkpoint_load_kwargs(),
             output_size=self.output_size,
             backbone=self.backbone,
         )
@@ -137,7 +161,6 @@ class OrientationDetector(object):
         Load model
         path_to_model - http, path or latest
         """
-        self.create_model()
         if path_to_model == "latest":
             model_info = modelhub.download_model_by_name("numberplate_orientation")
             path_to_model = model_info["path"]
@@ -185,18 +208,29 @@ class OrientationDetector(object):
         self.trainer.test(datamodule=self.dm)
         return self.model
 
-    def tune(self) -> Dict:
+    def tune(self, percentage=0.1) -> Dict:
         """
         TODO: describe method
         TODO: add ReduceLROnPlateau callback
         """
         model = self.create_model()
-        trainer = pl.Trainer(auto_lr_find=True,
-                             max_epochs=self.epochs,
-                             # gpus=self.gpus,
-                             accelerator='gpu', devices=self.gpus,
-                             )
-        return trainer.tune(model, self.dm)
+        if self.gpus:
+            trainer = pl.Trainer(max_epochs=self.epochs,
+                                 accelerator='gpu', devices=self.gpus)
+        else:
+            trainer = pl.Trainer(max_epochs=self.epochs,
+                                 accelerator='cpu')
+        num_training = int(len(self.dm.train_image_generator) * percentage) or 1
+        tuner = Tuner(trainer)
+        lr_finder = tuner.lr_find(model,
+                                  datamodule=self.dm,
+                                  num_training=num_training,
+                                  early_stop_threshold=None)
+        lr = lr_finder.suggestion()
+        print(f"Found lr: {lr}")
+        model.learning_rate = lr
+
+        return lr_finder
 
     def predict(self, imgs: List[np.ndarray], return_acc=False) -> Tuple:
         """

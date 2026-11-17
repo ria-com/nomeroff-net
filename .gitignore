@@ -1,6 +1,6 @@
 # nomeroff-net
 examples/**/*.html
-
+data/examples
 moderation/node_modules/*
 moderation/config/default.js
 moderation/config/test.js
@@ -32,6 +32,7 @@ centermask2/*
 # models
 *.ckpt
 *.pt
+data/configs
 
 # sonarcube
 .scannerwork

@@ -182,7 +182,7 @@ def main():
         trainer = pl.Trainer(
             max_epochs=args.epochs_finetune,
             accelerator='gpu' if torch.cuda.device_count() else 'cpu',
-            devices=1 if torch.cuda.device_count() else None,
+            devices=1,
             enable_checkpointing=False,
             logger=False
         )

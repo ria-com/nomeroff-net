@@ -33,7 +33,7 @@ RUN python3 -m pip install cython setuptools numpy opencv_python scikit_image as
 
 
 # Встановлення Ultralytics
-RUN python3 -m pip install "ultralytics>=8.3.12" "pytorch_lightning==1.8.6"
+RUN python3 -m pip install "ultralytics>=8.3.12" "pytorch_lightning>=2.5"
 
 # Встановлення залежностей із репозиторіїв git
 RUN python3 -m pip install "git+https://github.com/ria-com/upscaler.git"

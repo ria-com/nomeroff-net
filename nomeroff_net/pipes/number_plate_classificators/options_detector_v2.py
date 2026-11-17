@@ -10,6 +10,7 @@ from pytorch_lightning.tuner.tuning import Tuner
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
 
+from nomeroff_net.tools.pl_compat import checkpoint_load_kwargs
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 from nomeroff_net.data_modules.numberplate_options_data_module import OptionsNetDataModule
 from nomeroff_net.tools.image_processing import normalize_img
@@ -271,7 +272,7 @@ class OptionsDetector(object):
 
     def load_region_model(self, path_to_model):
         # Load the checkpoint
-        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'), weights_only=False)
 
         # Add a fake pytorch-lightning_version key to the checkpoint if it doesn't exist
         if 'pytorch-lightning_version' not in checkpoint:
@@ -284,6 +285,7 @@ class OptionsDetector(object):
 
         self.region_model = NPRegionNet.load_from_checkpoint(buffer,
                                                              map_location=torch.device('cpu'),
+                                                             **checkpoint_load_kwargs(),
                                                              region_output_size=len(self.class_region),
                                                              batch_size=self.batch_size,)
         self.region_model = self.region_model.to(device_torch)
@@ -292,7 +294,7 @@ class OptionsDetector(object):
 
     def load_line_model(self, path_to_model):
         # Load the checkpoint
-        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'))
+        checkpoint = torch.load(path_to_model, map_location=torch.device('cpu'), weights_only=False)
 
         # Add a fake pytorch-lightning_version key to the checkpoint if it doesn't exist
         if 'pytorch-lightning_version' not in checkpoint:
@@ -305,6 +307,7 @@ class OptionsDetector(object):
 
         self.line_model = NPLineNet.load_from_checkpoint(buffer,
                                                          map_location=torch.device('cpu'),
+                                                         **checkpoint_load_kwargs(),
                                                          count_line_output_size=len(self.count_lines),
                                                          batch_size=self.batch_size,)
         self.line_model = self.line_model.to(device_torch)
@@ -424,13 +427,24 @@ class OptionsDetector(object):
             self.width = model_info.get("width", self.width)
         return path_to_model
 
-    def load(self, path_to_model: str = "latest", options: Dict = None) -> ClassificationNet:
+    def load(self,
+             path_to_region_model: str,
+             path_to_line_model: str,
+             options: Dict = None) -> Tuple[NPRegionNet, NPLineNet]:
         """
-        TODO: describe method
+        Load separately trained region and count-line models
+        (local path, http url or modelhub://name).
         """
-        path_to_model = self.load_meta(path_to_model, options)
-        self.create_model()
-        return self.load_model(path_to_model)
+        path_to_region_model = self.load_meta(path_to_region_model, options)
+        path_to_line_model = self.load_meta(path_to_line_model, options)
+        self.load_region_model(path_to_region_model)
+        self.load_line_model(path_to_line_model)
+        return self.region_model, self.line_model
+
+    def _run_models(self, x: torch.Tensor) -> List[torch.Tensor]:
+        if self.region_model is None or self.line_model is None:
+            raise RuntimeError("Region and line models must be loaded first: call load()")
+        return [self.region_model(x), self.line_model(x)]
 
     def predict(self, imgs: List[np.ndarray], return_acc: bool = False) -> Tuple:
         """
@@ -444,7 +458,7 @@ class OptionsDetector(object):
     def _predict(self, xs):
         x = torch.tensor(np.moveaxis(np.array(xs), 3, 1))
         x = x.to(device_torch)
-        predicted = [p.cpu().numpy() for p in self.model(x)]
+        predicted = [p.cpu().numpy() for p in self._run_models(x)]
         return predicted
 
     @staticmethod
@@ -468,7 +482,7 @@ class OptionsDetector(object):
     def forward(self, inputs):
         x = torch.tensor(inputs)
         x = x.to(device_torch)
-        model_output = self.model(x)
+        model_output = self._run_models(x)
         return model_output
 
     @torch.no_grad()

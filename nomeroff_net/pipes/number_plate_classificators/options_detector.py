@@ -10,6 +10,7 @@ from pytorch_lightning.tuner.tuning import Tuner
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.callbacks import LearningRateMonitor
 
+from nomeroff_net.tools.pl_compat import checkpoint_load_kwargs
 from nomeroff_net.tools.mcm import (modelhub, get_device_torch)
 from nomeroff_net.data_modules.numberplate_options_data_module import OptionsNetDataModule
 from nomeroff_net.nnmodels.numberplate_options_model import NPOptionsNet
@@ -280,6 +281,7 @@ class OptionsDetector(object):
 
         self.model = NPOptionsNet.load_from_checkpoint(buffer,
                                                        map_location=torch.device('cpu'),
+                                                       **checkpoint_load_kwargs(),
                                                        region_output_size=len(self.class_region),
                                                        count_line_output_size=len(self.count_lines),
                                                        img_h=self.height,

@@ -222,7 +222,7 @@ if __name__ == '__main__':
     num_classes = len(train_dataset.char_to_idx)
     model = OCRModel(num_classes=num_classes)
 
-    trainer = pl.Trainer(max_epochs=10, gpus=1 if torch.cuda.is_available() else 0)
+    trainer = pl.Trainer(max_epochs=10, accelerator="gpu" if torch.cuda.is_available() else "cpu", devices=1)
     trainer.fit(model, train_loader, val_loader)
     trainer.save_checkpoint("last.ckpt", weights_only=False)
 
